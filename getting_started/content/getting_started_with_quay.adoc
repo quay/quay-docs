@@ -1,191 +1,204 @@
-=== Overview
+= Overview
 
-=== Background
+== Architecture
 
-Quay is make up of 3 core components and in highly avalable setups and additional object storeage component is part of the architecture. 
+Quay is made up of three core components for a basic setup. In highly avalable setups, an additional object storage component is needed. The three core components are: 
 
-The 3 core components are: 
+* **Database (MySQL or PostgreSQL)**: Used by Quay as its primary metadata storage (not for image storage).
+* **Redis (key, value store)**: Used for providing real time events and during Quay setup and installation.
+* **Quay**: Runs Quay as a service, consisting of several components in the pod.
 
-    1. Database (MySQL or PostgresSQL)
-       - Used by quay as it primary metadata and storage (not for image storage)
-    2. Redis (key, value store)
-       - Used for providing real time events and setup/install of Quay
-    3. Quay as a Service
-        - Internally (to the pod) their are several components
+The fourth componnent of Quay is an optional storage component, for storing images. This basic procedure simply uses the local hard disk. For the high availability install, you can use the following types of storage:
 
-The 4th componnent of Quay is a storage component (where images are stored).
+* In public cloud environments, you should use the cloud provider's object storage, such as Amazon S3 (for AWS) or Google Cloud Storage (for Google Cloud).
 
-    - In public cloud enviornments (AWS, and Google), you should use the cloud providers object storage: Amazon S3, Google Cloud Storage
-    - In private clouds an S3 or Swift compliant Object Store is needed: Ceph RADOS or OpenStack Swift
+* In private clouds an S3 or Swift compliant Object Store is needed, such as Ceph RADOS or OpenStack Swift.
 
-# Installing Quay
+This getting started guide provides two different ways of setting up Red Hat Quay on Red Hat Enterprise Linux, both of which are based on Quay upstream documents:
 
-- https://coreos.com/quay-enterprise/docs/latest/initial-setup.html
-- https://coreos.com/quay-enterprise/docs/latest/high-availability.html
+* Set up Red Hat Quay (Basic) (see [For Testing as a container](https://coreos.com/quay-enterprise/docs/latest/initial-setup.html))
+* Set up Red Hat Quay (High Availability) (see [High Availability for Quay Enterprise](https://coreos.com/quay-enterprise/docs/latest/high-availability.html)
 
-## Pre-Requisites
+== Installing Quay (basic)
 
-- 1 VM / System with sufficent CPU, Memory and Storage
-    - The System should be Registered and Subscribed to Red Hat. 
-        - https://access.redhat.com/solutions/253273
-    - 2vcpu, 8192MB RAM (roughly only 4029MB is needed for Quay, the rest is for overhead and CEPH), and ~10GBx3 of HDD Space
-        - ~10GB HDD for OS (Red Hat, Fedora, Centos)
-        - ~10GB+ HDD for docker storage
-        - ~10GB+ HDD for Quay Local Storage (*optional*: You can install CEPH or other local storage options - requires more memory)
-    - System should be configured to run [docker](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index)
-- A valid (coreos) license is required to run Quay. Your license can be found on [Tectonic Accounts](https://account.tectonic.com/?_ga=2.89691474.855634678.1524488291-1499321380.1523978881). 
-    - Please download or copy this license in Raw Format as a file named `license`.
-    - This file will be placed in `/root/.docker/config.json` or `/home/USER/.docker/config.json` (which ever will be downloading the quay image).
- 
-## Installing a Local Test Instance
+=== Prerequisites
 
-**Example inventory**: 
-``` 
-[hypervisor]
-127.0.0.1 ansible_connection=local
+For a basic Red Hat Quay Registry installation (appropriate for testing purposes and personal use), you need one virtual machine that has the following attributes:
 
-[hypervisor:vars]
-libvirt_bridges=[{'name': 'quaylab', 'forward': 'nat', 'bridge': 'virbr-900', 'domain': 'quaylab.lan', 'network': '192.168.254.0', 'broadcast': '192.168.254.255', 'ip_address': '192.168.254.254', 'ip_netmask': '255.255.255.0', 'dhcp_start': '192.168.254.1', 'dhcp_end': '192.168.254.253'}]
-libvirt_pools=[{'virt-pool': { 'type': 'lvm', 'path': '/dev/nvme0n1p2' } }]
+* **Red Hat Enterprise Linux (RHEL)**: Obtain the latest Red Hat Enterprise Linux server media from the link:https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.5/x86_64/product-software[Downloads page] and follow instructions from the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/installation_guide/index[Red Hat Enterprise Linux 7 Installation Guide].
+* **Valid Red Hat Subscription**: Obtain a valid Red Hat Enterprise Linux server subscription. 
+* **CPUs**: Two virtual CPUs
+* **RAM**: 8192MB (roughly only 4029MB is needed for Red Hat Quay; the rest is for overhead and CEPH)
+* **Disk space**:  About 30GB of disk space
 
-[lab:vars]
-cloud_user_passwd="redhat"
-resources={'vcpus': 2, 'ram': 8192, 'disks': [{'size': 10, 'pool': 'virt-pool'}, {'size': 10, 'pool': 'virt-pool'}], 'network': 'quaylab'}
+    - About 10GB of disk space for the operating system (Red Hat Enterprise Linux Server).
+    - At least 10GB of disk space for docker storage
+    - At least 10GB of disk space for Quay local storage (CEPH or other local storage might require more memory)
 
-[lab]
-quay.quaylab.lan image_uri="http://porkchop.redhat.com/released/RHEL-7/7.5/Server/x86_64/images/rhel-guest-image-7.5-146.x86_64.qcow2" convert_to_lv_on_vg=virt-pool 
-```
-- **Note:** This uses KVM VM provisoning scrips: https://github.com/sferich888/fedora-minilab to provid the VM infastructure for a local lab. 
+* **docker service**: Install and enable the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index#getting_docker_in_rhel_7[docker service].
 
-1. **Provision the Lab**
-    - Follow the documenation for the ansible playbooks! This step can be skipped if you have other tools or method of get a requisit VM or system.
+* **CoreOS License**: A valid (CoreOS) license is required to run Red Hat Quay. Find a license at link:https://account.tectonic.com/?_ga=2.89691474.855634678.1524488291-1499321380.1523978881[Tectonic Accounts]. 
 
-2. **Install Quay** Basic (Test)
-	1. Manual 	
-        1. **Register the System**
-            - **Note:** [How to Register a RHEL system](https://access.redhat.com/solutions/253273)
-            ```
-            # subscription-manager register --username=<user_name> --password=<password>
-            # subscription-manager refresh
-            # subscription-manager list --available --matches '*IDK*'
-            # subscription-manager attach --pool=<pool_id>
-            # subscription-manager repos --disable="*"
-            # subscription-manager repos \
-                --enable="rhel-7-server-rpms" \
-                --enable="rhel-7-server-extras-rpms" \
-            ```
-        1. **Setup Docker**
-        	- **Note:** [Install and Setup Docker](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index)
-        	```
-            # sudo yum install docker
-            
-            # cat <<EOF > /etc/sysconfig/docker-storage-setup
-            DEVS=/dev/vdb
-            VG=docker-vg
-            EOF
-            # sudo docker-storage-setup
-            
-            # sudo systemctl enable docker
-            # sudo systemctl start docker
-            # sudo systemctl is-active docker
-            ```
-        1. **Install / Deploy a Database**
-        	2. [MySQL](https://access.redhat.com/containers/#/registry.access.redhat.com/rhscl/mysql-57-rhel7)
-                - Note: This DB is not persistant across reboots because a storage path is not provided. 
-        	    ```
-                # sudo docker \
-                  run \
-                  --detach \
-                  --restart=always \
-                  --env MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
-                  --env MYSQL_USER=${MYSQL_USER} \
-                  --env MYSQL_PASSWORD=${MYSQL_PASSWORD} \
-                  --env MYSQL_DATABASE=${MYSQL_DATABASE} \
-                  --name ${MYSQL_CONTAINER_NAME} \
-                  --publish 3306:3306 \
-                  - v /some/path:/var/lib/mysql/data:Z
-                registry.access.redhat.com/rhscl/mysql-57-rhel7;
-                ```
-                
-                - **TODO:** Test Connectivitiy (I have python for this)
-            
-        	3. [PostgresSQL](https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhscl/postgresql-96-rhel7)
-                ```
-                $ sudo docker run -d --name postgresql_database -v /mnt:/var/lib/pgsql/data:Z -e POSTGRESQL_USER=test -e POSTGRESQL_PASSWORD=test -e POSTGRESQL_DATABASE=test -p 5432:5432 rhscl/postgresql-96-rhel7
+=== Installing Red Hat Quay (basic/single system)
+Follow these steps to install Red Hat Quay on a single system (VM or bare metal).
 
-                $ sudo docker exec -it postgresql_database /bin/bash -c 'echo "CREATE EXTENSION pg_trgm" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
-                CREATE EXTENSION
+1. **Install Red Hat Enterprise Linux server**: Install the latest RHEL server. You can do a Minimal install (shell acccess only) or Server plus GUI (if you want a desktop).
+1. **Register the System**: Register and subscribe your RHEL server system to Red Hat. See link:https://access.redhat.com/solutions/253273[How to register and subscribe a system...] for details. The following commands register your system and list available subscriptions. Choose an available RHEL server subscription, attach to its poolid, enable rhel-7-server-rpms and rhel-7-server-extras-rpms repositories, and upgrade to the latest software:
 
-                ### Confirm that the Extension is Installed
-                $ sudo docker exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_extension" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
++
+....
+# subscription-manager register --username=<user_name> --password=<password>
+# subscription-manager refresh
+# subscription-manager list --available
+# subscription-manager attach --pool=<pool_id>
+# subscription-manager repos --disable="*"
+# subscription-manager repos \
+    --enable="rhel-7-server-rpms" \
+    --enable="rhel-7-server-extras-rpms"
+# yum update -y
+....
 
-                ```
-                Notes: 
-                Running Container: sudo docker run -d --name postgresql_database -v /mnt:/var/lib/pgsql/data:Z -e POSTGRESQL_USER=test -e POSTGRESQL_PASSWORD=test -e POSTGRESQL_DATABASE=test -p 5432:5432 rhscl/postgresql-96-rhel7
-                Seeing What Extensions are Installed: `SELECT * FROM pg_extension;`
-                Seeing what Extensions can be installed: `SELECT * FROM pg_available_extensions;`
-                Install the Extension: `CREATE EXTENSION pg_trgm;`
+1. **Add Quay licensing:**: Obtain an account from link:https://account.tectonic.com/?_ga=2.89691474.855634678.1524488291-1499321380.1523978881[Tectonic Accounts]. Then create a .docker directory and add License and Secret information to that directory from your CoreOS account page as follows:
 
-                - **TODO:** Test Connectivitiy (need a better way)
-            
-        1. **Install / Deploy [Redis](https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhscl/redis-32-rhel7)**
-        ```
-        # sudo docker run -d -p 6379:6379 registry.access.redhat.com/rhscl/redis-32-rhel7
-        ```
-        - **TODO:** Test Connectivitiy (need a better way)
-            ```
-            # yum install redis
-            # redis-cli -h quay.quaylab.lan -p 6379 ping
-            ```
-        
-        1. **Install / Deploy Quay**
-        ```
-        # mkdir -p /var/run/quay/config
-      	### optional: if you don't choose to install an Object Store
-     	# mkdir -p /var/run/quay/storage
-  
-        # sudo docker run --restart=always -p 443:443 -p 80:80 --privileged=true -v /var/run/quay/config:/conf/stack -v /var/run/quay/storage:/datastorage -d quay.io/coreos/quay:v2.9.1
-        ```
-        
-        1. **Complete the Guided Setup**
-      	    - visit: http://quay.quaylab.lan/setup
-            - **Note:** The hostname of the lab can differ depending on how you deployed or configured the VM's
-            1. Select DB Type
-            2. Fill out the form and with DB details
-            3. Fill out the form to create a SuperUser
-            4. Fill out the configuration form > link to other sections on configuration. 
-    
-    1. Automated
-    	1. Follow the [automation scripts]() to standalone install.
-        - Run `ansible-playbook -i quay.inv_sample quaylab.yml -k` and fill in the prompts 
-        - You then need to install ceph - if you want to use it
-           - Note: https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/#installing-a-red-hat-ceph-storage-cluster 
-           - You then need to create a USER: 
-               - https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html/object_gateway_guide_for_red_hat_enterprise_linux/configuration#creating_a_literal_radosgw_literal_user_for_s3_access
-           - You then need to create a bucket: (use the python script for this in the test directory). 
-               - `python s3bucket_create.py` << Be sure to edit variables in this using data from user create. 
++
+....
+# mkdir -p $HOME/.docker
+....
 
-## Installing on OpenShift
++
+* Download or copy the CoreOS License, in raw format, as a file named *$HOME/.docker/license*. 
 
-- Use the quay-enterprise-template.yml template 
-```
-$ oc process -f quay-enterprise-template.yml -p AUTH_KEY=$(jq '.auths."quay.io".auth' config.json) | oc create -f -
-```
+* Select Pull Secret and download the file to *$HOME/.docker/config.json*.
 
-## Installing a Production (Highly Avalable Instance) 
-TODO: Do this - install template resouce give a fairly good example of whats needed here. 
+1. **Setup Docker**: Install, enable, and start the docker service as shown here (see link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index#getting_docker_in_rhel_7[Getting Docker in RHEL 7] for details):
 
-Needs ~3 vm's (of similar sizes) + a Loadbalancer + Object Storage
- - HA DB Service is recommended see options for this below. 
++
+....
+# yum install docker
+# systemctl enable docker
+# systemctl start docker
+# systemctl is-active docker
+active
+....
 
-In the Cloud you can use: 
-AWS:    https://aws.amazon.com/rds/sqlserver/
-        https://aws.amazon.com/rds/mysql/
-        https://aws.amazon.com/rds/postgresql/
+1. **Install / Deploy a Database**: Choose either MySQL or PostgreSQL (see <TBD> for details) as a data base. This example shows how to deploy the link:https://access.redhat.com/containers/#/registry.access.redhat.com/rhscl/mysql-57-rhel7[MySQL database container] (see the link:https://access.redhat.com/documentation/en-us/red_hat_software_collections/2/html-single/using_red_hat_software_collections_container_images/#mysql[MySQL] section of Using Red Hat Software Collections Container Images for details.) The values for storing MySQL data (/mnt/hostmysql) and setting database values are examples that you can change, if you like:
++
+....
+# mkdir -p /mnt/hostmysql
+# chmod 777 /mnt/hostmysql
+# export MYSQL_CONTAINER_NAME=mysql
+# export MYSQL_DATABASE=enterpriseregistrydb
+# export MYSQL_PASSWORD=JzxCTamgFBmHRhcGFtoPHFkrx1BH2vwQ
+# export MYSQL_USER=quayuser
+# export MYSQL_ROOT_PASSWORD=L36PrivxRB02bqOB9jtZtWiCcMsApOGn
 
-GOOGLE: https://cloud.google.com/sql/docs/
-        https://cloud.google.com/sql/docs/mysql/high-availability
-        https://cloud.google.com/sql/docs/postgres/high-availability
+# docker run \
+    --detach \
+    --restart=always \
+    --env MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
+    --env MYSQL_USER=${MYSQL_USER} \
+    --env MYSQL_PASSWORD=${MYSQL_PASSWORD} \
+    --env MYSQL_DATABASE=${MYSQL_DATABASE} \
+    --name ${MYSQL_CONTAINER_NAME} \
+    --publish 3306:3306 \
+    -v /mnt/hostmysql:/var/lib/mysql/data:Z \
+    registry.access.redhat.com/rhscl/mysql-57-rhel7
+....
++
+[NOTE]
+To generate passwords for MySQL user accounts, instead of setting them statically, run the following:
++
+# export MYSQL_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | sed 1q)
++
+# export MYSQL_ROOT_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | sed 1q)
 
-OpenStack: You could use Trove, if we Red Hat shipped or supported this (sadly we don't) 
-        Red Hat seems ot have a partnership: https://docs.google.com/document/d/1veiYSTVckBU-oHEDQbimE-8sGOUMPXAUfkSjYOqP1v0/edit because trove is not something will ship with OSP
+1. **Check database connectivity**: <TBD>
+
+
+1. **Install / Deploy link:https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhscl/redis-32-rhel7)[Redis]**: Do the following to run Redis as a container:
+
++
+....
+# docker run -d -p 6379:6379 registry.access.redhat.com/rhscl/redis-32-rhel7
+....
+
+1. **Check redis connectivity:** <TBD>
+
+1. **Install / Deploy Quay**: To run Red Hat Quay as a container, create two directories to store data on the host, then run Red Hat Quay as a container, as follows:
+
++
+....
+# mkdir -p /var/run/quay/config
+# #optional: if you don't choose to install an Object Store
+# mkdir -p /var/run/quay/storage
+# docker run --restart=always -p 443:443 -p 80:80 \
+   --privileged=true \
+   -v /var/run/quay/config:/conf/stack \
+   -v /var/run/quay/storage:/datastorage \
+   -d quay.io/coreos/quay:v2.9.1
+....
+Wait several minutes for the Quay service to come up. Then proceed to Completing the Guided Setup.
+
+== Completing the Guided Setup
+
+Open a browser to the setup page on the system where you just started quay (for example http://hostname/setup) and complete the following steps:
+
+1. **Identify the database**: Add the following information about the type and location of the database to be used by Quay:
+
++
+* **Database Type**: Choose MySQL or PostgreSQL. (We configured MySQL for this example.)
++
+* **Database Server**: Identify the IP address or hostname of the database, along with the port number if it is different from 3306.
++
+* **Username**: Identify a user with full access to the database (such as root user).
++
+* **Password**: Enter the password you assigned to the selected user.
++
+* **Database Name**: Enter the database name you assigned when you started the MySQL server.
++
+* **SSL Certificate**: For production environments, you should provide an SSL certificate to connect to the database. See link:https://coreos.com/quay-enterprise/docs/latest/quay-ssl.html[Using SSL to protect connections to Quay Enterprise] for details.
++
+Figure 1 shows an example of the screen for identifying the database used by Red Hat Quay.
++
+image:../images/Figure01.png[Identifying the database Red Hat Quay will use]
++
+Figure 2 shows an example of the Quay Enterprise Setup screen as the database schema is set up.
++
+image:../images/Figure02.png[Wait several minutes as the database schema setup completes]
+
+
+2. **Create Quay superuser**: You need to set up an account with superuser privileges to Quay, to use for editing Quay configuration settings. That information includes a Username, Email address, and Password (entered twice).
++
+Figure 3 shows an example of the Quay Enterprise Setup screen for setting up a Quay superuser account:
++
+image:../images/Figure03.png[Set up a Quay superuser account to do Quay configuration]
+
+3. **Add other settings**: Other setting you can add to complete the setup are as follows. For this basic, test configuration, identifying the Redis Hostname should be all you need to do.
++
+* **Custom SSL Certificates**: See
+* **Basic Configuration**: See
+* **Server Configuraton**: See
+* **Data Consistency Settings**: See
+* **Time Machine**: See
+* **redis**: See
+* **Registry Storage**: See
+* **Action Log Rotation and Archiving**: See
+* **Security Scanner**: See
+* **Application Registry**: See
+* **BitTorrent-based download**: See
+* **rkt Conversion**: See
+* **E-mail**: See
+* **Internal Authentication**: See
+* **External Authorization (OAuth)**: See
+* **Google Authentication**: See
+* **Access settings**: See
+* **Dockerfile Build Support**:
++
+Select "Save Configuration Changes", then "Save Configuration.
+
+4. **Restart Quay**: When prompted, select "Restart Container" to restart Quay. Figure 4 shows that screen that appears as you want for Quay to restart.
+
+image:../images/Figure04.png[It could take several minutes for Quay to restart.]
+
+
+The basic Quay configuration setup is now complete.
