@@ -55,11 +55,16 @@ objects:
         labels:
           quay-enterprise-component: redis
       spec:
+        serviceAccountName: quay
         containers:
         - name: redis-master
           image: registry.access.redhat.com/rhscl/redis-32-rhel7
           ports:
           - containerPort: 6379
+          securityContext:   # Requires that you run: `oc adm policy add-scc-to-user privileged system:serviceaccount:quay-enterprise:quay`
+          # https://trello.com/c/AESKXB60/101-templating-enable-modifying-user-permissions would allow us to bindings into the template, and not run the command (above).
+            privileged: true
+            runAsUser: 0
 - apiVersion: v1
   kind: Service
   metadata:
@@ -94,7 +99,6 @@ objects:
           - name: configvolume
             secret:
               secretName: quay-enterprise-config-secret
-        serviceAccountName: quay
         containers:
         - name: quay-enterprise-app
           image: quay.io/coreos/quay:v2.9.1
@@ -104,10 +108,6 @@ objects:
           - name: configvolume
             readOnly: false
             mountPath: /conf/stack
-          securityContext:   # Requires that you run: `oc adm policy add-scc-to-user privileged system:serviceaccount:quay-enterprise:quay`
-          # https://trello.com/c/AESKXB60/101-templating-enable-modifying-user-permissions would allow us to bindings into the template, and not run the command (above).
-            privileged: true
-            runAsUser: 0
         imagePullSecrets:
           - name: coreos-pull-secret
 - apiVersion: rbac.authorization.k8s.io/v1beta1
