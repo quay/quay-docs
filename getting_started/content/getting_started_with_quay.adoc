@@ -20,16 +20,16 @@ Quay configurations can be built for non-production, test-only setups or full-bl
 
 = Architecture
 
-Quay is made up of four core components. For a basic setup we will skip the storage component.
-The three core components are:
+Quay is made up of three core components for a basic setup. In highly available setups, an additional object storage component is needed. The three core components are: 
 
 * **Database (MySQL or PostgreSQL)**: Used by Quay as its primary metadata storage (not for image storage).
-* **Redis (key, value store)**: Used for providing real time events.
-* **Quay (container registry)**: Runs Quay services, components all contained in a single pod.
+* **Redis (key, value store)**: Used for providing real time events and during Quay setup and installation.
+* **Quay (container registry)**: Runs Quay as a service, consisting of several components in the pod.
 
-A fourth component (optional for POC's) is, an object storage solution, for storing images. The basic procedure (for demo/testing only) simply uses the local hard disk. For the high availability installation, you need to use/choose one of the following types of storage:
+An optional fourth component is for storing images. The basic procedure simply uses the local hard disk. For the high availability installation, you need to use one of the following types of storage:
 
 * **Public cloud storage**: In public cloud environments, you should use the cloud provider's object storage, such as Amazon S3 (for AWS) or Google Cloud Storage (for Google Cloud).
+
 * **Private cloud storage**: In private clouds, an S3 or Swift compliant Object Store is needed, such as Ceph RADOS, or OpenStack Swift.
 
 This getting started guide provides two different ways of setting up Red Hat Quay on Red Hat Enterprise Linux, both of which are based on Quay upstream documents:
@@ -39,11 +39,10 @@ This getting started guide provides two different ways of setting up Red Hat Qua
 
 = Installing Red Hat Quay (basic)
 
-+
 [NOTE]
-+
+====
 This installation process is only for POC purposes and is not intended for use as a production install.
-+
+====
 
 == Prerequisites
 
@@ -130,11 +129,13 @@ active
 ....
 +
 [NOTE]
+====
 To generate passwords for MySQL user accounts, instead of setting them statically, run the following:
-+
+
 # export MYSQL_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | sed 1q)
-+
+
 # export MYSQL_ROOT_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | sed 1q)
+====
 
 1. **(optional) Check database connectivity**: To check connectivity to the database, you can log in using the mysql command (from the mariadb package). Substitute the hostname (or IP address) of your MySQL service and your password. Type `status` to see information about your MySQL connection:
 +
@@ -203,11 +204,10 @@ Connection closed by foreign host.
 ....
 Wait several minutes for the Quay service to come up. Then proceed to Completing the Guided Setup.
 
-+
 [NOTE]
-+
+====
 This can take several minutes, and when attempting to access the Guided Setup you might recive a proxy error. If you do please wait a while longer and try again.
-+
+====
 
 == Completing the Guided Setup
 
@@ -232,18 +232,18 @@ Figure 1 shows an example of the screen for identifying the database used by Red
 +
 image:../images/Figure01.png[Identifying the database Red Hat Quay will use]
 +
-
 Select "Validate Database Settings", and proceed to the next section.
 
++
 Figure 2 shows an example of the Quay Enterprise Setup screen as the database schema is set up.
 +
 image:../images/Figure02.png[Wait several minutes as the database schema setup completes]
 
 +
 [NOTE]
-+
+====
 At this point a restart of the Quay container should happen. If the container does not restart, the docker restart policy may not be working properly, and a manual restart of the container may be required.
-+
+====
 
 2. **Create Quay superuser**: You need to set up an account with superuser privileges to Quay, to use for editing Quay configuration settings. That information includes a Username, Email address, and Password (entered twice).
 +
@@ -251,11 +251,13 @@ Figure 3 shows an example of the Quay Enterprise Setup screen for setting up a Q
 +
 image:../images/Figure03.png[Set up a Quay superuser account to do Quay configuration]
 
++
 Select "Create Super User", and proceed to the next section.
 
 3. **Add other settings**: Other setting you can add to complete the setup are as follows. For this basic, test configuration, identifying the Redis Hostname should be all you need to do.
 +
 * **Custom SSL Certificates**: Upload custom or self-signed SSL certificates for use by Quay. See link:https://coreos.com/quay-enterprise/docs/latest/quay-ssl.html[Using SSL to protect connections to Quay Enterprise] for details.
+
 * **Basic Configuration**: Upload a company logo to rebrand your Quay registry.
 * **Server Configuration**: Hostname or IP address to reach the Quay service, along with TLS indication (recommended for production installations).
 * **Data Consistency Settings**: Select to relax logging consistency guarantees to improve performance and availability.
@@ -280,12 +282,11 @@ Select "Save Configuration Changes", then "Save Configuration.
 
 image:../images/Figure04.png[It could take several minutes for Quay to restart.]
 
-+
 [NOTE]
-+
+====
 At this point a restart of the Quay container should happen. If the container does not restart, the docker restart policy may not be working properly, and a manual restart of the container may be required.
-+
+====
 
 The basic Quay configuration setup is now complete. (If the interface hangs after a few minutes, you may need to restart the quay service or simply reload the page.)
 
-At this point, select Tutorial from the Quay home page to try the 15-minute tutorial. In the tutorial, you learn to log into Quay, start a container, create images, push repositories, view repositories, and change repository permissions with Quay.
+Next, you can select Tutorial from the Quay home page to try the 15-minute tutorial. In the tutorial, you learn to log into Quay, start a container, create images, push repositories, view repositories, and change repository permissions with Quay.
