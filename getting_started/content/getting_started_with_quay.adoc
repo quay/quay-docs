@@ -16,7 +16,11 @@ Quay provides support for multiple:
 * SSL certificates
 * Application registries
 
-Quay configurations can be built for non-production, test-only setups or full-blown enterprise-quality, high availability configurations.
+This getting started guide provides two different ways of setting up Red Hat Quay on Red Hat Enterprise Linux, both of which are based on Quay upstream documents:
+
+* Set up Red Hat Quay (Basic) - Available in this guide, for non-production, test-only setups (based on link:https://coreos.com/quay-enterprise/docs/latest/initial-setup.html[For Testing as a container]).
+* Set up Red Hat Quay (High Availability) - Soon to come, production-quality, high availability configuration (based on link:https://coreos.com/quay-enterprise/docs/latest/high-availability.html[High Availability for Quay Enterprise])
+
 
 = Architecture
 
@@ -32,11 +36,6 @@ An optional fourth component is for storing images. The basic procedure simply u
 
 * **Private cloud storage**: In private clouds, an S3 or Swift compliant Object Store is needed, such as Ceph RADOS, or OpenStack Swift.
 
-This getting started guide provides two different ways of setting up Red Hat Quay on Red Hat Enterprise Linux, both of which are based on Quay upstream documents:
-
-* Set up Red Hat Quay (Basic) - Available here now (based on link:https://coreos.com/quay-enterprise/docs/latest/initial-setup.html[For Testing as a container]).
-* Set up Red Hat Quay (High Availability) - Soon to come (based on link:https://coreos.com/quay-enterprise/docs/latest/high-availability.html[High Availability for Quay Enterprise])
-
 = Installing Red Hat Quay (basic)
 
 [NOTE]
@@ -46,7 +45,7 @@ This installation process is only for POC purposes and is not intended for use a
 
 == Prerequisites
 
-For a Red Hat Quay Registry installation (appropriate for demo or testing purposess), you need one system (physical or virtual machine) that has the following attributes:
+For a Red Hat Quay Registry installation (appropriate for non-production purposess), you need one system (physical or virtual machine) that has the following attributes:
 
 * **Red Hat Enterprise Linux (RHEL)**: Obtain the latest Red Hat Enterprise Linux server media from the link:https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.5/x86_64/product-software[Downloads page] and follow instructions from the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/installation_guide/index[Red Hat Enterprise Linux 7 Installation Guide].
 * **Valid Red Hat Subscription**: Obtain a valid Red Hat Enterprise Linux server subscription.
@@ -81,7 +80,7 @@ Follow these steps to install Red Hat Quay on a single system (VM or bare metal)
 # yum update -y
 ....
 
-1. **Add Quay licensing:**: Obtain an account from link:https://account.tectonic.com/?_ga=2.89691474.855634678.1524488291-1499321380.1523978881[Tectonic Accounts]. Then create a .docker directory and add License and Secret information to that directory from your CoreOS account page as follows:
+1. **Add Quay licensing**: Obtain an account from link:https://account.tectonic.com/?_ga=2.89691474.855634678.1524488291-1499321380.1523978881[Tectonic Accounts]. Then create a .docker directory and add License and Secret information to that directory from your CoreOS account page as follows:
 
 +
 ....
@@ -104,7 +103,7 @@ Follow these steps to install Red Hat Quay on a single system (VM or bare metal)
 active
 ....
 
-1. **Install / Deploy a Database**: Choose either MySQL or PostgreSQL as a database. This example shows how to deploy the link:https://access.redhat.com/containers/#/registry.access.redhat.com/rhscl/mysql-57-rhel7[MySQL database container] (see the link:https://access.redhat.com/documentation/en-us/red_hat_software_collections/2/html-single/using_red_hat_software_collections_container_images/#mysql[MySQL] section of Using Red Hat Software Collections Container Images for details.) If you like, you can change any of the following for storing MySQL data (/mnt/hostmysql) and setting database values:
+1. **Install / Deploy a Database**: Choose either MySQL or PostgreSQL as a database. This example shows how to deploy the link:https://access.redhat.com/containers/#/registry.access.redhat.com/rhscl/mysql-57-rhel7[MySQL database container] (see the link:https://access.redhat.com/documentation/en-us/red_hat_software_collections/2/html-single/using_red_hat_software_collections_container_images/#mysql[MySQL] section of Using Red Hat Software Collections Container Images for details.) To configure the MySQL database, you can use the values shown here or change any of the following for storing MySQL data (/mnt/hostmysql) and setting database values:
 +
 ....
 # mkdir -p /mnt/hostmysql
@@ -162,7 +161,7 @@ MySQL [(none)]> \q
 ....
 
 
-1. **Install / Deploy link:https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhscl/redis-32-rhel7)[Redis]**: Do the following to run Redis as a container:
+1. **Install / Deploy link:https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhscl/redis-32-rhel7)[Redis]**: Run Redis as a container:
 
 +
 ....
@@ -216,7 +215,7 @@ Open a browser to the setup page on the system where you just started quay (for 
 1. **Identify the database**: Add the following information about the type and location of the database to be used by Quay:
 
 +
-* **Database Type**: Choose MySQL or PostgreSQL. (We configured MySQL for this example.)
+* **Database Type**: Choose MySQL or PostgreSQL. (MySQL was used in this example.)
 +
 * **Database Server**: Identify the IP address or hostname of the database, along with the port number if it is different from 3306.
 +
@@ -254,7 +253,7 @@ image:../images/Figure03.png[Set up a Quay superuser account to do Quay configur
 +
 Select "Create Super User", and proceed to the next section.
 
-3. **Add other settings**: Other setting you can add to complete the setup are as follows. For this basic, test configuration, identifying the Redis Hostname should be all you need to do.
+3. **Identify the Redis hostname and add other desired settings**: Other setting you can add to complete the setup are as follows. For this basic, test configuration, identifying the Redis Hostname should be all you need to do.
 +
 * **Custom SSL Certificates**: Upload custom or self-signed SSL certificates for use by Quay. See link:https://coreos.com/quay-enterprise/docs/latest/quay-ssl.html[Using SSL to protect connections to Quay Enterprise] for details.
 
@@ -287,6 +286,8 @@ image:../images/Figure04.png[It could take several minutes for Quay to restart.]
 At this point a restart of the Quay container should happen. If the container does not restart, the docker restart policy may not be working properly, and a manual restart of the container may be required.
 ====
 
-The basic Quay configuration setup is now complete. (If the interface hangs after a few minutes, you may need to restart the quay service or simply reload the page.)
+The basic Quay configuration setup is now complete. If the interface hangs after a few minutes, you may need to restart the quay service or simply reload the page.
 
-Next, you can select Tutorial from the Quay home page to try the 15-minute tutorial. In the tutorial, you learn to log into Quay, start a container, create images, push repositories, view repositories, and change repository permissions with Quay.
+== Next steps
+
+Once the setup is complete, you can select Tutorial from the Quay home page to try the 15-minute tutorial. In the tutorial, you learn to log into Quay, start a container, create images, push repositories, view repositories, and change repository permissions with Quay.
