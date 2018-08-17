@@ -24,7 +24,7 @@ This getting started guide provides two different ways of setting up Red Hat Qua
 
 = Architecture
 
-Quay is made up of three core components for a basic setup. In highly available setups, an additional object storage component is needed. The three core components are: 
+Quay is made up of three core components for a basic setup. In highly available setups, an additional object storage component is needed. The three core components are:
 
 * **Database (MySQL or PostgreSQL)**: Used by Quay as its primary metadata storage (not for image storage).
 * **Redis (key, value store)**: Used for providing real time events and during Quay setup and installation.
@@ -51,7 +51,7 @@ For a Red Hat Quay Registry installation (appropriate for non-production purpose
 * **Valid Red Hat Subscription**: Obtain a valid Red Hat Enterprise Linux server subscription.
 * **CPUs**: Two or more virtual CPUs
 * **RAM**: 4GB or more
-* **Disk space**:  (depandant on stoage needs for registry)
+* **Disk space**:  (dependant on storage needs for registry)
     - About 30GB of disk space should be enough for a test system (broken down in the following manner):
         - At least 10GB of disk space for the operating system (Red Hat Enterprise Linux Server).
         - At least 10GB of disk space for docker storage (to run 3 containers)
@@ -59,13 +59,11 @@ For a Red Hat Quay Registry installation (appropriate for non-production purpose
 
 * **docker service**: Install and enable the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index#getting_docker_in_rhel_7[docker service].
 
-* **CoreOS License**: A valid (CoreOS) license is required to run Red Hat Quay. Find a license at link:https://account.tectonic.com/?_ga=2.89691474.855634678.1524488291-1499321380.1523978881[Tectonic Accounts].
-
 == Starting up the services
 Follow these steps to install Red Hat Quay on a single system (VM or bare metal).
 
-1. **Install Red Hat Enterprise Linux server**: Install the latest RHEL server. You can do a Minimal install (shell access only) or Server plus GUI (if you want a desktop).
-1. **Register the System**: Register and subscribe your RHEL server system to Red Hat. See link:https://access.redhat.com/solutions/253273[How to register and subscribe a system...] for details. The following commands register your system and list available subscriptions. Choose an available RHEL server subscription, attach to its poolid, enable rhel-7-server-rpms and rhel-7-server-extras-rpms repositories, and upgrade to the latest software:
+. **Install Red Hat Enterprise Linux server**: Install the latest RHEL server. You can do a Minimal install (shell access only) or Server plus GUI (if you want a desktop).
+. **Register the System**: Register and subscribe your RHEL server system to Red Hat. See link:https://access.redhat.com/solutions/253273[How to register and subscribe a system...] for details. The following commands register your system and list available subscriptions. Choose an available RHEL server subscription, attach to its poolid, enable rhel-7-server-rpms and rhel-7-server-extras-rpms repositories, and upgrade to the latest software:
 
 +
 ....
@@ -80,19 +78,9 @@ Follow these steps to install Red Hat Quay on a single system (VM or bare metal)
 # yum update -y
 ....
 
-1. **Add Quay licensing**: Obtain an account from link:https://account.tectonic.com/?_ga=2.89691474.855634678.1524488291-1499321380.1523978881[Tectonic Accounts]. Then create a .docker directory and add License and Secret information to that directory from your CoreOS account page as follows:
+. **Add Quay authentication**: Set up authentication to Quay.io, so you can pull the Quay container, as described in link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay without a CoreOS login].
 
-+
-....
-# mkdir -p /root/.docker
-....
-
-+
-* Download or copy the CoreOS License, in raw format, as a file named */root/.docker/license*.
-
-* Select Pull Secret and download the file to */root/.docker/config.json*.
-
-1. **Setup Docker**: Install, enable, and start the docker service as shown here (see link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index#getting_docker_in_rhel_7[Getting Docker in RHEL 7] for details):
+. **Setup Docker**: Install, enable, and start the docker service as shown here (see link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index#getting_docker_in_rhel_7[Getting Docker in RHEL 7] for details):
 
 +
 ....
@@ -103,7 +91,7 @@ Follow these steps to install Red Hat Quay on a single system (VM or bare metal)
 active
 ....
 
-1. **Install / Deploy a Database**: Choose either MySQL or PostgreSQL as a database. This example shows how to deploy the link:https://access.redhat.com/containers/#/registry.access.redhat.com/rhscl/mysql-57-rhel7[MySQL database container] (see the link:https://access.redhat.com/documentation/en-us/red_hat_software_collections/2/html-single/using_red_hat_software_collections_container_images/#mysql[MySQL] section of Using Red Hat Software Collections Container Images for details.) To configure the MySQL database, you can use the values shown here or change any of the following for storing MySQL data (/mnt/hostmysql) and setting database values:
+. **Install / Deploy a Database**: Choose either MySQL or PostgreSQL as a database. This example shows how to deploy the link:https://access.redhat.com/containers/#/registry.access.redhat.com/rhscl/mysql-57-rhel7[MySQL database container] (see the link:https://access.redhat.com/documentation/en-us/red_hat_software_collections/2/html-single/using_red_hat_software_collections_container_images/#mysql[MySQL] section of Using Red Hat Software Collections Container Images for details.) To configure the MySQL database, you can use the values shown here or change any of the following for storing MySQL data (/mnt/hostmysql) and setting database values:
 +
 ....
 # mkdir -p /mnt/hostmysql
@@ -136,7 +124,7 @@ To generate passwords for MySQL user accounts, instead of setting them staticall
 # export MYSQL_ROOT_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | sed 1q)
 ====
 
-1. **(optional) Check database connectivity**: To check connectivity to the database, you can log in using the mysql command (from the mariadb package). Substitute the hostname (or IP address) of your MySQL service and your password. Type `status` to see information about your MySQL connection:
+. **(optional) Check database connectivity**: To check connectivity to the database, you can log in using the mysql command (from the mariadb package). Substitute the hostname (or IP address) of your MySQL service and your password. Type `status` to see information about your MySQL connection:
 +
 ....
 # yum install -y mariadb
@@ -150,7 +138,7 @@ MySQL [(none)]> status
 --------------
 mysql  Ver 15.1 Distrib 5.7.21-MariaDB, for Linux (x86_64) using readline 5.1
 Connection id:		10184
-Current database:	
+Current database:
 Current user:		root@192.168.122.99
 ...
 Server version:		5.7.21 MySQL Community Server (GPL)
@@ -161,7 +149,7 @@ MySQL [(none)]> \q
 ....
 
 
-1. **Install / Deploy link:https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhscl/redis-32-rhel7)[Redis]**: Run Redis as a container:
+. **Install / Deploy link:https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhscl/redis-32-rhel7)[Redis]**: Run Redis as a container:
 
 +
 ....
@@ -172,7 +160,7 @@ MySQL [(none)]> \q
     registry.access.redhat.com/rhscl/redis-32-rhel7
 ....
 
-1. **Check redis connectivity**: You can use the `telnet` command to test connectivity to the redis service. Type MONITOR (to begin monitoring the service) and QUIT to exit:
+. **Check redis connectivity**: You can use the `telnet` command to test connectivity to the redis service. Type MONITOR (to begin monitoring the service) and QUIT to exit:
 +
 ....
 # yum install telnet -y
@@ -188,7 +176,7 @@ QUIT
 Connection closed by foreign host.
 ....
 
-1. **Install / Deploy Quay**: To run Red Hat Quay as a container, create two directories to store data on the host, then run Red Hat Quay as a container, as follows:
+. **Install / Deploy Quay**: To run Red Hat Quay as a container, create two directories to store data on the host, then run Red Hat Quay as a container, as follows:
 
 +
 ....
@@ -199,20 +187,20 @@ Connection closed by foreign host.
    --privileged=true \
    -v /var/run/quay/config:/conf/stack \
    -v /var/run/quay/storage:/datastorage \
-   -d quay.io/coreos/quay:v2.9.1
+   -d quay.io/coreos/quay:v2.9.2
 ....
 Wait several minutes for the Quay service to come up. Then proceed to Completing the Guided Setup.
 
 [NOTE]
 ====
-This can take several minutes, and when attempting to access the Guided Setup you might recive a proxy error. If you do please wait a while longer and try again.
+This can take several minutes, and when attempting to access the Guided Setup you might receive a proxy error. If you do please wait a while longer and try again.
 ====
 
 == Completing the Guided Setup
 
 Open a browser to the setup page on the system where you just started quay (for example http://hostname/setup) and complete the following steps:
 
-1. **Identify the database**: Add the following information about the type and location of the database to be used by Quay:
+. **Identify the database**: Add the following information about the type and location of the database to be used by Quay:
 
 +
 * **Database Type**: Choose MySQL or PostgreSQL. (MySQL was used in this example.)
@@ -244,7 +232,7 @@ image:../images/Figure02.png[Wait several minutes as the database schema setup c
 At this point a restart of the Quay container should happen. If the container does not restart, the docker restart policy may not be working properly, and a manual restart of the container may be required.
 ====
 
-2. **Create Quay superuser**: You need to set up an account with superuser privileges to Quay, to use for editing Quay configuration settings. That information includes a Username, Email address, and Password (entered twice).
+. **Create Quay superuser**: You need to set up an account with superuser privileges to Quay, to use for editing Quay configuration settings. That information includes a Username, Email address, and Password (entered twice).
 +
 Figure 3 shows an example of the Quay Enterprise Setup screen for setting up a Quay superuser account:
 +
@@ -253,7 +241,7 @@ image:../images/Figure03.png[Set up a Quay superuser account to do Quay configur
 +
 Select "Create Super User", and proceed to the next section.
 
-3. **Identify the Redis hostname and add other desired settings**: Other setting you can add to complete the setup are as follows. For this basic, test configuration, identifying the Redis Hostname should be all you need to do.
+. **Identify the Redis hostname and add other desired settings**: Other setting you can add to complete the setup are as follows. For this basic, test configuration, identifying the Redis Hostname should be all you need to do.
 +
 * **Custom SSL Certificates**: Upload custom or self-signed SSL certificates for use by Quay. See link:https://coreos.com/quay-enterprise/docs/latest/quay-ssl.html[Using SSL to protect connections to Quay Enterprise] for details.
 
@@ -277,7 +265,7 @@ Select "Create Super User", and proceed to the next section.
 +
 Select "Save Configuration Changes", then "Save Configuration.
 
-4. **Restart Quay**: When prompted, select "Restart Container" to restart Quay. Figure 4 shows that screen that appears as you want for Quay to restart.
+. **Restart Quay**: When prompted, select "Restart Container" to restart Quay. Figure 4 shows that screen that appears as you want for Quay to restart.
 
 image:../images/Figure04.png[It could take several minutes for Quay to restart.]
 
