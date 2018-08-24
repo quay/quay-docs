@@ -1,0 +1,136 @@
+== Starting up the services
+Follow these steps to install Red Hat Quay on a single system (VM or bare metal).
+
+. **Install Red Hat Enterprise Linux server**: Install the latest RHEL server. You can do a Minimal install (shell access only) or Server plus GUI (if you want a desktop).
+. **Register the System**: Register and subscribe your RHEL server system to Red Hat. See link:https://access.redhat.com/solutions/253273[How to register and subscribe a system...] for details. The following commands register your system and list available subscriptions. Choose an available RHEL server subscription, attach to its poolid, enable rhel-7-server-rpms and rhel-7-server-extras-rpms repositories, and upgrade to the latest software:
+
++
+....
+# subscription-manager register --username=<user_name> --password=<password>
+# subscription-manager refresh
+# subscription-manager list --available
+# subscription-manager attach --pool=<pool_id>
+# subscription-manager repos --disable="*"
+# subscription-manager repos \
+    --enable="rhel-7-server-rpms" \
+    --enable="rhel-7-server-extras-rpms"
+# yum update -y
+....
+
+. **Add Quay authentication**: Set up authentication to Quay.io, so you can pull the Quay container, as described in link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay without a CoreOS login].
+
+. **Setup Docker**: Install, enable, and start the docker service as shown here (see link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index#getting_docker_in_rhel_7[Getting Docker in RHEL 7] for details):
+
++
+....
+# yum install docker
+# systemctl enable docker
+# systemctl start docker
+# systemctl is-active docker
+active
+....
+
+. **Install / Deploy a Database**: Choose either MySQL or PostgreSQL as a database. This example shows how to deploy the link:https://access.redhat.com/containers/#/registry.access.redhat.com/rhscl/mysql-57-rhel7[MySQL database container] (see the link:https://access.redhat.com/documentation/en-us/red_hat_software_collections/2/html-single/using_red_hat_software_collections_container_images/#mysql[MySQL] section of Using Red Hat Software Collections Container Images for details.) To configure the MySQL database, you can use the values shown here or change any of the following for storing MySQL data (/mnt/hostmysql) and setting database values:
++
+....
+# mkdir -p /mnt/hostmysql
+# chmod 777 /mnt/hostmysql
+# export MYSQL_CONTAINER_NAME=mysql
+# export MYSQL_DATABASE=enterpriseregistrydb
+# export MYSQL_PASSWORD=JzxCTamgFBmHRhcGFtoPHFkrx1BH2vwQ
+# export MYSQL_USER=quayuser
+# export MYSQL_ROOT_PASSWORD=L36PrivxRB02bqOB9jtZtWiCcMsApOGn
+
+# docker run \
+    --detach \
+    --restart=always \
+    --env MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
+    --env MYSQL_USER=${MYSQL_USER} \
+    --env MYSQL_PASSWORD=${MYSQL_PASSWORD} \
+    --env MYSQL_DATABASE=${MYSQL_DATABASE} \
+    --name ${MYSQL_CONTAINER_NAME} \
+    --publish 3306:3306 \
+    -v /mnt/hostmysql:/var/lib/mysql/data:Z \
+    registry.access.redhat.com/rhscl/mysql-57-rhel7
+....
++
+[NOTE]
+====
+To generate passwords for MySQL user accounts, instead of setting them statically, run the following:
+
+# export MYSQL_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | sed 1q)
+
+# export MYSQL_ROOT_PASSWORD=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | sed 1q)
+====
+
+. **(optional) Check database connectivity**: To check connectivity to the database, you can log in using the mysql command (from the mariadb package). Substitute the hostname (or IP address) of your MySQL service and your password. Type `status` to see information about your MySQL connection:
++
+....
+# yum install -y mariadb
+# mysql -h 192.168.122.99 -u root --password=L36PrivxRB02bqOB9jtZtWiCcMsApOGn
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MySQL connection id is 10184
+Server version: 5.7.21 MySQL Community Server (GPL)
+Copyright (c) 2000, 2017, Oracle, MariaDB Corporation Ab and others.
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+MySQL [(none)]> status
+--------------
+mysql  Ver 15.1 Distrib 5.7.21-MariaDB, for Linux (x86_64) using readline 5.1
+Connection id:		10184
+Current database:
+Current user:		root@192.168.122.99
+...
+Server version:		5.7.21 MySQL Community Server (GPL)
+Protocol version:	10
+Connection:		192.168.122.99 via TCP/IP
+...
+MySQL [(none)]> \q
+....
+
+
+. **Install / Deploy link:https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhscl/redis-32-rhel7)[Redis]**: Run Redis as a container:
+
++
+....
+# mkdir -p /mnt/hostredis
+# chmod 777 /mnt/hostredis
+# docker run -d --restart=always -p 6379:6379 \
+    -v /mnt/hostredis:/var/lib/redis/data:Z \
+    registry.access.redhat.com/rhscl/redis-32-rhel7
+....
+
+. **Check redis connectivity**: You can use the `telnet` command to test connectivity to the redis service. Type MONITOR (to begin monitoring the service) and QUIT to exit:
++
+....
+# yum install telnet -y
+# telnet 192.168.122.99 6379
+Trying 192.168.122.99...
+Connected to 192.168.122.99.
+Escape character is '^]'.
+MONITOR
++OK
++1525703165.754099 [0 172.17.0.1:43848] "PING"
+QUIT
++OK
+Connection closed by foreign host.
+....
+
+. **Install / Deploy Quay**: To run Red Hat Quay as a container, create two directories to store data on the host, then run Red Hat Quay as a container, as follows:
+
++
+....
+# mkdir -p /var/run/quay/config
+# #optional: if you don't choose to install an Object Store
+# mkdir -p /var/run/quay/storage
+# docker run --restart=always -p 443:443 -p 80:80 \
+   --privileged=true \
+   -v /var/run/quay/config:/conf/stack \
+   -v /var/run/quay/storage:/datastorage \
+   -d quay.io/coreos/quay:v2.9.2
+....
+Wait several minutes for the Quay service to come up. Then proceed to Completing the Guided Setup.
+
+[NOTE]
+====
+This can take several minutes, and when attempting to access the Guided Setup you might receive a proxy error. If you do please wait a while longer and try again.
+====

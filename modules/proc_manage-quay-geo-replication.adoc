@@ -1,0 +1,73 @@
+[[georeplication-of-storage-in-quay]]
+= Georeplication of storage in Red Hat Quay
+
+Georeplication allows for a single globally-distributed Red Hat Quay
+to serve container images from localized storage.
+
+When georeplication is configured, container image pushes will be
+written to the preferred storage engine for that QE instance. After the
+initial push, image data will be replicated in the background to other
+storage engines. The list of replication locations is configurable. An
+image pull will always use the closest available storage engine, to
+maximize pull performance.
+
+[[prerequisites]]
+== Prerequisites
+
+Georeplication requires that there be a high availability storage engine
+(S3, GCS, RADOS, Swift) in each geographic region. Further, each region
+must be able to access *every* storage engine due to replication
+requirements.
+
+[NOTE]
+====
+Local disk storage is not compatible with georeplication at this
+time.
+====
+
+[[visit-the-management-panel]]
+== Visit the Management Panel
+
+Sign in to a super user account and visit
+`http://yourregister/superuser` to view the management panel:
+proc_manage-security-scanning.adoc:image:../../images/superuser.png[Log in as superuser to set up Georeplication]
+
+[[enable-storage-replication]]
+== Enable storage replication
+
+.  Click the configuration tab and scroll down to the section
+entitled `Registry Storage`.
+.  Click `Enable Storage Replication`.
+.  Add each of the storage engines to which data will be replicated.
+All storage engines to be used must be listed.
+.  If complete replication of all images to all storage engines is
+required, under each storage engine configuration click `Replicate to
+storage engine by default`. This will ensure that all images are
+replicated to that storage engine. To instead enable per-namespace
+replication, please contact support.
+.  Click Save to validate.
+
+[[run-quay-with-storage-preferences]]
+== Run Red Hat Quay with storage preferences
+
+.  Copy the config.yaml to all machines running Red Hat Quay
+
+.  For each machine in each region, add a
+`QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environment variable with the
+preferred storage engine for the region in which the machine is running.
++
+For example, for a machine running in Europe:
++
+```
+# docker run -d -p 443:443 -p 80:80 -v /conf/stack:/conf/stack \
+    -e QUAY_DISTRIBUTED_STORAGE_PREFERENCE=europestorage \
+    quay.io/coreos/quay:versiontag
+```
++
+[NOTE]
+====
+The value of the environment variable specified must match the
+name of a Location ID as defined in the config panel.
+====
+
+.  Restart all Quay containers

@@ -1,0 +1,69 @@
+[[quay-security-scanner]]
+= Red Hat Quay Security Scanning with Clair
+
+Red Hat Quay supports scanning container images for known
+vulnerabilities with a scanning engine such as link:clair-initial-setup[Clair].
+This document explains how to configure Clair with Quay.
+
+[[visit-the-management-panel]]
+== Visit the management panel
+
+Sign in to a super user account and visit
+`http://yourregister/superuser` to view the management panel:
+image:../../images/superuser.png[Log in as superuser to set up Clair scanning]
+
+[[enable-security-scanning]]
+== Enable Security Scanning
+
+* Click the configuration tab () and scroll down to the section entitled
+*Security Scanner*.
+image:../../images/enable-security-scanning.png[Enable scanning from superuser account]
+
+* Check the "Enable Security Scanning" box
+
+[[enter-a-security-scanner]]
+== Enter a security scanner
+
+In the "Security Scanner Endpoint" field, enter the HTTP endpoint of a
+Red Hat Quay-compatible security scanner such as
+link:clair-initial-setup[Clair].
+image:../../images/security-scanner-endpoint.png[Enter location of security scanner]
+
+[[generate-an-auth-key]]
+== Generate an auth key
+
+To connect Red Hat Quay securely to the scanner, click "Create Key >"
+to create an authentication key between Quay and the Security Scanner.
+
+[[authentication-for-high-availability-scanners]]
+=== Authentication for high-availability scanners
+
+If the security scanning engine is running on multiple instances in a
+high-availability setup, select "Generate shared key":
+image:../../images/security-scanner-generate-shared.png[Select key for security scanner]
+
+Enter an optional expiration date, and click "Generate Key":
+image:../../images/security-scanner-generate-shared-dialog.png[Generate key for security scanner]
+
+*Save the key ID and download the preshared private key into the
+configuration directory for the security scanning engine.*
+image:../../images/security-scanner-shared-key.png[Generate key for security scanner]
+
+[[authentication-for-single-instance-scanners]]
+=== Authentication for single-instance scanners
+
+If the security scanning engine is being run on a single instance,
+select "Have the service provide a key":
+image:../../images/security-scanner-service-provide-key.png[Provide key for security scanner]
+
+Once the following dialog is visible, run the security scanning engine:
+image:../../images/security-scanner-service-awaiting-key.png[Run security scanner]
+
+When the security scanning engine connects, the key will be
+automatically approved.
+
+[[save-configuration]]
+== Save configuration
+
+* Click "Save Configuration Changes"
+* Restart the container (you will be prompted)

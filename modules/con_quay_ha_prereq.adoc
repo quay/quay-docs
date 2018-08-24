@@ -1,0 +1,44 @@
+= Installing Red Hat Quay (high availability)
+
+[NOTE]
+====
+This procedure presents guidance on how to set up a highly available, production-quality deployment of Red Hat Quay. 
+====
+
+== Prerequisites
+
+Here are are a few things you need to know before you begin the Red Hat Quay high availability deployment:
+
+* Either Postgres or MySQL can be used to provide the database service. Postgres was chosen here as the database because it includes the features needed to support Clair security scanning. 
+
+[NOTE]
+====
+You can substitute your own enterprise-quality database if you choose. 
+The Postgres database illustrated here is not, itself, configured for high availability.
+====
+
+* Ceph Object Gateway (also called RADOS Gateway) provides the object storage needed by Red Hat Quay. If you want your Red Hat Quay setup to do geo-replication, Ceph Object Gateway or other supported object storage is required. For cloud installations, you can use any of the following cloud object storage:
+
+** Amazon S3
+** Azure Blob Storage
+** Google Cloud Storage
+** Ceph Object Gateway
+** OpenStack Swift
+** CloudFront + S3
+
+* The haproxy server is used in this example, although you can use any proxy service that works for
+your environment.
+
+* Number of systems: This procedure uses seven systems (physical or virtual) that are assigned with the following tasks:
+
+** **db01: Load balancer and database**: Runs the haproxy load balancer and a Postgres database. Note that thes components are not themselves highly available, but are used to indicate how you might set up your own load balancer or production database.
+** **quay01, quay02, quay03: Quay and Redis**: Three (or more) systems are assigned to run the Quay and Redis services.
+** **ceph01, ceph02, ceph03: Ceph**: Three (or more) systems provide the Ceph service, for storage. If you are deploying to a cloud, you can use the cloud storage features described earlier.
+
+Each system should have the following attributes:
+
+* **Red Hat Enterprise Linux (RHEL)**: Obtain the latest Red Hat Enterprise Linux server media from the link:https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.5/x86_64/product-software[Downloads page] and follow instructions from the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/installation_guide/index[Red Hat Enterprise Linux 7 Installation Guide] to install RHEL on each system.
+** **Valid Red Hat Subscription**: Obtain Red Hat Enterprise Linux server subscriptions and apply one to each system.
+** **CPUs**: Two or more virtual CPUs
+** **RAM**: 4GB for each A and B system; 8GB for each C system
+** **Disk space**:  About 20GB of disk space for each A and B system (10GB for the operating system and 10GB for docker storage).  At least 30GB of disk space for C systems (or more depending on required container storage).

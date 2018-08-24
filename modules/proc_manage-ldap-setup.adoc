@@ -1,0 +1,89 @@
+[[ldap-authentication-setup-for-quay-enterprise]]
+= LDAP Authentication Setup for Red Hat Quay
+
+The Lightweight Directory Access Protocol (LDAP) is an open,
+vendor-neutral, industry standard application protocol for accessing and
+maintaining distributed directory information services over an Internet
+Protocol (IP) network. Red Hat Quay supports using LDAP as an
+identity provider.
+
+[[quay-ldap-prerequisites]]
+== Prerequisites
+
+The Quay LDAP setup workflow requires that the user
+configuring the LDAP Setup already exist in the LDAP directory. Before attempting
+the setup, make sure that you are logged in as a superuser that matches
+user crendentials in LDAP. In order to do so, Navigate to the SuperUser
+panel (ex: http(s)://quay.enterprise/superuser) and click on the “Create
+User” button to create a new User. Make sure to create a user that
+matches the username/email syntax in LDAP.
+
+Once the user is created, click on the Settings icon next to the user
+and choose “Make Superuser” option. For ease of troubleshooting, set the
+User password to the LDAP password.
+
+image:../../images/superuser-user-settings.png[Change the user password to match LDAP password]
+
+
+You will be prompted to restart the container once the new user is
+created. Restart the Quay container and log in to the Superuser
+panel *_as the user that was just created._*
+
+[[setup-ldap-configuration]]
+== Setup LDAP Configuration
+
+Navigate to the Superuser panel and navigate to settings section. Locate
+the Authentication section and select “LDAP” from the drop-down menu.
+
+image:../../images/authentication-ldap.png[Select LDAP from the Authentication section]
+
+Enter LDAP configuration fields as required.
+
+image:../../images/authentication-ldap-details.png[Fill in LDAP information]
+
+[[few-tips-for-ldap-configuration]]
+== Tips for LDAP configuration:
+
+* LDAP URI must be in ldap:// or ldaps:// syntax. Typing a URI with
+ldaps:// prefix will surface the option to provide custom SSL
+certificate for TLS setup
+* User Relative DN is relative to BaseDN (ex: ou=NYC not
+ou=NYC,dc=example,dc=org)
+* Logged in Username must exist in User Relative DN
+* You can enter multiple “Secondary User Relative DNs” if there are
+multiple Organizational Units where User objects are located at. (ex:
+ou=Users,ou=NYC and ou=Users,ou=SFO). Simply type in the Organizational
+Units and click on Add button to add multiple RDNs
+* sAMAccountName is the UID attribute for against Microsoft Active
+Directory setups
+* Quay searches "User Relative DN" with subtree scope. For
+example, if your Organization has Organizational Units NYC and SFO under
+the Users OU (`ou=SFO,ou=Users and ou=NYC,ou=Users`), Quay 
+can authenticate users from both the NYC and SFO Organizational Units if
+the User Relative DN is set to Users (ou=Users)
+
+Once the configuration is completed, click on “Save Configuration
+Changes” button to validate the configuration.
+
+image:../../images/authentication-ldap-success.png[Fill in LDAP information]
+
+You will be prompted to login with *_LDAP
+credentials_*.
+
+[[common-issues]]
+== Common Issues
+
+*_Invalid credentials_*
+
+Administrator DN or Administrator DN Password values are incorrect
+
+*_Verification of superuser %USERNAME% failed: Username not found The
+user either does not exist in the remote authentication system OR LDAP
+auth is misconfigured._*
+
+Quay can connect to the LDAP server via Username/Password specified in
+the Administrator DN fields however cannot find the current logged in
+user with the UID Attribute or Mail Attribute fields in the User
+Relative DN Path. Either current logged in user does not exist in User
+Relative DN Path, or Administrator DN user do not have rights to
+search/read this LDAP path.

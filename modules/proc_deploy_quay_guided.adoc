@@ -1,0 +1,105 @@
+== Completing the Guided Setup
+
+Open a browser to the setup page on the system where you just started quay (for example http://hostname/setup) and complete the following steps:
+
+. **Identify the database**: Add the following information about the type and location of the database to be used by Quay:
+
++
+* **Database Type**: Choose MySQL or PostgreSQL. (MySQL was used in this example.)
++
+* **Database Server**: Identify the IP address or hostname of the database, along with the port number if it is different from 3306.
++
+* **Username**: Identify a user with full access to the database (such as root user).
++
+* **Password**: Enter the password you assigned to the selected user.
++
+* **Database Name**: Enter the database name you assigned when you started the MySQL server.
++
+* **SSL Certificate**: For production environments, you should provide an SSL certificate to connect to the database.
++
+Figure 1 shows an example of the screen for identifying the database used by Red Hat Quay.
++
+image:../../images/Figure01.png[Identifying the database Red Hat Quay will use]
+
++
+Select "Validate Database Settings", and proceed to the next section.
+
++
+Figure 2 shows an example of the Quay Enterprise Setup screen as the database schema is set up.
++
+image:../../images/Figure02.png[Wait several minutes as the database schema setup completes]
+
++
+[NOTE]
+====
+At this point a restart of the Quay container should happen. If the container does not restart, the docker restart policy may not be working properly, and a manual restart of the container may be required.
+====
+
+. **Create Quay superuser**: You need to set up an account with superuser privileges to Quay, to use for editing Quay configuration settings. That information includes a Username, Email address, and Password (entered twice).
++
+Figure 3 shows an example of the Quay Enterprise Setup screen for setting up a Quay superuser account:
++
+image:../../images/Figure03.png[Set up a Quay superuser account to do Quay configuration]
+
++
+Select "Create Super User", and proceed to the next section.
+
+. **Identify the Redis hostname and add other desired settings**: Other setting you can add to complete the setup are as follows. More settings for high availability Quay deployment that for the basic deployment:
+
++
+* For the basic, test configuration, identifying the Redis Hostname should be all you need to do.
++
+* For the high availability configuration, more settings are needed (as noted below) to allow for shared storage, secure communications between systems, and other features.
++
+**Here are the settings you need to consider:**
++
+* **Custom SSL Certificates**: Upload custom or self-signed SSL certificates for use by Quay. See link:https://coreos.com/quay-enterprise/docs/latest/quay-ssl.html[Using SSL to protect connections to Quay Enterprise] for details. Recommended for high availability.
+
+* **Basic Configuration**: Upload a company logo to rebrand your Quay registry.
+* **Server Configuration**: Hostname or IP address to reach the Quay service, along with TLS indication (recommended for production installations). Recommended for high availability.
+* **Data Consistency Settings**: Select to relax logging consistency guarantees to improve performance and availability.
+* **Time Machine**: Allow older image tags to remain in the repository for set periods of time and allow users to select their own tag expiration times.
+* **redis**: Identify the hostname or IP address (and optional password) to connect to the redis service used by Quay.
+* **Registry Storage**: Identify the location of storage. A variety of cloud and local storage options are available. Remote storage is required for high availability.
+* **Action Log Rotation and Archiving**: Select to enable log rotation, which moves logs older than 30 days into storage, then indicate storage area.
+* **Security Scanner**: Enable security scanning by selecting a security scanner endpoint and authentication key. To setup Clair to do image scanning, refer to link:https://coreos.com/quay-enterprise/docs/latest/clair.html[Clair Setup] and https://coreos.com/quay-enterprise/docs/latest/security-scanning.html[Configuring Clair]. Recommended for high availability.
+* **Application Registry**: Enable an additional application registry that includes things like Kubernetes manifests or Help charts (see the link:https://github.com/app-registry[App Registry specification]).
+* **BitTorrent-based download**: Allow all registry images to be downloaded using BitTorrent protocol (using quayctl tool).
+* **rkt Conversion**: Allow `rkt fetch` to be used to fetch images from Quay registry. Public and private GPG2 keys are needed (see link:https://coreos.com/quay-enterprise/docs/latest/aci-signing-keys.html[Generating signing keys for ACI conversion] for details.
+* **E-mail**: Enable e-mail to use for notifications and user password resets.
+* **Internal Authentication**: Change default authentication for the registry from Local Database to LDAP, Keystone (OpenStack), JWT Custom Authentication, or External Application Token.
+* **External Authorization (OAuth)**: Enable to allow GitHub or GitHub Enterprise to authenticate to the registry.
+* **Google Authentication**: Enable to allow Google to authenticate to the registry.
+* **Access settings**: Basic username/password authentication is enabled by default. Other authentication types that can be enabled include: external application tokens (user-generated tokens used with docker or rkt commands), anonymous access (enable for public access to anyone who can get to the registry), user creation (let users create their own accounts), encrypted client password (require command-line user access to include encrypted passwords), and prefix username autocompletion (disable to require exact username matches on autocompletion).
+* **Dockerfile Build Support**: Enable to allow users to submit Dockerfiles to be built and pushed to Quay.
++
+Select "Save Configuration Changes", then "Save Configuration.
+
+. **Restart Quay**: When prompted, select "Restart Container" to restart Quay. Figure 4 shows that screen that appears as you wait for Quay to restart.
+
+image:../../images/Figure04.png[It could take several minutes for Quay to restart.]
+
+[NOTE]
+====
+At this point a restart of the Quay container should happen. If the container does not restart, the docker restart policy may not be working properly, and a manual restart of the container may be required.
+====
+At this point:
+
+* The basic Quay configuration setup is complete when you see the Quay superuser screen.
+
+* For the high availability deployment, you need to copy the configuration to the other Quay nodes.
+
+== Set up other Red Hat Quay Nodes (high availability only)
+If you are doing a high availability setup, follow these steps to set up the other Quay nodes:
+
+. Install Red Hat Enterprise Linux on the other Quay nodes (quay02 and quay03, in this example) and create the same configuration and storage directories.
+. Copy the config.yaml file from the initial Quay systems to the others. For example:
++
+```
+# scp /mnt/quay/config/config.yaml quay02:/mnt/quay/config/
+# scp /mnt/quay/config/config.yaml quay03:/mnt/quay/config/
+```
+. Run the quay and redis containers on the other nodes as you did on the first node. The configuration information will be used from the config.yaml file.
+
+== Start using Red Hat Quay
+With all Quay nodes now running, you can select Tutorial from the Quay home page to try the 15-minute tutorial. In the tutorial, you learn to log into Quay, start a container, create images, push repositories, view repositories, and change repository permissions with Quay.
