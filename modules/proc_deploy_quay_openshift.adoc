@@ -1,0 +1,175 @@
+= Set up {productname} services
+
+Deploying {productname} on OpenShift requires you to get a set of yml files
+that you use with the `oc` command to set up name spaces, add secrets, configure
+networking, and start the required containerized services. Although the `oc` command is used to configure the {productname} registry here,
+you could use the OpenShift web UI instead, if you prefer.
+
+Here are a few
+things to keep in mind:
+
+* Your OpenShift account must have permission to create namespaces
+at the cluster scope.
+
+* Quay runs under its own namespace inside a Kubernetes cluster, so that needs to be created first. You can create it through the `New project` in the OpenShift web console or using quay-enterprise-namespace.yml (as described here):
+
+* You have two choices here for starting the quay service: one using a loadbalancer yaml file (appropriate for cloud environments) and one using a nodeport yaml file (good for bare metal and other on-premise).
+
+* You need a working PostgreSQL, 9.4 and above. We recommend 9.6.
+
+* You can use an existing Redis service (needed for build logs) or start one as described in this procedure (using the quay-enterprise-redis.yml file).
+
+. Download the yml files needed to create the container pods and services needed for your {productname} configuration:
++
+```
+$ mkdir ~/quaydeploy
+$ cd ~/quaydeploy
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-namespace.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-config-secret.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-redis.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-app-rc.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-service-nodeport.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-service-loadbalancer.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-servicetoken-role-k8s1-6.yaml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-servicetoken-role-binding-k8s1-6.yaml
+```
+. Login as a user with cluster scope permissions to the OpenShift cluster. For example:
++
+```
+$ oc login -u system:admin
+```
+. Create the `quay-enterprise` namespace: All objects will be deployed to this namespace:
++
+```
+$ oc create -f quay-enterprise-namespace.yml
+namespace "quay-enterprise" created
+```
+. Create the config secret:
++
+```
+$ oc create -f quay-enterprise-config-secret.yml
+secret "quay-enterprise-config-secret" created
+```
+. Create the pull secret: Include the location of your config.json file.
+This example uses the config.json file created by a Minishift installation of
+OpenShift:
++
+```
+$ oc create secret generic --from-file=".dockerconfigjson=.minishift/config/config.json" \
+     --type='kubernetes.io/dockerconfigjson' -n quay-enterprise
+```
+. Create the role and the role binding: Quay Enterprise has native Kubernetes
+integrations. These integrations require Service Account to have access to the
+Kubernetes API. When Kubernetes RBAC is enabled, Role
+Based Access Control policy manifests also have to be deployed. This role will
+be used to run Quay and also to write the config.yaml file that Quay creates at
+the end of the web interface setup:
++
+```
+$ oc create -f quay-servicetoken-role-k8s1-6.yaml
+$ oc create -f quay-servicetoken-role-binding-k8s1-6.yaml
+```
+
+. Add privilege: Make sure that the service account has root privileges, because Quay runs strictly under root (this will be changed in the future versions):
++
+```
+$ oc adm policy add-scc-to-user anyuid system:serviceaccount:quay-enterpriseefault
+```
+
+. Start Redis: If you haven't already deployed Redis, you can use the quay-enterprise-redis.yml file to deploy our version now:
++
+```
+$ oc create -f quay-enterprise-redis.yml
+```
+ . Add Quay authentication: Set up authentication to Quay.io, so you can pull the Quay container, as described in link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay without a CoreOS login ].
+
+. Start Quay: To access Quay Enterprise, you must route to it through a Kubernetes Service. Choose one of the two methods:
+
++
+** A LoadBalancer is recommended if the Kubernetes cluster is integrated with a cloud provider
++
+** A NodePort will suffice for on-premise deployments.
++
+Use one of these two examples to deploy the quay-enterprise pod and expose the service:
++
+```
+$ oc create -f quay-enterprise-app-rc.yaml -f quay-enterprise-service-nodeport.yaml
+```
++
+OR
++
+```
+$ oc create -f quay-enterprise-app-rc.yaml -f quay-enterprise-service-loadbalancer.yaml
+```
+.  Install / Deploy a Database: Install, enable and start the PostgreSQL database container. The following commands will:
+
+** Start the PostgreSQL database with the user, password and database all set. Data from the container will be stored on the host system in the /var/lib/pgsql/data directory.
+
+** List available extensions.
+
+** Create the pg_trgm extension.
+
+** Confirm the extension is installed
++
+```
+$ mkdir -p /var/lib/pgsql/data
+$ chmod 777 /var/lib/pgsql/data
+$ sudo docker run -d --name postgresql_database \
+        -v /var/lib/pgsql/data:/var/lib/pgsql/data:Z  \
+        -e POSTGRESQL_USER=quayuser -e POSTGRESQL_PASSWORD=quaypass \
+        -e POSTGRESQL_DATABASE=quaydb -p 5432:5432 \
+        rhscl/postgresql-96-rhel7
+
+$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_available_extensions" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+   name    | default_version | installed_version |           comment
+-----------+-----------------+-------------------+----------------------------------------
+ adminpack | 1.0             |                   | administrative functions for PostgreSQL
+...
+
+
+$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "CREATE EXTENSION pg_trgm" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+    CREATE EXTENSION
+
+$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_extension" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+     extname | extowner | extnamespace | extrelocatable | extversion | extconfig | extcondition
+    ---------+----------+--------------+----------------+------------+-----------+--------------
+     plpgsql |       10 |           11 | f              | 1.0        |           |
+     pg_trgm |       10 |         2200 | t              | 1.3        |           |
+    (2 rows)
+
+$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "ALTER USER quayuser WITH SUPERUSER;" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+    ALTER ROLE
+```
+
+. Check pods: In a couple of minutes (depending on your connection speed), Quay Enteprrise should be up and running and the following pods should be visible in the Quay Enterprise namespace:
++
+```
+$ oc get pods -n quay-enterprise
+NAME                                     READY     STATUS    RESTARTS   AGE
+quay-enterprise-app-7478c7c997-5k9bd     1/1       Running   0          25m
+quay-enterprise-redis-6b59dc84b8-xssm2   1/1       Running   0          27m
+$ sudo docker ps | grep postgres
+f27941eda96f rhscl/postgresql-96-rhel7 "container-entrypo..." 8 minutes ago Up 8 minutes 0.0.0.0:5432->5432/tcp postgresql_database
+
+```
+. Check for problems: If something is wrong with the quay service,
+check each pod's logs. To do that, replace quay-enterprise-app-xxxxxxxx with the real pod name in this command:
++
+```
+$ oc logs quay-enterprise-app-xxxxxxxxxxxxx -n quay-enterprise
+```
++
+If you see errors like "copy permission failed" or similar, you probably didn't set the service account correctly. Make sure that you allow Quay to run under anyuid, as explained above.
+. Get the URL for {productname} setup: Because we used the nodeport yaml file,
+the quay service was exposed from port 80 (http) in the OpenShift cluster
+to port 30080 on the host, as shown here:
++
+```
+$ oc get services -n quay-enterprise
+NAME                  TYPE      CLUSTER-IP     EXTERNAL-IP PORT(S)        AGE
+quay-enterprise       NodePort  172.30.106.206 <none>      80:30080/TCP   14h
+quay-enterprise-redis ClusterIP 172.30.172.106 <none>      6379/TCP       21h
+```
+You can continue on to configure {productname} through the Web UI using
+either the hostname or IP address of the host, with the exposed port number.
+For example: http://192.168.42.219:30080/setup/ or http://myopenshift.example.com:30080/setup/.

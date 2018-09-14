@@ -1,0 +1,42 @@
+= Installing {productname} on OpenShift
+
+[NOTE]
+====
+This procedure presents guidance on how to set up a deployment of {productname} on an OpenShift cluster.
+====
+
+== Prerequisites
+
+Here are are a few things you need to know before you begin
+the {productname} on OpenShift deployment:
+
+* *OpenShift cluster*: You need a privleged account to an OpenShift cluster on which to deploy
+the {productname}. That account must have the ability to create namespaces at the cluster scope.
+
+* *Storage*: Ceph Object Gateway (also called RADOS Gateway) provides the object storage needed by {productname}. If you want your {productname} setup to do geo-replication, Ceph Object Gateway or other supported object storage is required. For cloud installations, you can use any of the following cloud object storage:
+
+** Amazon S3
+** Azure Blob Storage
+** Google Cloud Storage
+** Ceph Object Gateway
+** OpenStack Swift
+** CloudFront + S3
+
++
+Storage setup is not part of this procedure. However, you can create Ceph cloud storage using steps from the link:https://access.redhat.com/documentation/en-us/red_hat_quay/2.9/html-single/deploy_red_hat_quay_-_high_availability/#set_up_ceph[Set up Ceph] section of the high availability {productname} deployment guide.
+
+* *Services*: Because you are deploying to an OpenShift cluster, instead of to bare metal
+or virtual machines, you simply need to make sure that your cluster has enough capacity to run
+the following containerized services:
+
+** *Database*: Either Postgres or MySQL can be used to provide the database service. Postgres was chosen here as the database because it includes the features needed to support Clair security scanning.
++
+[NOTE]
+====
+You can substitute your own enterprise-quality database if you choose.
+The Postgres database illustrated here is not, itself, configured for high availability.
+====
+** *Proxy server*: The haproxy server is used in this example, although you can use any proxy service that works for
+your environment.
+** *Key-value database*: Redis is used to serve non-critical data to your {productname} configuration.
+** *Quay*: The Quay service provides the features to manage the Quay registry.
