@@ -33,6 +33,7 @@ $ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterp
 $ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-servicetoken-role-k8s1-6.yaml
 $ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-servicetoken-role-binding-k8s1-6.yaml
 ```
+.  Modify yml files: The “quay-enterprise” namespace is hard-coded into this set of yml files. Therefore, that namespace is used throughout this procedure. If you want to change the namespace name or any other settings in the yml files, do that now and be sure to replace options in the procedure below as appropriate.
 . Login as a user with cluster scope permissions to the OpenShift cluster. For example:
 +
 ```
@@ -44,18 +45,23 @@ $ oc login -u system:admin
 $ oc create -f quay-enterprise-namespace.yml
 namespace "quay-enterprise" created
 ```
+ . Add Quay authentication: Set up authentication to Quay.io, so you can pull the Quay container, as described in link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay without a CoreOS login ].
 . Create the config secret:
 +
 ```
 $ oc create -f quay-enterprise-config-secret.yml
 secret "quay-enterprise-config-secret" created
 ```
-. Create the pull secret: Include the location of your config.json file.
-This example uses the config.json file created by a Minishift installation of
-OpenShift:
+. Create the pull secret: Include the location of your config.json file,
+which must contain the correct robot account credentials.
+This example uses the config.json file created by a Minishift installation
+of OpenShift.
+The file need not be in the .minishift directory, but wherever it is
+you must provide the full path:
 +
 ```
-$ oc create secret generic --from-file=".dockerconfigjson=.minishift/config/config.json" \
+$ oc create secret generic coreos-pull-secret \
+     --from-file=".dockerconfigjson=$HOME/.minishift/config/config.json" \
      --type='kubernetes.io/dockerconfigjson' -n quay-enterprise
 ```
 . Create the role and the role binding: {product_name} has native Kubernetes
@@ -70,10 +76,11 @@ $ oc create -f quay-servicetoken-role-k8s1-6.yaml
 $ oc create -f quay-servicetoken-role-binding-k8s1-6.yaml
 ```
 
-. Add privilege: Make sure that the service account has root privileges, because Quay runs strictly under root (this will be changed in the future versions):
+. Add privilege: Make sure that the service account has root privileges, because Quay runs strictly under root (this will be changed in the future versions). Replace “quay-enterprise” if you are using a different namespace name:
 +
 ```
-$ oc adm policy add-scc-to-user anyuid system:serviceaccount:quay-enterpriseefault
+$ oc adm policy add-scc-to-user anyuid \
+     system:serviceaccount:quay-enterprise:default
 ```
 
 . Start Redis: If you haven't already deployed Redis, you can use the quay-enterprise-redis.yml file to deploy our version now:
@@ -81,7 +88,6 @@ $ oc adm policy add-scc-to-user anyuid system:serviceaccount:quay-enterpriseefau
 ```
 $ oc create -f quay-enterprise-redis.yml
 ```
- . Add Quay authentication: Set up authentication to Quay.io, so you can pull the Quay container, as described in link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay without a CoreOS login ].
 
 . Start Quay: To access {product_name}, you must route to it through a Kubernetes Service. Choose one of the two methods:
 
@@ -93,13 +99,13 @@ $ oc create -f quay-enterprise-redis.yml
 Use one of these two examples to deploy the quay-enterprise pod and expose the service:
 +
 ```
-$ oc create -f quay-enterprise-app-rc.yaml -f quay-enterprise-service-nodeport.yaml
+$ oc create -f quay-enterprise-app-rc.yml -f quay-enterprise-service-nodeport.yml
 ```
 +
 OR
 +
 ```
-$ oc create -f quay-enterprise-app-rc.yaml -f quay-enterprise-service-loadbalancer.yaml
+$ oc create -f quay-enterprise-app-rc.yml -f quay-enterprise-service-loadbalancer.yml
 ```
 .  Install / Deploy a Database: Install, enable and start the PostgreSQL database container. The following commands will:
 
@@ -141,25 +147,22 @@ $ sudo docker exec -it postgresql_database /bin/bash -c 'echo "ALTER USER quayus
     ALTER ROLE
 ```
 
-. Check pods: In a couple of minutes (depending on your connection speed), Quay Enteprrise should be up and running and the following pods should be visible in the {product_name} namespace:
+. Check pods: In a couple of minutes (depending on your connection speed), Quay Enterprise should be up and running and the following pods should be visible in the {product_name} namespace:
 +
 ```
 $ oc get pods -n quay-enterprise
 NAME                                     READY     STATUS    RESTARTS   AGE
 quay-enterprise-app-7478c7c997-5k9bd     1/1       Running   0          25m
 quay-enterprise-redis-6b59dc84b8-xssm2   1/1       Running   0          27m
+```
+.  Check postgresql: On the system where you are running the postgresql container, check that it is running as follows:
++
+```
 $ sudo docker ps | grep postgres
 f27941eda96f rhscl/postgresql-96-rhel7 "container-entrypo..." 8 minutes ago Up 8 minutes 0.0.0.0:5432->5432/tcp postgresql_database
 
 ```
-. Check for problems: If something is wrong with the quay service,
-check each pod's logs. To do that, replace quay-enterprise-app-xxxxxxxx with the real pod name in this command:
-+
-```
-$ oc logs quay-enterprise-app-xxxxxxxxxxxxx -n quay-enterprise
-```
-+
-If you see errors like "copy permission failed" or similar, you probably didn't set the service account correctly. Make sure that you allow Quay to run under anyuid, as explained above.
+
 . Get the URL for {productname} setup: Because we used the nodeport yaml file,
 the quay service was exposed from port 80 (http) in the OpenShift cluster
 to port 30080 on the host, as shown here:
