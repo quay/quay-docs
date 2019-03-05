@@ -37,7 +37,7 @@ postgresql://postgres@{DOCKER HOST GOES HERE}:5432/clairtest?sslmode=disable
 . Pull the security-enabled Clair image:
 +
 ```
-docker pull quay.io/coreos/clair-jwt:v2.0.0
+docker pull quay.io/coreos/clair-jwt:v2.0.7
 ```
 . Make a configuration directory for Clair
 +
@@ -53,10 +53,20 @@ Clair can run either as a single instance or in high-availability mode.
 It is recommended to run more than a single instance of Clair, ideally
 in an auto-scaling group with automatic healing.
 
-Create a `config.yaml` file in the config directory with the following
-contents, replacing appearances of \{ VARIABLE } with the appropriate
-value.
+. Create a `config.yaml` file in the config directory.
+. If you are doing a high-availaility installation, go through the procedure in
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/2.9/html-single/manage_red_hat_quay/#authentication-for-high-availability-scanners[Authentication for high-availability scanners] to create a Key ID and Private Key (PEM).
+. Save the Private Key (PEM) to a file (such as, $HOME/config/security_scanner.pem).
+. Replace replace the value of key_id (CLAIR_SERVICE_KEY_ID) with the Key ID you generated and
+the value of private_key_path with the location of the PEM file (for example, /config/security_scanner.pem).
 
+For example, those two value might now appear as:
+
+```
+key_id: { 4fb9063a7... }
+private_key_path: /config/security_scanner.pem
+
+```
 [[clair-configuration-high-availability]]
 === Clair configuration: High availability
 
@@ -260,7 +270,7 @@ under `/usr/local/share/ca-certificates/` as in the example below:
 # docker run --restart=always -p 6060:6060 -p 6061:6061 \
    -v /path/to/clair/config/directory:/config -v \
    /path/to/quay/cert/ca.crt:/usr/local/share/ca-certificates/ca.crt  \
-   quay.io/coreos/clair-jwt:v2.0.0
+   quay.io/coreos/clair-jwt:v2.0.7
 ```
 
 Now Clair will be able to trust the source of your TLS certificates and
@@ -275,7 +285,7 @@ Execute the following command to run Clair:
 # docker run --restart=always -p 6060:6060 -p \
     6061:6061 -v \
     /path/to/clair/config/directory:/config \
-    quay.io/coreos/clair-jwt:v2.0.0
+    quay.io/coreos/clair-jwt:v2.0.7
 ```
 
 Output similar to the following will be seen on success:
