@@ -278,14 +278,44 @@ use them to secure communication between Clair and Quay.
 
 [[clair-sources]]
 == Using Clair data sources
-The data sources that Clair uses to scan containers are shown in the table below.
+Before scanning container images, Clair tries to figure out the
+operating system on which the container was built. It does this by looking for specific filenames inside that image (see Table 1).
+Once Clair knows the operating system, it uses specific
+security databases to check for vulnerabilities (see Table 2).
+
+.Container files that identify its operating system
+[cols="2a,2a",options="header"]
+|===
+|Operating system |Files identifying OS type
+|Redhat/CentOS/Oracle
+|etc/oracle-release
+
+etc/centos-release
+
+etc/redhat-release
+
+etc/system-release
+| Alpine
+| etc/alpine-release
+
+|Debian/Ubuntu:
+|etc/os-release
+
+usr/lib/os-release
+
+etc/apt/sources.list
+|Ubuntu
+|etc/lsb-release
+|===
+
+The data sources that Clair uses to scan containers are shown in Table 2.
 
 [NOTE]
 ====
 You must be sure that Clair has access to all listed data sources by whitelisting access to each data source's location.
 ====
 .Clair data sources and data collected
-[cols="1a,2a,4a,1a,1a",options="header"]
+[cols="2a,2a,2a,2a,2a",options="header"]
 |===
 |Data source |Data collected |Whitelist links |Format |License
 |link:https://security-tracker.debian.org/tracker[Debian Security Bug Tracker]
