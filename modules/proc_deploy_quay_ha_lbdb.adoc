@@ -20,10 +20,36 @@ success
 # firewall-cmd --reload
 success
 ```
-. **Set up link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/load_balancer_administration/index#install_haproxy_example1[haproxy service]**: Configure the `/etc/haproxy/haproxy.cfg` to point to the systems and ports providing the Quay, Redis, and Ceph RADOS services. Here are examples of added frontend and backend settings:
+. **Set up link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/load_balancer_administration/index#install_haproxy_example1[haproxy service]**: Configure the `/etc/haproxy/haproxy.cfg` to point to the systems and ports providing the Quay, Redis, and Ceph RADOS services. Here are examples of defaults and added frontend and backend settings:
 
 +
 ```
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    tcp
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+#---------------------------------------------------------------------
+# main frontend which proxys to the backends
+#---------------------------------------------------------------------
+
 frontend  fe_http *:80
     default_backend             be_http
 frontend  fe_https *:443
@@ -47,9 +73,10 @@ backend be_rdgw
     server ceph01 ceph01:7480 check
     server ceph02 ceph02:7480 check
     server ceph03 ceph03:7480 check
-
 backend be_redis
 server quay01 quay01:6380 check inter 1s
+server quay02 quay02:6380 check inter 1s
+server quay03 quay03:6380 check inter 1s
 ```
 
 +
