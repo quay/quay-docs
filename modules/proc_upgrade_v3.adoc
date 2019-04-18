@@ -1,0 +1,83 @@
+[[upgrade-v3]] 
+= Running the upgrade to Red Hat Quay v3
+
+Choose between a synchronous upgrade (complete the upgrade in downtime)
+and a background upgrade (complete the upgrade while Red Hat Quay is still running).
+Both of these major-release upgrades require that the Red Hat Quay cluster be down
+for at least a short period of time.
+
+[[sync-upgrade-v3]] 
+== Run a synchronous upgrade
+To run a synchronous upgrade, where your whole cluster is down for the entire upgrade, do the following:
+
+. Take down your entire Red Hat Quay cluster.
+
+. Add the following setting to the `config.yaml` file on all nodes:
++
+====
+V3_UPGRADE_MODE: complete 
+====
+
+. Pull and start up the v3 container on a single node and wait for however long it takes to do the upgrade
+(it should take just a few minutes). Use the following container or later:
++
+====
+quay.io/quay/quay:v3.0.0
+====
+
+. Monitor the `/upgradeprogress` API endpoint until it reports done (the status reaches 100%).
+For example, view `https://myquay.example.com/upgradeprogress` or use some other tool to query the API.
+
+. After the upgrade completes, bring the Red Hat Quay v3 container up on all other nodes.
+
+. Verify that Red Hat Quay is working, including pushes and pulls of containers compatible with OCI version 2, schema 2.
+This can include windows container images and images of different computer architectures (arm, ppc, etc.).
+
+[[background-upgrade-v3]] 
+== Run a background upgrade
+To run a background upgrade, you need only bring down your cluster for a short period of time on two occasions. When you
+bring the cluster back up after the first downtime, the quay v3 container runs in v2 compatibility mode as it backfills the database.
+This background process can take hours or even days to complete. Background upgrades are recommended for
+large installations where downtime of more than a few hours would be a problem.
+
+For this type of upgrade, you put Red Hat Quay into a compatibility mode, where you have a v3 quay container
+running, but it is running on the old data model while the upgrade completes. Here's what you do:
+
+. Pull the Red Hat Quay v3 container to all the nodes. Use the following container or later:
++
+====
+quay.io/quay/quay:v3.0.0
+====
+
+. Take down Red Hat Quay on all nodes.
+
+. Edit the `config.yaml` file on each node and set the upgrade mode to background as follows:
++
+====
+V3_UPGRADE_MODE: background
+====
+
+. Bring the Red Hat Quay v3 container up on a single node and wait for the migrations to
+complete (should take a few minutes maximum).
+
+. Bring the Red Hat Quay v3 container up on all the other nodes.
+
+. Monitor the `/upgradeprogress` API endpoint until it reports done (the status reaches 100%).
+For example, view `https://myquay.example.com/upgradeprogress` or use some other tool to query the API.
+
+. Once the background process is done, you have to schedule another maintenance window.
+
+. During your scheduled maintenance, take the entire Red Hat Quay cluster down.
+
+. Edit the `config.yaml` file on each node and set the upgrade mode to `complete` as follows:
++
+====
+V3_UPGRADE_MODE: complete
+====
+
+. Bring Red Hat Quay back up on one node to have it do a final check.
+
+. Once the final check is done, bring Red Hat Quay v3 back up on all the other nodes.
+
+. Verify Quay is working, including pushes and pulls of containers compatible with OCI version 2, schema 2.
+This can include windows container images and images of different computer architectures (arm, ppc, etc.).

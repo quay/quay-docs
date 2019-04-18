@@ -1,0 +1,133 @@
+[[upgrade-to-quay-3.0.0]]
+= Upgrade to Quay 3.0.0
+
+All Quay instances being upgraded from versions < 2.0.0
+*must* upgrade to Quay 2.0.0 first before continuing to
+upgrade. This upgrade has an extra step, documented here.
+
+We *highly* recommend performing this upgrade during a scheduled
+maintenance window, as it will require taking the existing cluster down
+temporarily.
+
+[[download-quay-license]]
+== Download Quay License
+
+To begin, download your Quay License from your
+https://account.tectonic.com[Tectonic Account]. Please download or copy
+this license in *Raw Format* as a file named `license`:
+
+[[shutdown-all-quay-instances]]
+== Shutdown all Quay instances
+
+Shutdown all running instances of Quay, across all clusters.
+
+[[run-a-single-instance-of-quay-2]]
+== Run a single instance of Quay 2
+
+Run a single instance of Quay 2.0.0 by replacing
+`quay.io/coreos/registry:{currentVersion}` with
+`quay.io/coreos/quay:v2.0.0` in your run command, startup script, config
+or systemd unit.
+
+[[add-your-license-to-quay]]
+=== Add your license to the Quay
+
+[[quay-setup-as-a-container-or-under-kubernetes]]
+Quay setup as a container or under Kubernetes
+
+* Visit the management panel:
+image:../images/superuser.png[Log in as superuser to begin the upgrade process]
+
+Sign in to a super user account from the Red Hat Quay login screen. For
+example, if the host were reg.example.com, you would go to `http://reg.example.com/superuser`
+to view the management panel:
+
+* Click the configuration tab
+* In the section entitled `License`, paste in the contents of the
+license downloaded above
+* Click `Save Configuration Changes`
+* Restart the container (you will be prompted)
+
+[[add-license-via-the-filesystem]]
+=== Add license via the filesystem
+
+Ensure QE instance has been shutdown and add the raw format license in
+`license` file to the directory mapped to `conf/stack`, next to the
+existing `config.yaml`.
+
+[[example]]
+Example:
+
+The `conf/stack` directory is mapped to `quay2/config` in `docker run` command used to
+bring up Quay:
+
+```
+docker run --restart=always -p 443:443 -p 80:80 --privileged=true -v /quay2/config:/conf/stack -v /quay2/storage:/datastorage -d quay.io/coreos/quay:v2.0.0
+```
+
+The `license` file resides in the `quay2/config` directory:
+
+```
+$ ls quay2/config/
+config.yaml  license
+
+$ cat quay2/license
+eyJhbGciOiJSUzI1NiJ9.eyJzY2hlbWFWZXJzaW9uIjoidjIiLCJ2ZXJzaW9uIjoiMSIsImNyZWF0aW9uRGF0ZSI6IjIwMTYtMTAtMjZUMTc6MjM6MjJaIiwiZXhwaXJ
+[...]
+```
+
+[[update-cluster]]
+== Update cluster
+
+Update all remaining Quay instances to refer to the new image
+(`quay.io/coreos/quay:v2.0.0`).
+
+[[verify-cluster]]
+== Verify cluster
+
+Verify that your cluster and its license are valid by performing a push
+or pull. If you receive an HTTP `402`, please make sure your license is
+properly installed and valid by checking in the management panel (see
+above for instructions).
+
+If you encounter unusual problems, please contact support.
+
+
+
+
+
+-------------------------
+
+Upgrade Overview
+less than 1h downtime in total (2x 5min to edit cfg & restart the Quay container)
+upgrade running in compatibility mode in the background (can take weeks)
+customers will get all the great improvements except v2_2 itself since this requires the migration to complete
+(side note: new customers start with V3_UPGRADE_MODE complete (done automatically, no need to change / do anything))
+customers can have one downtime but it will take days for large deployments
+(side note, mostly for Chris and Dirk: config UI doesn't help since it's not in the config UI
+To give (especially large) customers some indication on how long the migration would take: Quay.io: took us 4 days across 6 machines for approximately 30M tags
+
+
+Prereqs
+Start with a Quay 2.9.4 stack with images already pushed and pulled
+
+Full Upgrade
+Advantage: one instead of two downtimes
+Disadvantage: eventually larger downtime window, depending on the sizing
+Can take several days for large registries (> 1mio images inside)
+Background Upgrade
+Pull quay.io/quay/quay:v3-upgrade-test
+Take down Quay
+Add `V3_UPGRADE_MODE: 'background'` to your config.yaml
+Bring Quay back up on a single node and wait for the migrations to complete (should take a few minutes maximum)
+Bring Quay back up on all other nodes
+Verify Quay is working, including pushes and pulls
+Monitor `/upgradeprogress` until it reports done
+
+Complete Upgrade
+Change `V3_UPGRADE_MODE` to `V3_UPGRADE_MODE: complete`
+Take down Quay
+Bring Quay back up on a single node and wait for the migration to complete (should take a few minutes maximum)
+Bring Quay back up on all other nodes
+Verify Quay is working, including pushes and pulls via V2_2
+
