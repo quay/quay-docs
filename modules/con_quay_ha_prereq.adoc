@@ -1,4 +1,4 @@
-= Installing {productname} (high availability)
+= Preparing for {productname} (high availability)
 
 [NOTE]
 ====
@@ -7,14 +7,17 @@ This procedure presents guidance on how to set up a highly available, production
 
 == Prerequisites
 
-Here are are a few things you need to know before you begin the {productname} high availability deployment:
+Here are a few things you need to know before you begin the {productname} high availability deployment:
 
 * Either Postgres or MySQL can be used to provide the database service. Postgres was chosen here as the database because it includes the features needed to support Clair security scanning.
-
-[NOTE]
++
+[IMPORTANT]
 ====
-You can substitute your own enterprise-quality database if you choose.
-The Postgres database illustrated here is not, itself, configured for high availability.
+Because many organizations already have high-availability (HA) databases, instead of building one
+into the cost of the Red Hat Quay product, we recommend you provide your own HA database to
+use with Red Hat Quay.
+The example Postgresql database shown here is provided for illustration purposes or for
+situations where having an HA database for Red Hat Quay is not critical.
 ====
 
 * Ceph Object Gateway (also called RADOS Gateway) provides the object storage needed by {productname}. If you want your {productname} setup to do geo-replication, Ceph Object Gateway or other supported object storage is required. For cloud installations, you can use any of the following cloud object storage:
@@ -31,9 +34,9 @@ your environment.
 
 * Number of systems: This procedure uses seven systems (physical or virtual) that are assigned with the following tasks:
 
-** **db01: Load balancer and database**: Runs the haproxy load balancer and a Postgres database. Note that thes components are not themselves highly available, but are used to indicate how you might set up your own load balancer or production database.
-** **quay01, quay02, quay03: Quay and Redis**: Three (or more) systems are assigned to run the Quay and Redis services.
-** **ceph01, ceph02, ceph03, ceph04, ceph05: Ceph**: Three (or more) systems provide the Ceph service, for storage. If you are deploying to a cloud, you can use the cloud storage features described earlier. This procedure employs an additional system for Ansible (ceph05) and one for a Ceph Object Gateway (ceph04).
+** **A: db01: Load balancer and database**: Runs the haproxy load balancer and a Postgres database. Note that these components are not themselves highly available, but are used to indicate how you might set up your own load balancer or production database.
+** **B: quay01, quay02, quay03: Quay and Redis**: Three (or more) systems are assigned to run the Quay and Redis services.
+** **C: ceph01, ceph02, ceph03, ceph04, ceph05: Ceph**: Three (or more) systems provide the Ceph service, for storage. If you are deploying to a cloud, you can use the cloud storage features described earlier. This procedure employs an additional system for Ansible (ceph05) and one for a Ceph Object Gateway (ceph04).
 
 Each system should have the following attributes:
 

@@ -15,7 +15,19 @@ at the cluster scope.
 
 * You have two choices here for starting the quay service: one using a loadbalancer yaml file (appropriate for cloud environments) and one using a nodeport yaml file (good for bare metal and other on-premise).
 
-* You need a working PostgreSQL, 9.4 and above. We recommend 9.6.
+* You need a working database. In this procedure we illustrate
+PostgreSQL, 9.4 and above (we recommend 9.6). In this example, we run the database
+outside of the OpenShift cluster.
+
++
+[IMPORTANT]
+====
+Because many organizations already have high-availability (HA) databases, instead of building one
+into the cost of the Red Hat Quay product, we recommend you provide your own HA database to
+use with Red Hat Quay.
+The example Postgresql database shown here is provided for illustration purposes or for
+situations where having an HA database for Red Hat Quay is not critical.
+====
 
 * You can use an existing Redis service (needed for build logs) or start one as described in this procedure (using the quay-enterprise-redis.yml file).
 
@@ -55,8 +67,6 @@ secret "quay-enterprise-config-secret" created
 . Create the pull secret: Include the location of your config.json file,
 which must contain the correct robot account credentials.
 This example uses the $HOME/.docker/config.json file created when you run *docker login*.
-(For a Minishift installation of OpenShift, the file would be in
-$HOME/.minishift/config/config.json.)
 +
 ```
 $ oc create secret generic coreos-pull-secret \

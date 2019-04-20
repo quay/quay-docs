@@ -37,7 +37,7 @@ postgresql://postgres@{DOCKER HOST GOES HERE}:5432/clairtest?sslmode=disable
 . Pull the security-enabled Clair image:
 +
 ```
-docker pull quay.io/coreos/clair-jwt:v2.0.7
+docker pull quay.io/redhat/clair-jwt:v2.0.8
 ```
 . Make a configuration directory for Clair
 +
@@ -55,7 +55,7 @@ in an auto-scaling group with automatic healing.
 
 . Create a `config.yaml` file in the config directory from one of the two Clair configuration files shown here.
 . If you are doing a high-availability installation, go through the procedure in
-link:https://access.redhat.com/documentation/en-us/red_hat_quay/2.9/html-single/manage_red_hat_quay/#authentication-for-high-availability-scanners[Authentication for high-availability scanners] to create a Key ID and Private Key (PEM).
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#authentication-for-high-availability-scanners[Authentication for high-availability scanners] to create a Key ID and Private Key (PEM).
 . Save the Private Key (PEM) to a file (such as, $HOME/config/security_scanner.pem).
 . Replace replace the value of key_id (CLAIR_SERVICE_KEY_ID) with the Key ID you generated and
 the value of private_key_path with the location of the PEM file (for example, /config/security_scanner.pem).
@@ -256,7 +256,7 @@ it below.
 === Configuring trust of self-signed SSL
 
 Similar to the process for setting up Docker to
-link:https://access.redhat.com/documentation/en-us/red_hat_quay/2.9/html-single/manage_red_hat_quay/#configuring-docker-to-trust-a-certificate-authority[trust
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#configuring-docker-to-trust-a-certificate-authority[trust
 your self-signed certificates], Clair must also be configured to trust
 your certificates. Using the same CA certificate bundle used to
 configure Docker, complete the following steps:
@@ -266,11 +266,17 @@ to `ca.crt`
 . Make sure the `ca.crt` file is mounted inside the Clair container
 under `/usr/local/share/ca-certificates/` as in the example below:
 +
+[NOTE]
+====
+Add `--loglevel=debug` to the `docker run` command line for
+the clair container to enable debug level logging.
+====
++
 ```
 # docker run --restart=always -p 6060:6060 -p 6061:6061 \
    -v /path/to/clair/config/directory:/config -v \
    /path/to/quay/cert/ca.crt:/usr/local/share/ca-certificates/ca.crt  \
-   quay.io/coreos/clair-jwt:v2.0.7
+   quay.io/redhat/clair-jwt:v2.0.8
 ```
 
 Now Clair will be able to trust the source of your TLS certificates and
@@ -312,7 +318,9 @@ The data sources that Clair uses to scan containers are shown in Table 2.
 
 [NOTE]
 ====
-You must be sure that Clair has access to all listed data sources by whitelisting access to each data source's location.
+You must be sure that Clair has access to all listed data sources by whitelisting access
+to each data source's location. You might need to add a wild-card character (*) at the
+end of some URLS that may not be fully complete because they are dynamically built by code.
 ====
 .Clair data sources and data collected
 [cols="2a,2a,2a,2a,2a",options="header"]
@@ -373,7 +381,7 @@ Execute the following command to run Clair:
 # docker run --restart=always -p 6060:6060 -p \
     6061:6061 -v \
     /path/to/clair/config/directory:/config \
-    quay.io/coreos/clair-jwt:v2.0.7
+    quay.io/redhat/clair-jwt:v2.0.8
 ```
 
 Output similar to the following will be seen on success:
@@ -425,4 +433,4 @@ Content-Type: text/plain; charset=utf-8
 == Continue with Quay Setup
 
 Once Clair setup is complete, continue with
-link:https://access.redhat.com/documentation/en-us/red_hat_quay/2.9/html-single/manage_red_hat_quay/#quay-security-scanner[Red Hat Quay Security Scanning with Clair].
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#quay-security-scanner[Red Hat Quay Security Scanning with Clair].

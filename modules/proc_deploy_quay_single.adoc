@@ -1,4 +1,4 @@
-== Starting up the services
+== Starting up the supporting services
 Follow these steps to install {productname} on a single system (VM or bare metal).
 
 . **Install Red Hat Enterprise Linux server**: Install the latest RHEL server. You can do a Minimal install (shell access only) or Server plus GUI (if you want a desktop).
@@ -17,7 +17,7 @@ Follow these steps to install {productname} on a single system (VM or bare metal
 # yum update -y
 ....
 
-. **Add Quay authentication**: Set up authentication to Quay.io, so you can pull the Quay container, as described in link:https://access.redhat.com/solutions/3533201[Accessing {productname} without a CoreOS login].
+. **Add Quay.io authentication**: Set up authentication to Quay.io, so you can pull the quay container, as described in link:https://access.redhat.com/solutions/3533201[Accessing {productname} without a CoreOS login].
 
 . **Setup Docker**: Install, enable, and start the docker service as shown here (see link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index#getting_docker_in_rhel_7[Getting Docker in RHEL 7] for details):
 
@@ -50,7 +50,7 @@ active
     --env MYSQL_DATABASE=${MYSQL_DATABASE} \
     --name ${MYSQL_CONTAINER_NAME} \
     --publish 3306:3306 \
-    -v /mnt/hostmysql:/var/lib/mysql/data:Z \
+    -v /mnt/hostmysql:/mnt/mysql/data:Z \
     registry.access.redhat.com/rhscl/mysql-57-rhel7
 ....
 +
@@ -95,7 +95,7 @@ MySQL [(none)]> \q
 # mkdir -p /mnt/hostredis
 # chmod 777 /mnt/hostredis
 # docker run -d --restart=always -p 6379:6379 \
-    -v /mnt/hostredis:/var/lib/redis/data:Z \
+    -v /mnt/hostredis:/mnt/redis/data:Z \
     registry.access.redhat.com/rhscl/redis-32-rhel7
 ....
 
@@ -115,22 +115,4 @@ QUIT
 Connection closed by foreign host.
 ....
 
-. **Install / Deploy Quay**: To run {productname} as a container, create two directories to store data on the host, then run {productname} as a container, as follows:
-
-+
-....
-# mkdir -p /mnt/quay/config
-# #optional: if you don't choose to install an Object Store
-# mkdir -p /mnt/quay/storage
-# docker run --restart=always -p 443:443 -p 80:80 \
-   --privileged=true \
-   -v /mnt/quay/config:/conf/stack \
-   -v /mnt/quay/storage:/datastorage \
-   -d quay.io/coreos/quay:v2.9.5
-....
-Wait several minutes for the Quay service to come up. Then proceed to Completing the Guided Setup.
-
-[NOTE]
-====
-This can take several minutes, and when attempting to access the Guided Setup you might receive a proxy error. If you do please wait a while longer and try again.
-====
+With the supporting services running, you can move on to creating configuration files to use with the {productname} deployment.

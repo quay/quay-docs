@@ -3,7 +3,7 @@
 
 Red Hat Quay supports building Dockerfiles using a set of worker nodes. Build triggers,
 such as GitHub webhooks 
-(link:https://access.redhat.com/documentation/en-us/red_hat_quay/2.9/html-single/use_red_hat_quay/index#github-build-triggers[Setup Instructions]),
+(link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/use_red_hat_quay/index#github-build-triggers[Setup Instructions]),
  can be configured to automatically build
 new versions of your repositories when new code is committed. This document will walk
 you through enabling the feature flag and setting up multiple build workers to enable
@@ -40,7 +40,7 @@ time a new worker needs to be added, but it can be automated fairly easily.
 Pull down the latest copy of the image. Make sure to pull the version tagged matching your Red Hat Quay version.
 
 ====
-# docker pull quay.io/coreos/quay-builder:v2.9.5
+# docker pull quay.io/redhat/quay-builder:v3.0.0
 ====
 
 [[run-the-build-worker-image]]
@@ -67,8 +67,8 @@ Here's what the full command looks like:
 ....
 # docker run --restart on-failure \
   -e SERVER=ws://myquayenterprise \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  quay.io/coreos/quay-builder:v2.9.5
+  -v /mnt/docker.sock:/mnt/docker.sock \
+  quay.io/redhat/quay-builder:v3.0.0
 ....
 
 When the container starts, each build worker will auto-register and start building containers once a job is triggered and it is assigned to a worker.
@@ -79,9 +79,9 @@ If Quay is setup to use a SSL certificate that is not globally trusted, for exam
 # docker run --restart on-failure \
   -e SERVER=wss://myquayenterprise \
   -v /path/to/ssl/rootCA.pem:/usr/local/share/ca-certificates/rootCA.pem \
-  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /mnt/docker.sock:/mnt/docker.sock \
   --entrypoint /bin/sh \
-  quay.io/coreos/quay-builder:v2.9.3 \
+  quay.io/redhat/quay-builder:v3.0.0
   -c '/usr/sbin/update-ca-certificates && quay-builder'
 ....
 [[set-up-github-build]]
