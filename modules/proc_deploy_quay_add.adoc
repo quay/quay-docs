@@ -4,7 +4,7 @@ To deploy the {productname} service on the nodes in your cluster, you use the sa
 you used to create the configuration file. The differences here are that you:
 
 * Identify directories where the configuration files and data are stored
-* Run the command in privileged mode
+* Run the command with `--sysctl net.core.somaxconn=4096`
 * Run the service as a daemon (-d)
 * Don't use the `config` option or password
 
@@ -16,8 +16,8 @@ three or more nodes (for example, quay01, quay02, and quay03).
 The resulting {productname} service will listen on regular port 8080 and SSL port 8443.
 This is different from previous releases of {productname}, which listened on
 standard ports 80 and 443, respectively. 
-You will probably want to remap the new ports to the standard ports at some point,
-to make {productname} available in ways that your users would expect.
+In this document, we map 8080 and 8443 to standard ports 80 and 443 on the host, respectively.
+Througout the rest of this document, we assume you have mapped the ports in this way.
 ====
 
 Here is what you do:
@@ -31,14 +31,12 @@ For example:
 # mkdir -p /mnt/quay/storage
 ....
 
-. **Open ports in firewall**: If you use the default ports created by the quay container,
-open TCP ports 8080 and 8443. If you map them to standard ports, use TCP ports 80 and 443.
-The default ports are shown here (which you could map to the standard ports using
-haproxy or similar service):
+. **Open ports in firewall**: If you use the remapped ports created by the quay container,
+open TCP ports 80 and 443, as shown here.
 +
 ....
-# firewall-cmd --permanent --zone=trusted --add-port=8080/tcp
-# firewall-cmd --permanent --zone=trusted --add-port=8443/tcp
+# firewall-cmd --permanent --zone=trusted --add-port=80/tcp
+# firewall-cmd --permanent --zone=trusted --add-port=443/tcp
 # firewall-cmd --reload
 ....
 
@@ -63,15 +61,15 @@ the quay container to enable debug level logging.
 ====
 +
 ....
-# docker run --restart=always -p 8443:8443 -p 8080:8080 \
-   --privileged=true \
-   -v /mnt/quay/config:/conf/stack \
-   -v /mnt/quay/storage:/datastorage \
+# docker run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
    -d quay.io/redhat/quay:v3.0.0
 ....
 
 . **Open browser to UI**: Once the quay container has started, go to your web browser and
-open the URL, with port 8443, to the node running the quay container.
+open the URL, to the node running the quay container.
 
 . **Log into {productname}**: Using the superuser account you created during
 configuration, log in and make sure {productname} is working properly.

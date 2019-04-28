@@ -6,7 +6,16 @@ and a background upgrade (complete the upgrade while Red Hat Quay is still runni
 Both of these major-release upgrades require that the Red Hat Quay cluster be down
 for at least a short period of time.
 
-[[sync-upgrade-v3]] 
+Regardless of which upgrade type you choose, during the time that the Red Hat Quay
+cluster is down, you are using builder and clair images, you need to also upgrade to
+those new images:
+
+* The builder image (quay.io/redhat/quay-builder:v3.0.0)
+* The clair image (quay.io/redhat/clair-jwtproxy)
+
+Both of those images are available from the new quay.io/redhat repository.
+
+[[sync-upgrade-v3]]
 == Run a synchronous upgrade
 To run a synchronous upgrade, where your whole cluster is down for the entire upgrade, do the following:
 
@@ -15,25 +24,35 @@ To run a synchronous upgrade, where your whole cluster is down for the entire up
 . Add the following setting to the `config.yaml` file on all nodes:
 +
 ====
-V3_UPGRADE_MODE: complete 
+V3_UPGRADE_MODE: complete
 ====
 
 . Pull and start up the v3 container on a single node and wait for however long it takes to do the upgrade
 (it should take just a few minutes). Use the following container or later:
 +
 ====
-quay.io/quay/quay:v3.0.0
+quay.io/redhat/quay:v3.0.0
 ====
++
+Note that the quay container comes up on ports 8080 and 8443 for v3, instead
+of 80 and 443, as they did for v2. Therefore, we recommend remapping 8080
+and 8443 into 80 and 443, respectively, as shown in this example:
 
-. Monitor the `/upgradeprogress` API endpoint until it reports done (the status reaches 100%).
-For example, view `https://myquay.example.com/upgradeprogress` or use some other tool to query the API.
++
+```
+# docker run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d quay.io/redhat/quay:v3.0.0
+```
 
 . After the upgrade completes, bring the Red Hat Quay v3 container up on all other nodes.
 
-. Verify that Red Hat Quay is working, including pushes and pulls of containers compatible with OCI version 2, schema 2.
+. Verify that Red Hat Quay is working, including pushes and pulls of containers compatible with Docker version 2, schema 2.
 This can include windows container images and images of different computer architectures (arm, ppc, etc.).
 
-[[background-upgrade-v3]] 
+[[background-upgrade-v3]]
 == Run a background upgrade
 To run a background upgrade, you need only bring down your cluster for a short period of time on two occasions. When you
 bring the cluster back up after the first downtime, the quay v3 container runs in v2 compatibility mode as it backfills the database.
@@ -46,7 +65,7 @@ running, but it is running on the old data model while the upgrade completes. He
 . Pull the Red Hat Quay v3 container to all the nodes. Use the following container or later:
 +
 ====
-quay.io/quay/quay:v3.0.0
+quay.io/redhat/quay:v3.0.0
 ====
 
 . Take down Red Hat Quay on all nodes.
@@ -59,6 +78,20 @@ V3_UPGRADE_MODE: background
 
 . Bring the Red Hat Quay v3 container up on a single node and wait for the migrations to
 complete (should take a few minutes maximum).
+Here is an example of that command:
++
+Note that the quay container comes up on ports 8080 and 8443 for v3, instead
+of 80 and 443, as they did for v2. Therefore, we recommend remapping 8080
+and 8443 into 80 and 443, respectively, as shown in this example:
+
++
+```
+# docker run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d quay.io/redhat/quay:v3.0.0
+```
 
 . Bring the Red Hat Quay v3 container up on all the other nodes.
 
@@ -79,5 +112,5 @@ V3_UPGRADE_MODE: complete
 
 . Once the final check is done, bring Red Hat Quay v3 back up on all the other nodes.
 
-. Verify Quay is working, including pushes and pulls of containers compatible with OCI version 2, schema 2.
+. Verify Quay is working, including pushes and pulls of containers compatible with Docker version 2, schema 2.
 This can include windows container images and images of different computer architectures (arm, ppc, etc.).

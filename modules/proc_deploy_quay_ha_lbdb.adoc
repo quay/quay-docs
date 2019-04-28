@@ -2,7 +2,8 @@
 
 On the first two systems (q01 and q02), install the haproxy load balancer and postgresql database. Haproxy will be configured as the access point and load balancer for the following services running on other systems:
 
-* Quay (ports 8080 and 8443 on B systems) (Note the change from ports 80 and 443 used in {productname} v2.x)
+* Quay (ports 80 and 443 on B systems) (For {productname} V3, by default ports 8080 and 8443 are used by the
+quay container, but we recommend mapping them to host ports 80 and 443, respectively.)
 * Redis (port 6379 on B systems)
 * RADOS (port 7480 on C systems)
 
@@ -64,14 +65,14 @@ frontend  fe_rdgw *:7480
     default_backend             be_rdgw
 backend be_http
     balance     roundrobin
-    server quay01 quay01:8080 check
-    server quay02 quay02:8080 check
-    server quay03 quay03:8080 check
+    server quay01 quay01:80 check
+    server quay02 quay02:80 check
+    server quay03 quay03:80 check
 backend be_https
     balance     roundrobin
-    server quay01 quay01:8443 check
-    server quay02 quay02:8443 check
-    server quay03 quay03:8443 check
+    server quay01 quay01:443 check
+    server quay02 quay02:443 check
+    server quay03 quay03:443 check
 backend be_rdgw
     balance     roundrobin
     server ceph01 ceph01:7480 check
@@ -126,9 +127,6 @@ $ sudo docker exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_
  plpgsql |       10 |           11 | f              | 1.0        |           |
  pg_trgm |       10 |         2200 | t              | 1.3        |           |
 (2 rows)
-
-$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "ALTER USER quayuser WITH SUPERUSER;" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
-ALTER ROLE
 
 ```
 
