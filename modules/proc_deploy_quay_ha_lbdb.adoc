@@ -2,8 +2,7 @@
 
 On the first two systems (q01 and q02), install the haproxy load balancer and postgresql database. Haproxy will be configured as the access point and load balancer for the following services running on other systems:
 
-* Quay (ports 80 and 443 on B systems) (For {productname} V3, by default ports 8080 and 8443 are used by the
-quay container, but we recommend mapping them to host ports 80 and 443, respectively.)
+* Quay (ports 80 and 443 on B systems)
 * Redis (port 6379 on B systems)
 * RADOS (port 7480 on C systems)
 
@@ -21,11 +20,7 @@ success
 # firewall-cmd --reload
 success
 ```
-. **Set up haproxy**: Set up the haproxy service as described in the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/load_balancer_administration/index#install_haproxy_example1[Red Hat Enterprise Linux Load Balancer Administration] guide. 
-That procedure describes an RPM version of haproxy, but you can use
-a containerized version of haproxy instead.
-
-. **Configure haproxy**: Configure the `/etc/haproxy/haproxy.cfg` file to point to the systems and ports providing the Quay, Redis, and Ceph RADOS services. Here are examples of defaults and added frontend and backend settings:
+. **Set up link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/load_balancer_administration/index#install_haproxy_example1[haproxy service]**: Configure the `/etc/haproxy/haproxy.cfg` to point to the systems and ports providing the Quay, Redis, and Ceph RADOS services. Here are examples of defaults and added frontend and backend settings:
 
 +
 ```
@@ -85,7 +80,7 @@ server quay03 quay03:6380 check inter 1s
 ```
 
 +
-Once the new `haproxy.cfg` file is in place, restart the haproxy service.
+Once the new haproxy.cfg file is in place, restart the haproxy service.
 +
 ```
 # systemctl restart haproxy
@@ -125,6 +120,9 @@ $ sudo docker exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_
  plpgsql |       10 |           11 | f              | 1.0        |           |
  pg_trgm |       10 |         2200 | t              | 1.3        |           |
 (2 rows)
+
+$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "ALTER USER quayuser WITH SUPERUSER;" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+ALTER ROLE
 
 ```
 
