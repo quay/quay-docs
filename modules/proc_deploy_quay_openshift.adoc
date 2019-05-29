@@ -19,205 +19,27 @@ at the cluster scope.
 
 * You can use an existing Redis service (needed for build logs) or start one as described in this procedure (using the quay-enterprise-redis.yml file).
 
-. Create a set of yml files deploy the container pods and services needed for your {productname} configuration:
+. Download the yml files needed to create the container pods and services needed for your {productname} configuration:
 +
-.quay-enterprise-namespace.yml
-[source,yaml]
-----
-apiVersion: v1
-kind: Namespace <1>
-metadata:
-  name: quay-enterprise <2>
-----
-<1> Identifies the Kind as Namespace
-<2> Namespace is set to quay-enterprise throughout the yaml files
-+
-.quay-enterprise-config-secret.yml
-[source,yaml]
-----
-apiVersion: v1
-kind: Secret
-metadata:
-  namespace: quay-enterprise
-  name: quay-enterprise-config-secret
-----
-
-+
-.quay-enterprise-redis.yml.
-[source,yaml]
-----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  namespace: quay-enterprise
-  name: quay-enterprise-redis
-  labels:
-    quay-enterprise-component: redis
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      quay-enterprise-component: redis
-  template:
-    metadata:
-      namespace: quay-enterprise
-      labels:
-        quay-enterprise-component: redis
-    spec:
-      containers:
-      - name: redis-master
-        image: quay.io/quay/redis
-        ports:
-        - containerPort: 6379
----
-apiVersion: v1
-kind: Service
-metadata:
-  namespace: quay-enterprise
-  name: quay-enterprise-redis
-  labels:
-    quay-enterprise-component: redis
-spec:
-  ports:
-    - port: 6379
-  selector:
-    quay-enterprise-component: redis
-----
-
-+
-.quay-enterprise-app-rc.yml
-[source,yaml]
-----
-apiVersion: extensions/v1beta1
-kind: Deployment
-metadata:
-  namespace: quay-enterprise
-  name: quay-enterprise-app
-  labels:
-    quay-enterprise-component: app
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      quay-enterprise-component: app
-  template:
-    metadata:
-      namespace: quay-enterprise
-      labels:
-        quay-enterprise-component: app
-    spec:
-      volumes:
-        - name: configvolume
-          secret:
-            secretName: quay-enterprise-config-secret
-      containers:
-      - name: quay-enterprise-app
-        image: quay.io/coreos/quay:v3.0.0
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: configvolume
-          readOnly: false
-          mountPath: /conf/stack
-      imagePullSecrets:
-        - name: coreos-pull-secret
-----
-
-+
-.quay-enterprise-service-nodeport.yml
-[source,yaml]
-----
-apiVersion: v1
-kind: Service
-metadata:
-  namespace: quay-enterprise
-  name: quay-enterprise
-spec:
-  type: NodePort
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-      nodePort: 30080
-  selector:
-    quay-enterprise-component: app
-----
-
-+
-.quay-enterprise-service-loadbalancer.yml
-[source,yaml]
-----
-apiVersion: v1
-kind: Service
-metadata:
-  namespace: quay-enterprise
-  name: quay-enterprise
-spec:
-  type: LoadBalancer
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-      name: http
-    - protocol: TCP
-      port: 443
-      targetPort: 443
-      name: https
-  selector:
-    quay-enterprise-component: app
-----
-
-+
-.quay-servicetoken-role-k8s1-6.yaml
-[source,yaml]
-----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: Role
-metadata:
-  name: quay-enterprise-serviceaccount
-  namespace: quay-enterprise
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - put
-  - patch
-  - update
-- apiGroups:
-  - ""
-  resources:
-  - namespaces
-  verbs:
-  - get
-----
-
-+
-.quay-servicetoken-role-binding-k8s1-6.yaml
-[source,yaml]
-----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: RoleBinding
-metadata:
-  name: quay-enterprise-secret-writer
-  namespace: quay-enterprise
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: quay-enterprise-serviceaccount
-subjects:
-- kind: ServiceAccount
-  name: default
-----
-
+```
+$ mkdir ~/quaydeploy
+$ cd ~/quaydeploy
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-namespace.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-config-secret.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-redis.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-app-rc.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-service-nodeport.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-service-loadbalancer.yml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-servicetoken-role-k8s1-6.yaml
+$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-servicetoken-role-binding-k8s1-6.yaml
+```
+.  Modify yml files: The “quay-enterprise” namespace is hard-coded into this set of yml files. Therefore, that namespace is used throughout this procedure. If you want to change the namespace name or any other settings in the yml files, do that now and be sure to replace options in the procedure below as appropriate.
 . Login as a user with cluster scope permissions to the OpenShift cluster. For example:
 +
 ```
 $ oc login -u system:admin
 ```
-. Create the `rhquay` namespace: All objects will be deployed to this namespace:
+. Create the `quay-enterprise` namespace: All objects will be deployed to this namespace:
 +
 ```
 $ oc create -f quay-enterprise-namespace.yml
@@ -237,7 +59,7 @@ This example uses the $HOME/.docker/config.json file created when you run *docke
 ```
 $ oc create secret generic coreos-pull-secret \
      --from-file=".dockerconfigjson=$HOME/.docker/config.json" \
-     --type='kubernetes.io/dockerconfigjson' -n rhquay
+     --type='kubernetes.io/dockerconfigjson' -n quay-enterprise
 ```
 . Create the role and the role binding: {productname} has native Kubernetes
 integrations. These integrations require Service Account to have access to the
@@ -251,7 +73,7 @@ $ oc create -f quay-servicetoken-role-k8s1-6.yaml
 $ oc create -f quay-servicetoken-role-binding-k8s1-6.yaml
 ```
 
-. Add privilege: Make sure that the service account has root privileges, because Quay runs strictly under root (this will be changed in the future versions). Replace “rhquay” if you are using a different namespace name:
+. Add privilege: Make sure that the service account has root privileges, because Quay runs strictly under root (this will be changed in the future versions). Replace “quay-enterprise” if you are using a different namespace name:
 +
 ```
 $ oc adm policy add-scc-to-user anyuid \
@@ -307,7 +129,9 @@ $ sudo docker exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_
  adminpack | 1.0             |                   | administrative functions for PostgreSQL
 ...
 
-$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm;" | /opt/rh/rh-postgresql96/root/usr/bin/psql -d quaydb'
+
+$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "CREATE EXTENSION pg_trgm" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+    CREATE EXTENSION
 
 $ sudo docker exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_extension" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
      extname | extowner | extnamespace | extrelocatable | extversion | extconfig | extcondition
