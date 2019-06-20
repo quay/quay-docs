@@ -1,4 +1,4 @@
-= Configuring {productname} 
+= Configuring {productname}
 
 Before running the {productname} service as a container, you need to use that same quay container
 to create the configuration file (`config.yaml`) needed to deploy {productname}.
@@ -10,8 +10,9 @@ Here's an example of how to do that:
 
 . **Start quay in config mode**: On the first quay node, run the following:
 +
+[subs="verbatim,attributes"]
 ....
-# docker run -p 443:8443 quay.io/redhat/quay:v3.0.2 config my-secret-password
+# docker run -p 443:8443 quay.io/redhat/quay:v{productmin} config my-secret-password
 ....
 
 . **Open browser**: When the quay configuration tool starts up, open a browser to the URL
@@ -26,7 +27,7 @@ of the system you are running the configuration tool on
 
 * **Start New Registry Setup**: The result of this selection is the creation of a new
 configuration file (`config.yaml`) and optional `ssl.cert` and `ssl.key` files.
-Those files are bundled into a tarball file you can use to 
+Those files are bundled into a tarball file you can use to
 actually deploy all your {productname} nodes.
 
 * **Modify an existing configuration**: With this selection, you are prompted
@@ -45,7 +46,7 @@ can continue on with the configuration.
 . **Identify the database**: For the initial setup, add the following information about the type and location of the database to be used by {productname}:
 +
 * **Database Type**: Choose MySQL or PostgreSQL. MySQL will be used in the basic example; PostgreSQL is used with the
-high availability example and is shown here.
+high availability {productname} on OpenShift examples and is shown here.
 +
 * **Database Server**: Identify the IP address or hostname of the database,
 along with the port number if it is different from 3306.
@@ -79,7 +80,7 @@ Select `Create Super User`, and proceed to the next screen.
 +
 * For the basic, test configuration, identifying the Redis Hostname should be all you need to do.
 +
-* For the high availability configuration, more settings are needed (as noted below) to allow for shared storage, secure communications between systems, and other features.
+* For the high availability and OpenShift configurations, more settings are needed (as noted below) to allow for shared storage, secure communications between systems, and other features.
 +
 **Here are the settings you need to consider:**
 +
@@ -96,11 +97,15 @@ as described in link:https://docs.docker.com/registry/insecure/[Test an Insecure
 
 * **Basic Configuration**: Upload a company logo to rebrand your Quay registry.
 * **Server Configuration**: Hostname or IP address to reach the Quay service, along with TLS indication (recommended for production installations). Recommended for high availability.
+TLS termination can be done in two different ways:
+- On the instance itself, with all TLS traffic governed by the nginx server in the quay container (recommended).
+- On the load balancer. This is not recommended. Access to Quay could be lost if the TLS setup is not done correctly on the load balancer.
+
 * **Data Consistency Settings**: Select to relax logging consistency guarantees to improve performance and availability.
 * **Time Machine**: Allow older image tags to remain in the repository for set periods of time and allow users to select their own tag expiration times.
 * **redis**: Identify the hostname or IP address (and optional password) to connect to the redis service used by Quay.
 * **Registry Storage**: Identify the location of storage. A variety of cloud and local storage options are available. Remote storage is required for high availability. Identify the Ceph storage location
-if you are following the example for {productname} high availability storage.
+if you are following the example for {productname} high availability storage. On OpenShift, the example uses Amazon S3 storage.
 * **Action Log Rotation and Archiving**: Select to enable log rotation, which moves logs older than 30 days into storage, then indicate storage area.
 * **Security Scanner**: Enable security scanning by selecting a security scanner endpoint and authentication key. To setup Clair to do image scanning, refer to link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#clair-initial-setup[Clair Setup] and link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#configuring-clair-for-tls[Configuring Clair]. Recommended for high availability.
 * **Application Registry**: Enable an additional application registry that includes things like Kubernetes manifests or Helm charts (see the link:https://github.com/app-registry[App Registry specification]).

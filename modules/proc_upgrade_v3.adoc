@@ -10,8 +10,8 @@ Regardless of which upgrade type you choose, during the time that the Red Hat Qu
 cluster is down, you are using builder and clair images, you need to also upgrade to
 those new images:
 
-* The builder image (quay.io/redhat/quay-builder:v3.0.2)
-* The clair image (quay.io/redhat/clair-jwt:v3.0.2)
+* The builder image (quay.io/redhat/quay-builder:v{productmin})
+* The clair image (quay.io/redhat/clair-jwt:v{productmin})
 
 Both of those images are available from the new quay.io/redhat repository.
 
@@ -31,7 +31,7 @@ V3_UPGRADE_MODE: complete
 (it should take just a few minutes). Use the following container or later:
 +
 ====
-quay.io/redhat/quay:v3.0.2
+quay.io/redhat/quay:v{productmin}
 ====
 +
 Note that the quay container comes up on ports 8080 and 8443 for v3, instead
@@ -39,12 +39,13 @@ of 80 and 443, as they did for v2. Therefore, we recommend remapping 8080
 and 8443 into 80 and 443, respectively, as shown in this example:
 
 +
+[subs="verbatim,attributes"]
 ```
 # docker run --restart=always -p 443:8443 -p 80:8080 \
    --sysctl net.core.somaxconn=4096 \
    -v /mnt/quay/config:/conf/stack:Z \
    -v /mnt/quay/storage:/datastorage:Z \
-   -d quay.io/redhat/quay:v3.0.2
+   -d quay.io/redhat/quay:v{productmin}
 ```
 
 . After the upgrade completes, bring the Red Hat Quay v3 container up on all other nodes.
@@ -64,8 +65,9 @@ running, but it is running on the old data model while the upgrade completes. He
 
 . Pull the Red Hat Quay v3 container to all the nodes. Use the following container or later:
 +
+[subs="verbatim,attributes"]
 ====
-quay.io/redhat/quay:v3.0.2
+quay.io/redhat/quay:v{productmin}
 ====
 
 . Take down Red Hat Quay on all nodes.
@@ -85,12 +87,13 @@ of 80 and 443, as they did for v2. Therefore, we recommend remapping 8080
 and 8443 into 80 and 443, respectively, as shown in this example:
 
 +
+[subs="verbatim,attributes"]
 ```
 # docker run --restart=always -p 443:8443 -p 80:8080 \
    --sysctl net.core.somaxconn=4096 \
    -v /mnt/quay/config:/conf/stack:Z \
    -v /mnt/quay/storage:/datastorage:Z \
-   -d quay.io/redhat/quay:v3.0.2
+   -d quay.io/redhat/quay:v{productmin}
 ```
 
 . Bring the Red Hat Quay v3 container up on all the other nodes.

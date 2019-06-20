@@ -1,9 +1,11 @@
 = Set up {productname} services
 
-Deploying {productname} on OpenShift requires you to get a set of yml files
+Deploying {productname} on OpenShift requires you to create a set of yaml files
 that you use with the `oc` command to set up name spaces, add secrets, configure
 networking, and start the required containerized services. Although the `oc` command is used to configure the {productname} registry here,
 you could use the OpenShift web UI instead, if you prefer.
+
+Refer to Appendix A for the contents of these yaml files.
 
 Here are a few
 things to keep in mind:
@@ -11,57 +13,79 @@ things to keep in mind:
 * Your OpenShift account must have permission to create namespaces
 at the cluster scope.
 
-* Quay runs under its own namespace inside a Kubernetes cluster, so that needs to be created first. You can create it through the `New project` in the OpenShift web console or using quay-enterprise-namespace.yml (as described here):
+* Quay runs under its own namespace inside a Kubernetes cluster, so that needs to be created first. You can create it through the `New project` in the OpenShift web console or using quay-enterprise-namespace.yaml (as described here).
 
-* You have two choices here for starting the quay service: one using a loadbalancer yaml file (appropriate for cloud environments) and one using a nodeport yaml file (good for bare metal and other on-premise).
+* You need a working enterprise-quality database.
+In our example, we illustrate PostgreSQL
+(version 9.4 or above is required, although we recommend 9.6).
 
-* You need a working PostgreSQL, 9.4 and above. We recommend 9.6.
+* You can use an existing Redis service (needed for build logs) or start one
+as described in this procedure.
 
-* You can use an existing Redis service (needed for build logs) or start one as described in this procedure (using the quay-enterprise-redis.yml file).
-
-. Download the yml files needed to create the container pods and services needed for your {productname} configuration:
-+
-```
-$ mkdir ~/quaydeploy
-$ cd ~/quaydeploy
-$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-namespace.yml
-$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-config-secret.yml
-$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-redis.yml
-$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-app-rc.yml
-$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-service-nodeport.yml
-$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-enterprise-service-loadbalancer.yml
-$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-servicetoken-role-k8s1-6.yaml
-$ wget https://coreos.com/quay-enterprise/docs/latest/tectonic/files/quay-servicetoken-role-binding-k8s1-6.yaml
-```
-.  Modify yml files: The “quay-enterprise” namespace is hard-coded into this set of yml files. Therefore, that namespace is used throughout this procedure. If you want to change the namespace name or any other settings in the yml files, do that now and be sure to replace options in the procedure below as appropriate.
-. Login as a user with cluster scope permissions to the OpenShift cluster. For example:
+. **Log in with oc cli**: Login as a user with cluster scope permissions to the OpenShift cluster. For example:
 +
 ```
 $ oc login -u system:admin
 ```
-. Create the `quay-enterprise` namespace: All objects will be deployed to this namespace:
+
+. **Create namespace**. Create a `quay-enterprise-namespace.yaml` file with the content shown here and run `oc create` on it to create the `quay-enterprise` namespace. All objects will be deployed to this namespace:
 +
 ```
-$ oc create -f quay-enterprise-namespace.yml
+$ oc create -f quay-enterprise-namespace.yaml
 namespace "quay-enterprise" created
 ```
- . Add Quay authentication: Set up authentication to Quay.io, so you can pull the Quay container, as described in link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay without a CoreOS login ].
-. Create the config secret:
+
+. **Create the database**. If you are not using your own enterprise-quality
+database (recommended), this procedure illustrates how to set up a Postgresql database
+on an OpenShift cluster. This entails creating AWS storage, a postgres deployment,
+and postgres service, then adding an extension to the database:
 +
 ```
-$ oc create -f quay-enterprise-config-secret.yml
-secret "quay-enterprise-config-secret" created
+$ oc create -f quay-storageclass.yaml
+storageclass.storage.k8s.io/quay-storageclass created
+$ oc create -f db-pvc.yaml
+persistentvolumeclaim/postgres-storage created
+$ oc create -f postgres-deployment.yaml
+deployment.extensions/postgres-new created
+$ oc create -f postgres-service.yaml
+service/postgres created
 ```
-. Create the pull secret: Include the location of your config.json file,
-which must contain the correct robot account credentials.
-This example uses the $HOME/.docker/config.json file created when you run *docker login*.
 +
 ```
-$ oc create secret generic coreos-pull-secret \
-     --from-file=".dockerconfigjson=$HOME/.docker/config.json" \
-     --type='kubernetes.io/dockerconfigjson' -n quay-enterprise
+$ oc get pods -n quay-enterprise
+NAME                        READY   STATUS    RESTARTS   AGE
+postgres-6d9cc4f5c8-l4qxk   1/1     Running   0          3m26s
+$ oc exec -it postgres-6d9cc4f5c8-l4qxk -n quay-enterprise -- /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | /opt/rh/rh-postgresql10/root/usr/bin/psql -d quay'
 ```
-. Create the role and the role binding: {productname} has native Kubernetes
++
+[NOTE]
+====
+The `-d database_name` must not be omitted. If it is,
+the extension will be created on the default PostgreSQL
+database.
+====
+
+. **Create the config secret**. 
+Refer to link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay] to get
+the credentials you need to add to the quay-enterprise-redhat-quay-pull-secret.yaml file, then run oc create:
++
+```
+apiVersion: v1
+kind: Secret
+metadata:
+    namespace: quay-enterprise
+    name: redhat-quay-pull-secret
+data:
+   .dockerconfigjson: <Add credentials from https://access.redhat.com/solutions/3533201>
+type: kubernetes.io/dockerconfigjson
+```
++
+```
+$ oc create -f quay-enterprise-redhat-quay-pull-secret.yaml
+secret/redhat-quay-pull-secret created
+```
+
+. **Create the role and the role binding**: {productname} has native Kubernetes
 integrations. These integrations require Service Account to have access to the
 Kubernetes API. When Kubernetes RBAC is enabled, Role
 Based Access Control policy manifests also have to be deployed. This role will
@@ -73,103 +97,219 @@ $ oc create -f quay-servicetoken-role-k8s1-6.yaml
 $ oc create -f quay-servicetoken-role-binding-k8s1-6.yaml
 ```
 
-. Add privilege: Make sure that the service account has root privileges, because Quay runs strictly under root (this will be changed in the future versions). Replace “quay-enterprise” if you are using a different namespace name:
+. **Add privilege**: Make sure that the service account has root privileges, because Quay runs strictly under root (this will be changed in the future versions). Replace `quay-enterprise` if you are using a different namespace name:
 +
 ```
 $ oc adm policy add-scc-to-user anyuid \
      system:serviceaccount:quay-enterprise:default
 ```
-
-. Start Redis: If you haven't already deployed Redis, you can use the quay-enterprise-redis.yml file to deploy our version now:
+. **Create Redis deployment**: If you haven't already deployed Redis, create a `quay-enterprise-redis.yaml` file and deploy it:
 +
 ```
-$ oc create -f quay-enterprise-redis.yml
+$ oc create -f quay-enterprise-redis.yaml
 ```
 
-. Start Quay: To access {productname}, you must route to it through a Kubernetes Service. Choose one of the two methods:
-
-+
-** A LoadBalancer is recommended if the Kubernetes cluster is integrated with a cloud provider
-+
-** A NodePort will suffice for on-premise deployments.
-+
-Use one of these two examples to deploy the quay-enterprise pod and expose the service:
+. **Set up to configure {productname}**: {productname} V3 added a tool for configuring
+the {productname} service before deploying it. Although the config tools
+is in the same container as the full {productname} service, it is deployed
+in a different way, as follows:
 +
 ```
-$ oc create -f quay-enterprise-app-rc.yml -f quay-enterprise-service-nodeport.yml
+$ oc create -f quay-enterprise-config.yaml
+$ oc create -f quay-enterprise-config-service-clusterip.yaml
+$ oc create -f quay-enterprise-config-route.yaml
 ```
 +
-OR
+The quay configuration container is now set up to be accessed from port 443 from your Web browser.
+Before creating the configuration, however, you need to create a route to the permanent {productname} service.
+This is because we need the {productname} service's publicly available FQDN when setting up the application.
+
+. **Start the {productname} service and route**: Identify it the {productname} Kubernetes service and create a route for it as follows:
 +
 ```
-$ oc create -f quay-enterprise-app-rc.yml -f quay-enterprise-service-loadbalancer.yml
+$ oc create -f quay-enterprise-service-clusterip.yaml
+$ oc create -f quay-enterprise-app-route.yaml
 ```
-.  Install / Deploy a Database: Install, enable and start the PostgreSQL database container. The following commands will:
++
+You will need to know the location of the service when you
+do the {productname} configuration and before you start the
+quay container itself later.
 
-** Start the PostgreSQL database with the user, password and database all set. Data from the container will be stored on the host system in the /var/lib/pgsql/data directory.
-
-** List available extensions.
-
-** Create the pg_trgm extension.
-
-** Confirm the extension is installed
+. **Begin to configure {productname}**: Open the public route to the {productname} configuration container in a Web browser.
+To see the route to the quay configuration service, type the following:
 +
 ```
-$ mkdir -p /var/lib/pgsql/data
-$ chmod 777 /var/lib/pgsql/data
-$ sudo docker run -d --name postgresql_database \
-        -v /var/lib/pgsql/data:/var/lib/pgsql/data:Z  \
-        -e POSTGRESQL_USER=quayuser -e POSTGRESQL_PASSWORD=quaypass \
-        -e POSTGRESQL_DATABASE=quaydb -p 5432:5432 \
-        rhscl/postgresql-96-rhel7
+$ oc get route -n quay-enterprise quay-enterprise-config
+NAME                   HOST/PORT                                                                          PATH   SERVICES                    PORT    TERMINATION   WILDCARD
+quay-enterprise-config quay-enterprise-config-quay-enterprise.apps.test.example.com quay-enterprise-config    <all> passthrough  None
+```
++
+For this example, you would open this URL in your web browser: 
+https://quay-enterprise-config-quay-enterprise.apps.test.example.com
 
-$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_available_extensions" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
-   name    | default_version | installed_version |           comment
------------+-----------------+-------------------+----------------------------------------
- adminpack | 1.0             |                   | administrative functions for PostgreSQL
-...
+. **Log in as quayconfig**: When prompted, enter
++
+* User Name: **quayconfig**
+* Password: **secret**
 
+. **Choose configuration mode**: You are prompted to choose to either create a new
+{productname} configuration file or edit an existing one in these two modes:
 
-$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "CREATE EXTENSION pg_trgm" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
-    CREATE EXTENSION
+- **Start New Registry Setup**: The result of this selection is the creation of a new
+configuration file (`config.yaml`) and optional `ssl.cert` and `ssl.key` files.
+Those files are bundled into a tarball file you can use to
+actually deploy all your {productname} nodes.
 
-$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_extension" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
-     extname | extowner | extnamespace | extrelocatable | extversion | extconfig | extcondition
-    ---------+----------+--------------+----------------+------------+-----------+--------------
-     plpgsql |       10 |           11 | f              | 1.0        |           |
-     pg_trgm |       10 |         2200 | t              | 1.3        |           |
-    (2 rows)
+- **Modify an existing configuration**: With this selection, you are prompted
+to provide an existing tarball and
+modify it before you use it to start your {productname} nodes.
++
+The following figure shows an example of the resulting `Choose an option` page:
++
+image:../../images/Figure00.png[Identifying the database {productname} will use]
++
+For an initial setup, you are asked to identify the database type.
+For a subsequent configuration, you are prompted for a tarball containing the
+`config.yaml` and credential files (optional). Then you
+can continue on with the configuration.
 
-$ sudo docker exec -it postgresql_database /bin/bash -c 'echo "ALTER USER quayuser WITH SUPERUSER;" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
-    ALTER ROLE
+. **Identify the database**: For the initial setup, add the following information about the type and location of the database to be used by {productname}:
+- **Database Type**: Choose MySQL or PostgreSQL. MySQL will be used in the basic example; PostgreSQL is used with the
+high availability {productname} on OpenShift examples and is shown here.
+- **Database Server**: Identify the IP address or hostname of the database,
+along with the port number if it is different from 3306.
+- **Username**: Identify a user with full access to the database.
+- **Password**: Enter the password you assigned to the selected user.
+- **Database Name**: Enter the database name you assigned when you started the database server.
+- **SSL Certificate**: For production environments, you should provide an SSL certificate to connect to the database.
++
+To find the address of the postgres service, type the following:
++
+```
+$ oc get services -n quay-enterprise postgres
+NAME      TYPE      CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+postgres  NodePort  172.30.127.41  <none>        5432:32212/TCP   19h
+```
++
+The following figure shows an example of the screen for identifying the database used by {productname}.
+The example yaml file set the user name to `username`, the password to `password`, and the database to `quay`:
++
+image:../../images/Figure01.png[Identifying the database {productname} will use]
+
++
+. **Validate database**: Select `Validate Database Settings` and proceed to the next screen.
+
+. **Create Quay superuser**: You need to set up an account with superuser privileges to Quay, to use for editing Quay configuration settings. That information includes a Username, Email address, and Password (entered twice).
++
+The following figure shows an example of the {productname} Setup screen for setting up a Quay superuser account:
++
+image:../../images/Figure03.png[Set up a Quay superuser account to do Quay configuration]
++
+Select `Create Super User`, and proceed to the next screen.
+
+. **Identify settings**: Go through each of the following settings. The minimum you must enter includes:
++
+- **Server hostname**: The URL to the Red Hat Quay service.
++
+- **Redis hostname**: The URL or IP address to the Redis service.
++
+Here are the settings you need to consider:
++
+- **Custom SSL Certificates**: Upload custom or self-signed SSL certificates for use by Quay. See link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#using-ssl-to-protect-quay[Using SSL to protect connections to {productname}] for details. Recommended for high availability.
++
+[IMPORTANT]
+====
+Using SSL certificates is recommended for both basic
+and high availability deployments. If you decide to
+not use SSL, you must configure your container clients
+to use your new Quay setup as an insecure registry
+as described in link:https://docs.docker.com/registry/insecure/[Test an Insecure Registry].
+====
+
+- **Basic Configuration**: Upload a company logo to rebrand your Quay registry.
+- **Server Configuration**: Hostname or IP address to reach the Quay service, along with TLS indication (recommended for production installations). To get the route to the permanent {productname} service, type the following:
++
+```
+$ oc get route -n quay-enterprise quay-enterprise
+NAME            HOST/PORT                                                               PATH SERVICES                  PORT TERMINATION WILDCARD
+quay-enterprise quay-enterprise-quay-enterprise.apps.cnegus-ocp.devcluster.openshift.com     quay-enterprise-clusterip <all>            None
+```
+TLS termination can be done in two different ways:
+  ** On the instance itself, with all TLS traffic governed by the nginx server in the quay container (recommended).
+  ** On the load balancer. This is not recommended. Access to Quay could be lost if the TLS setup is not done correctly on the load balancer.
+
+- **Data Consistency Settings**: Select to relax logging consistency guarantees to improve performance and availability.
+- **Time Machine**: Allow older image tags to remain in the repository for set periods of time and allow users to select their own tag expiration times.
+- **redis**: Identify the hostname or IP address (and optional password) to connect to the redis service used by Quay. To find the address of the redis service, type the following:
++
+```
+$ oc get services -n quay-enterprise quay-enterprise-redis
+NAME                  TYPE       CLUSTER-IP    EXTERNAL-IP PORT(S)  AGE
+quay-enterprise-redis ClusterIP  172.30.207.35 <none>      6379/TCP 40m
+```
+- **Registry Storage**: Identify the location of storage. A variety of cloud and local storage options are available. Remote storage is required for high availability. Identify the Ceph storage location
+if you are following the example for {productname} high availability storage. On OpenShift, the example uses Amazon S3 storage.
+- **Action Log Rotation and Archiving**: Select to enable log rotation, which moves logs older than 30 days into storage, then indicate storage area.
+- **Security Scanner**: Enable security scanning by selecting a security scanner endpoint and authentication key. To setup Clair to do image scanning, refer to link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#clair-initial-setup[Clair Setup] and link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#configuring-clair-for-tls[Configuring Clair]. Recommended for high availability.
+- **Application Registry**: Enable an additional application registry that includes things like Kubernetes manifests or Helm charts (see the link:https://github.com/app-registry[App Registry specification]).
+- **BitTorrent-based download**: Allow all registry images to be downloaded using BitTorrent protocol (using the link:https://github.com/coreos/quayctl[`quayctl`] tool).
+- **rkt Conversion**: Allow `rkt fetch` to be used to fetch images from Quay registry. Public and private GPG2 keys are needed (see link:https://coreos.com/quay-enterprise/docs/latest/aci-signing-keys.html[Generating signing keys for ACI conversion] for details.
+This field is deprecated.
+- **E-mail**: Enable e-mail to use for notifications and user password resets.
+- **Internal Authentication**: Change default authentication for the registry from Local Database to LDAP, Keystone (OpenStack), JWT Custom Authentication, or External Application Token.
+- **External Authorization (OAuth)**: Enable to allow GitHub or GitHub Enterprise to authenticate to the registry.
+- **Google Authentication**: Enable to allow Google to authenticate to the registry.
+- **Access settings**: Basic username/password authentication is enabled by default. Other authentication types that can be enabled include: external application tokens (user-generated tokens used with docker or rkt commands), anonymous access (enable for public access to anyone who can get to the registry), user creation (let users create their own accounts), encrypted client password (require command-line user access to include encrypted passwords), and prefix username autocompletion (disable to require exact username matches on autocompletion).
+- **Dockerfile Build Support**: Enable to allow users to submit Dockerfiles to be built and pushed to Quay.
+This is not recommended for multitenant environments.
+
+. **Save the changes**: Select `Save Configuration Changes`. You are presented with the following Download Configuration screen:
++
+image:../../images/Figure04.png[Download the {productname} configuration tarball to the local system]
+. **Download configuration**: Select the `Download Configuration` button and save the
+tarball (`quay-config.tar.gz`) to a local directory.
+. **Untar config files**: Untar the configuration files in your local directory. This
+includes the config.yaml and possibly SSL keys:
++
+```
+$ tar xvf quay-config.tar.gz
+config.yaml
 ```
 
-. Check pods: In a couple of minutes (depending on your connection speed), Quay Enterprise should be up and running and the following pods should be visible in the {productname} namespace:
+. **Apply config to {productname}**: Apply the `config.yaml`
+file as a secret to your namespace:
++
+```
+$ oc create secret generic quay-enterprise-secret \
+    -n quay-enterprise --from-file=config.yaml
+```
+
+. **Start {productname}**: Create the actual {productname} deployment:
++
+```
+$ oc create -f quay-enterprise-app-rc.yaml
+deployment.extensions/quay-enterprise-app created
+
+```
+
+. **Check pods**: In a couple of minutes (depending on your connection speed), {productname}
+should be up and running and the following pods should be visible in the quay-enterprise namespace
+You might get a mount error at first, but that should resolve itself:
 +
 ```
 $ oc get pods -n quay-enterprise
-NAME                                     READY     STATUS    RESTARTS   AGE
-quay-enterprise-app-7478c7c997-5k9bd     1/1       Running   0          25m
-quay-enterprise-redis-6b59dc84b8-xssm2   1/1       Running   0          27m
+NAME                                        READY STATUS  RESTARTS AGE
+postgres-7b87b9c978-j4ktp                   1/1   Running 0        21h
+quay-enterprise-app-c9b7cf7dc-5pmqj         1/1   Running 0        26s
+quay-enterprise-config-app-5dcd4bcd76-82fx5 1/1   Running 0        19h
+quay-enterprise-redis-56977989bd-pqxzp      1/1   Running 0        21h
 ```
-.  Check postgresql: On the system where you are running the postgresql container, check that it is running as follows:
+. **Get the URL for {productname}**: Type the following to get the hostname of the new {productname} installation:
 +
 ```
-$ sudo docker ps | grep postgres
-f27941eda96f rhscl/postgresql-96-rhel7 "container-entrypo..." 8 minutes ago Up 8 minutes 0.0.0.0:5432->5432/tcp postgresql_database
-
+$ oc get routes -n quay-enterprise quay-enterprise
+NAME            HOST/PORT                                             PATH SERVICES                  PORT  TERMINATION WILDCARD
+quay-enterprise quay-enterprise-quay-enterprise.apps.test.example.com      quay-enterprise-clusterip <all>             None
 ```
-
-. Get the URL for {productname} setup: Because we used the nodeport yaml file,
-the quay service was exposed from port 80 (http) in the OpenShift cluster
-to port 30080 on the host, as shown here:
 +
-```
-$ oc get services -n quay-enterprise
-NAME                  TYPE      CLUSTER-IP     EXTERNAL-IP PORT(S)        AGE
-quay-enterprise       NodePort  172.30.106.206 <none>      80:30080/TCP   14h
-quay-enterprise-redis ClusterIP 172.30.172.106 <none>      6379/TCP       21h
-```
-You can continue on to configure {productname} through the Web UI using
-either the hostname or IP address of the host, with the exposed port number.
-For example: http://192.168.42.219:30080/setup/ or http://myopenshift.example.com:30080/setup/.
+. **Start using {productname}**: Open the hostname in a web browser to start using {productname}.

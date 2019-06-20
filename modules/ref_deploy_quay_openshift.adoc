@@ -1,0 +1,360 @@
+= Appendix A: {productname} on OpenShift configuration files
+The following yaml files were created
+to deploy {productname} on OpenShift.
+They are used
+throughout the deployment procedure in this document.
+We recommend you copy the files from this document into a directory, review the
+contents, and make any changes necessary for your deployment.
+
+.quay-enterprise-namespace.yaml
+[source,yaml]
+----
+apiVersion: v1
+kind: Namespace <1>
+metadata:
+  name: quay-enterprise <2>
+----
+<1> Identifies the Kind as Namespace
+<2> Namespace is set to quay-enterprise throughout the yaml files
+
+.quay-storageclass.yaml
+[source,yaml]
+----
+  apiVersion: storage.k8s.io/v1
+  kind: StorageClass
+  metadata:
+    name: quay-storageclass
+  parameters:
+    type: gp2
+  provisioner: kubernetes.io/aws-ebs
+  reclaimPolicy: Delete
+----
+
+.db-pvc.yaml
+[source,yaml]
+----
+  apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: postgres-storage
+    namespace: quay-enterprise
+  spec:
+    accessModes:
+      - ReadWriteOnce
+    volumeMode: Filesystem
+    resources:
+      requests:
+        storage: 5Gi
+    storageClassName: quay-storageclass
+----
+
+.postgres-deployment.yaml
+[source,yaml]
+----
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: postgres
+    namespace: quay-enterprise
+  spec:
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app: postgres
+      spec:
+        containers:
+          - name: postgres
+            image: registry.redhat.io/rhscl/postgresql-10-rhel7:1-35
+            imagePullPolicy: "IfNotPresent"
+            ports:
+              - containerPort: 5432
+            env:
+            - name: POSTGRESQL_USER
+              value: "username"
+            - name: POSTGRESQL_DATABASE
+              value: quay
+            - name: POSTGRESQL_PASSWORD
+              value: "password"
+            volumeMounts:
+              - mountPath: /var/lib/pgsql/data
+                name: postgredb
+        volumes:
+          - name: postgredb
+            persistentVolumeClaim:
+              claimName: postgres-storage
+----
+
+.postgres-service.yaml
+[source,yaml]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: quay-enterprise
+  labels:
+    app: postgres
+spec:
+  type: NodePort
+  ports:
+   - port: 5432
+  selector:
+   app: postgres
+----
+
+.quay-enterprise-config-secret.yaml
+[source,yaml]
+----
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: quay-enterprise
+  name: quay-enterprise-config-secret
+----
+
+.quay-enterprise-redhat-quay-pull-secret.yaml
+[source,yaml]
+----
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: quay-enterprise
+  name: redhat-quay-pull-secret
+data:
+  .dockerconfigjson: ewogICJhdXRocyI6IHsKICAgICJxdWF5LmlvIjogewogICAgICAiYXV0aCI6ICJjbVZrYUdGMEszRjFZWGs2VHpneFYxTklVbE5LVWpFMFZVRmFRa3MxTkVkUlNFcFRNRkF4VmpSRFRGZEJTbFl4V0RKRE5GTkVOMHRQTlRsRFVUbE9NMUpGTVRJMk1USllWVEZJVWc9PSIsCiAgICAgICJlbWFpbCI6ICIiCiAgICB9CiAgfQp9
+type: kubernetes.io/dockerconfigjson
+----
+
+
+
+
+.quay-servicetoken-role-k8s1-6.yaml
+[source,yaml]
+----
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  name: quay-enterprise-serviceaccount
+  namespace: quay-enterprise
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - put
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+----
+
+.quay-servicetoken-role-binding-k8s1-6.yaml
+[source,yaml]
+----
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: quay-enterprise-secret-writer
+  namespace: quay-enterprise
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: quay-enterprise-serviceaccount
+subjects:
+- kind: ServiceAccount
+  name: default
+----
+
+.quay-enterprise-redis.yaml
+[source,yaml]
+----
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  namespace: quay-enterprise
+  name: quay-enterprise-redis
+  labels:
+    quay-enterprise-component: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      quay-enterprise-component: redis
+  template:
+    metadata:
+      namespace: quay-enterprise
+      labels:
+        quay-enterprise-component: redis
+    spec:
+      containers:
+      - name: redis-master
+        image: registry.redhat.io/rhscl/redis-32-rhel7
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: quay-enterprise
+  name: quay-enterprise-redis
+  labels:
+    quay-enterprise-component: redis
+spec:
+  ports:
+    - port: 6379
+  selector:
+    quay-enterprise-component: redis
+----
+
+.quay-enterprise-config.yaml
+[source,yaml,subs="verbatim,attributes"]
+----
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    namespace: quay-enterprise
+    name: quay-enterprise-config-app
+    labels:
+      quay-enterprise-component: config-app
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        quay-enterprise-component: config-app
+    template:
+      metadata:
+        namespace: quay-enterprise
+        labels:
+          quay-enterprise-component: config-app
+      spec:
+        containers:
+        - name: quay-enterprise-config-app
+          image: quay.io/redhat/quay:v{productmin}
+          ports:
+          - containerPort: 8443
+          command: ["/quay-registry/quay-entrypoint.sh"]
+          args: ["config", "your_secret"]
+        imagePullSecrets:
+          - name: redhat-quay-pull-secret
+----
+
+.quay-enterprise-config-service-clusterip.yaml
+[source,yaml]
+----
+  apiVersion: v1
+  kind: Service
+  metadata:
+    namespace: quay-enterprise
+    name: quay-enterprise-config
+  spec:
+    type: ClusterIP
+    ports:
+      - protocol: TCP
+        name: https
+        port: 8443
+        targetPort: 8443
+    selector:
+      quay-enterprise-component: config-app
+----
+
+.quay-enterprise-config-route.yaml
+[source,yaml]
+----
+  apiVersion: v1
+  kind: Route
+  metadata:
+    name: quay-enterprise-config
+    namespace: quay-enterprise
+  spec:
+    to:
+      kind: Service
+      name: quay-enterprise-config
+    tls:
+      termination: passthrough
+----
+
+.quay-enterprise-service-clusterip.yaml
+[source,yaml]
+----
+  apiVersion: v1
+  kind: Service
+  metadata:
+    namespace: quay-enterprise
+    name: quay-enterprise-clusterip
+  spec:
+    type: ClusterIP
+    ports:
+      - protocol: TCP
+        name: http
+        port: 80
+        targetPort: 8080
+      - protocol: TCP
+        name: https
+        port: 8443
+        targetPort: 8443
+    selector:
+      quay-enterprise-component: app
+----
+
+.quay-enterprise-app-route.yaml
+[source,yaml]
+----
+  apiVersion: v1
+  kind: Route
+  metadata:
+    name: quay-enterprise
+    namespace: quay-enterprise
+  spec:
+    to:
+      kind: Service
+      name: quay-enterprise-clusterip
+----
+
+.quay-enterprise-app-rc.yaml
+[source,yaml,subs="verbatim,attributes"]
+----
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  namespace: quay-enterprise
+  name: quay-enterprise-app
+  labels:
+    quay-enterprise-component: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      quay-enterprise-component: app
+  template:
+    metadata:
+      namespace: quay-enterprise
+      labels:
+        quay-enterprise-component: app
+    spec:
+      volumes:
+        - name: configvolume
+          secret:
+            secretName: quay-enterprise-config-secret
+      containers:
+      - name: quay-enterprise-app
+        image: quay.io/redhat/quay:v{productmin}
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 8443
+          name: https
+        volumeMounts:
+        - name: configvolume
+          readOnly: false
+          mountPath: /conf/stack
+      imagePullSecrets:
+        - name: redhat-pull-secret
+----
+
