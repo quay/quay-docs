@@ -16,11 +16,50 @@ certificate], you need to create a Certificate Authority (CA), then generate the
 $ openssl genrsa -out rootCA.key 2048
 $ openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 1024 -out rootCA.pem
 ```
-. Create an `openssl.cnf` file. Replacing `DNS.1` and `IP.1` with
-the hostname and IP of the Quay server:
 +
+The result are rootCA.key and rootCA.pem files in the current directory.
+
+. **Create certificate and private key**:
+If you are having {productname} handle TLS, you need to create a certificate
+and private key to provide during configuration. You can get those files
+from a certificate signing authority. Here we show how to create those
+files using the self-signed certificate authority you just created.
++
+In this example, you create device.crt and device.key files, which
+will be uploaded to {productname} and renamed ssl.cert and ssl.key, respectively.
++
+Because OpenShift creates long fully qualified domain names, consider using a wildcard to
+identify the larger domain, instead of the specific route to the {productname} application.
+For example, use something like *.apps.openshift.example.com when prompted for the server's hostname:
++
+```
+Common Name (eg, your name or your server's hostname) []:*apps.openshift.example.com
+```
+
++
+```
+$ openssl genrsa -out device.key 2048
+$ openssl req -new -key device.key -out device.csr
+```
++
+Then sign the certificate with the root CA created earlier:
++
+```
+$ openssl x509 -req -in device.csr -CA rootCA.pem \
+       -CAkey rootCA.key -CAcreateserial -out device.crt -days 500 -sha256
+```
+
+[NOTE]
+====
+Instead generating the *.key and *.crt files as just shown,
+you could create an `openssl.cnf` file. This lets you add more information
+to the resulting certificate than you can get by just responding to the prompts
+in the command for generating the certificate request. In this example of an
+`openssl.cnf` file, replace `DNS.1` and `IP.1` with the hostname and IP
+address of the {productname} server:
+
 `openssl.cnf`
-+
+
 ```
 [req]
 req_extensions = v3_req
@@ -34,34 +73,30 @@ subjectAltName = @alt_names
 DNS.1 = reg.example.com
 IP.1 = 12.345.678.9
 ```
-
-. Create key and certificates. The following set of shell commands invoke the `openssl` utility to
-create a key for Quay, generate a request for an Authority to
-sign a new certificate, and finally generate a certificate for Quay
-signed by the CA created earlier.
-+
-Make sure the CA certificate file `rootCA.pem` and the `openssl.cnf`
-config file are both available.
-+
+You could then generate the key as follows:
 ```
-$ openssl genrsa -out ssl.key 2048
-$ openssl req -new -key ssl.key -out ssl.csr -subj "/CN=quay-enterprise" -config openssl.cnf
-$ openssl x509 -req -in ssl.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out ssl.cert -days 356 -extensions v3_req -extfile openssl.cnf
+$ openssl x509 -req -in ssl.csr -CA rootCA.pem \
+   -CAkey rootCA.key -CAcreateserial -out ssl.cert \
+   -days 356 -extensions v3_req -extfile openssl.cnf
 ```
+====
 
 [[configuring-quay-to-use-the-new-certificate]]
 == Configure Quay to use the new certificate
 
-The next step can be accomplished either in the QE superuser panel, or
-from the terminal.
+The next step can be accomplished either in the {productname} screen or from the terminal.
 
 [[configure-with-superuser-gui-in-quay]]
-=== Configure with the superuser GUI in Quay
+=== Configure SSL from the {productname} Setup screen
+Start the quay container in config mode, as described
+in each deployment guide. In the server
+Configuration section, enable SSL as follows:
 
 . Set the `Server Hostname` to the appropriate value and check the
-`Enable SSL` then upload the `ssl.key` and `ssl.cert` files:
+`Enable SSL` box, then upload the `ssl.key` and `ssl.cert` files
+(in our example, named `device.key` and `device.crt`, respectively):
 image:../../images/server-config.png[Enable SSL]
-. Save the configuration. QE will automatically validate the SSL
+. Save the configuration. {productname} will automatically validate the SSL
 certificate:
 image:../../images/save-configuration.png[validating SSL]
 . Restart the container
@@ -71,16 +106,18 @@ image:../../images/restart-container.png[restart the container]
 === Configure with the command line
 
 By not using the web interface the configuration checking mechanism
-built into QE is unavailable. It is suggested to use the web interface
-if possible.
+built into {productname} is unavailable. It is suggested to use the web interface
+if possible. For non-OpenShift installations, you
+can configure SSL from the command-line interface
+as follows:
 
 . Copy the `ssl.key` and `ssl.cert` into the specified `config` directory.
-In this example, the config directory for Quay is on a host named reg.example.com in a directory
+In this example, the config directory for {productname} is on a host named reg.example.com in a directory
 named /mnt/quay/config.
 +
 [NOTE]
 ====
-The certificate/key files must be named ssl.key and ssl.cert
+The certificate/key files must be named ssl.key and ssl.cert.
 ====
 +
 ```
@@ -117,8 +154,8 @@ Confirm the configuration by visiting the URL from a browser
 `https://reg.example.com/`
 image:../../images/https-browser.png[restart the container]
 "Your Connection is not secure" means the CA is untrusted but confirms
-that SSL is functioning properly. Check Google for how to configure your
-operating system and web browser to trust your new CA.
+that SSL is functioning properly.
+To avoid these messages, you need to get a certificate from a trusted certificate authority.
 
 [[configuring-docker-to-trust-a-certificate-authority]]
 == Configuring Docker to Trust a Certificate Authority
