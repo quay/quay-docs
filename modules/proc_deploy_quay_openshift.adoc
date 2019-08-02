@@ -12,7 +12,7 @@ things to keep in mind:
 * Your OpenShift account must have permission to create namespaces
 at the cluster scope.
 
-* Quay runs under its own namespace inside a Kubernetes cluster, so that needs to be created first. You can create it through the `New project` in the OpenShift web console or using quay-enterprise-namespace.yaml (as described here).
+* {productname} runs under its own namespace inside a Kubernetes cluster, so that needs to be created first. You can create it through the `New project` in the OpenShift web console or using quay-enterprise-namespace.yaml (as described here).
 
 * You need a working enterprise-quality database.
 In our example, we illustrate PostgreSQL
@@ -52,7 +52,7 @@ $ oc create secret generic quay-enterprise-secret
 
 . **Create the secret for quay.io**.
 This pull secret provides credentials to pull containers from the Quay.io registry.
-Refer to link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay] to get
+Refer to link:https://access.redhat.com/solutions/3533201[Accessing Red Hat {productname}] to get
 the credentials you need to add to the quay-enterprise-redhat-quay-pull-secret.yaml file, then run `oc create`:
 +
 ```
@@ -112,7 +112,7 @@ scc "anyuid" added to: ["system:serviceaccount:quay-enterprise:system:serviceacc
 integrations. These integrations require Service Account to have access to the
 Kubernetes API. When Kubernetes RBAC is enabled, Role
 Based Access Control policy manifests also have to be deployed. This role will
-be used to run Quay and also to write the config.yaml file that Quay creates at
+be used to run {productname} and also to write the config.yaml file that {productname} creates at
 the end of the web interface setup:
 +
 ```
@@ -120,7 +120,7 @@ $ oc create -f quay-servicetoken-role-k8s1-6.yaml
 $ oc create -f quay-servicetoken-role-binding-k8s1-6.yaml
 ```
 
-. **Add privilege**: Make sure that the service account has root privileges, because Quay runs strictly under root (this will be changed in the future versions). Throughout this example, the namespace is `quay-enterprise`:
+. **Add privilege**: Make sure that the service account has root privileges, because {productname} runs strictly under root (this will be changed in the future versions). Throughout this example, the namespace is `quay-enterprise`:
 +
 ```
 $ oc adm policy add-scc-to-user anyuid \
@@ -227,35 +227,35 @@ image:../../images/Figure01.png[Identifying the database {productname} will use]
 +
 . **Validate database**: Select `Validate Database Settings` and proceed to the next screen.
 
-. **Create Quay superuser**: You need to set up an account with superuser privileges to Quay, to use for editing Quay configuration settings. That information includes a Username, Email address, and Password (entered twice).
+. **Create {productname} superuser**: You need to set up an account with superuser privileges to {productname}, to use for editing {productname} configuration settings. That information includes a Username, Email address, and Password (entered twice).
 +
-The following figure shows an example of the {productname} Setup screen for setting up a Quay superuser account:
+The following figure shows an example of the {productname} Setup screen for setting up a {productname} superuser account:
 +
-image:../../images/Figure03.png[Set up a Quay superuser account to do Quay configuration]
+image:../../images/Figure03.png[Set up a {productname} superuser account to do {productname} configuration]
 +
 Select `Create Super User`, and proceed to the next screen.
 
 . **Identify settings**: Go through each of the following settings. The minimum you must enter includes:
 +
-- **Server hostname**: The URL to the Red Hat Quay service is required.
+- **Server hostname**: The URL to the {productname} service is required.
 +
 - **Redis hostname**: The URL or IP address to the Redis service is required.
 +
 Here are all the settings you need to consider:
 +
-- **Custom SSL Certificates**: Upload custom or self-signed SSL certificates for use by Quay. See link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#using-ssl-to-protect-quay[Using SSL to protect connections to {productname}] for details. Recommended for high availability.
+- **Custom SSL Certificates**: Upload custom or self-signed SSL certificates for use by {productname}. See link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#using-ssl-to-protect-quay[Using SSL to protect connections to {productname}] for details. Recommended for high availability.
 +
 [IMPORTANT]
 ====
 Using SSL certificates is recommended for both basic
 and high availability deployments. If you decide to
 not use SSL, you must configure your container clients
-to use your new Quay setup as an insecure registry
+to use your new {productname} setup as an insecure registry
 as described in link:https://docs.docker.com/registry/insecure/[Test an Insecure Registry].
 ====
 
-- **Basic Configuration**: Upload a company logo to rebrand your Quay registry.
-- **Server Configuration**: Hostname or IP address to reach the Quay service, along with TLS indication (recommended for production installations). To get the route to the permanent {productname} service, type the following:
+- **Basic Configuration**: Upload a company logo to rebrand your {productname} registry.
+- **Server Configuration**: Hostname or IP address to reach the {productname} service, along with TLS indication (recommended for production installations). To get the route to the permanent {productname} service, type the following:
 +
 ```
 $ oc get route -n quay-enterprise quay-enterprise
@@ -264,11 +264,11 @@ quay-enterprise quay-enterprise-quay-enterprise.apps.cnegus-ocp.devcluster.opens
 ```
 See link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#using-ssl-to-protect-quay[Using SSL to protect connections to {productname}]. TLS termination can be done in two different ways:
   ** On the instance itself, with all TLS traffic governed by the nginx server in the quay container (recommended).
-  ** On the load balancer. This is not recommended. Access to Quay could be lost if the TLS setup is not done correctly on the load balancer.
+  ** On the load balancer. This is not recommended. Access to {productname} could be lost if the TLS setup is not done correctly on the load balancer.
 
 - **Data Consistency Settings**: Select to relax logging consistency guarantees to improve performance and availability.
 - **Time Machine**: Allow older image tags to remain in the repository for set periods of time and allow users to select their own tag expiration times.
-- **redis**: Identify the hostname or IP address (and optional password) to connect to the redis service used by Quay. To find the address of the redis service, type the following:
+- **redis**: Identify the hostname or IP address (and optional password) to connect to the redis service used by {productname}. To find the address of the redis service, type the following:
 +
 ```
 $ oc get services -n quay-enterprise quay-enterprise-redis
@@ -283,14 +283,14 @@ you have completed the initial {productname} deployment. Clair setup is describe
 after the end of this procedure.
 - **Application Registry**: Enable an additional application registry that includes things like Kubernetes manifests or Helm charts (see the link:https://github.com/app-registry[App Registry specification]).
 - **BitTorrent-based download**: Allow all registry images to be downloaded using BitTorrent protocol (using the link:https://github.com/coreos/quayctl[`quayctl`] tool).
-- **rkt Conversion**: Allow `rkt fetch` to be used to fetch images from Quay registry. Public and private GPG2 keys are needed (see link:https://coreos.com/quay-enterprise/docs/latest/aci-signing-keys.html[Generating signing keys for ACI conversion] for details.
+- **rkt Conversion**: Allow `rkt fetch` to be used to fetch images from the {productname} registry. Public and private GPG2 keys are needed (see link:https://coreos.com/quay-enterprise/docs/latest/aci-signing-keys.html[Generating signing keys for ACI conversion] for details.
 This field is deprecated.
 - **E-mail**: Enable e-mail to use for notifications and user password resets.
 - **Internal Authentication**: Change default authentication for the registry from Local Database to LDAP, Keystone (OpenStack), JWT Custom Authentication, or External Application Token.
 - **External Authorization (OAuth)**: Enable to allow GitHub or GitHub Enterprise to authenticate to the registry.
 - **Google Authentication**: Enable to allow Google to authenticate to the registry.
 - **Access settings**: Basic username/password authentication is enabled by default. Other authentication types that can be enabled include: external application tokens (user-generated tokens used with docker or rkt commands), anonymous access (enable for public access to anyone who can get to the registry), user creation (let users create their own accounts), encrypted client password (require command-line user access to include encrypted passwords), and prefix username autocompletion (disable to require exact username matches on autocompletion).
-- **Dockerfile Build Support**: Enable to allow users to submit Dockerfiles to be built and pushed to Quay.
+- **Dockerfile Build Support**: Enable to allow users to submit Dockerfiles to be built and pushed to {productname}.
 This is not recommended for multitenant environments.
 
 . **Save the changes**: Select `Save Configuration Changes`. You are presented with the following Download Configuration screen:

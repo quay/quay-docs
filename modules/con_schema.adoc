@@ -21,16 +21,16 @@ All fields are optional unless otherwise marked.
 ** **Example**: `mysql+pymysql://username:password@dns.of.database/quay`
 * **DEFAULT_TAG_EXPIRATION** [string] required: The default, configurable tag expiration time for time machine. Defaults to `2w`.
 ** **Pattern**: ``^[0-9]+(w|m|d|h|s)$``
-* **DISTRIBUTED_STORAGE_CONFIG** [object] required: Configuration for storage engine(s) to use in Quay. Each key is a unique ID for a storage engine, with the value being a tuple of the type and configuration for that engine.
+* **DISTRIBUTED_STORAGE_CONFIG** [object] required: Configuration for storage engine(s) to use in {productname}. Each key is a unique ID for a storage engine, with the value being a tuple of the type and configuration for that engine.
 ** **Example**: `{"local_storage": ["LocalStorage", {"storage_path": "some/path/"}]}`
 * **DISTRIBUTED_STORAGE_PREFERENCE** [array] required: The preferred storage engine(s) (by ID in DISTRIBUTED_STORAGE_CONFIG) to use. A preferred engine means it is first checked for pulling and images are pushed to it.
 ** **Min Items**: None
 *** **Example**: `[u's3_us_east', u's3_us_west']`
 *** **array item** [string]
-** **preferred_url_scheme** [string] required:  The URL scheme to use when hitting Quay. If Quay is behind SSL *at all*, this *must* be `https`.
+** **preferred_url_scheme** [string] required:  The URL scheme to use when hitting {productname}. If {productname} is behind SSL *at all*, this *must* be `https`.
 *** **enum**: `http, https`
 *** **Example**: `https`
-* **SERVER_HOSTNAME** [string] required: The URL at which Quay is accessible, without the scheme.
+* **SERVER_HOSTNAME** [string] required: The URL at which {productname} is accessible, without the scheme.
 ** **Example**: `quay.io`
 * **TAG_EXPIRATION_OPTIONS** [array] required: The options that users can select for expiration of tags in their namespace (if enabled).
 ** **Min Items**: None
@@ -54,9 +54,9 @@ All fields are optional unless otherwise marked.
 * **AVATAR_KIND** [string]: The types of avatars to display, either generated inline (local) or Gravatar (gravatar)
 ** **enum**: local, gravatar
 * **BITBUCKET_TRIGGER_CONFIG** ['object', 'null']: Configuration for using BitBucket for build triggers.
-** **consumer_key** [string] required: The registered consumer key(client ID) for this Quay instance.
+** **consumer_key** [string] required: The registered consumer key(client ID) for this {productname} instance.
 *** **Example**: `0e8dbe15c4c7630b6780`
-** **CONSUMER_SECRET** [string] required: The registered consumer secret(client secret) for this Quay instance
+** **CONSUMER_SECRET** [string] required: The registered consumer secret(client secret) for this {productname} instance
 *** **Example**: e4a58ddd3d7408b7aec109e85564a0d153d3e846
 * **BITTORRENT_ANNOUNCE_URL** [string]: The URL of the announce endpoint on the bittorrent tracker.
 ** **Pattern**: ``^http(s)?://(.)+$``
@@ -80,7 +80,7 @@ All fields are optional unless otherwise marked.
 ** **array item 3** [string]: Adds a link to a defined URL
 *** **Pattern**: ``^http(s)?://(.)+$``
 *** **Example**: `https://twitter.com/quayio`
-* **BLACKLIST_V2_SPEC** [string]: The Docker CLI versions to which Quay will respond that V2 is *unsupported*. Defaults to `<1.6.0`.
+* **BLACKLIST_V2_SPEC** [string]: The Docker CLI versions to which {productname} will respond that V2 is *unsupported*. Defaults to `<1.6.0`.
 ** **Reference**: http://pythonhosted.org/semantic_version/reference.html#semantic_version.Spec
 ** **Example**: `<1.8.0`
 * **DB_CONNECTION_ARGS** [object]: If specified, connection arguments for the database such as timeouts and SSL.
@@ -91,7 +91,7 @@ All fields are optional unless otherwise marked.
 *** **Example**: `conf/stack/ssl-ca-cert.pem`
 * **DEFAULT_NAMESPACE_MAXIMUM_BUILD_COUNT** [number, `null`]: If not None, the default maximum number of builds that can be queued in a namespace.
 ** **Example**: `20`
-* **DIRECT_OAUTH_CLIENTID_WHITELIST** [array]: A list of client IDs of *Quay-managed* applications that are allowed to perform direct OAuth approval without user approval.
+* **DIRECT_OAUTH_CLIENTID_WHITELIST** [array]: A list of client IDs of *{productname}-managed* applications that are allowed to perform direct OAuth approval without user approval.
 ** **Min Items**: None
 ** **Unique Items**: True
 ** **Reference**: https://coreos.com/quay-enterprise/docs/latest/direct-oauth.html
@@ -100,7 +100,7 @@ All fields are optional unless otherwise marked.
 ** **Min Items**: None
 ** **Example**: `s3_us_east, s3_us_west`
 *** **array item** [string]
-* **EXTERNAL_TLS_TERMINATION** [boolean]: If TLS is supported, but terminated at a layer before Quay, must be true.
+* **EXTERNAL_TLS_TERMINATION** [boolean]: If TLS is supported, but terminated at a layer before {productname}, must be true.
 ** **Example**: `True`
 * **ENABLE_HEALTH_DEBUG_SECRET** [string, `null`]: If specified, a secret that can be given to health endpoints to see full debug info when not authenticated as a superuser.
 ** **Example**: `somesecrethere`
@@ -169,11 +169,11 @@ All fields are optional unless otherwise marked.
 ** **Example**: `False`
 * **FEATURE_STORAGE_REPLICATION** [boolean]: Whether to automatically replicate between storage engines. Defaults to False.
 ** **Example**: `False`
-* **FEATURE_SUPER_USERS** [boolean]: Whether super users are supported. Defaults to True.
+* **FEATURE_SUPER_USERS** [boolean]: Whether superusers are supported. Defaults to True.
 ** **Example**: `True`
 * **FEATURE_TEAM_SYNCING** [boolean]: Whether to allow for team membership to be synced from a backing group in the authentication engine (LDAP or Keystone).
 ** **Example**: `True`
-* **FEATURE_USER_CREATION** [boolean] :Whether users can be created (by non-super users). Defaults to True.
+* **FEATURE_USER_CREATION** [boolean] :Whether users can be created (by non-superusers). Defaults to True.
 ** **Example**: `True`
 * **FEATURE_USER_LOG_ACCESS** [boolean]: If set to true, users will have access to audit logs for their namespace. Defaults to False.
 ** **Example**: `True`
@@ -189,10 +189,10 @@ All fields are optional unless otherwise marked.
 **** **array item** [string]
 ** **API_ENDPOINT** [string]: The endpoint of the GitHub (Enterprise) API to use. Must be overridden for github.com.
 *** **Example**: `https://api.github.com/`
-** **CLIENT_ID** [string] required: The registered client ID for this Quay instance; cannot be shared with GITHUB_TRIGGER_CONFIG.
+** **CLIENT_ID** [string] required: The registered client ID for this {productname} instance; cannot be shared with GITHUB_TRIGGER_CONFIG.
 *** **Reference**: https://coreos.com/quay-enterprise/docs/latest/github-app.html
 *** **Example**: `0e8dbe15c4c7630b6780`
-** **CLIENT_SECRET** [string] required: The registered client secret for this Quay instance.
+** **CLIENT_SECRET** [string] required: The registered client secret for this {productname} instance.
 *** **Reference**: https://coreos.com/quay-enterprise/docs/latest/github-app.html
 *** **Example**: `e4a58ddd3d7408b7aec109e85564a0d153d3e846`
 ** **GITHUB_ENDPOINT** [string] required: The endpoint of the GitHub (Enterprise) being hit.
@@ -203,25 +203,25 @@ All fields are optional unless otherwise marked.
 ** **Reference**: https://coreos.com/quay-enterprise/docs/latest/github-build.html
 ** **API_ENDPOINT** [string]: The endpoint of the GitHub (Enterprise) API to use. Must be overridden for github.com.
 *** **Example**: `https://api.github.com/`
-** **CLIENT_ID** [string] required: The registered client ID for this Quay instance; cannot be shared with GITHUB_LOGIN_CONFIG.
+** **CLIENT_ID** [string] required: The registered client ID for this {productname} instance; cannot be shared with GITHUB_LOGIN_CONFIG.
 *** **Reference**: https://coreos.com/quay-enterprise/docs/latest/github-app.html
 *** **Example**: `0e8dbe15c4c7630b6780`
-** **CLIENT_SECRET** [string] required: The registered client secret for this Quay instance.
+** **CLIENT_SECRET** [string] required: The registered client secret for this {productname} instance.
 *** **Reference**: https://coreos.com/quay-enterprise/docs/latest/github-app.html
 *** **Example**: `e4a58ddd3d7408b7aec109e85564a0d153d3e846`
 ** **GITHUB_ENDPOINT** [string] required: The endpoint of the GitHub (Enterprise) being hit.
 *** **Example**: `https://github.com/`
 * **GITLAB_TRIGGER_CONFIG** [object]: Configuration for using Gitlab (Enterprise) for external authentication.
-** **CLIENT_ID** [string] required: The registered client ID for this Quay instance.
+** **CLIENT_ID** [string] required: The registered client ID for this {productname} instance.
 *** **Example**: `0e8dbe15c4c7630b6780`
-** **CLIENT_SECRET** [string] required: The registered client secret for this Quay instance.
+** **CLIENT_SECRET** [string] required: The registered client secret for this {productname} instance.
 *** **Example**: `e4a58ddd3d7408b7aec109e85564a0d153d3e846`
 *** **gitlab_endpoint** [string] required: The endpoint at which Gitlab(Enterprise) is running.
 **** **Example**: `https://gitlab.com`
 * **GOOGLE_LOGIN_CONFIG** [object, `null`]: Configuration for using Google for external authentication
-** **CLIENT_ID** [string] required: The registered client ID for this Quay instance.
+** **CLIENT_ID** [string] required: The registered client ID for this {productname} instance.
 *** **Example**: `0e8dbe15c4c7630b6780`
-** **CLIENT_SECRET** [string] required: The registered client secret for this Quay instance.
+** **CLIENT_SECRET** [string] required: The registered client secret for this {productname} instance.
 *** **Example**: e4a58ddd3d7408b7aec109e85564a0d153d3e846
 * **HEALTH_CHECKER** [string]: The configured health check.
 ** **Example**: `('RDSAwareHealthCheck', {'access_key': 'foo', 'secret_key': 'bar'})`
@@ -229,7 +229,7 @@ All fields are optional unless otherwise marked.
 ** **Example**: `s3_us_east`
 * **LOG_ARCHIVE_PATH** [string]: If builds are enabled, the path in storage in which to place the archived build logs.
 ** **Example**: `archives/buildlogs`
-* **MAIL_DEFAULT_SENDER** [string, `null`]: If specified, the e-mail address used as the `from` when Quay sends e-mails. If none, defaults to `support@quay.io`.
+* **MAIL_DEFAULT_SENDER** [string, `null`]: If specified, the e-mail address used as the `from` when {productname} sends e-mails. If none, defaults to `support@quay.io`.
 ** **Example**: `support@myco.com`
 * **MAIL_PASSWORD** [string, `null`]: The SMTP password to use when sending e-mails.
 ** **Example**: `mypassword`
@@ -264,7 +264,7 @@ All fields are optional unless otherwise marked.
 * **SESSION_COOKIE_SECURE** [boolean]: Whether the `secure` property should be set on session cookies. Defaults to False. Recommended to be True for all installations using SSL.
 ** **Example**: True
 ** **Reference**: https://en.wikipedia.org/wiki/Secure_cookies
-* **SUPER_USERS** [array]: Quay usernames of those users to be granted superuser privileges.
+* **SUPER_USERS** [array]: {productname} usernames of those users to be granted superuser privileges.
 ** **Min Items**: None
 ** **Unique Items**: True
 *** **array item** [string]
