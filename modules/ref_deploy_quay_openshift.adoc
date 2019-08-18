@@ -52,10 +52,16 @@ type: kubernetes.io/dockerconfigjson
   kind: StorageClass
   metadata:
     name: quay-storageclass
-  parameters:
+  parameters: <1>
     type: gp2
   provisioner: kubernetes.io/aws-ebs
   reclaimPolicy: Delete
+----
+<1> To encrypt the volume, add this to the parameters section (optionally replacing xfs with another filesystem type):
+----
+     encrypted: "true"
+     fsType: xfs (or other fs)
+     kmsKeyId:
 ----
 
 == {productname} database
@@ -524,7 +530,7 @@ spec:
             # The ID of the service key generated for Clair. The ID is returned when setting up
             # the key in [Quay Enterprise Setup](security-scanning.md)
             key_id: cd40f1c6a63f574c68ce882258925374882fac2b2f535ae5f8157c429e0c4b2e <2>
-            private_key_path: /clair/config/security_scanner.pem 
+            private_key_path: /clair/config/security_scanner.pem
 
     verifier_proxies:
     - enabled: true
@@ -618,4 +624,38 @@ spec:
         - name: configvolume
           secret:
             secretName: clair-scanner-config-secret
+----
+
+== Repository mirroring
+
+.quay-enterprise-mirror.yaml
+[source,yaml,subs="verbatim,attributes"]
+----
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  namespace: quay-enterprise
+  name: quay-enterprise-mirror
+  labels:
+    quay-enterprise-component: mirror-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      quay-enterprise-component: mirror-app
+  template:
+    metadata:
+      namespace: quay-enterprise
+      labels:
+        quay-enterprise-component: mirror-app
+    spec:
+      containers:
+      - name: quay-enterprise-mirror-app
+        image: quay.io/quay/quay:v3.1.0-rc2
+        ports:
+        - containerPort: 8443
+        command: ["/quay-registry/quay-entrypoint.sh"]
+        args: ["repomirror"]
+      imagePullSecrets:
+        - name: redhat-quay-pull-secret
 ----

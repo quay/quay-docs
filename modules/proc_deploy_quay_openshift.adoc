@@ -1,3 +1,6 @@
+include::modules/attributes.adoc[]
+
+[[set-up-red-hat-quay-services]]
 = Set up {productname} services
 
 Deploying {productname} on OpenShift requires you to create a set of yaml files.
@@ -21,6 +24,21 @@ In our example, we illustrate PostgreSQL
 * You can use an existing Redis service (needed for build logs and the {productname} tutorial) or start one
 as described in this procedure.
 
+Here are the major steps, detailed below, to complete a Red Hat Quay deployment on OpenShift:
+
+. Set up the Red Hat Quay namespace and secrets
+. Create the Red Hat Quay database
+. Create Red Hat Quay roles and privileges
+. Create the Redis deployment
+. Prepare to configure Red Hat Quay
+. Start the Red Hat Quay configuration user interface
+. Deploy the Red Hat Quay configuration
+. Add Clair image scanning
+. Add repository mirroring
+
+[[set-up-namespaces-secrets]]
+== Set up {productname}  namespaces and secrets
+
 . **Get {productname} yaml files**: Create a set of yaml files in a directory on your local system
 from the contents shown in Appendix A. Study each file to determine where you might need to make modifications.
 You will use `oc create` to create the needed resources from those files.
@@ -42,7 +60,7 @@ $ oc project quay-enterprise
 
 . **Create the secret for the {productname} configuration and app**: Create the following secrets.
 During {productname} configuration, the config.yaml, and optionally the ssl.cert and ssl.key, files
-are added to the applicaion's  secret, so they can be included with the resulting {productname} application:
+are added to the application's secret, so they can be included with the resulting {productname} application:
 +
 ```
 $ oc create -f quay-enterprise-config-secret.yaml
@@ -63,7 +81,8 @@ secret/redhat-quay-pull-secret created
 . **Create the database**. If you are not using your own enterprise-quality
 database (recommended), this procedure illustrates how to set up a Postgresql database
 on an OpenShift cluster. This entails creating AWS storage, a postgres deployment,
-and postgres service, then adding an extension to the database:
+and postgres service, then adding an extension to the database (see the description of
+`quay-storageclass.yaml` in Appendix A for information on adding encryption to your volumes):
 +
 ```
 $ oc create -f quay-storageclass.yaml
@@ -184,7 +203,8 @@ quay-enterprise-config quay-enterprise-config-quay-enterprise.apps.test.example.
 For this example, you would open this URL in your web browser:
 https://quay-enterprise-config-quay-enterprise.apps.test.example.com
 
-. **Log in as quayconfig**: When prompted, enter
+. **Log in as quayconfig**: When prompted, enter the username and password
+(the password was set as an argument to the quay config container in: quay-enterprise-config.yaml):
 
 - User Name: **quayconfig**
 
@@ -275,6 +295,10 @@ $ oc get services -n quay-enterprise quay-enterprise-redis
 NAME                  TYPE       CLUSTER-IP    EXTERNAL-IP PORT(S)  AGE
 quay-enterprise-redis ClusterIP  172.30.207.35 <none>      6379/TCP 40m
 ```
+- **Repository Mirroring**: Choose the checkbox to Enable Repository Mirroring.
+With this enabled, you can create repositories in your {productname} cluster that mirror
+selected repositories from remote registries. Before you can enable repository mirroring,
+start the repository mirroring worker as described later in this procedure.
 - **Registry Storage**: Identify the location of storage. A variety of cloud and local storage options are available. Remote storage is required for high availability. Identify the Ceph storage location
 if you are following the example for {productname} high availability storage. On OpenShift, the example uses Amazon S3 storage.
 - **Action Log Rotation and Archiving**: Select to enable log rotation, which moves logs older than 30 days into storage, then indicate storage area.
@@ -340,7 +364,7 @@ quay-enterprise quay-enterprise-quay-enterprise.apps.test.example.com      quay-
 . **Start using {productname}**: Open the hostname in a web browser to start using {productname}.
 
 [[add-clair-scanner]]
-== Adding Clair image scanning to {productname}
+== Add Clair image scanning to {productname}
 
 Setting up and deploying Clair image scanning for your
 {productname} deployment requires the following basic steps:
@@ -428,3 +452,37 @@ and fill in the clair-service endpoint. For example, http://clair-service:6060
 
 A green check mark will appear on the screen when the deployment is done.
 You can now start using Clair image scanning with {productname}.
+
+[[add-repo-mirroring]]
+== Add repository mirroring {productname}
+Enabling repository mirroring allows you to create container image repositories
+on your {productname} cluster that exactly match the content of a selected
+external registry, then sync the contents of those repositories on
+a regular schedule and on demand.
+
+To add the repository mirroring feature to your {productname} cluster:
+
+* Run the repository mirroring worker. To do this, you start a quay pod with the
+`repomirror` option.
+* Select "Enable Repository Mirroring in the {productname} Setup tool.
+* Log into your {productname} Web UI and begin creating mirrored repositories
+as described in link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index[Repository Mirroring in Red Hat Quay].
+
+The following procedure assumes you already have a running
+{productname} cluster on an OpenShift platform, with the {productname} Setup
+container running in your browser:
+
+. **Start the repo mirroring worker**: Start the quay container in `repomirror` mode as follows:
++
+```
+$ oc create -f quay-enterprise-mirror.yaml
+```
+. **Log into config tool**: Log into the {productname} Setup Web UI (config tool).
+. **Enable repository mirroring**: Scroll down the the Repository Mirroring section
+and select the Enable Repository Mirroring check box, as shown here:
+. **Select HTTPS and cert verification**: If you want to require HTTPS
+communications and verify certificates during mirroring, select this check box.
+image:../../images/repo-mirror-config.png[Enable mirroring and require HTTPS and verified certificates]
+. **Save configuration**: Select the Save Configuration Changes button. Repository
+mirroring should now be enabled on your {productname} cluster. Refer to
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index[Repository Mirroring in {productname}] for details on setting up your own mirrored container image repositories.
