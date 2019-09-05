@@ -12,12 +12,12 @@ Here's an example of how to do that:
 +
 [subs="verbatim,attributes"]
 ....
-# docker run -p 443:8443 quay.io/redhat/quay:v{productmin} config my-secret-password
+# docker run --net=host -p 8443:8443 -d quay.io/redhat/quay:v{productmin} config my-secret-password
 ....
 
-. **Open browser**: When the quay configuration tool starts up, open a browser to the URL
+. **Open browser**: When the quay configuration tool starts up, open a browser to the URL and port 8443
 of the system you are running the configuration tool on
-(for example https://myquay.example.com). You are prompted for a username and password.
+(for example https://myquay.example.com:8443). You are prompted for a username and password.
 
 . **Log in as quayconfig**: When prompted, enter the `quayconfig` username and password
 (the one from the `docker run` command line).
@@ -36,7 +36,7 @@ modify it before you use it to start your {productname} nodes.
 +
 The following figure shows an example of the resulting `Choose an option` page:
 +
-image:../../images/Figure00.png[Identifying the database {productname} will use]
+image:../../images/Figure00x.png[Identifying the database {productname} will use]
 +
 For an initial setup, you are asked to identify the database type.
 For a subsequent configuration, you are prompted for a tarball containing the
@@ -46,7 +46,7 @@ can continue on with the configuration.
 . **Identify the database**: For the initial setup, add the following information about the type and location of the database to be used by {productname}:
 +
 * **Database Type**: Choose MySQL or PostgreSQL. MySQL will be used in the basic example; PostgreSQL is used with the
-high availability {productname} on OpenShift examples and is shown here.
+high availability {productname} on OpenShift examples.
 +
 * **Database Server**: Identify the IP address or hostname of the database,
 along with the port number if it is different from 3306.
@@ -75,16 +75,18 @@ image:../../images/Figure03.png[Set up a {productname} superuser account to do {
 +
 Select `Create Super User`, and proceed to the next screen.
 
-. **Identify the Redis hostname and add other desired settings**: Other setting you can add to complete the setup are as follows. More settings for high availability {productname} deployment that for the basic deployment:
+. **Identify the Redis hostname, Server Configuration and add other desired settings**: Other setting you can add to complete the setup are as follows. More settings for high availability {productname} deployment that for the basic deployment:
 
 +
 * For the basic, test configuration, identifying the Redis Hostname should be all you need to do.
+However, you can add other features, such as Clair Scanning and Repository Mirroring,
+as described at the end of this procedure.
 +
 * For the high availability and OpenShift configurations, more settings are needed (as noted below) to allow for shared storage, secure communications between systems, and other features.
 +
 **Here are the settings you need to consider:**
 +
-* **Custom SSL Certificates**: Upload custom or self-signed SSL certificates for use by {productname}. See link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#configuring-clair-for-tls[Using SSL to protect connections to {productname}] for details. Recommended for high availability.
+* **Custom SSL Certificates**: Upload custom or self-signed SSL certificates for use by {productname}. See link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#using-ssl-to-protect-quay[Using SSL to protect connections to {productname}] for details. Recommended for high availability.
 +
 [IMPORTANT]
 ====
@@ -96,7 +98,7 @@ as described in link:https://docs.docker.com/registry/insecure/[Test an Insecure
 ====
 
 * **Basic Configuration**: Upload a company logo to rebrand your {productname} registry.
-* **Server Configuration**: Hostname or IP address to reach the {productname} service, along with TLS indication (recommended for production installations). Recommended for high availability.
+* **Server Configuration**: Hostname or IP address to reach the {productname} service, along with TLS indication (recommended for production installations). The Server Hostname is required for all {productname} deployments.
 TLS termination can be done in two different ways:
 - On the instance itself, with all TLS traffic governed by the nginx server in the quay container (recommended).
 - On the load balancer. This is not recommended. Access to {productname} could be lost if the TLS setup is not done correctly on the load balancer.
@@ -104,6 +106,14 @@ TLS termination can be done in two different ways:
 * **Data Consistency Settings**: Select to relax logging consistency guarantees to improve performance and availability.
 * **Time Machine**: Allow older image tags to remain in the repository for set periods of time and allow users to select their own tag expiration times.
 * **redis**: Identify the hostname or IP address (and optional password) to connect to the redis service used by {productname}.
+**Repository Mirroring**: Choose the checkbox to Enable Repository Mirroring.
+With this enabled, you can create repositories in your {productname} cluster that mirror
+selected repositories from remote registries. Before you can enable repository mirroring,
+start the repository mirroring worker as described later in this procedure.
+* **Repository Mirroring**: Choose the checkbox to Enable Repository Mirroring.
+With this enabled, you can create repositories in your {productname} cluster that mirror
+selected repositories from remote registries. Before you can enable repository mirroring,
+start the repository mirroring worker as described later in this procedure.
 * **Registry Storage**: Identify the location of storage. A variety of cloud and local storage options are available. Remote storage is required for high availability. Identify the Ceph storage location
 if you are following the example for {productname} high availability storage. On OpenShift, the example uses Amazon S3 storage.
 * **Action Log Rotation and Archiving**: Select to enable log rotation, which moves logs older than 30 days into storage, then indicate storage area.
@@ -116,7 +126,11 @@ This field is deprecated.
 * **Internal Authentication**: Change default authentication for the registry from Local Database to LDAP, Keystone (OpenStack), JWT Custom Authentication, or External Application Token.
 * **External Authorization (OAuth)**: Enable to allow GitHub or GitHub Enterprise to authenticate to the registry.
 * **Google Authentication**: Enable to allow Google to authenticate to the registry.
-* **Access settings**: Basic username/password authentication is enabled by default. Other authentication types that can be enabled include: external application tokens (user-generated tokens used with docker or rkt commands), anonymous access (enable for public access to anyone who can get to the registry), user creation (let users create their own accounts), encrypted client password (require command-line user access to include encrypted passwords), and prefix username autocompletion (disable to require exact username matches on autocompletion).
+* **Access Settings**: Basic username/password authentication is enabled by default. Other authentication types that can be enabled include: external application tokens (user-generated tokens used with docker or rkt commands), anonymous access (enable for public access to anyone who can get to the registry), user creation (let users create their own accounts), encrypted client password (require command-line user access to include encrypted passwords), and prefix username autocompletion (disable to require exact username matches on autocompletion).
+* **Registry Protocol Settings**: Leave the `Restrict V1 Push Support` checkbox enabled
+to restrict access to Docker V1 protocol pushes.
+Although Red Hat recommends against enabling Docker V1 push protocol, if you do allow it,
+you must explicitly whitelist the namespaces for which it is enabled.
 * **Dockerfile Build Support**: Enable to allow users to submit Dockerfiles to be built and pushed to {productname}.
 This is not recommended for multitenant environments.
 
@@ -127,4 +141,5 @@ image:../../images/Figure04.png[Download the {productname} configuration tarball
 tarball (`quay-config.tar.gz`) to a local directory to use later to start {productname}.
 
 At this point, you can shutdown the {productname} configuration tool and close your browser. Next, copy the tarball file to the system
-on which you want to install your first {productname} node.
+on which you want to install your first {productname} node. For a basic install, you might just be running
+{productname} on the same system.

@@ -1,22 +1,47 @@
 include::modules/attributes.adoc[]
 
 [id='upgrade-quay-v3']
-= Upgrade Quay
+= Upgrade {productname}
 
 :imagesdir: ./images
 
-To upgrade from Red Hat Quay v2.x to v3, you can either do
-the whole upgrade with Red Hat Quay down (Synchronous) or only bring down
-Red Hat Quay for a few minutes and have bulk of the upgrade continue with
-Red Hat Quay running (Background).
+This guide describes how to upgrade to {productname} v3.1.
+To upgrade from {productname} v2.y.z to v{productmin}, you must:
+
+* Upgrade from {productname} v2.y.z to v3.0.z
+* Then upgrade from {productname} v3.0.z to v{productmin}
+
+To upgrade from v3.0.z to v{productmin} you simply need to do a rolling
+upgrade of your {productname} v3.0.z containers to the latest v{productmin} containers.
+Procedures for these upgrades are described below.
+
+== {productname} v2.y.z to v3.0.z upgrade
+For the v2.y.z to v3.0.z portion, you can either do
+the whole upgrade with {productname} down (Synchronous) or only bring down
+{productname} for a few minutes and have bulk of the upgrade continue with
+{productname} running (Background).
 
 In a background upgrade, it could take much longer
 to run the upgrade (depending on how many tags need to be processed),
 but it takes less total downtime. The downside of a background upgrade is
 that you won't have access to the latest features until the upgrade completes
-(the cluster runs from quay v3 in v2 compatibility mode until the upgrade is done).
+(the cluster runs from the quay v3 container
+in v2 compatibility mode until the upgrade is done).
 
 See the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_release_notes/index[Red Hat Quay Release Notes] for information on v3 features.
+
+== {productname} v3.0.z to v{productmin} upgrade
+
+Once your Red Hat Quay cluster is running on any v3.0.z version and your V3_UPGRADE_MODE
+is completed, you can upgrade that cluster from v3.0.z to v{productmin} by simply:
+
+* Adding new v{productmin} quay containers into your Red Hat Quay cluster one at a time
+
+* Checking that the new containers are performing well
+
+* Continuing to add more containers into the cluster
+
+* Removing the older versions of the quay container (a rolling upgrade) until all the old containers are replaced
 
 include::modules/con_upgrade_v3.adoc[leveloffset=+1]
 

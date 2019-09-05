@@ -2,7 +2,7 @@
 = Repository Mirroring in {productname}
 
 {productname} repository mirroring lets you mirror images from external container registries
-into your local {productname} cluster.
+(or the local registry) into your local {productname} cluster.
 Using repository mirroring you can synchronize images to {productname} based on repository names and tags.
 
 [[overview-repository-mirroring]]
@@ -11,13 +11,16 @@ Using repository mirroring you can synchronize images to {productname} based on 
 From your {productname} cluster with repository mirroring enabled, you can:
 
 * Choose a repository from an external registry to mirror
-* Add credentials and certificates to access the external registry
+* Add credentials to access the external registry
 * Set intervals at which a repository is synced
 * Identify specific container image repository names and tags to sync
 * Check the current state of synchronization
 
-Repository mirroring is similar to Georeplication, in that it allows container
-images to be served from multiple locations, but differs in the following ways:
+With repository mirroring, you mirror a specific subset of content to
+selected datacenters, clusters or regions. By contrast, Georeplication
+provides a single, globally distributed {productname} to serve container
+images from localized storage. The two approaches to sharing content
+differ in the following ways:
 
 .{productname} Repository Mirroring vs. Georeplication
 [width="100%",cols=options="header"]
@@ -28,7 +31,7 @@ images to be served from multiple locations, but differs in the following ways:
 | Is access to all storage backends in both regions required? | Yes (all {productname} nodes) | No (distinct storage)
 | Can users push images from both sites? | Yes | No
 | Is all registry content and configuration identical across all regions (shared database) | Yes | No
-| Can users select individual namespaces or repositories to be mirrored? | No | Yes
+| Can users select individual namespaces or repositories to be mirrored? | No,by default | Yes
 | Can users apply filters (tag, tag range, regular expression) to synchronization rules? | No | Yes
 | Are individual, different RBAC configurations allowed in each region | No | Yes
 |==================================================================
@@ -118,7 +121,7 @@ For example, with the image registry.example.com/jsmith/myimage:latest, myimage 
 +
 * **Sync Interval**: Defaults to syncing every 24 hours. You can change that based on hours or days.
 +
-* **Robot User**: Select the robot account you created earlier to do the mirroring
+* **Robot User**: Select the robot account you created earlier to do the mirroring.
 +
 * **Username**: The username for logging into the external registry holding the repository you are mirroring.
 +
@@ -138,6 +141,11 @@ instances of an image (such as latest), enter a comma-separated list of tags, or
 wildcards (such as mytag*) to match multiple images. For example,
 for a repository that features daily image builds named abc-2019-08-12, abc-2019-08-13,
 and so on, you could mirror all the August, 2019 images using abc-2019-08* as the tag.
++
+[NOTE]
+====
+At least one Tag must be entered. 
+====
 +
 Here is an example of a completed Repository Mirroring screen:
 +

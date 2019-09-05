@@ -5,7 +5,6 @@ you used to create the configuration file. The differences here are that you:
 
 * Identify directories where the configuration files and data are stored
 * Run the command with `--sysctl net.core.somaxconn=4096`
-* Run the service as a daemon (-d)
 * Don't use the `config` option or password
 
 For a basic setup, you can deploy on a single node; for high availability you probably want
@@ -31,15 +30,6 @@ For example:
 # mkdir -p /mnt/quay/storage
 ....
 
-. **Open ports in firewall**: If you use the remapped ports created by the quay container,
-open TCP ports 80 and 443, as shown here.
-+
-....
-# firewall-cmd --permanent --zone=trusted --add-port=80/tcp
-# firewall-cmd --permanent --zone=trusted --add-port=443/tcp
-# firewall-cmd --reload
-....
-
 . **Copy config files**: Copy the tarball (`quay-config.tar.gz`) to the configuration directory
 and unpack it. For example:
 +
@@ -63,19 +53,68 @@ the quay container to enable debug level logging.
 ....
 # docker run --restart=always -p 443:8443 -p 80:8080 \
    --sysctl net.core.somaxconn=4096 \
+   --net=host \
    -v /mnt/quay/config:/conf/stack:Z \
    -v /mnt/quay/storage:/datastorage:Z \
    -d quay.io/redhat/quay:v{productminorversion}
 ....
 
 . **Open browser to UI**: Once the quay container has started, go to your web browser and
-open the URL, to the node running the quay container.
+open the URL, to the node running the quay container. 
 
-. **Log into {productname}**: Using the superuser account you created during
+. **Log into {product.ame}**: Using the superuser account you created during
 configuration, log in and make sure {productname} is working properly.
 
 . **Add more {productname} nodes**: At this point, you have the option of
 adding more nodes to this {productname} cluster by simply
-going to each node, then copying and unpacking
-the tarball and starting the quay container as just shown.
+going to each node, then adding the tarball and starting the quay container as just shown.
 
+. **Add optional features**: To add more features to your {productname} cluster, such as
+Clair images scanning and Repository Mirroring, continue on to the next section.
+
+== Add Clair image scanning to {productname}
+
+Setting up and deploying Clair image scanning for your
+{productname} deployment requires the following basic steps:
+
+* Restarting the {productname} Setup tool
+* Creating authentication keys for Clair
+* Setting up a database for Clair
+* Deploying the Clair container
+
+These steps are described in
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#enable_clair_in_other_red_hat_quay_deployments[Enable {productname} in other deployments].
+
+[[add-repo-mirroring]]
+== Add repository mirroring {productname}
+Enabling repository mirroring allows you to create container image repositories
+on your {productname} cluster that exactly match the content of a selected
+external registry, then sync the contents of those repositories on
+a regular schedule and on demand.
+
+To add the repository mirroring feature to your {productname} cluster:
+
+* Run the repository mirroring worker. To do this, you start a quay pod with the
+`repomirror` option.
+* Select "Enable Repository Mirroring in the {productname} Setup tool.
+* Log into your {productname} Web UI and begin creating mirrored repositories
+as described in link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index[Repository Mirroring in Red Hat Quay].
+
+The following procedure assumes you already have a running
+{productname} cluster on an OpenShift platform, with the {productname} Setup
+container running in your browser:
+
+. **Start the repo mirroring worker**: Start the quay container in `repomirror` mode as follows:
++
+```
+$ oc create -f quay-enterprise-mirror.yaml
+```
+. **Log into config tool**: Log into the {productname} Setup Web UI (config tool).
+. **Enable repository mirroring**: Scroll down the the Repository Mirroring section
+and select the Enable Repository Mirroring check box, as shown here:
+. **Select HTTPS and cert verification**: If you want to require HTTPS
+communications and verify certificates during mirroring, select this check box.
+image:../../images/repo_mirror_config.png[Enable mirroring and require HTTPS and verified certificates]
+. **Save configuration**: Select the Save Configuration Changes button. Repository
+mirroring should now be enabled on your {productname} cluster. Refer to
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index[Repository Mirroring in {productname}] for details on setting up your own mirrored container image repositories.

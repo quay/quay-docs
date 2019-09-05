@@ -1,21 +1,37 @@
 [[clair-initial-setup]]
 = Setting Up Clair Security Scanning
 
-The Clair project is an open source engine that powers
-{productname} Security Scanner to detect
-vulnerabilities in all images within {productname}, then notify
-developers as those issues are discovered.
+Once you have created the necessary key and pem files from the {productname}
+config UI, you are ready to start up the Clair container and associated
+database. Once that is done, you an restart your {productname} cluster
+to have those changes take effect.
 
-Initial setup includes configuring a Postgres database, downloading the clair
-image and creating the Clair configuration.
+Procedures for running the Clair container and associated database
+are different on OpenShift than they are for running those containers
+directly on a host.
+
+== Run Clair on OpenShift
+To run Clair image scanning and its associated database on an OpenShift environment with your
+{productname} cluster, see 
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_on_openshift/index#add_clair_scanner[Add Clair image scanning to {productname}].
+
+
+== Run Clair directly on a host
+To run Clair and its associated database on non-OpenShift environments (directly on a host), you need to:
+
+* Start up a database
+* Configure and start Clair
 
 [[clair-postgres-database]]
-== Get Postgres and Clair
-In order to run Clair, a Postgres database is required. For production
-deployments, we recommend a PostgreSQL database running on machines
-other than those running {productname} and ideally with automatic
-replication and failover. For testing purposes, a single PostgreSQL instance can be started
-locally:
+=== Get Postgres and Clair
+In order to run Clair, a database is required. For production
+deployments, MySQL is not supported. For production, we recommend you use PostgreSQL or
+other supported database:
+
+* Running on machines other than those running {productname}
+* Ideally with automatic replication and failover
+
+For testing purposes, a single PostgreSQL instance can be started locally:
 
 . To start Postgres locally, do the following:
 +
@@ -48,28 +64,30 @@ docker pull quay.io/redhat/clair-jwt:v{productmin}
 ```
 
 [[configure-clair]]
-== Configure Clair
+=== Configure Clair
 
 Clair can run either as a single instance or in high-availability mode.
 It is recommended to run more than a single instance of Clair, ideally
 in an auto-scaling group with automatic healing.
 
-. Create a `config.yaml` file in the config directory from one of the two Clair configuration files shown here.
+. Create a `config.yaml` file to be used in the Clair config directory (`/clair/config`) from one of the two Clair configuration files shown here.
 . If you are doing a high-availability installation, go through the procedure in
 link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#authentication-for-high-availability-scanners[Authentication for high-availability scanners] to create a Key ID and Private Key (PEM).
 . Save the Private Key (PEM) to a file (such as, $HOME/config/security_scanner.pem).
-. Replace replace the value of key_id (CLAIR_SERVICE_KEY_ID) with the Key ID you generated and
+. Replace the value of key_id (CLAIR_SERVICE_KEY_ID) with the Key ID you generated and
 the value of private_key_path with the location of the PEM file (for example, /config/security_scanner.pem).
-
++
 For example, those two value might now appear as:
-
++
 ```
 key_id: { 4fb9063a7cac00b567ee921065ed16fed7227afd806b4d67cc82de67d8c781b1 }
 private_key_path: /clair/config/security_scanner.pem
 
 ```
+. Change other values in the configuration file as needed.
+
 [[clair-configuration-high-availability]]
-=== Clair configuration: High availability
+==== Clair configuration: High availability
 
 ```
 clair:
@@ -149,7 +167,7 @@ jwtproxy:
 ```
 
 [[clair-configuration-single-instance]]
-=== Clair configuration: Single instance
+==== Clair configuration: Single instance
 
 ```
 clair:
@@ -234,12 +252,12 @@ jwtproxy:
 ```
 
 [[configuring-clair-for-tls]]
-== Configuring Clair for TLS
+=== Configuring Clair for TLS
 
 To configure Clair to run with TLS, a few additional steps are required.
 
 [[configuring-clair-for-tls-public]]
-=== Using certificates from a public CA
+==== Using certificates from a public CA
 For certificates that come from a public certificate authority, follow these steps:
 
 . Generate a TLS certificate and key pair for the DNS name at which
@@ -254,7 +272,7 @@ you are using your own certificate authority, configure Clair to trust
 it below.
 
 [[configuring-trust-of-self-signed-ssl]]
-=== Configuring trust of self-signed SSL
+==== Configuring trust of self-signed SSL
 
 Similar to the process for setting up Docker to
 link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#configuring-docker-to-trust-a-certificate-authority[trust
@@ -285,7 +303,7 @@ Now Clair will be able to trust the source of your TLS certificates and
 use them to secure communication between Clair and Quay.
 
 [[clair-sources]]
-== Using Clair data sources
+=== Using Clair data sources
 Before scanning container images, Clair tries to figure out the
 operating system on which the container was built. It does this by looking for specific filenames inside that image (see Table 1).
 Once Clair knows the operating system, it uses specific
@@ -375,10 +393,11 @@ https://nvd.nist.gov/feeds/xml/cve/2.0/nvdcve-2.0-%s.meta
 
 
 [[run-clair]]
-== Run Clair
+=== Run Clair
 
 Execute the following command to run Clair:
 
+[subs="verbatim,attributes"]
 ```
 # docker run --restart=always -p 6060:6060 -p 6061:6061 \
     -v /path/to/clair/config/directory:/clair/config \
@@ -430,8 +449,4 @@ Content-Length: 0
 Content-Type: text/plain; charset=utf-8
 ```
 
-[[continue-with-quay-setup]]
-== Continue with Quay Setup
-
-Once Clair setup is complete, continue with
-link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/#quay-security-scanner[{productname} Security Scanning with Clair].
+Once Clair and its associated database are running, you man need to restart your quay application for the changes to take effect.

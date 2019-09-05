@@ -312,6 +312,10 @@ This field is deprecated.
 - **External Authorization (OAuth)**: Enable to allow GitHub or GitHub Enterprise to authenticate to the registry.
 - **Google Authentication**: Enable to allow Google to authenticate to the registry.
 - **Access settings**: Basic username/password authentication is enabled by default. Other authentication types that can be enabled include: external application tokens (user-generated tokens used with docker or rkt commands), anonymous access (enable for public access to anyone who can get to the registry), user creation (let users create their own accounts), encrypted client password (require command-line user access to include encrypted passwords), and prefix username autocompletion (disable to require exact username matches on autocompletion).
+* **Registry Protocol Settings**: Leave the `Restrict V1 Push Support` checkbox enabled
+to restrict access to Docker V1 protocol pushes.
+Although Red Hat recommends against enabling Docker V1 push protocol, if you do allow it,
+you must explicitly whitelist the namespaces for which it is enabled.
 - **Dockerfile Build Support**: Enable to allow users to submit Dockerfiles to be built and pushed to {productname}.
 This is not recommended for multitenant environments.
 
@@ -322,7 +326,7 @@ image:../../images/Figure04.png[Download the {productname} configuration tarball
 tarball (`quay-config.tar.gz`) to a local directory. Save this file in case you want to deploy
 the config files inside manually or just want a record of what you deployed.
 
-. **Deploy configuration**: Select `To to deployment rollout`. When prompted, click
+. **Deploy configuration**: Select to rollout the deployment. When prompted, click
 `Populate configuration to deployments` to deploy the configuration to the {productname}
 application. In a few minutes, you should see a green checkmark and the message "Configuration successfully rolled out and deployed!"
 +
@@ -432,7 +436,7 @@ $ oc create secret generic clair-scanner-config-secret \
    --from-file=config.yaml=/path/to/clair-config.yaml \
    --from-file=security_scanner.pem=/path/to/security_scanner.pem
 $ oc create -f clair-service.yaml
-# oc create -f clair-deployment.yaml
+$ oc create -f clair-deployment.yaml
 ```
 . **Get the clair-service endpoint**: In this example, the endpoint of
 of clair-service would be http://172.30.133.227:6060:

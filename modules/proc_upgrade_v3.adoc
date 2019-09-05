@@ -1,17 +1,17 @@
 [[upgrade-v3-proc]] 
-= Running the upgrade to Red Hat Quay v3
+= Running the upgrade to {productname} v3.0.z
 
 Choose between a synchronous upgrade (complete the upgrade in downtime)
-and a background upgrade (complete the upgrade while Red Hat Quay is still running).
-Both of these major-release upgrades require that the Red Hat Quay cluster be down
+and a background upgrade (complete the upgrade while {productname} is still running).
+Both of these major-release upgrades require that the {productname} cluster be down
 for at least a short period of time.
 
-Regardless of which upgrade type you choose, during the time that the Red Hat Quay
+Regardless of which upgrade type you choose, during the time that the {productname}
 cluster is down, you are using builder and clair images, you need to also upgrade to
 those new images:
 
-* The builder image (quay.io/redhat/quay-builder:v{productmin})
-* The clair image (quay.io/redhat/clair-jwt:v{productmin})
+* The builder image (quay.io/redhat/quay-builder:v3.0.5)
+* The clair image (quay.io/redhat/clair-jwt:v3.0.5)
 
 Both of those images are available from the new quay.io/redhat repository.
 
@@ -19,7 +19,7 @@ Both of those images are available from the new quay.io/redhat repository.
 == Run a synchronous upgrade
 To run a synchronous upgrade, where your whole cluster is down for the entire upgrade, do the following:
 
-. Take down your entire Red Hat Quay cluster.
+. Take down your entire {productname} cluster.
 
 . Add the following setting to the `config.yaml` file on all nodes:
 +
@@ -31,7 +31,7 @@ V3_UPGRADE_MODE: complete
 (it should take just a few minutes). Use the following container or later:
 +
 ====
-quay.io/redhat/quay:v{productmin}
+quay.io/redhat/quay:v3.0.5
 ====
 +
 Note that the quay container comes up on ports 8080 and 8443 for v3, instead
@@ -45,12 +45,12 @@ and 8443 into 80 and 443, respectively, as shown in this example:
    --sysctl net.core.somaxconn=4096 \
    -v /mnt/quay/config:/conf/stack:Z \
    -v /mnt/quay/storage:/datastorage:Z \
-   -d quay.io/redhat/quay:v{productmin}
+   -d quay.io/redhat/quay:v3.0.5
 ```
 
-. After the upgrade completes, bring the Red Hat Quay v3 container up on all other nodes.
+. After the upgrade completes, bring the {productname} v3 container up on all other nodes.
 
-. Verify that Red Hat Quay is working, including pushes and pulls of containers compatible with Docker version 2, schema 2.
+. Verify that {productname} is working, including pushes and pulls of containers compatible with Docker version 2, schema 2.
 This can include windows container images and images of different computer architectures (arm, ppc, etc.).
 
 [[background-upgrade-v3]]
@@ -60,17 +60,17 @@ bring the cluster back up after the first downtime, the quay v3 container runs i
 This background process can take hours or even days to complete. Background upgrades are recommended for
 large installations where downtime of more than a few hours would be a problem.
 
-For this type of upgrade, you put Red Hat Quay into a compatibility mode, where you have a v3 quay container
+For this type of upgrade, you put {productname} into a compatibility mode, where you have a v3 quay container
 running, but it is running on the old data model while the upgrade completes. Here's what you do:
 
-. Pull the Red Hat Quay v3 container to all the nodes. Use the following container or later:
+. Pull the {productname} v3 container to all the nodes. Use the following container or later:
 +
 [subs="verbatim,attributes"]
 ====
-quay.io/redhat/quay:v{productmin}
+quay.io/redhat/quay:v3.0.5
 ====
 
-. Take down Red Hat Quay on all nodes.
+. Take down {productname} on all nodes.
 
 . Edit the `config.yaml` file on each node and set the upgrade mode to background as follows:
 +
@@ -78,7 +78,7 @@ quay.io/redhat/quay:v{productmin}
 V3_UPGRADE_MODE: background
 ====
 
-. Bring the Red Hat Quay v3 container up on a single node and wait for the migrations to
+. Bring the {productname} v3 container up on a single node and wait for the migrations to
 complete (should take a few minutes maximum).
 Here is an example of that command:
 +
@@ -93,17 +93,17 @@ and 8443 into 80 and 443, respectively, as shown in this example:
    --sysctl net.core.somaxconn=4096 \
    -v /mnt/quay/config:/conf/stack:Z \
    -v /mnt/quay/storage:/datastorage:Z \
-   -d quay.io/redhat/quay:v{productmin}
+   -d quay.io/redhat/quay:v3.0.5
 ```
 
-. Bring the Red Hat Quay v3 container up on all the other nodes.
+. Bring the {productname} v3 container up on all the other nodes.
 
 . Monitor the `/upgradeprogress` API endpoint until it reports done (the status reaches 100%).
 For example, view `https://myquay.example.com/upgradeprogress` or use some other tool to query the API.
 
 . Once the background process is done, you have to schedule another maintenance window.
 
-. During your scheduled maintenance, take the entire Red Hat Quay cluster down.
+. During your scheduled maintenance, take the entire {productname} cluster down.
 
 . Edit the `config.yaml` file on each node and set the upgrade mode to `complete` as follows:
 +
@@ -111,9 +111,18 @@ For example, view `https://myquay.example.com/upgradeprogress` or use some other
 V3_UPGRADE_MODE: complete
 ====
 
-. Bring Red Hat Quay back up on one node to have it do a final check.
+. Bring {productname} back up on one node to have it do a final check.
 
-. Once the final check is done, bring Red Hat Quay v3 back up on all the other nodes.
+. Once the final check is done, bring {productname} v3 back up on all the other nodes.
 
 . Verify Quay is working, including pushes and pulls of containers compatible with Docker version 2, schema 2.
 This can include windows container images and images of different computer architectures (arm, ppc, etc.).
+
+[[upgrade-v31-proc]]
+= Running the upgrade to {productname} v{productmin}
+As noted earlier, once your cluster is running any {productname} 3.0.z version, you can
+upgrade your cluster to v{productmin} by simply doing a rolling upgrade.
+To do that, just add new v{productmin} containers to the cluster one at a time, check that they
+are working, then decommission the older v3.0.z containers.
+
+

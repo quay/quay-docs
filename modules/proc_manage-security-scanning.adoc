@@ -10,77 +10,59 @@ This document explains how to configure Clair with {productname}.
 
 To enable Clair security scanning in {productname}, whether at deployment time or
 on a running {productname} cluster, you need to start the quay container in
-config mode to begin using the {productname} Setup screen. See the appropriate {productname}
-deployment procedure for how to do that.
-
-Once {productname} Setup is running, make the appropriate selection: either start a new
-configuration or modify an existing one. Scroll down that page until you see
-the Security Scanner section. A configured Security Scanner should appear
-as shown in the following figure:
+config mode. Enabling Clair is done in the Security Scanner section of the {productname} Setup screen, shown here:
 
 image:../../images/security-scanner-enabled.png[Configure Clair from the {productname} config tool]
 
-[[enable-security-scanning]]
+There are different procedures for configuring Clair for {productname} on OpenShift or
+other environments (i.e. directly on a host, with `docker` or `podman`), as described in the following sections.
 
-Procedures for enabling Clair security scanning in {productname} are
-described in the following sections.
-
+[[enable-security-scanning-openshift]]
 == Enable Clair in {productname} on OpenShift deployments
-To deploy Clair on OpenShift, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_on_openshift/index#add-clair-scanner[Adding Clair image scanning to {productname}.
+To deploy Clair on OpenShift, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_on_openshift/index#add-clair-scanner[Adding Clair image scanning to {productname}].
 
+[[enable-security-scanning-host]]
 == Enable Clair in other {productname} deployments
 To deploy Clair on basic and high availability deployments (non-OpenShift),
-start the {productname} Setup configuration tool, then do the following:
+you need to:
 
-* Scroll down to the section entitled
-*Security Scanner*.
-image:../../images/security-scanner-enabled.png[Enable scanning from superuser account]
+* Set up Clair in the {productname} config tool to enable security scanning and create a key and pem file.
+* Start up the Clair service and associated database.
 
-* Check the "Enable Security Scanning" box
+=== Set up Clair in the {productname} config tool
 
-[[enter-a-security-scanner]]
-== Enter a security scanner
+. **Restart the {productname} config tool**: Run the quay container again in config mode,
+open the configuration UI in a browser, then select `Modify an existing configuration`.
+When prompted, upload the `quay-config.tar.gz` file.
 
-In the "Security Scanner Endpoint" field, enter the HTTP endpoint of a
-{productname}-compatible security scanner such as
-link:clair-initial-setup[Clair].
-image:../../images/security-scanner-endpoint.png[Enter location of security scanner]
+. **Enable Security Scanning**: Scroll to the Security Scanner section and
+select the "Enable Security Scanning" checkbox. From the fields that appear you need to create an
+authentication key and enter the security scanner endpoint. Here's how:
++
+* **Generate key**: Click `Create Key`, then from the pop-up window
+type a name for the Clair private key
+and an optional expiration date (if blank, the key
+never expires). Then select Generate Key.
+* **Copy the Clair key and PEM file**: Save the Key ID (to a notepad or similar)
+and download a copy of the Private Key PEM file (`named security_scanner.pem`)
+by selecting "Download Private Key"
+(if you lose the key, you need to generate a new one). You will need the key and PEM file when you
+start the Clair container later.
++
+Close the pop-up when you are done.
+Here is an example of a completed Security Scanner config:
++
+image:../../images/security-scanner-enabled.png[Create authentication key and set scan endpoint]
+. **Save the configuration**: Click `Save Configuration Changes` and then select `Download Configuration`
+to save it to your local system.
+. *Copy config.yaml to config directory*: To pick up the changes enabling scanning, as well as other
+changes you may have made to the configuration, unpack the `quay-config.tar.gz` and copy the resulting
+files to the config directory. For example:
++
+....
+$ tar xvf quay-config.tar.gz
+config.yaml  ssl.cert  ssl.key
+$ cp config.yaml ssl* /mnt/quay/config
+....
 
-[[generate-an-auth-key]]
-== Generate an auth key
-
-To connect {productname} securely to the scanner, click "Create Key >"
-to create an authentication key between {productname} and the Security Scanner.
-
-[[authentication-for-high-availability-scanners]]
-=== Authentication for high-availability scanners
-
-If the security scanning engine is running on multiple instances in a
-high-availability setup, select "Generate shared key":
-image:../../images/security-scanner-generate-shared.png[Select key for security scanner]
-
-Enter an optional expiration date, and click "Generate Key":
-image:../../images/security-scanner-generate-shared-dialog.png[Generate key for security scanner]
-
-*Save the key ID and download the preshared private key into the
-configuration directory for the security scanning engine.*
-image:../../images/security-scanner-shared-key.png[Generate key for security scanner]
-
-[[authentication-for-single-instance-scanners]]
-=== Authentication for single-instance scanners
-
-If the security scanning engine is being run on a single instance,
-select "Have the service provide a key":
-image:../../images/security-scanner-service-provide-key.png[Provide key for security scanner]
-
-Once the following dialog is visible, run the security scanning engine:
-image:../../images/security-scanner-service-awaiting-key.png[Run security scanner]
-
-When the security scanning engine connects, the key will be
-automatically approved.
-
-[id='save-configuration_{context}']
-== Save configuration
-
-* Click "Save Configuration Changes"
-* Restart the container (you will be prompted)
+Next, start the Clair container and associated database, as described in the following sections.

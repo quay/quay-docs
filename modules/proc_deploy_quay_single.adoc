@@ -3,6 +3,16 @@ Follow these steps to install {productname} on a single system (VM or bare metal
 
 . **Install Red Hat Enterprise Linux server**: Install the latest RHEL server. You can do a Minimal install (shell access only) or Server plus GUI (if you want a desktop).
 . **Register the System**: Register and subscribe your RHEL server system to Red Hat. See link:https://access.redhat.com/solutions/253273[How to register and subscribe a system...] for details. The following commands register your system and list available subscriptions. Choose an available RHEL server subscription, attach to its poolid, enable rhel-7-server-rpms and rhel-7-server-extras-rpms repositories, and upgrade to the latest software:
++
+[NOTE]
+====
+This procedure was tested on RHEL 7. The `docker` command is not included in RHEL 8,
+so you would need to use the `podman` command instead.
+Because the `--restart` option is not supported by podman, instead of using `--restart`,
+you could set up to use `podman` as a systemd service, as described 
+in link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index#starting_containers_with_systemd[Starting containers with systemd].
+
+====
 
 +
 ....
@@ -30,11 +40,22 @@ Follow these steps to install {productname} on a single system (VM or bare metal
 active
 ....
 
-. **Install / Deploy a Database**: Choose either MySQL or PostgreSQL as a database. This example shows how to deploy the link:https://access.redhat.com/containers/#/registry.access.redhat.com/rhscl/mysql-57-rhel7[MySQL database container] (see the link:https://access.redhat.com/documentation/en-us/red_hat_software_collections/2/html-single/using_red_hat_software_collections_container_images/#mysql[MySQL] section of Using Red Hat Software Collections Container Images for details.) To configure the MySQL database, you can use the values shown here or change any of the following for storing MySQL data (/mnt/hostmysql) and setting database values:
+. **Open ports in firewall**: If you have a firewall running on your system,
+to access the Red Hat Quay config tool (port 8443) and application (ports 80 and 443)
+outside of the local system, run the following commands:
 +
 ....
-# mkdir -p /mnt/hostmysql
-# chmod 777 /mnt/hostmysql
+# firewall-cmd --permanent --zone=trusted --add-port=8443/tcp
+# firewall-cmd --permanent --zone=trusted --add-port=80/tcp
+# firewall-cmd --permanent --zone=trusted --add-port=443/tcp
+# firewall-cmd --reload
+....
+
+. **Install / Deploy a Database**: Choose either MySQL or PostgreSQL as a database. This example shows how to deploy the link:https://access.redhat.com/containers/#/registry.access.redhat.com/rhscl/mysql-57-rhel7[MySQL database container] (see the link:https://access.redhat.com/documentation/en-us/red_hat_software_collections/2/html-single/using_red_hat_software_collections_container_images/#mysql[MySQL] section of Using Red Hat Software Collections Container Images for details.) To configure the MySQL database, you can use the values shown here or change any of the following for storing MySQL data (/var/lib/mysql) and setting database values:
++
+....
+# mkdir -p /var/lib/mysql
+# chmod 777 /var/lib/mysql
 # export MYSQL_CONTAINER_NAME=mysql
 # export MYSQL_DATABASE=enterpriseregistrydb
 # export MYSQL_PASSWORD=JzxCTamgFBmHRhcGFtoPHFkrx1BH2vwQ
@@ -49,8 +70,9 @@ active
     --env MYSQL_PASSWORD=${MYSQL_PASSWORD} \
     --env MYSQL_DATABASE=${MYSQL_DATABASE} \
     --name ${MYSQL_CONTAINER_NAME} \
+    --net=host \
     --publish 3306:3306 \
-    -v /mnt/hostmysql:/mnt/mysql/data:Z \
+    -v /var/lib/mysql:/var/lib/mysql/data:Z \
     registry.access.redhat.com/rhscl/mysql-57-rhel7
 ....
 +
@@ -92,10 +114,11 @@ MySQL [(none)]> \q
 
 +
 ....
-# mkdir -p /mnt/hostredis
-# chmod 777 /mnt/hostredis
+# mkdir -p /var/lib/redis
+# chmod 777 /var/lib/redis
 # docker run -d --restart=always -p 6379:6379 \
-    -v /mnt/hostredis:/mnt/redis/data:Z \
+    --net=host \
+    -v /var/lib/redis:/var/lib/redis/data:Z \
     registry.access.redhat.com/rhscl/redis-32-rhel7
 ....
 
