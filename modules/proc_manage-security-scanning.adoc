@@ -5,35 +5,27 @@
 vulnerabilities with a scanning engine such as link:https://github.com/coreos/clair/[Clair].
 This document explains how to configure Clair with {productname}.
 
-[id='visit-the-management-panel_{context}']
-== Visit {productname} Setup
+== Set up Clair in the {productname} config tool
+Enabling Clair in {productname} consists of:
 
-To enable Clair security scanning in {productname}, whether at deployment time or
-on a running {productname} cluster, you need to start the quay container in
-config mode. Enabling Clair is done in the Security Scanner section of the {productname} Setup screen, shown here:
+* Starting the {productname} config tool. See the {productname} deployment guide
+for the type of deployment you are doing (OpenShift, Basic, or HA) for how to
+start the config tool for that environment.
+* Enabling security scanning, then generating a private key and PEM file in the config tool
+* Including the key and PEM file in the Clair config file
+* Start the Clair container 
 
-image:../../images/security-scanner-enabled.png[Configure Clair from the {productname} config tool]
+The procedure varies, based on whether you are running {productname} on OpenShift or directly on a host.
 
-There are different procedures for configuring Clair for {productname} on OpenShift or
-other environments (i.e. directly on a host, with `docker` or `podman`), as described in the following sections.
+=== Enabling Clair on a {productname} OpenShift deployment
+To set up Clair on {productname} in OpenShift, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_on_openshift/index#add-clair-scanner[Add Clair image scanning to {productname}].
 
-[[enable-security-scanning-openshift]]
-== Enable Clair in {productname} on OpenShift deployments
-To deploy Clair on OpenShift, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_on_openshift/index#add-clair-scanner[Adding Clair image scanning to {productname}].
-
-[[enable-security-scanning-host]]
-== Enable Clair in other {productname} deployments
-To deploy Clair on basic and high availability deployments (non-OpenShift),
-you need to:
-
-* Set up Clair in the {productname} config tool to enable security scanning and create a key and pem file.
-* Start up the Clair service and associated database.
-
-=== Set up Clair in the {productname} config tool
+=== Enabling Clair on a {productname} Basic or HA deployment
+To set up Clair on a {productname} deployment where the container is running directly on the host system, do the following:
 
 . **Restart the {productname} config tool**: Run the quay container again in config mode,
 open the configuration UI in a browser, then select `Modify an existing configuration`.
-When prompted, upload the `quay-config.tar.gz` file.
+When prompted, upload the `quay-config.tar.gz` file that was originally created for the deployment.
 
 . **Enable Security Scanning**: Scroll to the Security Scanner section and
 select the "Enable Security Scanning" checkbox. From the fields that appear you need to create an
@@ -55,7 +47,7 @@ Here is an example of a completed Security Scanner config:
 image:../../images/security-scanner-enabled.png[Create authentication key and set scan endpoint]
 . **Save the configuration**: Click `Save Configuration Changes` and then select `Download Configuration`
 to save it to your local system.
-. *Copy config.yaml to config directory*: To pick up the changes enabling scanning, as well as other
+. **Deploy the configuration**: To pick up the changes enabling scanning, as well as other
 changes you may have made to the configuration, unpack the `quay-config.tar.gz` and copy the resulting
 files to the config directory. For example:
 +
