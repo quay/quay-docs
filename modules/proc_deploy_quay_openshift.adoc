@@ -202,7 +202,8 @@ For this example, you would open this URL in your web browser:
 https://quay-enterprise-config-quay-enterprise.apps.test.example.com
 
 . **Log in as quayconfig**: When prompted, enter the username and password
-(the password was set as an argument to the quay config container in: quay-enterprise-config.yaml):
+(the password was set as an argument to the quay config container in:
+`quay-enterprise-config.yaml`):
 
 - User Name: **quayconfig**
 
@@ -476,6 +477,15 @@ The following procedure assumes you already have a running
 {productname} cluster on an OpenShift platform, with the {productname} Setup
 container running in your browser:
 
+[NOTE]
+====
+Instead of running repository mirroring in its own container, you
+could start the quay application pod with the environment variable
+`QUAY_OVERRIDE_SERVICES=repomirrorworker=true`. This causes the
+repomirror worker to run inside the quay application pod instead
+of as a separate container.
+====
+
 . **Start the repo mirroring worker**: Start the quay container in `repomirror` mode as follows:
 +
 ```
@@ -490,3 +500,10 @@ image:../../images/repo_mirror_config.png[Enable mirroring and require HTTPS and
 . **Save configuration**: Select the Save Configuration Changes button. Repository
 mirroring should now be enabled on your {productname} cluster. Refer to
 link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index[Repository Mirroring in {productname}] for details on setting up your own mirrored container image repositories.
+[NOTE]
+====
+The server hostname you set with the config tools may not represent and endpoint
+that can be used to copy images to a mirror configured for that server. In that case,
+you can set a `REPO_MIRROR_SERVER_HOSTNAME` environment variable to identify the server’s
+URL in a way that it can be reached by a skopeo copy command. 
+====

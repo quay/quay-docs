@@ -16,8 +16,9 @@ From your {productname} cluster with repository mirroring enabled, you can:
 * Identify specific container image repository names and tags to sync
 * Check the current state of synchronization
 
-With repository mirroring, you mirror a specific subset of content to
-selected datacenters, clusters or regions. By contrast, Georeplication
+With repository mirroring, you mirror a specific subset of content,
+between two or more distinct registries, to
+selected datacenters, clusters, or regions. By contrast, Georeplication
 provides a single, globally distributed {productname} to serve container
 images from localized storage. The two approaches to sharing content
 differ in the following ways:
@@ -29,11 +30,10 @@ differ in the following ways:
 | What is the feature designed to do? | A shared, global registry | Distinct, different registries
 | What happens if replication or mirroring hasn’t been completed yet? | The remote copy is used (slower) | No image is served
 | Is access to all storage backends in both regions required? | Yes (all {productname} nodes) | No (distinct storage)
-| Can users push images from both sites? | Yes | No
+| Can users push images from both sites to the same repository? | Yes | No
 | Is all registry content and configuration identical across all regions (shared database) | Yes | No
 | Can users select individual namespaces or repositories to be mirrored? | No,by default | Yes
-| Can users apply filters (tag, tag range, regular expression) to synchronization rules? | No | Yes
-| Are individual, different RBAC configurations allowed in each region | No | Yes
+| Can users apply filters to synchronization rules? | No | Yes
 |==================================================================
 
 Here are a few tips for using {productname} repository mirroring:
@@ -105,6 +105,8 @@ the Credentials window.
 
 . Fill in a repository name, select Public or Private, and select Create Repository.
 
+. Select the Settings button and change the repository state to MIRROR.
+
 . Open the new repository and select the Mirroring button in the left column.
 
 . Fill in the fields to identify the repository you are mirroring in your new repository:
@@ -125,7 +127,8 @@ For example, with the image registry.example.com/jsmith/myimage:latest, myimage 
 +
 * **Username**: The username for logging into the external registry holding the repository you are mirroring.
 +
-* **Password**: The password associated with the Username.
+* **Password**: The password associated with the Username. Note that the password
+cannot include characters that require an escape character (\).
 +
 * **Start Date**: The date on which mirroring begins. The current date and time used by default.
 +
