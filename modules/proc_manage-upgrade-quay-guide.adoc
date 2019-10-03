@@ -53,22 +53,22 @@ The Quay image will be labeled `quay.io/coreos/registry`.
 == Start the new Quay container
 
 ```
-# docker run --restart=always -p 443:443 -p 80:80 --sysctl net.core.somaxconn=4096 \
-   -v /mnt/quay/config:/conf/stack \
-   -v /mnt/quay/storage:/datastorage \
+# docker run --restart=always -p 443:443 -p 80:80 \
+   --sysctl net.core.somaxconn=4096 \
+   --privileged=true \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
    -d quay.io/coreos/registry:RELEASE_VERSION
 ```
 
-Replace `/local/path/to/config/directory` and
-`/local/path/to/storage/directory` with the absolute paths to those
-directories on the host. Replace `RELEASE_VERSION` with the desired Quay version.
+Replace `RELEASE_VERSION` with the desired Quay version.
 
 Rarely, but occasionally, the new Quay version may perform a
 database schema upgrade and migration. Versions requiring such database
 migrations will take potentially much longer to start the first time.
 These versions are clearly documented in the
-https://access.redhat.com/documentation/en-us/red_hat_quay/2.9/html-single/red_hat_quay_release_notes//[Red Hat Quay Release Notes], which
-should be consulted before each Quay upgrade.
+https://access.redhat.com/documentation/en-us/red_hat_quay/2.9/html-single/red_hat_quay_release_notes//[{productname} Release Notes], which
+should be consulted before each {productname} upgrade.
 
 [[check-the-health-of-the-upgraded-container]]
 == Check the health of the upgraded container
