@@ -1,0 +1,25 @@
+#!/bin/bash -e
+# The assemble script builds the application artifacts from source and
+# places them into appropriate directories inside the image.
+
+echo "---> Updating bundler gem..."
+gem install bundler
+
+shopt -s dotglob
+echo "---> Installing application source ..."
+mv /tmp/src/* ./
+
+# Fix source directory permissions
+fix-permissions ./
+
+bundle install --path ./bundle --binstubs
+
+# Fixes incompatible character encodings: US-ASCII and UTF-8 error
+export LANG="en_US.UTF-8"
+
+echo "---> Building webpage from source ..."
+asciidoctor -a productname="Project Quay" -d book welcome.adoc
+
+# Fix source directory permissions
+echo "---> Fixing permissions ..."
+fix-permissions ./
