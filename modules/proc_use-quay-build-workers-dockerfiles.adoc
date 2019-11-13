@@ -39,10 +39,19 @@ time a new worker needs to be added, but it can be automated fairly easily.
 
 Pull down the latest copy of the image. Make sure to pull the version tagged matching your {productname} version.
 
+ifdef::upstream[]
+[subs="verbatim,attributes"]
+====
+# docker pull <registry>/<repo>/quay-builder:v{productmin}
+====
+endif::upstream[]
+
+ifdef::downstream[]
 [subs="verbatim,attributes"]
 ====
 # docker pull quay.io/redhat/quay-builder:v{productmin}
 ====
+endif::upstream[]
 
 [[run-the-build-worker-image]]
 === Run the build worker image
@@ -65,6 +74,17 @@ Use the environment variable SERVER to tell the worker the hostname at which {pr
 
 Here's what the full command looks like:
 
+ifdef::upstream[]
+[subs="verbatim,attributes"]
+....
+# docker run --restart on-failure \
+  -e SERVER=ws://myquayenterprise \
+  -v /mnt/docker.sock:/mnt/docker.sock \
+  <registry>/<repo>/quay-builder:v{productmin}
+....
+endif::upstream[]
+
+ifdef::downstream[]
 [subs="verbatim,attributes"]
 ....
 # docker run --restart on-failure \
@@ -72,6 +92,7 @@ Here's what the full command looks like:
   -v /mnt/docker.sock:/mnt/docker.sock \
   quay.io/redhat/quay-builder:v{productmin}
 ....
+endif::downstream[]
 
 When the container starts, each build worker will auto-register and start building containers once a job is triggered and it is assigned to a worker.
 
