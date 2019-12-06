@@ -138,16 +138,14 @@ or no certificate.
 +
 * **HTTP Proxy**: Identify the proxy server needed to access the remote site, if one is required.
 +
-* **Tags**: This field is required. You can enter individual tags or indicate which
-tags to match using globbing or regular expressions. For example, you can match specific
-instances of an image (such as latest), enter a comma-separated list of tags, or use
-wildcards (such as mytag*) to match multiple images. For example,
-for a repository that features daily image builds named abc-2019-08-12, abc-2019-08-13,
-and so on, you could mirror all the August, 2019 images using abc-2019-08* as the tag.
+* **Tags**: This field is required. You may enter a comma-separated list of individual tags or
+tag patterns. (See _Tag Patterns_ section for details.)
 +
 [NOTE]
 ====
-At least one Tag must be entered. 
+At least one Tag must be explicitly entered (ie. not a tag pattern) _or_ the tag "latest" must
+exist in the remote repository. This is required for Quay to get the list of tags in the remote
+repository to compare to the specified list to mirror.
 ====
 +
 Here is an example of a completed Repository Mirroring screen:
@@ -211,4 +209,36 @@ image:repo_mirror_robot_perm.png[Assign permission to a robot]
 column on the mirrored repository page.
 On the resulting page, you can change settings associated with
 the mirrored repository.  In particular, you can change User and Robot Permissions,
-to specify exaclty which users and robots can read from or write to the repo.
+to specify exactly which users and robots can read from or write to the repo.
+
+[[tag-patterns]]
+== Tag Patterns
+
+As noted above, at least one Tag must be explicitly entered (ie. not a tag pattern) _or_ the tag
+"latest" must exist in the report repository. (The tag "latest" will not be synced unless
+specified in the tag list.). This is required for Quay to get the list of tags
+in the remote repository to compare to the specified list to mirror.
+
+Pattern syntax
+
+[width="100%",cols=options="header"]
+|==================================================================
+| Pattern | Description
+| * | Matches all characters
+| ? | Matches any single character
+| [seq] | Matches any character in _seq_
+| [!seq] | Matches any character not in _seq_
+|==================================================================
+
+Example tag patterns
+
+[width="100%",cols=options="header"]
+|==================================================================
+| Example Pattern | Example Matches
+| v3* | v32, v3.1, v3.2, v3.2-4beta, v3.3
+| v3.* | v3.1, v3.2, v3.2-4beta
+| v3.? | v3.1, v3.2, v3.3
+| v3.[12] | v3.1, v3.2
+| v3.[12]* | v3.1, v3.2, v3.2-4beta
+| v3.[!1]* | v3.2, v3.2-4beta, v3.3
+|==================================================================
