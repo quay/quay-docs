@@ -1,0 +1,1152 @@
+= Deploying {productname}
+[id="deploy-quay-openshift-operator"]
+
+// Module included in the following assemblies:
+//
+// <List assemblies here, each on a new line>
+
+This procedure:
+
+* Installs the {productname} Setup Operator on OpenShift from the OperatorHub
+* Deploys a {productname} cluster on OpenShift with the Setup Operator
+
+You have the option of changing dozens of settings before deploying the
+{productname} Setup Operator.
+The Operator automates the entire start-up process,
+by-passing the {productname} config tool. You can choose to
+skip the Operator's automated configuration and use the config tool directly.
+
+.Prerequisites
+
+* An OpenShift 3.x or 4.x cluster
+* Cluster-scope admin privilege to the OpenShift cluster
+
+.Procedure
+
+You have two choices for deploying the {productname} Operator:
+
+* **Advanced Setup**: Go through the `Customizing your
+{productname} cluster`
+section and change any setting you desire
+before running this procedure.
+
+* **Standard Setup**: Just step through the procedure as is to use
+all the default setting.
+
+== Install the {productname} Setup Operator
+
+. From the OpenShift console, select Operators -> OperatorHub, then select
+the {productname} Operator.
+
+. Select Install. The Operator Subscription page appears.
+
+. Choose the following then select Subscribe:
+
+* Installation Mode: Select a specific namespace to install to
+
+* Update Channel: Choose the update channel (only one may be available)
+
+* Approval Strategy: Choose to approve automatic or manual updates
+
+== Deploy a {productname} ecosystem
+
+. See the
+link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay]
+article for information on getting credentials needed to obtain the
+quay container from Quay.io. Then put those credentials in a file. In this example, we create a
+config.json in the local directory.
+
+. Create a secret that includes your credentials, as follows:
++
+```
+$ oc create secret generic redhat-pull-secret \
+    --from-file=".dockerconfigjson=config.json" --type='kubernetes.io/dockerconfigjson'
+```
+
+. Create a custom resource file (in this example, named `quayecosystem_cr.yaml`) or copy one from the link:https://github.com/redhat-cop/quay-operator/tree/master/deploy/examples[quay-operator examples] page. This example uses default settings:
++
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+```
+
+. Go through the `Customizing
+your {productname} cluster` section to choose configuration settings you want to change.
+
+. Deploy the Quay ecosystem from your custom
+resource file as follows:
++
+```
+$ oc create -f quayecosystem_cr.yaml
+```
++
+Deploying the custom resource automatically creates and configures
+the {productname} cluster, which includes the {productname}, PostgreSQL,
+and Redis services.
+
+. To check the status of your {productname} cluster, log in to your
+OpenShift web console, select Projects, then select the `quay-enterprise`
+project to see the following:
++
+image:quay-setup-operator-openshift.png[The {productname} Setup Operator deployed in OpenShift]
+
+If {productname} is running, here is how to get started using
+your {productname} configuration:
+
+* Get the route to your new  {productname} cluster as follows:
++
+```
+$ oc get route
+NAME                       HOST/PORT
+       PATH                     SERVICES PORT TERMINATION           WILDCARD
+example-quayecosystem-quay example-quayecosystem-quay-default.example.com
+       example-quayecosystem-quay        8443 passthrough/Redirect  None
+
+```
+
+* Using that route, log in with the superuser credentials (Username: `quay` and Password: `password` or change credentials as described in the next section)
+
+.Additional resources
+
+* For more details on the {productname} Setup Operator, see the upstream
+link:https://github.com/redhat-cop/quay-operator/[quay-operator] project.
+
+= Customizing your {productname} cluster
+Although you can run a default {productname} setup by simply creating a secret and the `QuayEcosystem`
+custom resource, the following sections describe how you can modify
+the default setup. Some of those
+modifications must be made when you deploy the
+QuayEcosystem, while others can be done after
+the cluster is running.
+
+== Changing your {productname} credentials
+The {productname} Setup Operator sets up default administrative credentials. Review the default superuser and configuration
+credentials and change as needed.
+
+=== {productname} superuser credentials
+The {productname} superuser credentials
+let you manage the users, projects and other components of your
+{productname} deployment. Here's how superuser credentials are set by default:
+
+* Username: `quay`
+* Password: `password`
+* Email: `quay@redhat.com`
+
+To change the superuser credentials, create a new secret:
+
+```
+$ oc create secret generic <secret_name> \
+   --from-literal=superuser-username=<username> \
+   --from-literal=superuser-password=<password> \
+   --from-literal=superuser-email=<email>
+```
+The superuser password must be at least 8 characters.
+
+=== {productname} configuration credentials
+A dedicated {productname} deployment runs to manage
+{productname} configuration settings. Using the route to that
+configuration, you log in with the following credentials:
+
+* Username: `quay-config`
+* Password: `quay`
+
+You cannot change the username, but you can change the password as follows:
+
+```
+$ oc create secret generic quay-config-app \
+      --from-literal=config-app-password=<password>
+```
+
+== Providing persistent storage using PostgreSQL database
+
+The PostgreSQL relational database is used by default as the persistent
+store for {productname}. PostgreSQL can either be deployed by the
+Operator within the namespace or leverage an existing instance.
+The determination of whether to provision an instance or not within the
+current namespace depends on whether the server property within the
+`QuayEcosystem` is defined.
+
+The following options are a portion of the available options to configure the
+PostgreSQL database:
+
+[width="50%"]
+|=======
+|Property |Description
+|image |Location of the database image
+|volumeSize |Size of the volume in Kubernetes capacity units
+|=======
+
+[NOTE]
+====
+It is important to note that persistent storage for the database
+will only be provisioned if the `volumeSize` property is specified when
+provisioned by the operator.
+====
+
+Define the values as shown below:
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    database:
+      volumeSize: 10Gi
+```
+== Specifying database credentials
+
+The credentials for accessing the server can be specified through a Secret or when being provisioned by the operator, leverage the following default values:
+
+* **Username**: `quay`
+* **Password**: `quay`
+* **Root Password**: `quayAdmin`
+* **Database Name**: `quay`
+
+To define alternate values, create a secret as shown below:
+
+```
+oc create secret generic <secret_name> \
+    --from-literal=database-username=<username> \
+    --from-literal=database-password=<password> \
+    --from-literal=database-root-password=<root-password> \
+    --from-literal=database-name=<database-name>
+```
+
+Reference the name of the secret in the `QuayEcosystem` custom resource as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    database:
+      credentialsSecretName: <secret_name>
+```
+
+=== Using an existing PostgreSQL database instance
+
+Instead of having the operator deploy an instance of PostgreSQL in the
+project, an existing instance can be leveraged by specifying the location
+in the server field along with the credentials for access as described
+in the previous section. The following is an example of how to specify
+connecting to a remote PostgreSQL instance:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    database:
+      credentialsSecretName: <secret_name>
+      server: postgresql.databases.example.com
+```
+
+== Choosing a registry storage backend
+
+Red Hat Quay supports multiple backends for the purpose of image
+storage and consist of a variety of local and cloud storage options.
+The following sections provide an overview how to configure the
+{productname} Setup Operator to make use of these backends.
+
+=== Overview of storage backends
+
+Storage for {productname} can be configured using the `registryBackend`
+field within the quay property in the `QuayEcosystem` resource which
+contain an array of backends. The ability to define multiple backends
+enables replication and high availability of images.
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadaLocalStorageta:
+  name: example-quayecosystem
+spec:
+  quay:
+    registryBackends:
+      - name: backend1
+        s3:
+        ...
+```
+
+The definition of a `registryBackend` is an optional field, and if omitted,
+`LocalStorage` will be configured (ephemeral, through the use of a
+`PersistentVolume`, can be enabled if desired).
+
+=== Sensitive storage values
+
+In many cases, access to storage requires the use of sensitive values.
+Each backend that requires such configuration can be included in a Secret
+and defined within the `credentialsSecretName` property of the backend.
+
+Instead of declaring the registry backend properties within the specific backend, the values can be added to a secret as shown below:
+
+```
+oc create secret generic s3-credentials \
+   --from-literal=s3_access_key=<s3_access_key> \
+   --from-literal=s3_secret_key=<s3_secret_key>
+```
+
+With the values now present in the secret, the properties explicitly
+declared in the backend can be removed.
+
+Specific details on the types of properties supported for each backend are found in the registry backend details below.
+
+=== Storage replication
+
+Support is available to replicate the registry storage to multiple backends.
+To activate storage replication, set the `enableStorageReplication`
+property to the value of `true`. Individual registry backends can also be
+configured to be replicated by default by setting the
+`replicateByDefault` property to the value of true.
+A full configuration demonstrating the replication options available
+is shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    enableStorageReplication: true
+    registryBackends:
+      - name: azure-ussouthcentral
+        credentialsSecretName: azure-ussouthcentral-registry
+        replicateByDefault: true
+        azure:
+          azure_container: quay
+      - name: azure-seasia
+        credentialsSecretName: azure-seasia-registry
+        replicateByDefault: true
+        azure:
+          azure_container: quay
+```
+
+[NOTE]
+====
+Support for replicated storage is not available for the local registry backend and will result in an error during the verification phase.
+====
+
+=== Registry storage backend types
+
+One or more of the following registry storage backends can be defined to
+specify the underlying storage for the {productname} registry:
+
+==== Local Storage
+
+The following is an example for configuring the registry to make use of `local` storage:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    registryBackends:
+      - name: local
+        local:
+          storage_path: /opt/quayregistry
+```
+
+The following is a comprehensive list of properties for the `local`
+registry backend:
+
+[width="75%"]
+|=======
+| Property |Description |Credential Secret Supported |Required
+| storage_path |Storage Directory |No |No
+|=======
+
+==== Configuring persistent local storage
+
+By default, {productname} uses an ephemeral volume for local storage.
+In order to avoid data loss, persistent storage is required.
+To enable the use of a `PersistentVolume` to store images, specify the
+`registryStorage` parameter underneath the quay property.
+
+The following example will cause a `PersistentVolumeClaim` to be created
+within the project requesting storage of 10Gi and an access mode of
+`ReadWriteOnce`. The default value is `ReadWriteMany`.
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    registryStorage:
+      persistentVolumeAccessModes:
+        - ReadWriteOnce
+      persistentVolumeSize: 10Gi
+```
+
+A Storage Class can also be provided using the `persistentVolumeStorageClassName` property.
+
+==== Amazon Web Services (S3)
+
+The following is an example for configuring the registry to make
+use of S3 storage on Amazon Web Services.
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    registryBackends:
+      - name: s3
+        s3:
+          s3_access_key: <s3_access_key>
+          s3_bucket: <s3_bucket>
+          s3_secret_key: <s3_scret_key>
+          host: <host>
+```
+
+The following is a comprehensive list of properties for the `s3` registry backend:
+
+[width="75%"]
+|=======
+| Property |Description |Credential Secret Supported |Required
+|storage_path |Storage Directory |No |No
+|s3_bucket |S3 Bucket |No |Yes
+|s3_access_key |AWS Access Key |Yes |Yes
+|s3_secret_key |AWS Secret Key |Yes |Yes
+|host |S3 Host |No |No
+|port |S3 Port |No |No
+|=======
+
+==== Microsoft Azure storage
+
+The following is an example for configuring the registry to make use of
+Blob storage on the Microsoft Azure platform.
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    registryBackends:
+      - name: azure
+        azure:
+          azure_container: <azure_container>
+          azure_account_name: <azure_account_name>
+          azure_account_key: <azure_account_key>
+```
+
+The following is a comprehensive list of properties for the `azure`
+registry backend:
+
+[width="75%"]
+|=======
+| Property |Description |Credential Secret Suppazureorted |Required
+| storage_path |Storage Directory |No |No
+| azure_container |Azure Storage Container |No |Yes
+| azure_account_name |Azure Account Name |No |Yes
+| azure_account_key |Azure Account Key |No |Yes
+| sas_token |Azure SAS Token |No |No
+|=======
+
+==== Google Cloud storage
+
+The following is an example for configuring the registry to make use
+of Blob storage on the Google Cloud Platform.
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1azure
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    registryBackends:
+      - name: googlecloud
+        googlecloud:
+        access_key: <cloud_access_key>
+        secret_key: <cloud_secret_key>
+        bucket_name: <GCS_bucket>
+```
+
+The following is a comprehensive list of properties for the `googlecloud`
+registry backend:
+
+[width="75%"]
+|=======
+| Property |Description |Credential Secret Supported |Required
+| storage_path |Storage Directory |No |No
+| access_key |Cloud Access Key |Yes |Yes
+| secret_key |Cloud Secret Key |Yes |Yes
+| bucket_name |GCS Bucket |No |Yes
+|=======
+
+==== NooBaa (RHOCS) storage
+
+The following is an example for configuring the registry to make use of NooBaa (Red Hat OpenShift Container Storage) storage.
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    registryBackends:
+      - name: rhocs
+        rhocs:
+          hostname: <hostname>
+          is_secure: <is_secure>
+          access_key: <access_key>
+          secret_key: <secret_key>
+          bucket_name: <bucket_name>
+```
+
+The following is a comprehensive list of properties for the `rhocs`
+registry backend:
+
+[width="75%"]
+|=======
+| Property |Description |Credential Secret Supported |Required
+| storage_path |Storage Directory |No |No
+| hostname |NooBaa Server Hostname |No |Yes
+| port |Custom Port |No |No
+| is_secure |Is Secure |No |No
+| secret_key |Secret Key |Yes |Yes
+| bucket_name |Bucket Name |No |Yes
+|=======
+
+==== RADOS storage
+
+The following is an example for configuring the registry to make use of RADOS storage.
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    registryBackends:
+      - name: rados
+        rhocs:
+          hostname: <hostname>
+          is_secure: <is_secure>
+          access_key: <access_key>
+          secret_key: <secret_key>
+          bucket_name: <bucket_name>
+```
+
+The following is a comprehensive list of properties for
+the `rados` registry backend:
+
+[width="75%"]
+|=======
+| Property |Description |Credential Secret Supported |Required
+| storage_path |Storage Directory |No |No
+| hostname |Rados Server Hostname |No |Yes
+| port |Custom Port |No |No
+| is_secure |Is Secure |No |No
+| access_key |Access Key |Yes |Yes
+| secret_key |Secret Key |Yes |Yes
+| bucket_name |Bucket Name |No |Yes
+|=======
+
+==== Swift (OpenStack) storage
+
+The following is an example for configuring the registry to make use of Swift storage.
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    registryBackends:
+      - name: swift
+        rhocs:
+          auth_version: <auth_version>
+          auth_url: <auth_url>
+          swift_container: <swift_container>
+          swift_user: <swift_user>
+          swift_password: <swift_password>
+          ca_cert_path: <ca_cert_path>
+          os_options:
+            object_storage_url: <object_storage_url>
+            user_domain_name: <user_domain_name>
+            project_id: <project_id>
+```
+
+The following is a comprehensive list of properties for the
+`swift` registry backend:
+
+[width="75%"]
+|=======
+| Property |Description |Credential Secret Supported |Required
+| storage_path |Storage Directory |No |No
+| auth_version |Swift Auth Version |No |Yes
+| auth_url |Swift Auth URL |No |Yes
+| swift_container |Swift Container Name |No |Yes
+| swift_user |Username |Yes |Yes
+| swift_password |Key/Password |Yes |Yes
+| ca_cert_path |CA Cert Filename |No |No
+| temp_url_key |Temp URL Key |No |No
+| os_options |OS Options |No |No
+|=======
+
+==== CloudFront (S3) storage
+
+The following is an example for configuring the registry to make use of S3 storage on Amazon Web Services.
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    registryBackends:
+      - name: s3
+        s3:
+          s3_access_key: <s3_access_key>
+          s3_bucket: <s3_bucket>
+          s3_secret_key: <s3_scret_key>
+          host: <host>
+          cloudfront_distribution_domain: <cloudfront_distribution_domain>
+          cloudfront_key_id: <cloudfront_key_id>
+          cloudfront_privatekey_filename: <cloudfront_privatekey_filename>
+```
+
+The following is a comprehensive list of properties for the `cloudfronts3` registry backend:
+
+
+[width="100%"]
+|=======
+| Property |Description |Credential Secret Supported |Required
+| storage_path |Storage Directory |No |No
+| s3_bucket| S3 Bucket| No| Yes
+| s3_access_key| AWS Access Key| Yes| Yes
+| s3_secret_key| AWS Secret Key| Yes| Yes
+| host| S3 Host| No| No
+| port| S3 Port| No| No
+| cloudfront_distribution_domain| CloudFront Distribution Domain Name| No| Yes
+| cloudfront_key_id| CloudFront Key ID| No| Yes
+| cloudfront_privatekey_filename| CloudFront Private Key| No| Yes
+|=======
+
+== Injecting configuration files
+
+Files related to the configuration of {productname} are located in
+the `/conf/stack` directory. There are situations for which
+additional user-defined configuration files need to be added to this
+directory (such as certificates and private keys). For {productname} deployments not managed by the Operator, these files are managed by
+the {productname} config tool.
+
+The {productname} Setup Operator supports the injection of these assets
+within the `configFiles` property in the `quay` property of the
+`QuayEcosystem` object where one or more assets can be specified.
+
+Two types of configuration files can be specified by the type property:
+
+* **config**: Configuration files that will be added to the `/conf/stack` directory
+* **extraCaCerts**: Certificates to be trusted by the quay container
+
+Configuration files are stored as values within Secrets. The first step is to create a secret containing these files. The following command illustrates how a private key can be added:
+
+```
+$ oc create secret generic quayconfigfile --from-file=<path_to_file>
+```
+
+With the secret created, the secret containing the configuration file can be
+referenced in the `QuayEcosystem` object as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    configFiles:
+      - secretName: quayconfigfile
+```
+
+By default, the `config` type is assumed. If the contents of the secret
+contains certificates that should be added to the `extra_ca_certs`
+directory, specify the type as `extraCaCert` as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    configFiles:
+      - secretName: quayconfigfile
+        type: extraCaCert
+```
+
+Individual keys within a secret can be referenced to fine tune the
+resources that are added to the configuration using the `files`
+property as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    configFiles:
+      - secretName: quayconfigfile
+        files:
+          - key: myprivatekey.pem
+            filename: cloudfront.pemQuay
+          - key: myExtraCaCert.crt
+            type: extraCaCert
+```
+
+The example above assumes that two files have been added to a secret called `quayconfigfile`. The file `myprivatekey.pem` that was added to the secret will be mounted in the quay pod at the path `/conf/stack/cloudfront.pem` since it is a config file type and specifies a custom filename that should be projected into the pod. The `myExtraCaCert.crt` file will be added to the Quay pod within at the path `/conf/stack/extra_certs/myExtraCert.crt`
+
+[NOTE]
+====
+The `type` property within `files` property overrides the value in the `configFiles` property.
+====
+
+== Skipping automated setup
+
+The operator by default is configured to complete the automated setup process for {productname}.
+This can be bypassed by setting the `skipSetup` field to `true` as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    skipSetup: true
+```
+
+== Providing SSL certificates
+
+{productname}, as a secure registry, makes use of SSL certificates to
+secure communication between the various components within the
+ecosystem. Transport to the Quay user interface and container registry
+is secured via SSL certificates. These certificates are generated at
+startup with the OpenShift route being configured with a TLS termination
+type of `Passthrough`.
+
+===  User provided certificates
+
+SSL certificates can be provided and used instead of having the operator generate certificates. Certificates can be provided in a secret which is then referenced in the `QuayEcosystem` custom resource.
+
+The secret containing custom certificates must define the following keys:
+
+* **ssl.cert**: All of the certificates (root, intermediate, certificate) concatinated into a single file
+
+* **ssl.key**: Private key as for the SSL certificate
+
+Create a secret containing the certificate and private key:
+
+```
+oc create secret generic custom-quay-ssl \
+   --from-file=ssl.key=<ssl_private_key> \
+   --from-file=ssl.cert=<ssl_certificate>
+```
+The secret containing the certificates are referenced using the
+`sslCertificatesSecretName` property as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    sslCertificatesSecretName: custom-quay-ssl
+```
+
+== Specifying the {productname} route
+
+{productname} makes use of an OpenShift route to enable ingress. The hostname for
+this route is automatically generated as per the configuration of the
+OpenShift cluster. Alternatively, the hostname for this route can be
+explicitly specified using the `routeHost` property under the `quay` field
+as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    routeHost: example-quayecosystem-quay-quay-enterprise.apps.openshift.example.com
+    imagePullSecretName: redhat-pull-secret
+```
+
+== Specifying a Quay configuration route
+
+During the development process, you may want to test the provisioning and setup of {productname}. By default, the Operator will use the internal service to communicate with the configuration pod. However, when running external to the cluster, you will need to specify the ingress location for which the setup process can use.
+
+Specify the `configRoute` as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    configRouteHost: example-quayecosystem-quay-config-quay-enterprise.apps.openshift.example.com
+    imagePullSecretName: redhat-pull-secret
+```
+
+= Configuration deployment after initial setup
+
+In order to conserve resources, the configuration deployment of
+{productname} is removed after the initial setup. In certain cases,
+there may be a need to further configure the {productname}
+environment. To specify that the configuration deployment should
+be retained, the `keepConfigDeployment` property within the `quay` object can be set as `true` as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    keepConfigDeployment: true
+```
+
+== Setting Redis password
+
+By default, the operator managed Redis instance is deployed without a password. A password can be specified by creating a secret containing the password in the key `password`. The following command can be used to create the secret:
+
+```
+$ oc create secret generic <secret_name> \
+   --from-literal=password=<password>
+```
+
+The secret can then be specified within the `redis` section using the `credentialsSecretName` as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  redis:
+    credentialsSecretName: <secret_name>
+    imagePullSecretName: redhat-pull-secret
+```
+
+== Enabling Clair image scanning
+
+link:https://github.com/quay/clair[Clair] is a vulnerability assessment
+tool for application containers. Support is available to automatically
+provision and configure both Clair and its integration with {productname}.
+A property called `clair` can be specified in the `QuayEcosystem` object
+along with `enabled: true` within this field in order to deploy Clair.
+An example is shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+  clair:
+    enabled: true
+    imagePullSecretName: redhat-pull-secret
+```
+
+=== Clair update interval
+
+Clair routinely queries CVE databases in order to build its own internal
+database. By default, this value is set at 500m. You can modify the time
+interval between checks by setting the `updateInterval` property as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+  clair:
+    enabled: true
+    imagePullSecretName: redhat-pull-secret
+    updateInterval: "60m"
+```
+
+The above configuration would have Clair update every 60 minutes.
+
+== Setting common attributes
+
+Each of the following components expose a set of similar properties that
+can be specified in order to customize the runtime execution:
+
+* {productname}
+* {productname} Configuration
+* {productname} PostgreSQL
+* Redis
+* Clair
+* Clair PostgreSQL
+
+=== Image pull secret
+
+As referenced in prior sections, an Image Pull Secret can specify the
+name of the secret containing credentials to an image from a protected
+registry using the property `imagePullSecret`.
+
+=== Image
+
+There may be a desire to make use of an alternate image or source location for
+each of the components in the Quay ecosystem. The most common use case is to
+make use of an image registry that contains all of the needed images instead of
+being sourced from the public internet. Each component has a property called image
+where the location of the related image can be referenced from.
+
+The following is an example of how a customized image location can be specified:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    image: myregistry.example.com/quay/quay:v3.1.0
+```
+
+=== Compute resources
+
+link:https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container[Compute Resources]
+such as memory and CPU can be specified in the same form as any other value in a `PodTemplate`.
+CPU and Memory values for `requests` and `limits` can be specified under a property called `resources`.
+
+[NOTE]
+====
+In the case of the `QuayConfiguration` deployment, `configResources`
+is the property which should be referenced underneath the `quay` property.
+====
+
+The following is an example of how compute resources can be specified:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    resources:
+      requests:
+        memory: 512Mi
+```
+
+=== Probes
+
+link:https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/[Readiness and Liveness Probes] can be specified in the same form as any other value in a `PodTemplate`.
+
+The following is how a `readinessProbe` and `livenessProbe`
+can be specified:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    livenessProbe:
+      initialDelaySeconds: 120
+      httpGet:
+        path: /health/instance
+        port: 8443
+        scheme: HTTPS
+    readinessProbe:
+      initialDelaySeconds: 10
+      httpGet:
+        path: /health/instance
+        port: 8443
+        scheme: HTTPS
+```
+
+[NOTE]
+====
+If a value for either property is not specified, an opinionated default value is applied.
+====
+
+=== Node Selector
+
+Components of the `QuayEcosystem` may need to be
+deployed to only a subset of available nodes in a Kubernetes cluster.
+This functionality can be set on each of the resources using the
+`nodeSelector` property as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    nodeSelector:
+      node-role.kubernetes.io/infra: true
+```
+
+=== Deployment strategy
+
+Each of the core components consist of Kubernetes `Deployments`.
+This resource supports the method in which new versions are released.
+This operator supports making use of the `RollingUpdate` and `Recreate`
+strategies. Either value can be defined by using the `deploymentStrategy`
+property on the desired resource as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    deploymentStrategy: RollingUpdate
+```
+
+[NOTE]
+====
+The absence of a defined value will make use of the `RollingUpdate`
+strategy.
+====
+
+=== Environment Variables
+
+In addition to environment variables that are automatically configured
+by the operator, users can define their own set of environment variables
+in order to customize the managed resources. Each core component includes
+a property called envVars where environment variables can be defined. An
+example is shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    imagePullSecretName: redhat-pull-secret
+    envVars:
+      - name: FOO
+        value: bar
+```
+
+[NOTE]
+====
+Environment variables for the Quay configuration pod can be managed by specifying the `configEnvVars` property on the `quay` resource.
+====
+
+[WARNING]
+====
+User defined environment variables are given precedence over those managed by the operator. Undesirable results may occur if conflicting keys are used.
+====
+
+= Troubleshooting
+
+To resolve issues running, configuring and utilizing the operator,
+the following steps may be utilized:
+
+== Errors during initial setup
+
+The `QuayEcosystem` custom resource will attempt to provide the progress
+of the status of the deployment and configuration of {productname}.
+Additional information related to any errors in the setup process can
+be found by viewing the log messages of the `config` pod as shown below:
+
+```
+$ oc logs $(oc get pods -l=quay-enterprise-component=config -o name)
+```
+
+From the OpenShift console, you can follow the Pods and Deployments that
+are created for your {productname} cluster.
+
+= Local Development
+
+Execute the following steps to develop the functionality locally.
+It is recommended that development be done using a cluster with
+cluster-admin permissions.
+
+Clone the repository, then resolve all dependencies using `go mod`:
+
+```
+$ export GO111MODULE=on
+$ go mod vendor
+```
+
+Using the link:https://github.com/operator-framework/operator-sdk[operator-sdk],
+run the operator locally:
+
+```
+$ operator-sdk up local --namespace=quay-enterprise
+```
+
+= Upgrading {productname} and Clair
+
+Before upgrading to a new version of {productname} or Clair, refer to the
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/upgrade_red_hat_quay/index[Upgrade {productname}] guide for details.
+The instructions here tell you how to change the quay and clair-jwt containers,
+but do not provide the full upgrade instructions.
+
+At the point in the upgrade instructions where you are ready to identify the new quay and clair-jwt containers, here is what you do:
+
+```
+$ oc edit quayecosystem/quayecosystem
+```
+
+Find and update the following entries:
+
+```
+image: quay.io/redhat/clair-jwt:vX.X.X
+image: quay.io/redhat/quay:vX.X.X
+
+```
+
+Once saved, the operator will automatically apply the upgrade.
+
+
+[NOTE]
+====
+If you used a different name than `QuayEcosystem` for the custom resource
+to deploy your Quay ecosystem, you will have to replace the name to fit the proper value.
+====
