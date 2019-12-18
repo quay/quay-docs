@@ -7,19 +7,19 @@ Both of these major-release upgrades require that the {productname} cluster be d
 for at least a short period of time.
 
 Regardless of which upgrade type you choose, during the time that the {productname}
-cluster is down, you are using builder and clair images, you need to also upgrade to
+cluster is down, if you are using builder and clair images, you need to also upgrade to
 those new images:
 
 * The builder image (quay.io/redhat/quay-builder:v3.0.5)
 * The clair image (quay.io/redhat/clair-jwt:v3.0.5)
 
-Both of those images are available from the new quay.io/redhat repository.
+Both of those images are available from the quay.io/redhat repository.
 
 [[sync-upgrade-v3]]
 == Run a synchronous upgrade
 To run a synchronous upgrade, where your whole cluster is down for the entire upgrade, do the following:
 
-. Take down your entire {productname} cluster.
+. Take down your entire {productname} cluster, including any quay-builder and clair containers.
 
 . Add the following setting to the `config.yaml` file on all nodes:
 +
@@ -51,6 +51,9 @@ and 8443 into 80 and 443, respectively, as shown in this example:
 
 . After the upgrade completes, bring the {productname} v3 container up on all other nodes.
 
+. Start v3.0.z versions of quay-builder and clair to replace any
+instances of those containers you want to return to your cluster.
+
 . Verify that {productname} is working, including pushes and pulls of containers compatible with Docker version 2, schema 2.
 This can include windows container images and images of different computer architectures (arm, ppc, etc.).
 
@@ -71,7 +74,7 @@ running, but it is running on the old data model while the upgrade completes. He
 quay.io/redhat/quay:v3.0.5
 ====
 
-. Take down {productname} on all nodes.
+. Take down your entire {productname} cluster, including any quay-builder and clair containers.
 
 . Edit the `config.yaml` file on each node and set the upgrade mode to background as follows:
 +
@@ -100,10 +103,11 @@ and 8443 into 80 and 443, respectively, as shown in this example:
 
 . Bring the {productname} v3 container up on all the other nodes.
 
-. Monitor the `/upgradeprogress` API endpoint until it reports done (the status reaches 100%).
+. Monitor the `/upgradeprogress` API endpoint until it reports done
+enough to move to the next step (the status reaches 99%).
 For example, view `https://myquay.example.com/upgradeprogress` or use some other tool to query the API.
 
-. Once the background process is done, you have to schedule another maintenance window.
+. Once the background process is far enough along you have to schedule another maintenance window.
 
 . During your scheduled maintenance, take the entire {productname} cluster down.
 
@@ -117,14 +121,47 @@ V3_UPGRADE_MODE: complete
 
 . Once the final check is done, bring {productname} v3 back up on all the other nodes.
 
+. Start v3.0.z versions of quay-builder and clair to replace any
+instances of those containers you want to return to your cluster.
+
 . Verify Quay is working, including pushes and pulls of containers compatible with Docker version 2, schema 2.
 This can include windows container images and images of different computer architectures (arm, ppc, etc.).
 
 [[upgrade-v31-proc]]
 = Running the upgrade to {productname} v{productmin}
-As noted earlier, once your cluster is running any {productname} 3.0.z version, you can
-upgrade your cluster to v{productmin} by simply doing a rolling upgrade.
-To do that, just add new v{productmin} containers to the cluster one at a time, check that they
-are working, then decommission the older v3.0.z containers.
+As noted earlier, once your cluster is running any {productname} 3.0.z or 3.1.z version,
+to upgrade your cluster to v{productmin} you must bring down your entire cluster and
+make a small change to the configuration before bringing it back up with the {productmin} version.
+Here's how to do that.
 
+[WARNING]
+====
+Once you set the value of DATABASE_SECRET_KEY in this procedure, do not ever
+change it. If you do, all tokens will need to be regenerated.
+====
+
+. Take all hosts in the {productname} cluster out of service.
+. Generate some random data to use as a database secret key. For example:
++
+```
+$ openssl rand -hex 48
+2d023adb9c477305348490aa0fd9c
+```
+. Add a new DATABASE_SECRET_KEY field to your `config.yaml` file. For example:
++
+```
+DATABASE_SECRET_KEY: "2d023adb9c477305348490aa0fd9c"
+```
++
+[NOTE]
+====
+For an OpenShift installation, the `config.yaml` file is stored as a secret.
+====
+
+. Bring up one quay container to complete the migration to v{productmin}.
+. Once the migration is done, make sure the same `config.yaml` is available
+on all nodes and bring up the new quay v{productmin} service on those nodes.
+
+. Start v3.0.z versions of quay-builder and clair to replace any
+instances of those containers you want to return to your cluster.
 
