@@ -70,14 +70,25 @@ To create an OAuth access token so you can access the API for your organization:
 == Accessing your {productname} API from a web browser
 
 By enabling Swagger, you can access the API for your own {productname} instance through a web browser.
-This exposes the {productname} API explorer via the Swagger UI and this URL:
+This URL exposes the {productname} API explorer via the Swagger UI and this URL:
 
 ```
 https://<yourquayhost>/api/v1/discovery.
 ```
 
-To enable Swagger in your {productname} cluster, add the following line to the config.yaml on all
-nodes in the cluster and restart {productname}:
+That way of accessing the API does not include superuser endpoints that are available on
+{productname} installations. Here is an example of accessing a {productname} API interface
+running on the local system by running the  swagger-ui container image:
+
+```
+# export SERVER_HOSTNAME=<yourhostname>
+# podman run -p 8888:8080 -e API_URL=https://$SERVER_HOSTNAME:8443/api/v1/discovery docker.io/swaggerapi/swagger-ui
+```
+With the swagger-ui container running, open your web browser to localhost port 8888 to view
+API endpoints via the swagger-ui container.
+
+To avoid errors in the log such as "API calls must be invoked with an X-Requested-With header if called from a browser,"
+add the following line to the `config.yaml` on all nodes in the cluster and restart {productname}:
 
 ```
 BROWSER_API_CALLS_XHR_ONLY: false
