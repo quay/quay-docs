@@ -105,13 +105,17 @@ The following procedure assumes you already have a running
 {productname} cluster on an OpenShift platform, with the {productname} Setup
 container running in your browser:
 
-. **Start the repo mirroring worker**: Start the quay container in `repomirror` mode as follows:
+. **Start the repo mirroring worker**: Start the quay container in `repomirror` mode.
+This example assumes you have configured TLS communications using a certificate
+that is currently stored in `/root/ca.crt`. If not, then remove the line that adds
+`/root/ca.crt` to the container:
 +
 [subs="verbatim,attributes"]
 ```
 $ docker run -d --name mirroring-worker \
-  -v /mnt/quay/config:/conf/stack {productrepo}/quay:{productminv} \
-  repomirror
+  -v /mnt/quay/config:/conf/stack \
+  -v /root/ca.crt:/etc/pki/ca-trust/source/anchors/ca.crt \
+  {productrepo}/quay:{productminv} repomirror
 ```
 . **Log into config tool**: Log into the {productname} Setup Web UI (config tool).
 . **Enable repository mirroring**: Scroll down the the Repository Mirroring section
