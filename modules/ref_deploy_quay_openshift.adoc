@@ -376,7 +376,7 @@ spec:
       volumes:
         - name: configvolume
           secret:
-            secretName: quay-enterprise-secret
+            secretName: quay-enterprise-config-secret
       containers:
       - name: quay-enterprise-app
         image: {productrepo}/quay:{productminv}
@@ -480,13 +480,14 @@ spec:
 ----
 
 .clair-config.yaml
+Modify source, endpoint, key_id, and registry settings to match your environment.
 [source,yaml,subs="verbatim,attributes"]
 ----
   clair:
     database:
       type: pgsql
       options:
-        source: host=postgres-clair port=5432 dbname=clair user=clair password=test123 sslmode=disable <1>
+        source: host=172.30.87.93 port=5432 dbname=clair user=clair password=test123 sslmode=disable
         cachesize: 16384
     api:
       # The port at which Clair will report its health status. For example, if Clair is running at
@@ -510,7 +511,7 @@ spec:
       http:
         # QUAY_ENDPOINT defines the endpoint at which Quay Enterprise is running.
         # For example: https://myregistry.mycompany.com
-        endpoint: http://quay-enterprise-clusterip/secscan/notify
+        endpoint: https://quay-enterprise.apps.lzha0413.qe.devcluster.openshift.com/secscan/notify <1>
         proxy: http://localhost:6063
 
   jwtproxy:
@@ -529,7 +530,7 @@ spec:
           options:
             # The ID of the service key generated for Clair. The ID is returned when setting up
             # the key in [Quay Enterprise Setup](security-scanning.md)
-            key_id: cd40f1c6a63f574c68ce882258925374882fac2b2f535ae5f8157c429e0c4b2e <2>
+            key_id: fc6c2b02c495c9b8fc674fcdbfdd2058f2f559d6bdd19d0ba70af26c0cb66a48 <2>
             private_key_path: /clair/config/security_scanner.pem
 
     verifier_proxies:
@@ -554,7 +555,7 @@ spec:
           options:
             # QUAY_ENDPOINT defines the endpoint at which Quay Enterprise is running.
             # Example: https://myregistry.mycompany.com
-            registry: http://quay-enterprise-clusterip/keys/
+            registry: https://quay-enterprise.apps.lzha0413.qe.devcluster.openshift.com/keys/
 ----
 <1> Check that the database options match those set earlier in postgres-clair-deployment.yaml.
 <2> Insert the Key ID matches the value from the key generated from the {productname} Setup screen.
@@ -617,6 +618,9 @@ spec:
           volumeMounts:
           - mountPath: /clair/config
             name: configvolume
+          - mountPath: /etc/pki/ca-trust/source/anchors/ca.crt
+            name: quay-ssl
+            subPath: ca.crt
         imagePullSecrets:
         - name: redhat-quay-pull-secret
         restartPolicy: Always
@@ -624,6 +628,13 @@ spec:
         - name: configvolume
           secret:
             secretName: clair-scanner-config-secret
+        - name: quay-ssl
+          secret:
+            defaultMode: 420
+            items:
+            - key: ssl.cert
+              path: ca.crt
+            secretName: quay-enterprise-config-secret
 ----
 
 == Repository mirroring
@@ -649,11 +660,19 @@ spec:
       labels:
         quay-enterprise-component: mirror-app
     spec:
+      volumes:
+      - name: configvolume
+        secret:
+          secretName: quay-enterprise-config-secret
       containers:
       - name: quay-enterprise-mirror-app
         image: {productrepo}/quay:{productminv}
         ports:
         - containerPort: 8443
+        volumeMounts:
+        - name: configvolume
+          readOnly: false
+          mountPath: /conf/stack
         command: ["/quay-registry/quay-entrypoint.sh"]
         args: ["repomirror"]
       imagePullSecrets:
