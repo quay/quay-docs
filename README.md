@@ -24,12 +24,12 @@ To get started:
 
 To contribute:
 
-1. git checkout 3.0-master
+1. git checkout master
 2. git checkout -b <branch-name>
 3. Edit files with changes
 4. git commit -a -m "description of changes"
 5. git push <your-name> <branch-name>
-6. Visit https://github.com/quay/quay-docs and create pull-request against 3.0-master
+6. Visit https://github.com/quay/quay-docs and create pull-request against master
 
 
 Once merge to master is done and you want to stage:
