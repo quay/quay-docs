@@ -13,7 +13,7 @@ identity provider.
 The {productname} LDAP setup workflow requires that the user
 configuring the LDAP Setup already exist in the LDAP directory. Before attempting
 the setup, make sure that you are logged in as a superuser that matches
-user crendentials in LDAP. In order to do so, Navigate to the SuperUser
+user credentials in LDAP. In order to do so, Navigate to the SuperUser
 panel (ex: http(s)://quay.enterprise/superuser) and click on the “Create
 User” button to create a new User. Make sure to create a user that
 matches the username/email syntax in LDAP.
@@ -30,45 +30,112 @@ created. Restart the {productname} container and log in to the Superuser
 panel *_as the user that was just created._*
 
 [[setup-ldap-configuration]]
-== Setup LDAP Configuration
+== Set Up LDAP Configuration
 
-Navigate to the Superuser panel and navigate to settings section. Locate
-the Authentication section and select “LDAP” from the drop-down menu.
+In the config tool, locate the Authentication section and select “LDAP” from the drop-down menu. Update LDAP configuration fields as required.
 
-image:authentication-ldap.png[Select LDAP from the Authentication section]
+image:authentication-ldap.png[Fill in LDAP information]
 
-Enter LDAP configuration fields as required.
+* Here is an example of the resulting entry in the _config.yaml_ file:
+....
+AUTHENTICATION_TYPE: LDAP
+....
 
-image:authentication-ldap-details.png[Fill in LDAP information]
+=== Full LDAP URI
 
-[[few-tips-for-ldap-configuration]]
-== Tips for LDAP configuration:
+image:authentication-ldap-uri.png[LDAP server URI]
+image:authentication-ldap-ssl.png[LDAP server SSL]
 
-* LDAP URI must be in ldap:// or ldaps:// syntax. Typing a URI with
-ldaps:// prefix will surface the option to provide custom SSL
-certificate for TLS setup
-* User Relative DN is relative to BaseDN (ex: ou=NYC not
-ou=NYC,dc=example,dc=org)
-* Logged in Username must exist in User Relative DN
-* You can enter multiple “Secondary User Relative DNs” if there are
-multiple Organizational Units where User objects are located at. (ex:
-ou=Users,ou=NYC and ou=Users,ou=SFO). Simply type in the Organizational
-Units and click on Add button to add multiple RDNs
-* sAMAccountName is the UID attribute for against Microsoft Active
-Directory setups
-* {productname} searches "User Relative DN" with subtree scope. For
-example, if your Organization has Organizational Units NYC and SFO under
-the Users OU (`ou=SFO,ou=Users and ou=NYC,ou=Users`), {productname} 
-can authenticate users from both the NYC and SFO Organizational Units if
-the User Relative DN is set to Users (ou=Users)
+* The full LDAP URI, including the _ldap://_ or _ldaps://_ prefix.
+* A URI beginning with _ldaps://_ will make use of the provided SSL certificate(s) for TLS setup.
+* Here is an example of the resulting entry in the _config.yaml_ file:
+....
+LDAP_URI: ldaps://ldap.example.org
+....
+
+=== Team Synchronization
+
+image:authentication-ldap-team-sync-1.png[Team synchronization]
+
+* If enabled, organization administrators who are also superusers can set teams to have their membership synchronized with a backing group in LDAP.
+
+image:authentication-ldap-team-sync-2.png[Team synchronization]
+
+* The resynchronization duration is the period at which a team must be re-synchronized. Must be expressed in a duration string form: 30m, 1h, 1d.
+* Optionally allow non-superusers to enable and manage team syncing under organizations in which they are administrators.
+* Here is an example of the resulting entries in the _config.yaml_ file:
+....
+FEATURE_TEAM_SYNCING: true
+TEAM_RESYNC_STALE_TIME: 60m
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true
+....
+
+=== Base and Relative Distinguished Names
+
+image:authentication-ldap-basedn.png[Distinguished Names]
+
+* A Distinguished Name path which forms the base path for looking up all LDAP records. Example: _dc=my,dc=domain,dc=com_
+* Optional list of Distinguished Name path(s) which form the secondary base path(s) for looking up all user LDAP records, relative to the Base DN defined above. These path(s) will be tried if the user is not found via the primary relative DN.
+* User Relative DN is relative to BaseDN. Example: _ou=NYC_ not _ou=NYC,dc=example,dc=org_
+* Multiple “Secondary User Relative DNs” may be entered if there are multiple Organizational Units where User objects are located at. Simply type in the Organizational Units and click on Add button to add multiple RDNs. Example: _ou=Users,ou=NYC and ou=Users,ou=SFO_
+* The "User Relative DN" searches with subtree scope. For example, if your Organization has Organizational Units NYC and SFO under the Users OU (_ou=SFO,ou=Users_ and _ou=NYC,ou=Users_), {productname} can authenticate users from both the _NYC_ and _SFO_ Organizational Units if the User Relative DN is set to Users (_ou=Users_).
+* Here is an example of the resulting entries in the _config.yaml_ file:
+....
+LDAP_BASE_DN:
+- dc=example
+- dc=com
+LDAP_USER_RDN:
+- ou=users
+LDAP_SECONDARY_USER_RDNS:
+- ou=bots
+- ou=external
+....
+
+=== Additional User Filters
+
+image:authentication-ldap-user-filter.png[User filters]
+
+* If specified, the additional filter used for all user lookup queries. Note that all Distinguished Names used in the filter must be *full* paths; the Base DN is not added automatically here. *Must* be wrapped in parens. Example: (&(someFirstField=someValue)(someOtherField=someOtherValue))
+* Here is an example of the resulting entry in the _config.yaml_ file:
+....
+LDAP_USER_FILTER: (memberof=cn=developers,ou=groups,dc=example,dc=com)
+....
+
+=== Administrator DN
+
+image:authentication-ldap-admin-dn.png[Administrator DN]
+
+* The Distinguished Name  and password for the administrator account. This account must be able to login and view the records for all user accounts. Example: uid=admin,ou=employees,dc=my,dc=domain,dc=com
+* The password will be stored in *plaintext* inside the config.yaml, so setting up a dedicated account or using a password hash is highly recommended.
+* Here is an example of the resulting entries in the _config.yaml_ file:
+....
+LDAP_ADMIN_DN: cn=admin,dc=example,dc=com
+LDAP_ADMIN_PASSWD: changeme
+....
+
+=== UID and Mail attributes
+
+image:authentication-ldap-uid-mail.png[UID and Mail]
+
+* The UID attribute is the name of the property field in LDAP user record to use as the *username*. Typically "uid".
+* The Mail attribute is the name of the property field in LDAP user record that stores user e-mail address(es). Typically "mail".
+* Either of these may be used during login.
+* The logged in username must exist in User Relative DN.
+* _sAMAccountName_ is the UID attribute for against Microsoft Active Directory setups.
+* Here is an example of the resulting entries in the _config.yaml_ file:
+....
+LDAP_UID_ATTR: uid
+LDAP_EMAIL_ATTR: mail
+....
+
+=== Validation
 
 Once the configuration is completed, click on “Save Configuration
 Changes” button to validate the configuration.
 
 image:authentication-ldap-success.png[Fill in LDAP information]
 
-You will be prompted to login with *_LDAP
-credentials_*.
+All validation must succeed before proceeding, or additional configuration may be performed by selecting the "Continue Editing" button.
 
 [[common-issues]]
 == Common Issues
