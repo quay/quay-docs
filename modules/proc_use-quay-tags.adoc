@@ -20,14 +20,14 @@ image:tag-operations.png[View and modify tags from your repository]
 === Adding a new tag to a tagged image
 
 A new tag can be added to a tagged image by clicking on the gear icon next to
-the tag and choosing `Add New Tag`. Quay.io will confirm the addition of
+the tag and choosing `Add New Tag`. {productname} will confirm the addition of
 the new tag to the image.
 
 [[moving-a-tag]]
 === Moving a tag
 
 Moving a tag to a different image is accomplished by performing the same
-operation as adding a new tag, but giving an existing tag name. Quay.io
+operation as adding a new tag, but giving an existing tag name. {productname}
 will confirm that you want the tag moved, rather than added.
 
 [[deleting-a-tag]]
@@ -90,10 +90,46 @@ substitute *podman* for *docker* to pull and run the selected image.
 [[tag-expiration]]
 == Tag Expiration
 
-On the Repository Tag page there is a UI column titled *Expires* that indicates when a tag will expire. Users can set this by clicking on the time that it will expire or by clicking the Settings button (gear icon) on the right and choosing `Change Expiration`. The tag will get deleted from the repository when the expiration time is reached.
+Images can be set to expire from a {productname} repository at a chosen date and time using a feature called `tag expiration`.
+Here are a few things to know about about tag expiration:
 
-Alternatively, adding a label like `quay.expires-after=20h` via the Dockerfile LABEL command will cause tags to automatically expire. The time values could be something like `1h`, `2d`, `3w` for hour, day and weeks, respectively.
+* When a tag expires, the tag is deleted from the repository. If it is the last tag for a specific image, the image is set to be deleted.
 
+* Expiration is set on a per-tag basis, not for a repository on the whole.
+
+* When a tag expires or is deleted, it is not immediately removed from the registry.
+The value of Time Machine (in User settings) defines when the deleted tag is actually removed
+and garbage collected. By default, that value is 14 days. Up until that time, a tag can be repointed to an expired or deleted image.
+
+* The {productname} superuser has no special privilege related to deleting expired images from user repositories.
+There is no central machanism for the superuser to gather information and act on user repositories.
+It is up to the owners of each repository to manage expiration and ultimate deletion of their images.
+
+Tag expiration can be set in different ways:
+
+* By setting the `quay.expires.after=` LABEL in the Dockerfile when the image is created.
+This sets a time to expire from when the image is built.
+
+* By choosing the expiration date from the EXPIRES column for the repository tag and selecting a specific date and time to expire.
+
+The following figure shows the Options entry for changing tag expiration and the EXPIRES field for when the tag expires.
+Hover over the EXPIRES field to see the expiration date and time that is currently set.
+
+image:tag-expires-ui.png[Change tag expiration under the Options icon or from the EXPIRES column]
+
+=== Setting tag expiration from a Dockerfile
+
+Adding a label like `quay.expires-after=20h` via the Dockerfile LABEL command will cause a tag to automatically expire
+after the time indicated.
+The time values could be something like `1h`, `2d`, `3w` for hours, days, and weeks, respectively, from the time the image is built.
+
+=== Setting tag expiration from the repository
+
+On the Repository Tag page there is a UI column titled *EXPIRES* that indicates when a tag will expire.
+Users can set this by clicking on the time that it will expire or by clicking the Settings button (gear icon) on the right and choosing `Change Expiration`.
+
+Choose the date and time when prompted and select `Change Expiration`.
+The tag will be set to be deleted from the repository when the expiration time is reached.
 
 [[security-scanning]]
 == Security scanning
@@ -102,3 +138,7 @@ By clicking the on the vulnerability or fixable count next to a tab you
 can jump into the security scanning information for that tag. There you
 can find which CVEs your image is susceptible to, and what remediation
 options you may have available.
+
+Keep in mind that image scanning only lists vulnerabilities found by the Clair image scanner.
+What each user does about the vulnerabilities that are uncovered is completely up to that user.
+The {productname} superuser does not act on those vulnerabilities found.
