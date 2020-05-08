@@ -1,0 +1,222 @@
+		 Migrating from Quay Operator v1.0.2 to v3.3.0
+-------------------------------------------------------------------------------
+
+Quay Operator v3.3.0 has many changes from v1.0.2. The most notable which
+affects the upgrade process is the backwards-incompatible change to the CRD.
+Ultimately, the CR (Custom Resource) used to deploy Quay using the operator
+may have to be modified accordingly.
+
+Pre-Requisites:
+  Ensure that your deployment is using a supported persistance layer and
+  database. A production Quay deployment ran by the Operator should *not* be
+  relying on the Postgres instance or a OpenShift/Kubernetes volume which has
+  been created by the Operator. If you are using a Postgres instance or
+  OpenShift/Kubernetes volume which were created by the Operator, the upgrade
+  path is not suported as the removal of the old Operator will cascade the
+  deletion of your database and volume. It may be possible to manually migrate
+  your data to supported storage mechanisms but this is not within the scope of
+  the typical, or supported, uprade path.
+
+Please read through the entire guide before following any steps as this upgrade
+path is potentially destructive and there is no guaranteed roll-back mechanism.
+
+Upgrade Process Summary:
+1. Document all configuration related to your current deployment.
+2. Copy your CR and modify any configuration values as needed.
+3. Remove your current deployment using `oc delete -f deployment.yaml`
+4. Ensure that only one Quay pod will be started, as this Pod will perform any
+   database migrations needed before scaling up the entire cluster.
+5. Uninstall the old Quay Operator (v1.0.2 or older)
+6. Install the latest Quay Operator (v3.3.0)
+7. Create your CR by issuing the command `oc create -f new_deployment.yaml`
+8. Watch the logs of your Quay Pod until all migrations have finished.
+9. At this point, it is safe to scale up your Quay cluster if desired.
+
+
+-------------------------------------------------------------------------------
+		       DOCUMENTING EXISTING CONFIGURATION
+-------------------------------------------------------------------------------
+
+For the purpose of ensuring a smooth upgrade, it is important to ensure you
+have all available configuration details *before* deleting your existing
+deployment. In the case that you must work with Red Hat Support, this
+information will aid them with the details needed to bring your cluster back
+to its original state. At minimum, the following information should be
+gathered:
+
+1. The Custom Resouce used to create your current Quay deployment.
+2. The output of running `oc get QuayEcosystem -o yaml > quayecosystem.yaml`
+   in your Project or Namespace.
+3. The hostnames currently used to access Quay, Clair, Quay's Config App,
+   Postgres, Redis, and Clair's Postgres instance. This can be achieved by
+   executing: `oc get routes -o yaml > old_routes.yaml`
+4. Any authentication details required to connect to your Postgres instance(s)
+   for Quay and Clair.
+5. Any authentication details required to connect to your data persistance
+   provider such as AWS S3.
+6. Backup your Quay's configuration secret which contains the `config.yaml`
+   along with any certificates needed. This can be accomplished by using the
+   following command:
+   oc get secret quay-enterprise-config-secret -o yaml > config-secret.yaml
+
+TODO(cnegus): Is there anything else of importance to restore the previous
+              envioronment or that may be helpful for CEE to assist with
+	      upgrading?
+
+
+-------------------------------------------------------------------------------
+				 UPDATE YOUR CR
+-------------------------------------------------------------------------------
+
+Ensure a backup is created of your original Custom Resource before making any
+changes.
+
+If your deployment does not specify any specific network-related configuration
+values, this step may not be necessary. Please refer to the documentation to
+ensure that your the configuration options in your current CR are still
+accurate for Quay Operator v3.3.0.
+
+In the case that you have specified options related to the management of
+networking, such as using a LoadBalancer or specifying a custom hostname,
+please reference the latest documentation to update them with the schema
+changes included in Quay Operator v3.3.0.
+
+If you have overridden the image used for Quay or Clair, please keep in mind
+that Quay Operator v3.3.0 specifically supports Quay v3.3.0 and Clair v????.
+It is advisable to remove those image overrides to use the latest, supported
+releases of Quay and Clair in your deployment. Any other images may not be
+supported.
+
+
+-------------------------------------------------------------------------------
+			REMOVE YOUR EXISTING DEPLOYMENT
+-------------------------------------------------------------------------------
+
+**WARNING** This step will remove your entire Quay deployment. Use caution and
+            ensure you understand all steps required to recreate your cluster
+	    before removing your existing deployment.
+
+Quay Operator v3.3.0 is now distributed using the official Red Hat channels.
+Previously, Quay Operator v1.0.2 (and below) were provided using "Community"
+channels. Additionally, 3.3.0 offers no automatic upgrade path which requirees
+your Quay deployment and the Quay Operator to be completely removed and
+replaced.
+
+Fortunately, the important data is stored in your Postgres datbase and your
+storage backend so it is advisable to ensure you have proper backups for both.
+
+Once you are ready, remove your existing deployment by issuing the following
+command: oc delete -f deployment.yaml
+
+All Quay and Clair pods will be removed as well as the Redis pod. At this
+point, your Quay cluster will be completely down and inaccesible. It is
+suggested to inform your users of a maintenance window as they will not be
+able to access their images during this time.
+
+
+-------------------------------------------------------------------------------
+			ENSURE ONLY QUAY POD IS STARTED
+-------------------------------------------------------------------------------
+
+When Quay pods start, they will look at the database to determine whether all
+required database schema changes are applied. If the schema changes are not
+applied, which is more than likely going to be the case when upgrading from
+Quay v3.2.* to v3.3.0, then the Quay pod will automatically begin running all
+migrations. If multiple Quay instances are running simultaenously, they may
+all attempt to update or modify the database at the same time which may
+result in unexpected issues.
+
+To ensure that the migrations are ran correctly, do not specify more than a
+single Quay replica to be started. Note that the default quantity of Quay pod
+replicas is 1, so if one is not set than there is no work to be done here.
+
+
+-------------------------------------------------------------------------------
+			     UNINSTALL THE OPERATOR
+-------------------------------------------------------------------------------
+
+Verify that all Quay-related deployments and pods no longer exist within your
+namespace. Ensure that no other Quay deployments depend upon the installed
+Quay Operator v1.0.2 (or earlier).
+
+Using OpenShift, navigate to the `Operators > Installed Operators` page can
+the UI will present you with the option to delete the operator.
+
+
+-------------------------------------------------------------------------------
+			    INSTALL THE NEW OPERATOR
+-------------------------------------------------------------------------------
+
+Previously, Quay Operator v1.0.2 (and prior) were provided using the
+"community" Operator Hub catalog. In the latest release, the Quay Operator is
+released through official Red Hat channels.
+
+In the OpenShift UI, navigate to `Operators > OperatorHub` and then simply
+search for `Quay`. Ensure you are choosing the correct Quay Operator v3.3.0
+in the even that you encounter multiple, similar results. Simply click
+`install` and choose the correct namespace/project to install the operator.
+
+
+-------------------------------------------------------------------------------
+			    RECREATE YOUR DEPLOYMENT
+-------------------------------------------------------------------------------
+
+At this point, the following assumptions are made based upon the previous steps
+documented in this upgrade process:
+
+1. Your CR is updated to reflect any differences in the latest operator's
+   schema (CRD).
+2. Quay Operator v3.3.0 is installed into your project/namespace
+3. Any secrets necessary to deploy Quay exist
+4. Your CR defines either 1 Quay Pod replica or does not specify any quanity
+   of Quay replicas which defaults to 1.
+
+Once you are ready, simply create your QuayEcosystem by executing the command:
+$ oc create -f new_deployment.yaml
+
+At this point, the Quay Operator will begin to deploy Redis, then the Quay
+Config Application, and finally your (single) Quay Pod.
+
+
+-------------------------------------------------------------------------------
+		    MONITOR DATABASE SCHEMA UPDATE PROGRESS
+-------------------------------------------------------------------------------
+
+Assuming that you are upgrading from Quay v3.2 to Quay v3.3, it will be
+necessary for Quay to perform schema updates to your database. These can be
+viewed in your Quay pod's logs.
+
+Do not proceed with any additional steps until you are sure that the database
+migrations are complete. 
+
+NOTE: These migrations should occur early in the pod's logs so it may be easy
+      to overlook them.
+
+
+-------------------------------------------------------------------------------
+			    FINALIZE CLUSTER UPGRADE
+-------------------------------------------------------------------------------
+
+Now that the latest release of Red Hat Quay and, optionally, Clair have been
+deployed to your Openshift cluster, it is time to verify your configuration and
+scale as needed.
+
+One can compare the results of the current configuration with the previous
+configuration referencing the documentation gathered in the first step of this
+process. It is recommended to pay close attention to your hostname(s) and
+glance at all logs to look for any issues that may not have been obvious or
+caught by the Quay Operator.
+
+It is also recommended to perform a quick "smoke test" on your environment to
+ensure that the major functionality is working as expected. One example test
+may include performing pushes and pulls from the registry on existing, and new,
+images. Another example may be accessing Quay's UI as a registered user and
+ensuring that the expected TLS certificate is used. If you rely on the Quay
+Operator to generate a self-signed TLS certificate then keep in mind that a new
+certificate may have been created by this process.
+
+If multiple replicas are needed to scale your Quay registry, it is now safe
+to change the replica count to your desired quantity.
+
+Finally, it would be highly recommended to ensure your store your configuration
+and any relevant OpenShift secrets in a safe, preferably encrypted, backup.
