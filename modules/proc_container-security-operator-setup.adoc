@@ -3,7 +3,7 @@
 
 Using the link:https://operatorhub.io/operator/container-security-operator[Container Security Operator],
 (CSO) you can scan container images associated
-with active pods, running on OpenShift and other Kubernetes
+with active pods, running on OpenShift (4.2 or later) and other Kubernetes
 platforms, for known vulnerabilities. The CSO:
 
 * Watches containers associated with pods on all or specified namespaces
@@ -30,6 +30,14 @@ to go to the Create Operator Subscription page.
 
 . Check the settings (all namespaces and automatic approval strategy, by default), and select
 `Subscribe`. The `Container Security` appears after a few moments on the `Installed Operators` screen.
+
+. Optionally, you can add custom certificates to the CSO. In this example, create a certificate
+named quay.crt in the current directory. Then run the following command to add the cert to the CSO (restart
+the Operator pod for the new certs to take effect):
++
+```
+$ oc create secret generic container-security-operator-extra-certs --from-file=quay.crt -n openshift-operators
+```
 
 . Open the OpenShift Dashboard (Home -> Dashboards). A link to
 Image Security appears under the status section, with a listing of the number

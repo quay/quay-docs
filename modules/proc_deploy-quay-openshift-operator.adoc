@@ -852,7 +852,6 @@ SSL certificates can be provided and used instead of having the operator generat
 The secret containing custom certificates must define the following keys:
 
 * **tls.cert**: All of the certificates (root, intermediate, certificate) concatenated into a single file
-
 * **tls.key**: Private key as for the SSL certificate
 
 Create a secret containing the certificate and private key:
@@ -881,9 +880,10 @@ spec:
 == TLS Termination
 
 {productname} can be configured to protect connections using SSL certificates.
-By default, SSL communicated is terminated within {productname}. There are
+By default, SSL communication is terminated within {productname}. There are
 several different ways that SSL termination can be configured including
 omitting the use of certificates altogether. TLS termination is determined by
+
 the termination property as shown below:
 
 ```
@@ -1310,13 +1310,16 @@ $ operator-sdk up local --namespace=quay-enterprise
 ```
 
 = Upgrading {productname} 
+
 The Quay Operator {productminv} has many changes from v1.0.2. The most notable which
 affects the upgrade process is the backwards-incompatible change to the CRD.
 Ultimately, the CR (Custom Resource) used to deploy {productname} using the operator
 may have to be modified accordingly.
 
 == Upgrade Prerequisites
+
 Ensure that your deployment is using a supported persistence layer and
+
 database. A production {productname} deployment run by the Operator should *not* be
 relying on the Postgres instance or a OpenShift volume that has
 been created by the Operator.
@@ -1414,6 +1417,7 @@ replaced.
 Fortunately, the important data is stored in your Postgres database and your
 storage backend, so it is advisable to ensure you have proper backups for both.
 
+
 Once you are ready, remove your existing deployment by issuing the following
 command:
 
@@ -1435,6 +1439,7 @@ applied, which is more than likely going to be the case when upgrading from
 migrations. If multiple {productname} instances are running simultaneously, they may
 all attempt to update or modify the database at the same time which may
 result in unexpected issues.
+
 
 To ensure that the migrations are run correctly, do not specify more than a
 single Quay replica to be started. Note that the default quantity of Quay pod
@@ -1483,6 +1488,14 @@ $ oc create -f new_deployment.yaml
 At this point, the Quay Operator will begin to deploy Redis, the Quay
 Config Application, and finally your (single) Quay Pod.
 
+=== Monitor the database schema update progress
+
+Assuming that you are upgrading from Quay v3.2 to Quay v3.3, it will be
+necessary for Quay to perform schema updates to your database. These can be
+viewed in your Quay pod's logs.
+
+Do not proceed with any additional steps until you are sure that the database
+migrations are complete. 
 
 === Monitor the database schema update progress
 
@@ -1506,6 +1519,7 @@ scale as needed.
 
 You can compare the results of the current configuration with the previous
 configuration referencing the documentation gathered in the first step of this
+
 process. It is recommended to pay close attention to your hostname(s) and
 glance at all logs to look for any issues that may not have been obvious or
 caught by the Quay Operator.
@@ -1514,6 +1528,7 @@ It is also recommended to perform a quick "smoke test" on your environment to
 ensure that the major functionality is working as expected. One example test
 may include performing pushes and pulls from the registry on existing, and new,
 images. Another example may be accessing the {productname} UI as a registered user and
+
 ensuring that the expected TLS certificate is used. If you rely on the Quay
 Operator to generate a self-signed TLS certificate then keep in mind that a new
 certificate may have been created by this process.
@@ -1524,4 +1539,5 @@ to scale out the quay pod, your might run `oc edit quayecosystem demo-quayecosys
 then change `replicas: 1` to `replicas: 2`, or other desired number.
 
 Finally, it would be highly recommended to ensure you store your configuration
+
 and any relevant OpenShift secrets in a safe, preferably encrypted, backup.

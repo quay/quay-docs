@@ -1,31 +1,48 @@
 [[build-support]]
-= Automatially build Dockerfiles with build workers
+= Automatically building Dockerfiles with build workers
 
 {productname} supports building Dockerfiles using a set of worker nodes. Build triggers,
 such as GitHub webhooks
-(link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/use_red_hat_quay/index#github-build-triggers[Setup Instructions]),
 can be configured to automatically build
 new versions of your repositories when new code is committed. This document will walk
 you through enabling the feature flag and setting up multiple build workers to enable
 this feature.
 
 [[enable-building-dockerfile]]
-== Enable building
+== Enabling builds
 
-. Visit the management panel: Sign in to a superuser account and visit
-`http://yourregister/superuser` to view the management panel:
+. Open the Config Tool for your {productname} cluster.
 
-. Enable Dockerfile Build Support:
+. Scroll down to the section entitled _Dockerfile Build Support_.
++
+image:enable-build.png[Select Enable Dockerfile Build]
 
-  * Click the configuration tab and scroll down to the section entitled Dockerfile Build Support.
-  image:enable-build.png[Select Enable Dockerfile Build]
+. Check the _Enable Dockerfile Build_ box. You are prompted to Enable
+different types of build triggers.
 
-  * Check the "Enable Dockerfile Build" box
-  * Click "Save Configuration Changes"
-  * Restart the container (you will be prompted)
+. Select the type of build triggers you want to enable: 
+GitHub Build Triggers, BitBucket Build Triggers, or GitLab Build Triggers.
+Depending on which you enable, you are prompted to further configure those triggers:
++
+* **Enable GitHub Triggers**: For the GitHub box, select GitHub Enterprise or GitHub.io.
+For GitHub Endpoint, provide the http:// or https:// address for the GitHub endpoint.
+For OAuth Client ID, enter the client ID for your OAuth client.
+For OAuth Client Secret, enter the secret needed to access the OAuth client.
+* **Enable BitBucket Triggers**: To use BitBucket triggers to start registry builds,
+you need a registered BitBucket OAuth application. Then you must enter the OAuth
+consumer key and OAuth consumer secret here.
+* **Enable GitLab Triggers**: For GitLab, select GitLab CE/EE or GitLab.com. For GitLab
+Endpoint,  provide the http:// or https:// address for the GitLab endpoint.
+For Application id, provide the ID for the registered GitLab OAuth application.
+For Secret, enter the secret associated with the Application id. The callback URL for
+your {productname} cluster is provided.
+
+. Click "Save Configuration Changes"
+
+. Restart the container (you will be prompted)
 
 [[set-up-the-build-workers]]
-== Set up the build workers
+== Setting up build workers
 
 image:workers.png[Set up build workers]
 
@@ -80,7 +97,7 @@ ifdef::upstream[]
 # docker run --restart on-failure \
   -e SERVER=ws://myquayenterprise \
   --privileged=true \
-  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/run/docker.sock:/var/run/docker.sock:Z \
   <registry>/<repo>/quay-builder:{productminv}
 ....
 endif::upstream[]
@@ -91,7 +108,7 @@ ifdef::downstream[]
 # docker run --restart on-failure \
   -e SERVER=ws://myquayenterprise \
   --privileged=true \
-  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/run/docker.sock:/var/run/docker.sock:Z \
   {productrepo}/quay-builder:{productminv}
 ....
 endif::downstream[]
@@ -106,10 +123,10 @@ If {productname} is setup to use a SSL certificate that is not globally trusted,
   -e SERVER=wss://myquayenterprise \
   --privileged=true \
   -v /path/to/ssl/rootCA.pem:/etc/pki/ca-trust/source/anchors/rootCA.pem \
-  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/run/docker.sock:/var/run/docker.sock:Z \
   {productrepo}/quay-builder:{productminv}
 ....
 [[set-up-github-build]]
-== Set up GitHub build (optional)
+== Setting up GitHub builds (optional)
 If your organization plans to have builds be conducted via pushes to GitHub
-(or GitHub Enterprise), please continue with the Setting up GitHub Build.
+(or GitHub Enterprise), continue with _Creating an OAuth application in GitHub_.

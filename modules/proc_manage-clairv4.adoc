@@ -1,0 +1,262 @@
+[[clair-v4]]
+= Using Clair V4 Security Scanning
+
+Clair v4 is the next generation of Clair image scanning available
+with {productname}. Clair v4 is currently released as
+link:https://access.redhat.com/support/offerings/techpreview[Technology Preview],
+which means that it is not supported for production use. However, you are
+encouraged to test Clair v4 as it represents the direction of Clair image scanning
+development.
+
+== What is Clair v4?
+
+Technically, Clair v4 is a set of micro services that can be used with {productname}
+to perform vulnerability scanning of container images associated with a set of
+Linux operating systems. The micro services design of Clair v4 makes it
+appropriate to run in a highly scalable configuration, where
+components can be scaled separately as appropriate for enterprise environments.
+
+For the purposes of trying out Clair v4, we recommend running it in combo mode (see
+link:https://github.com/quay/openshift-demo/blob/master/clairv4/clair-combo.yaml[clair-combo.yaml])
+This mode, described here, brings all the microservices together as one process.
+
+All supported security databases for Clair v4 are turned on. These databases include:
+
+* Alpine SecDB database
+* AWS UpdateInfo
+* Debian Oval database
+* Oracle Oval database
+* RHEL Oval database
+* SUSE Oval database
+* Ubuntu Oval database
+
+For information on how Clair does security mapping with the different databases, see
+link:https://quay.github.io/claircore/v0.0.19/severity_mapping.html[ClairCore Severity Mapping].
+
+[WARNING]
+====
+Because Clair v4 is Technology Preview, don't expect 100% accurate reporting.
+Expect that the presentation of vulnerability results will look different going
+forward than they did with v2. Over time, Clair v4 will produce more results.
+====
+
+The steps for using Clair v4 alongside an existing {productname} + Clair v2 environment are
+described next.
+
+== Configuring Clair v4
+
+To try out Clair v4, stand up a {productname} cluster
+with a running Clair v2 instance. Then use the following procedure
+to run Clair v4 along side it. Here is how to do that on an OpenShift v4.2 or later cluster.
+
+. Set your `$namespace` to the name of the project in which {productname} is running.
+For example:
++
+```
+$ export namespace=quay-enterprise
+```
+
+. Create a Postgres deployment file for Clair v4 (for example, `clairv4-postgres.yaml`)
+as follows.
++
+.clairv4-postgres.yaml
+[source,yaml]
+----
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clairv4-postgres
+  labels:
+    quay-component: clairv4-postgres
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        quay-component: clairv4-postgres
+    spec:
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: clairv4-postgres
+      containers:
+        - name: postgres
+          image: postgres:latest
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_DB
+              value: "clair"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: "/var/lib/postgres/data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim <1>
+metadata:
+  name: clairv4-postgres
+  labels:
+    quay-component: clairv4-postgres
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "50Gi"
+    volumeName: "clairv4-postgres"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clairv4-postgres
+  labels:
+    quay-component: clairv4-postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      protocol: TCP
+      name: postgres
+      targetPort: 5432
+  selector:
+    quay-component: clairv4-postgres
+----
+<1> Confirm that your OpenShift cluster provides the storage features
+noted in the deployment or modify it as necessary.
+
+. Deploy the postgres database as follows:
++
+```
+$ oc create -n $namespace -f ./clairv4-postgres.yaml
+```
+
+. Create the Clair v4 deployment file (for example, `clair-combo.yaml`) and modify it as necessary:
++
+.clair-combo.yaml
+[source,yaml]
+----
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    quay-component: clair-combo
+  name: clair-combo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      quay-component: clair-combo
+  template:
+    metadata:
+      labels:
+        quay-component: clair-combo
+    spec:
+      containers:
+        - image: {productrepo}/clair:{clairnewver}  <1>
+          imagePullPolicy: IfNotPresent
+          name: clair-combo
+          env:
+            - name: CLAIR_CONF
+              value: /clair/config.yaml
+            - name: CLAIR_MODE
+              value: combo
+          ports:
+            - containerPort: 8080
+              name: clair-http
+              protocol: TCP
+            - containerPort: 8089
+              name: clair-intro
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /clair/
+              name: config
+      restartPolicy: Always
+      volumes:
+        - name: config
+          secret:
+            secretName: clairv4-config-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clairv4 <2>
+  labels:
+    quay-component: clair-combo
+spec:
+  ports:
+    - name: clair-http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+    - name: clair-introspection
+      port: 8089
+      protocol: TCP
+      targetPort: 8089
+  selector:
+    quay-component: clair-combo
+  type: ClusterIP
+----
+<1> Change image to latest clair image name and version.
+<2> With the Service set to clairv4, the scanner endpoint for Clair v4
+is entered later into the {productname} config.yaml in the
+SECURITY_SCANNER_V4_ENDPOINT as http://clairv4.
+
+. Create the Clair v4 deployment as follows:
++
+```
+$ oc create -n $namespace -f ./clair-combo.yaml
+```
+
+. Modify the `config.yaml` file for your {productname} deployment to add the following
+entries at the end:
++
+[source,yaml]
+----
+FEATURE_SECURITY_SCANNER: true
+SECURITY_SCANNER_V4_ENDPOINT: http://clairv4 <1>
+SECURITY_SCANNER_V4_NAMESPACE_WHITELIST: <2>
+  - "clairv4-org"
+  - "foo-org"
+----
+<1> Identify the Clair v4 service endpoint
+<2> Replace `clair4-org` and `foo-org` with namespaces (organizations and
+users) in your {productname} cluster you want to use Clair v4 scanning
+
+. Redeploy the modified `config.yaml` to the secret containing that file
+(for example, `quay-enterprise-config-secret`:
++
+```
+$ oc create -n $namespace secret generic quay-enterprise-config-secret --from-file=./config.yaml
+```
+
+. For the new `config.yaml` to take effect, you need to restart the
+{productname} pods. Simply deleting the `quay-app` pods causes pods
+with the updated configuration to be deployed.
+
+At this point, images in any of the organizations identified in in  the
+namespace whitelist will be scanned by Clair v4.
+
+== Using Clair v4
+The user interface for viewing vulnerability information gathered by Clair v4
+is essentially the same as it was for Clair v2.
+
+. Log in to your {productname} cluster and select an organization for which you have configured
+Clair v4 scanning.
+
+. Select a repository from that organization that holds some images and
+select Tags from the left navigation. The following figure shows an example
+of a repository with two images that have been scanned:
++
+image:clair-reposcan.png[Security scan information appears for scanned repository images]
+
+. If vulnerabilities are found, select to under the Security Scan column
+for the image to see either all vulnerabilities or those that are fixable. The
+following figure shows information on all vulnerabilities found:
++
+image:clair-vulnerabilities.png[See all vulnerabilities or only those that are fixable]
