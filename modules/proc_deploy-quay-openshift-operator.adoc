@@ -635,6 +635,12 @@ The following is a comprehensive list of properties for the
 
 The following is an example for configuring the registry to make use of S3 storage on Amazon Web Services.
 
+[NOTE]
+====
+CloudFront configuration cannot currently be configured using the CR, due to a known issue.
+You can, however, manage it through the {productname} Config Tool.
+====
+
 ```
 apiVersion: redhatcop.redhat.io/v1alpha1
 kind: QuayEcosystem
@@ -761,7 +767,7 @@ spec:
       - secretName: quayconfigfile
         files:
           - key: myprivatekey.pem
-            filename: cloudfront.pemQuay
+            filename: cloudfront.pem
           - key: myExtraCaCert.crt
             type: extraCaCert
 ```
@@ -813,7 +819,7 @@ During the development process, you may want to test the
 provisioning and setup of your {productname} server. By default,
 the operator will use the internal service to communicate with
 the configuration pod. However, when running external to the cluster,
-you will need to specify the ingress location for which the setup process
+you will need to specify the hostname location for which the setup process
 can use.
 
 Specify the configHostname as shown below:
@@ -993,7 +999,7 @@ spec:
 
 Supported connection string parameters:
 
-* **sslmode** - Whether or not to use SSL (default is require, this is not the default for libpq)
+* **sslmode** - Whether or not to use SSL (default is disable, this is not the default for libpq)
 * **connect_timeout** - Maximum wait for connection, in seconds. Zero or not specified means wait indefinitely.
 * **sslcert** - Cert file location. The file must contain PEM encoded data.
 * **sslkey** - Key file location. The file must contain PEM encoded data.
@@ -1240,6 +1246,9 @@ that it can reach that service before saving the configuration.
 If the connection fails, you have the chance to modify the setting
 before saving.
 
+* After checking for accuracy, you now have the choice of
+continuing to edit or completing your changes.
+
 * After you make changes and they are accepted, those changes
 are deployed to all {productname} instances in the cluster.
 There is no need to stop and restart those pods manually.
@@ -1381,7 +1390,7 @@ please reference the latest documentation to update them with the schema
 changes included in Quay Operator v3.3.0.
 
 If you have overridden the image used for Quay or Clair, please keep in mind
-that Quay Operator v3.3.0 specifically supports Quay v3.3.0 and Clair v????.
+that Quay Operator v3.3.0 specifically supports Quay v3.3.0 and Clair v3.3.0.
 It is advisable to remove those image overrides to use the latest, supported
 releases of Quay and Clair in your deployment. Any other images may not be
 supported.
