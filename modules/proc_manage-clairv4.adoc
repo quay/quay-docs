@@ -15,8 +15,6 @@ to perform vulnerability scanning of container images associated with a set of
 Linux operating systems. The micro services design of Clair v4 makes it
 appropriate to run in a highly scalable configuration, where
 components can be scaled separately as appropriate for enterprise environments.
-The Clair v4 link:https://github.com/quay/openshift-demo/blob/master/clairv4/config.yaml[config.yaml]
-illustrates how those services could run.
 
 For the purposes of trying out Clair v4, we recommend running it in combo mode (see
 link:https://github.com/quay/openshift-demo/blob/master/clairv4/clair-combo.yaml[clair-combo.yaml])
@@ -216,18 +214,19 @@ $ oc create -n $namespace -f ./clair-combo.yaml
 ```
 
 . Modify the `config.yaml` file for your {productname} deployment to add the following
-two entries at the end:
+entries at the end:
 +
 [source,yaml]
 ----
+FEATURE_SECURITY_SCANNER: true
 SECURITY_SCANNER_V4_ENDPOINT: http://clairv4 <1>
 SECURITY_SCANNER_V4_NAMESPACE_WHITELIST: <2>
   - "clairv4-org"
   - "foo-org"
 ----
 <1> Identify the Clair v4 service endpoint
-<2> Replace `clair4-org` and `foo-org` with name of Organizations
-in your {productname} cluster you want to use Clair v4 scanning.
+<2> Replace `clair4-org` and `foo-org` with namespaces (organizations and
+users) in your {productname} cluster you want to use Clair v4 scanning
 
 . Redeploy the modified `config.yaml` to the secret containing that file
 (for example, `quay-enterprise-config-secret`:
