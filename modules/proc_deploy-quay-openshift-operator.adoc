@@ -51,7 +51,10 @@ as well as to access other services, such as storage and LDAP services.
 
 == Install the {productname} Operator
 
-. From the OpenShift console, select Operators -> OperatorHub, then select
+. From the OpenShift console, create a new namespace in which to run {productname}.
+For example, select Projects -> Create Project. Then type the name (quay-enterprise
+is used in this example), and optionally a Display Name and Description. Then click Create.
+. Select Operators -> OperatorHub, then select 
 the {productname} Operator. If there is more than one, be sure to use the
 Red Hat certified Operator and not the community version.
 
@@ -59,7 +62,7 @@ Red Hat certified Operator and not the community version.
 
 . Choose the following then select Subscribe:
 
-* Installation Mode: Select a specific namespace to install to
+* Installation Mode: Select a specific namespace to install to (quay-enterprise, by default)
 
 * Update Channel: Choose the update channel (only one may be available)
 
@@ -72,8 +75,14 @@ Red Hat certified Operator and not the community version.
 . See the
 link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay]
 article for information on getting credentials needed to obtain the
-quay container from Quay.io. Then put those credentials in a file. In this example, we create a
+Quay and Clair containers from Quay.io. Then put those credentials in a file. In this example, we create a
 config.json in the local directory.
+
+. Change to the project (namespace) you chose for deploying {productname}:
++
+```
+$ oc project quay-enterprise
+```
 
 . Create a secret that includes your credentials, as follows:
 +
@@ -112,39 +121,45 @@ and Redis services.
 OpenShift web console, select Projects, then select the `quay-enterprise`
 project to see the following:
 +
-image:quay-setup-operator-openshift.png[The {productname} Setup Operator deployed in OpenShift]
+image:quay-setup-operator-openshift.png[The {productname} Operator deployed in OpenShift]
 
 If {productname} is running, here is how to get started using
 your {productname} configuration:
 
-* Get the route to your new  {productname} cluster as follows:
+* Get the route to your new {productname} cluster as follows:
 +
 ```
-$ oc get route
+$ oc get route example-quayecosystem-quay
 NAME                       HOST/PORT
-       PATH                     SERVICES PORT TERMINATION           WILDCARD
-example-quayecosystem-quay example-quayecosystem-quay-default.example.com
-       example-quayecosystem-quay        8443 passthrough/Redirect  None
+   PATH                 SERVICES PORT   TERMINATION            WILDCARD
+...
+example-quayecosystem-quay example-quayecosystem-quay-example.com
+   example-quayecosystem-quay    8443   passthrough/Redirect   None
 
 ```
 
-* Using that route, log in with the superuser credentials (Username: `quay` and Password: `password` or change credentials as described in the next section)
+* Using the route, log in with the Superuser credentials (Username: `quay` and Password: `password` or change credentials as described in the next section).
+
+At this point you can begin using the {productname} cluster.
+To further configure the cluster, you can either:
+
+* Use the Config Tool to manually change settings for your {productname} cluster.
+(The Config tool continues to run, with the route to it available by typing
+`oc get route example-quayecosystem-quay-config`.)
+* Modify {productname} via the Operator, as described in the following sections.
 
 .Additional resources
 
-* For more details on the {productname} Setup Operator, see the upstream
+* For more details on the {productname} Operator, see the upstream
 link:https://github.com/redhat-cop/quay-operator/[quay-operator] project.
 
 = Customizing your {productname} cluster
 Although you can run a default {productname} setup by simply creating a secret and the `QuayEcosystem`
 custom resource, the following sections describe how you can modify
-the default setup. Some of those
-modifications must be made when you deploy the
-QuayEcosystem, while others can be done after
-the cluster is running.
+the default setup. 
 
 == Changing your {productname} credentials
-The {productname} Setup Operator sets up default administrative credentials. Review the default superuser and configuration
+The {productname} Operator sets up default administrative credentials. Review the default superuser and configuration
 credentials and change as needed.
 
 === {productname} superuser credentials
@@ -165,6 +180,13 @@ $ oc create secret generic <secret_name> \
    --from-literal=superuser-email=<email>
 ```
 The superuser password must be at least 8 characters.
+
+[NOTE]
+====
+It is recommended that you also set the superusers field of the quay
+property in the QuayEcosystem object so as to ensure consistency between
+the the various properties. See the Superusers section below.
+====
 
 === {productname} configuration credentials
 A dedicated {productname} deployment runs to manage
@@ -215,7 +237,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     database:
       volumeSize: 10Gi
 ```
@@ -247,7 +268,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     database:
       credentialsSecretName: <secret_name>
 ```
@@ -267,7 +287,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     database:
       credentialsSecretName: <secret_name>
       server: postgresql.databases.example.com
@@ -275,10 +294,10 @@ spec:
 
 == Choosing a registry storage backend
 
-Red Hat Quay supports multiple backends for the purpose of image
+{productname} supports multiple backends for the purpose of image
 storage and consist of a variety of local and cloud storage options.
 The following sections provide an overview how to configure the
-{productname} Setup Operator to make use of these backends.
+{productname} Operator to make use of these backends.
 
 === Overview of storage backends
 
@@ -676,7 +695,7 @@ The following is a comprehensive list of properties for the `cloudfrontS3` regis
 | privateKeyFilename| CloudFront Private Key| No| Yes
 |=======
 
-== Repository Mirroring
+== Repository mirroring
 {productname} provides the capability to create container image repositories
 that exactly match the content of external registries. This functionality can
 be enabled by setting the enableRepoMirroring: true as shown below:
@@ -688,7 +707,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     enableRepoMirroring: true
 ```
 
@@ -701,22 +719,34 @@ The following additional options are also available:
 
 == Injecting configuration files
 
-Files related to the configuration of {productname} are located in
-the `/conf/stack` directory. There are situations for which
-additional user-defined configuration files need to be added to this
-directory (such as certificates and private keys). For {productname} deployments not managed by the Operator, these files are managed by
-the {productname} config tool.
-
-The {productname} Setup Operator supports the injection of these assets
-within the `configFiles` property in the `quay` property of the
-`QuayEcosystem` object where one or more assets can be specified.
+Files related to the configuration of {productname} and Clair can be provided
+to be injected at runtime. Common examples include certificates, private keys
+and configuration files. The Quay Operator supports the injection of these assets
+within the configFiles property in the quay or clair property of the QuayEcosystem
+object where one or more assets can be specified.
 
 Two types of configuration files can be specified by the type property:
 
-* **config**: Configuration files that will be added to the `/conf/stack` directory
-* **extraCaCerts**: Certificates to be trusted by the quay container
+* **config**: Configuration files
+* **extraCaCert**: Certificates to be trusted by the quay container
 
-Configuration files are stored as values within Secrets. The first step is to create a secret containing these files. The following command illustrates how a private key can be added:
+
+The following table illustrates the location for which `configFiles` are injected:
+
+[width="75%"]
+|=======
+| Component | Type | Injection Location
+| Quay | `config` | Mounted within the `/conf/stack` directory in Quay components
+| Quay | `extraCaCert` | Added to the `quay-enterprise-config-secret` which is automatically processed as an additional CA certificate
+| Clair | `config` | Added to the `/clair/config` directory
+| Clair | `extraCaCert` | Added to the `/etc/pki/ca-trust/source/anchors` directory
+|=======
+
+
+Configuration files are stored as values within `Secrets`.
+The following describes several of the ways that this feature can be leveraged.
+
+The first step is to create a secret containing these files. The following command illustrates how a private key can be added:
 
 ```
 $ oc create secret generic quayconfigfile --from-file=<path_to_file>
@@ -737,8 +767,9 @@ spec:
 ```
 
 By default, the `config` type is assumed. If the contents of the secret
-contains certificates that should be added to the `extra_ca_certs`
-directory, specify the type as `extraCaCert` as shown below:
+contains certificates that should be added 
+as a trusted certificate,
+specify the type as `extraCaCert` as shown below:
 
 ```
 apiVersion: redhatcop.redhat.io/v1alpha1
@@ -791,15 +822,35 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     skipSetup: true
 ```
 
-== Specifying the {productname} route
-{productname} makes use of an OpenShift route to enable ingress. The hostname
-for this route is automatically generated as per the configuration of the
-OpenShift cluster. Alternatively, the hostname for this route can be explicitly
-specified using the hostname property under the externalAccess field as shown below:
+== Methods for external access
+
+Support is available to access Quay through a number of OpenShift and
+Kubernetes mechanisms for ingress. When running on OpenShift, a
+link:https://docs.openshift.com/container-platform/4.4/networking/routes/route-configuration.html[Route]
+is used while a
+link:https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer[LoadBalancer Service]
+and
+link:https://kubernetes.io/docs/concepts/services-networking/ingress/[Ingress]
+is used. 
+
+All of the properties for defining the configuration for external access can be
+managed within the `externalAccess` property.  
+The type of external access can be specified by setting the `type` property within
+`externalAccess` using one of the available options in the table below:
+
+[width="100%"]
+|=======
+| External Access Type | Description |  Notes 
+| `Route` | link:https://docs.openshift.com/container-platform/latest/networking/routes/route-configuration.html[OpenShift Route] | Can only be specified when running in OpenShift 
+| `LoadBalancer` | link:https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer[LoadBalancer Service] | 
+| `NodePort` | link:https://kubernetes.io/docs/concepts/services-networking/service/#nodeport[NodePort Service] | A dns based hostname or IP address **must** be specified using the `hostname` property of the `quay` resource 
+| `Ingress` | link:https://kubernetes.io/docs/concepts/services-networking/ingress/[Ingress] | Kubernetes native solution for external access 
+|=======
+
+An example of how to specify the `type` is shown below:
 
 ```
 apiVersion: redhatcop.redhat.io/v1alpha1
@@ -808,7 +859,76 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
+    externalAccess:
+      type: LoadBalancer
+```
+
+=== NodePorts
+
+By default, `NodePort` type Services are allocated a randomly assigned network
+port between 30000-32767. To support a predictive allocation of resources, the
+`NodePort` services for Quay and Quay Config can be define using the `nodePort`
+and `configNodePort` as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    externalAccess:
+      type: NodePort
+      nodePort: 30100
+      configNodePort: 30101
+      hostname: quay.example.com
+```
+
+The `hostname` field must be specified to refer to the location (DNS or IP) for which the Quay server will be available. The port number allocated to tke service will be added automatically as necessary.
+
+=== Ingress
+
+Ingress makes use of a similar concept as an OpenShift route, but requires a
+separate deployment of an ingress controller that manages external traffic.
+There are a variety of ingress controllers that can be used and implementation
+specific properties are typically defined through the use of annotations on
+the ingress resource.
+
+The following is an example of how to define an _Ingress_ type of
+External Access using annotations specific for an Nginx controller:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    externalAccess:
+      type: Ingress
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      hostname: quay.example.com
+```
+
+Annotations can also be applied for the Config ingress by using the `configAnnotations` property
+
+The `hostname` field must be specified to refer to the location for which the Quay server will be available.
+
+== Specifying the {productname} route
+{productname} makes use of an OpenShift route to enable ingress. The hostname
+for this route is automatically generated as per the configuration of the
+OpenShift cluster. Alternatively, the hostname for this route can be explicitly
+specified using the `hostname` property under the _externalAccess_ field as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
     externalAccess:
       hostname: example-quayecosystem-quay-quay-enterprise.apps.openshift.example.com
 ```
@@ -831,7 +951,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     externalAccess:
       configHostname: example-quayecosystem-quay-config-quay-enterprise.apps.openshift.example.com
 ```
@@ -845,24 +964,18 @@ is secured via SSL certificates. These certificates are generated at
 startup with the OpenShift route being configured with a TLS termination
 type of `Passthrough`.
 
-===  User provided certificates
+===  User-provided certificates
 
 SSL certificates can be provided and used instead of having the operator generate certificates. Certificates can be provided in a secret which is then referenced in the `QuayEcosystem` custom resource.
-
-The secret containing custom certificates must define the following keys:
-
-* **tls.cert**: All of the certificates (root, intermediate, certificate) concatenated into a single file
-* **tls.key**: Private key as for the SSL certificate
 
 Create a secret containing the certificate and private key:
 
 ```
-oc create secret generic custom-quay-ssl \
-   --from-file=tls.key=<ssl_private_key> \
-   --from-file=tls.cert=<ssl_certificate>
+oc create secret tls custom-quay-ssl \
+   --key=<ssl_private_key> --cert<ssl_certificate>
 ```
 The secret containing the certificates are referenced using the
-`sslCertificatesSecretName` property as shown below:
+`secretName` underneath a property called `tls` as defined within the `externalAccess` property as shown below:
 
 ```
 apiVersion: redhatcop.redhat.io/v1alpha1
@@ -871,10 +984,10 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     externalAccess:
       tls:
         secretName: custom-quay-ssl
+        termination: passthrough
 ```
 
 == TLS Termination
@@ -883,7 +996,6 @@ spec:
 By default, SSL communication is terminated within {productname}. There are
 several different ways that SSL termination can be configured including
 omitting the use of certificates altogether. TLS termination is determined by
-
 the termination property as shown below:
 
 ```
@@ -893,14 +1005,13 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     externalAccess:
       tls:
         termination: passthrough
 ```
 
 The example above is the default configuration applied to {productname}.
-Alternate options are available as described below:
+Alternate options are available as described in the table below:
 
 [width="75%"]
 |=======
@@ -924,13 +1035,38 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     keepConfigDeployment: false
 ```
 
+== Superusers
+
+Superusers in Quay have elevated rights and the ability to administer the
+server. By default, a superuser with the username `quay` will be created.
+Additional superusers may be desired in order to aid in managing the server.
+The full list of superusers can be specifed in the `superusers` field of the
+_quay_ object as shown below:
+
+```
+apiVersion: redhatcop.redhat.io/v1alpha1
+kind: QuayEcosystem
+metadata:
+  name: example-quayecosystem
+spec:
+  quay:
+    superusers:
+      - jim
+      - joe
+```
+
+If multiple superusers are specified, during the initial setup of {productname}, the
+first user specified will be configured unless specified within a secret as
+described earlier. After the initial setup, passwords are managed within
+{productname} itself and not using either the default value or the value provided in
+the secret.
+
 == Setting Redis password
 
-By default, the operator managed Redis instance is deployed without a password. A password can be specified by creating a secret containing the password in the key `password`. The following command can be used to create the secret:
+By default, the operator-managed Redis instance is deployed without a password. A password can be specified by creating a secret containing the password in the key `password`. The following command can be used to create the secret:
 
 ```
 $ oc create secret generic <secret_name> \
@@ -947,7 +1083,6 @@ metadata:
 spec:
   redis:
     credentialsSecretName: <secret_name>
-    imagePullSecretName: redhat-pull-secret
 ```
 
 == Enabling Clair image scanning
@@ -965,18 +1100,16 @@ kind: QuayEcosystem
 metadata:
   name: example-quayecosystem
 spec:
-  quay:
-    imagePullSecretName: redhat-pull-secret
+  quay: {}
   clair:
     enabled: true
-    imagePullSecretName: redhat-pull-secret
 ```
 
-The Quay Operator sets the Clair database connection string with the parameter
-`sslmode=disable` if no parameters are specified in QuayEcosystem custom
+The {productname} Operator sets the Clair database connection string with the parameter
+`sslmode=disable` if no parameters are specified in the QuayEcosystem custom
 resource. In case you have SSL enabled Postgres database, or want to add
 other parameters, provide `key: value` pairs as strings (for example,
- connect_timeout: '10') under connectionParameters object.
+connect_timeout: '10') under connectionParameters object.
 
 For example: 
 
@@ -986,11 +1119,9 @@ kind: QuayEcosystem
 metadata:
   name: example-quayecosystem
 spec:
-  quay:
-    imagePullSecretName: redhat-pull-secret
+  quay: {}
   clair:
     enabled: true
-    imagePullSecretName: redhat-pull-secret
     database:
       connectionParameters:
         sslmode: require
@@ -1026,11 +1157,9 @@ kind: QuayEcosystem
 metadata:
   name: example-quayecosystem
 spec:
-  quay:
-    imagePullSecretName: redhat-pull-secret
+  quay: {}
   clair:
     enabled: true
-    imagePullSecretName: redhat-pull-secret
     updateInterval: "60m"
 ```
 
@@ -1071,7 +1200,7 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    image: myregistry.example.com/quay/quay:v3.1.0
+    image: myregistry.example.com/quay/quay:v99.1.0
 ```
 
 === Compute resources
@@ -1095,7 +1224,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     resources:
       requests:
         memory: 512Mi
@@ -1115,7 +1243,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     livenessProbe:
       initialDelaySeconds: 120
       httpGet:
@@ -1149,7 +1276,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     nodeSelector:
       node-role.kubernetes.io/infra: true
 ```
@@ -1169,7 +1295,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     deploymentStrategy: RollingUpdate
 ```
 
@@ -1194,7 +1319,6 @@ metadata:
   name: example-quayecosystem
 spec:
   quay:
-    imagePullSecretName: redhat-pull-secret
     envVars:
       - name: FOO
         value: bar
@@ -1214,7 +1338,7 @@ User defined environment variables are given precedence over those managed by th
 
 After the Quay Operator deploys {productname}, by default the Config Tool
 continues to run. Going forward, you can use the Config Tool or the
-Quay Operator itself to update and maintain your {productname} deployment.
+{productname} Operator itself to update and maintain your {productname} deployment.
 
 == Using the Config Tool
 The {productname} Config Tool provides a web UI for enabling or
@@ -1253,14 +1377,14 @@ continuing to edit or completing your changes.
 are deployed to all {productname} instances in the cluster.
 There is no need to stop and restart those pods manually.
 
-== Using the Quay Operator
-Updating your {productname} cluster using the Quay Operator offers
+== Using the {productname} Operator
+Updating your {productname} cluster using the {productname} Operator offers
 a way to deploy changes without having to click through a web UI.
 Here are some things you should know about changing settings
 through the Operator:
 
 * The same level of error checking is not performed when you
-change settings directly through the Quay Operator. If, for example,
+change settings directly through the {productname} Operator. If, for example,
 you provide the wrong address to a service, the connection to that
 service will probably just fail and you would have to track down
 the problem through OpenShift.
@@ -1311,7 +1435,7 @@ $ operator-sdk up local --namespace=quay-enterprise
 
 = Upgrading {productname} 
 
-The Quay Operator {productminv} has many changes from v1.0.2. The most notable which
+The {productname} Operator {productminv} has many changes from v1.0.2. The most notable which
 affects the upgrade process is the backwards-incompatible change to the CRD.
 Ultimately, the CR (Custom Resource) used to deploy {productname} using the operator
 may have to be modified accordingly.
