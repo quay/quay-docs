@@ -369,6 +369,18 @@ The following procedure assumes you already have a running
 {productname} cluster on an OpenShift platform with the {productname} Setup
 container running in your browser:
 
+. **Create a serviceaccount for clair-jwt**: Create a serviceaccount and grant
+it anyuid privilege.
+Running the clair deployment under anyuid lets you generate certificates for jwt proxy 
+and add them the default ca-bundle.
++
+```
+# oc create serviceaccount clair-jwt -n quay-enterprise
+serviceaccount/jwt created
+# oc adm policy add-scc-to-user anyuid -z system:serviceaccount:quay-enterprise:clair-jwt
+scc "anyuid" added to: ["system:serviceaccount:quay-enterprise:system:serviceaccount:quay-enterprise:clair-jwt"]
+```
+
 . **Create the Clair database**: This example configures a postgresql database to
 use with the Clair image scanner. With the yaml files in the current directory,
 review those files for possible modifications, then run the following:
@@ -417,6 +429,8 @@ match those values you set when you create the postgres database for Clair.
 the key you generated from the {productname} Setup screen in the Security Scanner section
 (security_scanner.pam file).
 * **private_key_path**: Identify the full path to the security_scanner.pem file you saved earlier.
+
+
 
 . **Create the Clair config secret and service**: Run the following commands,
 identifying the paths to your `clair-config.yaml` and `security_scanner.pem` files.
