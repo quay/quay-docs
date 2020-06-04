@@ -137,12 +137,6 @@ $ oc create -f quay-servicetoken-role-k8s1-6.yaml
 $ oc create -f quay-servicetoken-role-binding-k8s1-6.yaml
 ```
 
-. **Add privilege**: Make sure that the service account has root privileges, because {productname} runs strictly under root (this will be changed in the future versions). Throughout this example, the namespace is `quay-enterprise`:
-+
-```
-$ oc adm policy add-scc-to-user anyuid \
-     system:serviceaccount:quay-enterprise:default
-```
 . **Create Redis deployment**: If you haven't already deployed Redis, create a `quay-enterprise-redis.yaml` file and deploy it:
 +
 ```
@@ -330,23 +324,15 @@ image:Figure04.png[Download the {productname} configuration tarball to the local
 tarball (`quay-config.tar.gz`) to a local directory. Save this file in case you want to deploy
 the config files inside manually or just want a record of what you deployed.
 
-. **Deploy configuration**: Select to rollout the deployment. When prompted, click
-`Populate configuration to deployments` to deploy the configuration to the {productname}
-application. In a few minutes, you should see a green checkmark and the message "Configuration successfully rolled out and deployed!"
-+
-[NOTE]
-====
-If for some reason the deployment doesn't complete, try deleting the quay-enterprise-app pod.
-OpenShift should create a new pod and pick up the needed configuration. If that doesn't work,
-unpack the configuration files (`tar xvf quay-config.tar.gz`) and add them
-manually to the secret:
+. **Deploy configuration**: Unpack the configuration files 
+
+(`tar xvf quay-config.tar.gz`) and add them manually to the secret:
 ```
 $ oc create secret generic quay-enterprise-config-secret -n quay-enterprise \
      --from-file=config.yaml=/path/to/config.yaml \
      --from-file=ssl.key=/path/to/ssl.key \
      --from-file=ssl.cert=/path/to/ssl.cert
 ```
-====
 
 . **Check pods**: In a couple of minutes (depending on your connection speed), {productname}
 should be up and running and the following pods should be visible in the quay-enterprise namespace
@@ -382,6 +368,18 @@ Setting up and deploying Clair image scanning for your
 The following procedure assumes you already have a running
 {productname} cluster on an OpenShift platform with the {productname} Setup
 container running in your browser:
+
+. **Create a serviceaccount for clair-jwt**: Create a serviceaccount and grant
+it anyuid privilege.
+Running the clair deployment under anyuid lets you generate certificates for jwt proxy 
+and add them the default ca-bundle.
++
+```
+# oc create serviceaccount clair-jwt -n quay-enterprise
+serviceaccount/jwt created
+# oc adm policy add-scc-to-user anyuid -z system:serviceaccount:quay-enterprise:clair-jwt
+scc "anyuid" added to: ["system:serviceaccount:quay-enterprise:system:serviceaccount:quay-enterprise:clair-jwt"]
+```
 
 . **Create the Clair database**: This example configures a postgresql database to
 use with the Clair image scanner. With the yaml files in the current directory,
@@ -431,6 +429,8 @@ match those values you set when you create the postgres database for Clair.
 the key you generated from the {productname} Setup screen in the Security Scanner section
 (security_scanner.pam file).
 * **private_key_path**: Identify the full path to the security_scanner.pem file you saved earlier.
+
+
 
 . **Create the Clair config secret and service**: Run the following commands,
 identifying the paths to your `clair-config.yaml` and `security_scanner.pem` files.
