@@ -162,9 +162,6 @@ rules:
   - secrets
   verbs:
   - get
-  - put
-  - patch
-  - update
 - apiGroups:
   - ""
   resources:
@@ -386,6 +383,11 @@ spec:
         - name: configvolume
           readOnly: false
           mountPath: /conf/stack
+        resources:
+          limits:
+             memory: "4Gi"
+          requests:
+            memory: "2Gi"
       imagePullSecrets:
         - name: redhat-quay-pull-secret
 ----
@@ -635,6 +637,8 @@ Modify source, endpoint, key_id, and registry settings to match your environment
             - key: ssl.cert
               path: ca.crt
             secretName: quay-enterprise-config-secret
+        serviceAccount: clair-jwt
+        serviceAccountName: clair-jwt
 ----
 
 == Repository mirroring
