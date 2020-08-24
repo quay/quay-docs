@@ -50,13 +50,13 @@ described next.
 
 To try out Clair v4, stand up a {productname} cluster
 with a running Clair v2 instance. Then use the following procedure
-to run Clair v4 along side it. Here is how to do that on an OpenShift v4.2 or later cluster.
+to run Clair v4 along side it. Here is how to do that on an OpenShift v4.2 or later cluster on an AWS cloud.
 
-. Set your `$namespace` to the name of the project in which {productname} is running.
+. Set your current project to the name of the project in which {productname} is running.
 For example:
 +
 ```
-$ export namespace=quay-enterprise
+$ oc project quay-enterprise
 ```
 
 . Create a Postgres deployment file for Clair v4 (for example, `clairv4-postgres.yaml`)
@@ -65,14 +65,19 @@ as follows.
 .clairv4-postgres.yaml
 [source,yaml]
 ----
-apiVersion: extensions/v1beta1
+---
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: clairv4-postgres
+  namespace: quay-enterprise
   labels:
     quay-component: clairv4-postgres
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      quay-component: clairv4-postgres
   template:
     metadata:
       labels:
@@ -84,7 +89,7 @@ spec:
             claimName: clairv4-postgres
       containers:
         - name: postgres
-          image: postgres:latest
+          image: postgres:11.5
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432
@@ -95,12 +100,14 @@ spec:
               value: "clair"
             - name: POSTGRES_PASSWORD
               value: "postgres"
+            - name: PGDATA
+              value: "/etc/postgres/data"
           volumeMounts:
             - name: postgres-data
-              mountPath: "/var/lib/postgres/data"
+              mountPath: "/etc/postgres"
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim <1>
+kind: PersistentVolumeClaim
 metadata:
   name: clairv4-postgres
   labels:
@@ -110,7 +117,7 @@ spec:
     - "ReadWriteOnce"
   resources:
     requests:
-      storage: "50Gi"
+      storage: "5Gi"
     volumeName: "clairv4-postgres"
 ---
 apiVersion: v1
@@ -129,13 +136,47 @@ spec:
   selector:
     quay-component: clairv4-postgres
 ----
-<1> Confirm that your OpenShift cluster provides the storage features
-noted in the deployment or modify it as necessary.
 
 . Deploy the postgres database as follows:
 +
 ```
-$ oc create -n $namespace -f ./clairv4-postgres.yaml
+$ oc create -f ./clairv4-postgres.yaml
+```
+
+. Create a Clair config.yaml file to use for Clair v4. For example:
++
+.config.yaml
+[source,yaml]
+----
+introspection_addr: :8089
+http_listen_addr: :8080
+log_level: debug
+indexer:
+  connstring: host=clairv4-postgres port=5432 dbname=clair user=postgres password=postgres sslmode=disable 
+  scanlock_retry: 10
+  layer_scan_concurrency: 5
+  migrations: true
+matcher:
+  connstring: host=clairv4-postgres port=5432 dbname=clair user=postgres password=postgres sslmode=disable 
+  max_conn_pool: 100
+  run: ""
+  migrations: true
+  indexer_addr: clair-indexer
+# tracing and metrics
+trace:
+  name: "jaeger"
+  probability: 1
+  jaeger:
+    agent_endpoint: "localhost:6831"
+    service_name: "clair"
+metrics:
+  name: "prometheus"
+----
+
+. Create a secret from the Clair config.yaml:
++
+```
+$ oc create secret generic clairv4-config-secret --from-file=./config.yaml
 ```
 
 . Create the Clair v4 deployment file (for example, `clair-combo.yaml`) and modify it as necessary:
@@ -179,6 +220,8 @@ spec:
           volumeMounts:
             - mountPath: /clair/
               name: config
+      imagePullSecrets:
+        - name: redhat-pull-secret
       restartPolicy: Always
       volumes:
         - name: config
@@ -213,7 +256,7 @@ SECURITY_SCANNER_V4_ENDPOINT as http://clairv4.
 . Create the Clair v4 deployment as follows:
 +
 ```
-$ oc create -n $namespace -f ./clair-combo.yaml
+$ oc create -f ./clair-combo.yaml
 ```
 
 . Modify the `config.yaml` file for your {productname} deployment to add the following
@@ -221,6 +264,7 @@ entries at the end:
 +
 [source,yaml]
 ----
+...
 FEATURE_SECURITY_SCANNER: true
 SECURITY_SCANNER_V4_ENDPOINT: http://clairv4 <1>
 SECURITY_SCANNER_V4_NAMESPACE_WHITELIST: <2>
@@ -235,14 +279,15 @@ users) in your {productname} cluster you want to use Clair v4 scanning
 (for example, `quay-enterprise-config-secret`:
 +
 ```
-$ oc create -n $namespace secret generic quay-enterprise-config-secret --from-file=./config.yaml
+$ oc delete secret quay-enterprise-config-secret 
+$ oc create secret generic quay-enterprise-config-secret --from-file=./config.yaml
 ```
 
 . For the new `config.yaml` to take effect, you need to restart the
 {productname} pods. Simply deleting the `quay-app` pods causes pods
 with the updated configuration to be deployed.
 
-At this point, images in any of the organizations identified in in  the
+At this point, images in any of the organizations identified in the
 namespace whitelist will be scanned by Clair v4.
 
 == Using Clair v4
