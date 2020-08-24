@@ -29,14 +29,14 @@ metadata:
   name: quay-enterprise-config-secret
 ----
 
-.quay-enterprise-redhat-quay-pull-secret.yaml
+.quay-enterprise-redhat-pull-secret.yaml
 [source,yaml]
 ----
 apiVersion: v1
 kind: Secret
 metadata:
   namespace: quay-enterprise
-  name: redhat-quay-pull-secret
+  name: redhat-pull-secret
 data:
   .dockerconfigjson: <Add credentials> <1>
 type: kubernetes.io/dockerconfigjson
@@ -274,7 +274,7 @@ spec:
           command: ["/quay-registry/quay-entrypoint.sh"]
           args: ["config", "secret"]
         imagePullSecrets:
-          - name: redhat-quay-pull-secret
+          - name: redhat-pull-secret
 ----
 
 .quay-enterprise-config-service-clusterip.yaml
@@ -389,7 +389,7 @@ spec:
           requests:
             memory: "2Gi"
       imagePullSecrets:
-        - name: redhat-quay-pull-secret
+        - name: redhat-pull-secret
 ----
 <1> Only one instance of the quay container is defined here. Adjust replicas based on demand.
 
@@ -624,7 +624,7 @@ Modify source, endpoint, key_id, and registry settings to match your environment
             name: quay-ssl
             subPath: ca.crt
         imagePullSecrets:
-        - name: redhat-quay-pull-secret
+        - name: redhat-pull-secret
         restartPolicy: Always
         volumes:
         - name: configvolume
@@ -680,5 +680,5 @@ spec:
         command: ["/quay-registry/quay-entrypoint.sh"]
         args: ["repomirror"]
       imagePullSecrets:
-        - name: redhat-quay-pull-secret
+        - name: redhat-pull-secret
 ----
