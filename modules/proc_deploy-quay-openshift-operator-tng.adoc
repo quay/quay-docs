@@ -36,10 +36,9 @@ If you want the Operator to use managed object storage, you will first need to i
 
 To install the RHOCS Operator and configure a lightweight NooBaa (S3-compatible) object storage:
 
-. Select Operators -> OperatorHub, then select the RHOCS Operator. 
-
-<TODO: Add steps>
-
+. Select Operators -> OperatorHub, then select the OpenShift Container Storage Operator. 
+. Select Install.  Accept all default options and select Install again.
+. After a minute or so, the Operator will install and create a namespace `openshift-storage`.  You can confirm it is completed when the `Status` column is marked `Succeeded`.
 . Create NooBaa object storage.  Save the following YAML to a file called `noobaa.yml`.
 +
 ```
@@ -63,9 +62,10 @@ Then run the following :
 +
 ```
 $ oc create -n openshift-storage -f noobaa.yml
+noobaa.noobaa.io/noobaa created
 ```
 +
-After a minute or so, you should see the object storage ready for use:
+. After a minute or so, you should see the object storage ready for use (`PHASE` column is marked `Ready`)
 +
 ```
 $ oc get -n openshift-storage noobaas noobaa -w
@@ -76,41 +76,199 @@ noobaa   [https://10.0.32.3:30318]   [https://10.0.32.3:31958]   registry.redhat
 
 To install the {productname} Operator:
 
-. Select Operators -> OperatorHub, then select 
-the {productname} Operator. If there is more than one, be sure to use the
+. Select Operators -> OperatorHub, then select the {productname} Operator. If there is more than one, be sure to use the
 Red Hat certified Operator and not the community version.
 
 . Select Install. The Operator Subscription page appears.
 
 . Choose the following then select Subscribe:
 
-* Installation Mode: Select a specific namespace to install to (quay-enterprise, by default)
+* Installation Mode: Choose either 'All namespaces' or 'A specific namespace' depending on whether you want the Operator to be available cluster-wide or only within a single namespace.
 
 * Update Channel: Choose the update channel (only one may be available)
 
 * Approval Strategy: Choose to approve automatic or manual updates
 
-. Select Subscribe.
+. Select Install.
 
-<TODO: Verify these steps>
+. After a minute you will see the Operator installed successfully in the Installed Operators page.
+
 
 == Basic Quay Installation Via The Operator
 
+The simplest installation choice allows the Operator to manage all of Quay's dependent resources (database, redis, storage).  Create the following `QuayRegistry` Custom Resource in a file called `quay.yaml`
++
+```
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: skynet
+```
++
+Then create the CR in your project as follows:
++
+```
+$ oc create -n <your-namespace> -f quay.yaml
+```
++
+Navigate to your project page in the OpenShift console, or use the CLI to watch the deployments.  You should eventually see the Deployment `skynet-quay-app` completed with a single Pod running.  Navigate to the Networking tab on the OpenShift console and select Routes.  Click on the `Location` entry for the `skynet-quay` Route.  This should bring up the {productname} login page.  You can select 'Create Account' to create a user and sign in.  To create a superuser or configure your {productname} instance to use a different authentication mechanism, please consult the Managing {productname} documentation (<TODO- add a link>)
+
+
+=== Reviewing What Was Created by Default
+
+Unless your `QuayRegistry` Custom Resource specifies otherwise, the Operator will use defaults for the following managed components:
+
+* Posgres.  <TODO- where do we get it?>
+* Redis.  <TODO- where do we get it?>
+* Object Storage.  Using the NooBaa `BackingStore` and `BucketClass` created prior to installing the {productname} Operator.
+
+=== Managed Resource Considerations
+
+Wnile the Operator will handle any required configuration and installation work needed for {productname} to use the managed resources, there are several considerations to keep in mind.
+
+* Database backups should be performed regularly using either the supplied tools on the Postgres image or your own backup infrastructure.  The Operator does not currently ensure the Postgres database is backed up.
+<TODO: add a cli example how to do this>
+* Restoring the Postgres database from a backup must be done manually and in coordination with the Operator.  If you need to restore the Postgres database from a backup, we suggest the following method:
+<TODO: add simple restore procedure>
+* Database disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the database volume is currently not handled by the Operator.
+* Object storage disk space is allocated automatically by the Operator witih 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the RHOCS volume is currently not handled by the Operator.
+* The Operator will deploy a HorizontalPodAutoscaler by default for your Quay installation.
+* The Operator will deploy an OpenShift Route as the default entrpoint to the registry.
+
+If any of these considerations are unacceptable for your environment, it would be suggested to provide the Operator with unmanaged resources or overrides as described in the following sections.
+
+== Using An Existing Database or Redis With the Operator
+
+If you have an existing Postgres and would like to use it for your Quay installation, you will need to use the ConfigTool to specify the database details and the Operator will pick up these changes and start using your database instead of the default.
+
 <TODO>
 
-<TODO: Do users need to register a pull secret to get the downstream Quay container?>
+== Using Existing Object Storage With the Operator
+
+If you want the Operator to leverage an existing object storage solution,
+<TODO>
+
+ifeval::["{productname}" == "Red Hat Quay"]
+The complete list of tested object storage solutions usable with {projectname} can be found in link:https://access.redhat.com/articles/4067991[the supported configurations page].
+endif::[]
+
+ifeval::["{productname}" == "Project Quay"]
+Most S3-compatible object storage solutions should work well with {productname}.  If possible, use a cloud hosted service such as Amazon S3, or Azure Blobs.  For on-premise deployments RHOCS or minio should work.
+endif::[]
+
+== Customizing Access to the Registry
+
+By default. the Operator creates a Service of `type: Loadbalancer` for your registry.  You can configure your DNS provider to point the `SERVER_HOSTNAME` to the external IP address of the service.
+
++
+```
+$ oc get services -n <namespace>
+NAME                    TYPE        CLUSTER-IP       EXTERNAL-IP          PORT(S)             AGE
+some-quay               ClusterIP   172.30.143.199   34.123.133.39        443/TCP,9091/TCP    23h
+```
++
+
+When running on OpenShift, the Routes API is available and will automatically be used as a managed component. After creating the QuayRegistry, the external access point can be found in the status block of the `QuayRegistry`:
++
+```
+status:
+  registryEndpoint: some-quay.my-namespace.apps.mycluster.com
+```
++
+
+=== Using a Custom Hostname and TLS
+
+By default, a Route will be created with the default generated hostname and a certificate/key pair will be generated for TLS.  If you want to access {productname} using a custom hostname and bring your own TLS certificate/key pair, first create a Secret which contains the following:
++
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-config-bundle
+data:
+  config.yaml: <must include SERVER_HOSTNAME field with your custom hostname>
+  ssl.cert: <your TLS certificate>
+  ssl.key: <your TLS key>
+```
++
+Then, create a QuayRegistry which references the created `Secret`:
++
+```
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: some-quay
+spec:
+  configBundleSecret: my-config-bundle
+```
++
+
+
+=== Disabling the Default Route to the Registry
+
+To instruct the Operator not to deploy a Route with your registry, add the following to your `QuayRegistry` Custom Resource.
++
+```
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: some-quay
+spec:
+  components:
+    - kind: route
+      managed: false
+```
++
+Note that you are now responsible for creating a Route, Service, or Ingress in order to access the Quay instance and that whatever DNS you use must match the SERVER_HOSTNAME in the Quay config.
+
+== Disabling the Horizontal Pod Autoscaler
+
+To instruct the Operator not to deploy a HorizontalPodAutoscaler with your registry, add the following to your `QuayRegistry` Custom Resource.
++
+```
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: some-quay
+spec:
+  components:
+    - kind: horizontalpodautoscaler
+      managed: false
+```
++
+
+== Upgrading From Earlier Versions of {productname} Operator
+
+The {productname} Operator supports upgrades from previous versions of the Operator.  For Quay installations being managed by the Operator version 3.3.0 or earlier will need to have its `quayecosystem` Custom Resource converted into a `QuayRegistry` resource.  The Operator will handle this automatically when the Operator itself is ugpraded.  Note that upgrading the Operator does not automatically upgrade your Quay installation.
+
+== Upgrading Quay Via the Operator
+
+In order to request that the Operator upgrade your version of Quay, add the `<TODO>` annotation into your `QuayRegistry` Custom Resource:
+<TODO: add the annotation into the example below>
++
+```
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: unmanaged
+spec:
+  configBundleSecret: quay-config-bundle-abc123
+  components:
+    - kind: postgres
+      managed: false
+    - kind: redis 
+      managed: false
+    - kind: clair
+      managed: false
+    - kind: objectstorage 
+      managed: false
+```
++
+
+== Customizing {productname} Operator manifests
+<TODO>
 
 .Additional resources
 
 * For more details on the {productname} Operator, see the upstream
 link:https://github.com/quay/quay-operator/[quay-operator] project.
-
-
-== Using An Existing Database or Redis With the Operator
-
-== Using Existing Object Storage With the Operator
-
-== Upgrading From Earlier Versions of {productname} Operator
-
-== Customizing {productname} Operator manifests
-
