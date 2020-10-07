@@ -1,0 +1,116 @@
+= Deploying {productname}
+[id="deploy-quay-openshift-operator"]
+
+// Module included in the following assemblies:
+//
+// <List assemblies here, each on a new line>
+
+This procedure:
+
+* Installs the {productname} Operator on OpenShift from the OperatorHub
+* Deploys a {productname} cluster on OpenShift via the Quay Operator
+
+The Operator automates the entire start-up process,by-passing the need to use the {productname} config tool.  With the Operator, you can get a full Quay installation created with database, storage and security scanning with a single button click.
+
+.Prerequisites
+
+<TODO- confirm these are still necessary>
+
+* An OpenShift 4.2 (or later) cluster
+* Cluster-scope admin privilege to the OpenShift cluster
+
+== Differences from Earlier Versions
+
+As of {productname} 3.4, the Quay Operator has been completey re-written to provide an improved out of the box experience as well as support for more Day 2 operations.  As a result the new Operator is simpler to use and handles more of thee Quay installation decisions for you.  The key differences from earlier versions of the Operator are:
+
+* The default installation options produces a fully supported Quay environment, ready for production use.
+* The Operator provides 'sensible' default values out of the box for a managed database, object storage and Clair.
+* The `quayecosystem` Custom Resource has been replaced with the `QuayRegistry` Custom Resource
+* The Operator leverages the internal configuration validation logic of the Config Tool to ensure its results are consistent with configurations that you might create manually.
+* The Operator now relies on Red Hat OpenShift Container Storage (RHOCS) to supply light-weight object storage as the default managed storage choice.  It can also utilize an RHOCS presence already on your OpenShift cluster if so desired.
+* The Operator's manifests can be easily customized as needed to facilitate different types of deployments and configurations.
+
+== Install the {productname} Operator
+
+If you want the Operator to use managed object storage, you will first need to insure RHOCS is available on your OpenShift cluster.  If you already have object storage ready to be used by the Operator, skip this step.
+
+To install the RHOCS Operator and configure a lightweight NooBaa (S3-compatible) object storage:
+
+. Select Operators -> OperatorHub, then select the RHOCS Operator. 
+
+<TODO: Add steps>
+
+. Create NooBaa object storage.  Save the following YAML to a file called `noobaa.yml`.
++
+```
+apiVersion: noobaa.io/v1alpha1
+kind: NooBaa
+metadata:
+  name: noobaa
+  namespace: openshift-storage
+spec:
+ dbResources:
+   requests:
+     cpu: '0.1'
+     memory: 1Gi
+ coreResources:
+   requests:
+     cpu: '0.1'
+     memory: 1Gi
+```
++
+Then run the following :
++
+```
+$ oc create -n openshift-storage -f noobaa.yml
+```
++
+After a minute or so, you should see the object storage ready for use:
++
+```
+$ oc get -n openshift-storage noobaas noobaa -w
+NAME     MGMT-ENDPOINTS              S3-ENDPOINTS                IMAGE                                                                                                            PHASE   AGE
+noobaa   [https://10.0.32.3:30318]   [https://10.0.32.3:31958]   registry.redhat.io/ocs4/mcg-core-rhel8@sha256:56624aa7dd4ca178c1887343c7445a9425a841600b1309f6deace37ce6b8678d   Ready   3d18h
+```
++
+
+To install the {productname} Operator:
+
+. Select Operators -> OperatorHub, then select 
+the {productname} Operator. If there is more than one, be sure to use the
+Red Hat certified Operator and not the community version.
+
+. Select Install. The Operator Subscription page appears.
+
+. Choose the following then select Subscribe:
+
+* Installation Mode: Select a specific namespace to install to (quay-enterprise, by default)
+
+* Update Channel: Choose the update channel (only one may be available)
+
+* Approval Strategy: Choose to approve automatic or manual updates
+
+. Select Subscribe.
+
+<TODO: Verify these steps>
+
+== Basic Quay Installation Via The Operator
+
+<TODO>
+
+<TODO: Do users need to register a pull secret to get the downstream Quay container?>
+
+.Additional resources
+
+* For more details on the {productname} Operator, see the upstream
+link:https://github.com/quay/quay-operator/[quay-operator] project.
+
+
+== Using An Existing Database or Redis With the Operator
+
+== Using Existing Object Storage With the Operator
+
+== Upgrading From Earlier Versions of {productname} Operator
+
+== Customizing {productname} Operator manifests
+
