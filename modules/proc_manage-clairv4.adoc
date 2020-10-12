@@ -361,8 +361,7 @@ $ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v $(pwd):/updaters:Z --entr
 Note that you need to explicitly reference the Clair configuration.  This will create the Updater archive in `/etc/clairv4/updaters/updaters.gz`.  If you want to ensure the archive was created without any errors from the source databases, you can supply the `--strict` flag to `clairctl`.  The archive file should be copied over to a volume that is accessible from the disconnected host running Clair.  From the disconnected host, use the same procedure now to import the archive into Clair.
 +
 ```
-$ sudo podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v /etc/clairv4/updaters:/updaters:Z --entrypoint /bin/bash {productrepo}/clair:{productminv}
-bash-4.4$ clairctl import-updaters --config /cfg/config.yaml updaters.gz
+$ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v $(pwd):/updaters:Z --entrypoint /bin/clairctl {productrepo}/clair:{productminv} import-updaters --config /cfg/config.yaml /updaters/updaters.gz
 ```
 +
 
