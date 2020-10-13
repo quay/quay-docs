@@ -1,14 +1,29 @@
 [[clair-v4]]
+= Using Clair V4 Security Scanning
 
-== What is Clair?
+Clair v4 is the next generation of Clair image scanning available
+with {productname}. Clair v4 is currently released as
+link:https://access.redhat.com/support/offerings/techpreview[Technology Preview],
+which means that it is not supported for production use. However, you are
+encouraged to test Clair v4 as it represents the direction of Clair image scanning
+development.
 
-Clair is a set of micro services that can be used with {productname}
+To align with the {productname} release, the current Clair v4 release image
+is clair:{productminv}.
+
+== What is Clair v4?
+
+Technically, Clair v4 is a set of micro services that can be used with {productname}
 to perform vulnerability scanning of container images associated with a set of
-Linux operating systems. The micro services design of Clair makes it
+Linux operating systems. The micro services design of Clair v4 makes it
 appropriate to run in a highly scalable configuration, where
 components can be scaled separately as appropriate for enterprise environments.
 
-Clair uses the following vulnerability databases to scan for issues in your images:
+For the purposes of trying out Clair v4, we recommend running it in combo mode (see
+link:https://github.com/quay/openshift-demo/blob/master/clairv4/clair-combo.yaml[clair-combo.yaml])
+This mode, described here, brings all the microservices together as one process.
+
+All supported security databases for Clair v4 are turned on. These databases include:
 
 * Alpine SecDB database
 * AWS UpdateInfo
@@ -17,21 +32,25 @@ Clair uses the following vulnerability databases to scan for issues in your imag
 * RHEL Oval database
 * SUSE Oval database
 * Ubuntu Oval database
-* Pyup.io (python) database
 
 For information on how Clair does security mapping with the different databases, see
-link:https://quay.github.io/claircore/concepts/severity_mapping.html[ClairCore Severity Mapping].
+link:https://quay.github.io/claircore/v0.0.19/severity_mapping.html[ClairCore Severity Mapping].
 
-[NOTE]
+[WARNING]
 ====
-With the release of Red Hat Quay 3.4, the default version of Clair is V4.  This new version V4 is no longer being released as link:https://access.redhat.com/support/offerings/techpreview[Technology Preview] and is supported for production use.  Customers are strongly encouraged to use Clair V4 for with Red Hat Quay 3.4.  It is possible to run both Clair V4 and Clair V2 simultaneously if so desired.  In future versions of Red Hat Quay, Clair V2 will eventually be removed.
+Because Clair v4 is Technology Preview, don't expect 100% accurate reporting.
+Expect that the presentation of vulnerability results will look different going
+forward than they did with v2. Over time, Clair v4 will produce more results.
 ====
 
+The steps for using Clair v4 alongside an existing {productname} + Clair v2 environment are
+described next.
 
-=== Setting Up Clair on a {productname} OpenShift deployment
-To set up Clair on a new {productname} deployment on OpenShift, it is highly recommended to use the Quay Operator <TODO: ADD LINK TO OPERATOR DOCS>.  By default, the Quay Operator will install a Clair deployment along with your {productname} deployment and configure Clair security scanning automatically.
+== Configuring Clair v4
 
-To configure Clair V4 on an existing {productname} OpenShift deployment running Clair V2, first ensure {productname} has been upgraded to at least version 3.4.0.  Then use the following steps to manually set up Clair V4 alongside Clair V2.
+To try out Clair v4, stand up a {productname} cluster
+with a running Clair v2 instance. Then use the following procedure
+to run Clair v4 along side it. Here is how to do that on an OpenShift v4.2 or later cluster on an AWS cloud.
 
 . Set your current project to the name of the project in which {productname} is running.
 For example:
@@ -185,7 +204,7 @@ spec:
         quay-component: clair-combo
     spec:
       containers:
-        - image: {productrepo}/clair:{productminv}  <1>
+        - image: {productrepo}/clair:{clairnewver}  <1>
           imagePullPolicy: IfNotPresent
           name: clair-combo
           env:
@@ -250,8 +269,13 @@ entries at the end:
 ...
 FEATURE_SECURITY_SCANNER: true
 SECURITY_SCANNER_V4_ENDPOINT: http://clairv4 <1>
+SECURITY_SCANNER_V4_NAMESPACE_WHITELIST: <2>
+  - "clairv4-org"
+  - "foo-org"
 ----
 <1> Identify the Clair v4 service endpoint
+<2> Replace `clair4-org` and `foo-org` with namespaces (organizations and
+users) in your {productname} cluster you want to use Clair v4 scanning
 
 . Redeploy the modified `config.yaml` to the secret containing that file
 (for example, `quay-enterprise-config-secret`:
@@ -268,61 +292,12 @@ with the updated configuration to be deployed.
 At this point, images in any of the organizations identified in the
 namespace whitelist will be scanned by Clair v4.
 
-== Setting up Clair on a non-OpenShift {productname} deployment
-
-For {productname} deployments not running on OpenShift, it is possible to configure Clair security scanning.
-
-. Deloy a (preferably fault-tolerant) Postgres database server.  Note that Clair requires the `uuid-ossp` extension to be added to its Postgres database.  If the user supplied in Clair's `config.yaml` has the necessary privileges to create the extension then it will be added automatically by Clair itself.  If not, then the extension must be added before starting Clair.  If the extension is not present, the following error will be displayed when Clair attempts to start.
-+
-```
-{"level":"info","component":"libvuln/New","count":100,"time":"2020-10-09T15:33:41Z","time":"2020-10-09T15:33:41Z","message":"initializing store"}
-2020/10/09 15:33:42 initialized failed: failed to initialize libvuln: failed to perform migrations: migration 1 failed: ERROR: Please load the "uuid-ossp" extension. (SQLSTATE 42501)
-```
-+
-. Create a Clair config file in a specific folder (e.g. `/etc/clairv4/config/config.yaml`) file.
-+
-.config.yaml
-[source,yaml]
-----
-introspection_addr: :8089
-http_listen_addr: :8080
-log_level: debug
-indexer:
-  connstring: host=clairv4-postgres port=5432 dbname=clair user=postgres password=postgres sslmode=disable 
-  scanlock_retry: 10
-  layer_scan_concurrency: 5
-  migrations: true
-matcher:
-  connstring: host=clairv4-postgres port=5432 dbname=clair user=postgres password=postgres sslmode=disable 
-  max_conn_pool: 100
-  run: ""
-  migrations: true
-  indexer_addr: clair-indexer
-# tracing and metrics
-trace:
-  name: "jaeger"
-  probability: 1
-  jaeger:
-    agent_endpoint: "localhost:6831"
-    service_name: "clair"
-metrics:
-  name: "prometheus"
-----
-
-. Run Clair via the container image, mounting in the configuration from the file you created.
-+
-```
-$ podman run -p 8080:8080 -p 8089:8089 -e CLAIR_CONF=/clair/config.yaml -e CLAIR_MODE=combo -v /etc/clair4/config:/clair -d {productrepo}/clair:{productminv}
-```
-
-. Follow the remaining instructions from the previous section for configuring {productname} to use the new Clair V4 endpoint.
-
-Running multiple Clair containers in this fashion is also possible, but for deployment scenarios beyond a single container the use of a container orchestrator like Kubernetes or OpenShift is strongly recommended.
-
-== Using Clair
+== Using Clair v4
+The user interface for viewing vulnerability information gathered by Clair v4
+is essentially the same as it was for Clair v2.
 
 . Log in to your {productname} cluster and select an organization for which you have configured
-Clair scanning.
+Clair v4 scanning.
 
 . Select a repository from that organization that holds some images and
 select Tags from the left navigation. The following figure shows an example
@@ -335,42 +310,3 @@ for the image to see either all vulnerabilities or those that are fixable. The
 following figure shows information on all vulnerabilities found:
 +
 image:clair-vulnerabilities.png[See all vulnerabilities or only those that are fixable]
-
-== Clair Notifications
-<TODO>
-
-== Configuring Clair for Disconnected Environments
-
-Clair utilizes a set of components called Updaters to handle the fetching and parsing of data from various vulnerability databases.  These Updaters are set up by default to pull vulnerability data directly from the internet and work out of the box.  For customers in disconnected environments without direct access to the internet this poses a problem.  Clair supports these environments through the ability to work with different types of update workflows that take into account network isolation.  Using the `clairctl` command line utility, any process can easily fetch Updater data from the internet via an open host, securely transfer the data to an isolated host, and then import the Updater data on the isolated host into Clair itself.
-
-The steps are as follows.
-
-. First ensure that your Clair configuration has disabled automated Updaters from running.
-+
-.config.yaml
-[source,yaml]
-----
-matcher:
-  disable_updaters: true
-
-----
-
-. Export out the latest Updater data to a local archive.  This requires the `clairctl` tool which can be run directly as a binary, or via the Clair container image.  Assume your Clair configuration is in `/etc/clairv4/config/config.yaml`, to run via the container image:
-+
-```
-$ sudo podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v /etc/clairv4/updaters:/updaters:Z --entrypoint /bin/bash {productrepo}/clair:{productminv}
-bash-4.4$ clairctl export-updaters --config /cfg/config.yaml updaters.gz
-```
-+
-Note that you need to explicitly reference the Clair configuration.  This will create the Updater archive in `/etc/clairv4/updaters/updaters.gz`.  If you want to ensure the archive was created without any errors from the source databases, you can supply the `--strict` flag to `clairctl`.  The archive file should be copied over to a volume that is accessible from the disconnected host running Clair.  From the disconnected host, use the same procedure now to import the archive into Clair.
-+
-```
-$ sudo podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v /etc/clairv4/updaters:/updaters:Z --entrypoint /bin/bash {productrepo}/clair:{productminv}
-bash-4.4$ clairctl import-updaters --config /cfg/config.yaml updaters.gz
-```
-+
-
-
-== Additional Information
-
-For detailed documentation on the internals of Clair, including how the microservices are structured, please see the link:https://quay.github.io/clair[Upstream Clair] and link:https://quay.github.io/claircore[ClairCore] documentation.
