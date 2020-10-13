@@ -1,0 +1,249 @@
+[[advanced-quay-configuration]]
+= Advanced {productname} configuration
+
+You can configure your {productname} after initial deployment using
+several different interfaces:
+
+* The {productname} Config Tool: Running the `quay` container in `config` mode
+presents a Web-based interface for configuring the {productname} cluster. This
+is the recommended method for most configuration of the {productname} service itself.
+
+* Editing the `config.yaml`: The `config.yaml` file holds most of the configuration
+information for the {productname} cluster. Editing that file directly is possible,
+but it is only recommended for advanced tuning and performance features that are
+not available through the Config Tool.
+
+* {productname} API: Some {productname} configuration can be done through the API.
+
+While configuration for specific features is covered in separate sections, this
+section describes how to use each of those interfaces and perform some
+more advanced configuration.
+
+[[using-the-config-tool]]
+
+== Using {productname} Config Tool to modify {productname}
+The {productname} Config Tool is made available by running a `quay` container
+in `config` mode alongside the regular {productname} service. Running the
+Config Tool is different for {productname} clusters running on OpenShift than
+it is for those running directly on host systems.
+
+=== Running the Config Tool from the {productname} Operator
+If you are running the {productname} Operator from OpenShift, the Config Tool
+is probably already available for you to use. To access the Config Tool,
+do the following:
+
+. From the OpenShift console, select the project in which {productname}
+is running. For example, quay-enterprise.
+
+. From the left column, select Networking -> Routes. You should see routes to
+both the {productname} application and Config Tool, as shown in
+the following image:
++
+image:configtoolroute.png[View the route to the {productname} Config Tool]
+
+. Select the route to the Config Tool (for example, example-quayecosystem-quay-config) and select it.
+The Config tool Web UI should open in your browser.
+
+. Select `Modify configuration for this cluster`. You should see the
+Config Tool, ready for you to change features
+of your {productname} cluster, as shown in the following image:
++
+image:configtoolsetup.png[Modify {productname} cluster settings from the Config Tool]
+
+. When you have made the changes you want, select `Save Configuration Changes`.
+The Config Tool will validate your changes.
+
+. Make any corrections as needed by selecting `Continue Editing`
+or select `Next` to continue on.
+
+. When prompted, it is recommended that you select `Download Configuration`.
+That will download a tarball of your new `config.yaml`, as well as any
+certificates and keys used with your {productname} setup.
+
+. Select `Go to deployment rollout`, then
+`Populate the configuration to deployments`. The {productname}
+pods will be restarted and the changes will take effect.
+
+The `config.yaml` file you saved can be used to make advanced
+changes to your configuration or just kept for future reference.
+
+=== Running the Config Tool from the command line
+If you are running {productname} directly from a host system,
+using tools such as the `podman` or `docker` commands,
+after the initial {productname} deployment, you can restart the
+Config Tool to modify your {productname} cluster. Here's how:
+
+. **Start quay in config mode**: On the first `quay` node run the following, replacing
+`my-secret-password` with your password:
++
+[subs="verbatim,attributes"]
+....
+# podman run --rm  -it --name quay_config -p 8443:8443 -v \
+    -d {productrepo}/quay:{productminv} config my-secret-password
+....
+
+. **Open browser**: When the quay configuration tool starts up, open a browser to the URL and port 8443
+of the system you are running the configuration tool on
+(for example https://myquay.example.com:8443). You are prompted for a username and password.
+
+At this point, you can begin modifying your {productname} cluster as described earlier.
+
+[[overview-advanced-config]]
+== Using the API to modify {productname}
+See the
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_api_guide/index[{productname} API Guide] for information on how to access {productname} API.
+
+== Editing the `config.yaml` file to modify {productname}
+Some advanced {productname} configuration that is not available through
+the Config Tool can be achieved by editing the `config.yaml` file directly.
+Available settings are described in the
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/manage_red_hat_quay/quay-schema[Schema for Red Hat Quay configuration]
+The following are examples of settings you can change directly in the `config.yaml` file.
+
+=== Add name and company to {productname} sign-in
+Setting the following will cause users to be prompted for their name and
+company when they first sign in. Although this is optional, it can provide
+you with extra data about your {productname} users:
++
+`FEATURE_USER_METADATA: true`
+
+=== Disable TLS Protocols
+You can change the SSL_PROTOCOLS setting to remove SSL protocols that you
+do not want to support in your {productname} instance. For example, to remove
+TLS v1 support from the default
+SSL_PROTOCOLS : ['TLSv1','TLSv1.1','TLSv1.2'], change it as follows:
++
+SSL_PROTOCOLS : ['TLSv1.1','TLSv1.2']
+
+=== Rate limit API calls
+
+Adding the FEATURE_RATE_LIMITS parameter to the `config.yaml` causes `nginx` to
+limit certain API calls to 30 per second. If that feature is not set, API calls
+are limied to 300 per second (effectively unlimited).
+Rate limiting can be an important feature, if you need to make sure the resources
+available are not overwhelmed with traffic.
+
+Some namespace may require unlimited access (perhaps they are important to CI/CD
+and take priority, for example). In this case, those namespace may be placed in
+a list in `config.yaml` for NON_RATE_LIMITED_NAMESPACES.
+
+=== Adjust database connection pooling
+
+{productname} is composed of many different processes which all run within
+the same container. Many of these processes interact with the database.
+
+If enabled, each process that interacts with the database will contain a
+connection pool. These per-process connection pools are configured to maintain
+a maximum of 20 connections. Under heavy load, it is possible to fill the
+connection pool for every process within a {productname} container. Under certain
+deployments and loads, this may require analysis to ensure {productname} does not
+exceed the database's configured maximum connection count.
+
+Overtime, the connection pools will release idle connections. To release all
+connections immediately, {productname} requires a restart.
+
+Database connection pooling may be toggled by setting the environment
+variable `DB_CONNECTION_POOLING={true|false}`
+
+If database connection pooling is enabled, it is possible to change the
+maximum size of the connection pool. This can be done through the following
+`config.yaml` option:
+
+....
+DB_CONNECTION_ARGS:
+  max_connections: 10
+....
+
+==== Database connection arguments
+
+You can customize {productname} database connection settings within the
+`config.yaml` file. These are entirely dependent upon the underlying
+database driver, such as `psycopg2` for Postgres and `pymysql` for MySQL.
+It is also possible to pass in arguments used by Peewee's Connection Pooling
+mechanism as seen below.
+
+....
+DB_CONNECTION_ARGS:
+  max_connections: n  # Max Connection Pool size. (Connection Pooling only)
+  timeout: n  # Time to hold on to connections. (Connection Pooling only)
+  stale_timeout: n  # Number of seconds to block when the pool is full. (Connection Pooling only)
+....
+
+==== HTTP connection counts
+
+It is possible to specify the quantity of simultaneous HTTP connections using
+environment variables. These can be specified as a whole, or for a specific
+component. The default for each is 50 parallel connections per process.
+
+Environment variables:
+- WORKER_CONNECTION_COUNT_REGISTRY=n
+- WORKER_CONNECTION_COUNT_WEB=n
+- WORKER_CONNECTION_COUNT_SECSCAN=n
+- WORKER_CONNECTION_COUNT=n
+
+[Note]
+====
+Specifying a count for a specific component will override any value
+set in WORKER_CONNECTION_COUNT.
+====
+
+==== Dynamic process counts
+
+To estimate the quantity of dynamically sized processes, the following
+calculation is used by default.
+
+[NOTE]
+{productname}  queries the available CPU count from the entire machine. Any limits
+applied using kubernetes or other non-virtualized mechanisms will not affect
+this behavior; {productname} will makes its calculation based on the total number of
+processors on the Node. The default values listed are simply targets, but shall
+not exceed the maximum or be lower than the minimum.
+
+Each of the following process quantities can be overridden using the
+environment variable specified below.
+
+- registry - Provides HTTP endpoints to handle registry action
+* minimum: 8
+* maximum: 64
+* default: $CPU_COUNT x 4
+* environment variable: WORKER_COUNT_REGISTRY
+
+- web - Provides HTTP endpoints for the web-based interface
+* minimum: 2
+* maximum: 32
+* default: $CPU_COUNT x 2
+* environment_variable: WORKER_COUNT_WEB
+
+- secscan - Interacts with Clair
+* minimum: 2
+* maximum: 4
+* default: $CPU_COUNT x 2
+* environment variable: WORKER_COUNT_SECSCAN
+
+==== Environment variables
+
+{productname} allows overriding default behavior using environment variables.
+This table lists and describes each variable and the values they can expect.
+
+.Worker count environment variables
+[cols="2a,2a,2a",options="header"]
+|===
+| Variable | Description | Values
+| WORKER_COUNT_REGISTRY | Specifies the number of processes to handle Registry requests within the Quay container. | Integer between 8 and 64
+| WORKER_COUNT_WEB | Specifies the number of processes to handle UI/Web requests within the container. | Integer between 2 and 32
+| WORKER_COUNT_SECSCAN | Specifies the number of processes to handle Security Scanning (e.g. Clair) integration within the container. | Integer between 2 and 4
+| DB_CONNECTION_POOLING | Toggle database connection pooling. In 3.4, it is disabled by default. | "true" or "false"
+|===
+
+==== Turning off connection pooling
+
+{productname} deployments with a large amount of user activity can regularly
+hit the 2k maximum database connection limit. In these cases, connection
+pooling, which is enabled by default for {productname}, can cause database
+connection count to rise exponentially and require you to turn off connection
+pooling.
+
+If turning off connection pooling is not enough to prevent hitting that 2k
+database connection limit, you need to take additional steps to deal with
+the problem. In this case you might need to increase the maximum database
+connections to better suit your workload.
