@@ -292,9 +292,63 @@ with the updated configuration to be deployed.
 At this point, images in any of the organizations identified in the
 namespace whitelist will be scanned by Clair v4.
 
+<<<<<<< HEAD
 == Using Clair v4
 The user interface for viewing vulnerability information gathered by Clair v4
 is essentially the same as it was for Clair v2.
+=======
+== Setting up Clair on a non-OpenShift {productname} deployment
+
+For {productname} deployments not running on OpenShift, it is possible to configure Clair security scanning.
+
+. Deloy a (preferably fault-tolerant) Postgres database server.  Note that Clair requires the `uuid-ossp` extension to be added to its Postgres database.  If the user supplied in Clair's `config.yaml` has the necessary privileges to create the extension then it will be added automatically by Clair itself.  If not, then the extension must be added before starting Clair.  If the extension is not present, the following error will be displayed when Clair attempts to start.
++
+```
+ERROR: Please load the "uuid-ossp" extension. (SQLSTATE 42501)
+```
++
+. Create a Clair config file in a specific folder (e.g. `/etc/clairv4/config/config.yaml`) file.
++
+.config.yaml
+[source,yaml]
+----
+introspection_addr: :8089
+http_listen_addr: :8080
+log_level: debug
+indexer:
+  connstring: host=clairv4-postgres port=5432 dbname=clair user=postgres password=postgres sslmode=disable 
+  scanlock_retry: 10
+  layer_scan_concurrency: 5
+  migrations: true
+matcher:
+  connstring: host=clairv4-postgres port=5432 dbname=clair user=postgres password=postgres sslmode=disable 
+  max_conn_pool: 100
+  run: ""
+  migrations: true
+  indexer_addr: clair-indexer
+# tracing and metrics
+trace:
+  name: "jaeger"
+  probability: 1
+  jaeger:
+    agent_endpoint: "localhost:6831"
+    service_name: "clair"
+metrics:
+  name: "prometheus"
+----
+
+. Run Clair via the container image, mounting in the configuration from the file you created.
++
+```
+$ podman run -p 8080:8080 -p 8089:8089 -e CLAIR_CONF=/clair/config.yaml -e CLAIR_MODE=combo -v /etc/clair4/config:/clair -d {productrepo}/clair:{productminv}
+```
+
+. Follow the remaining instructions from the previous section for configuring {productname} to use the new Clair V4 endpoint.
+
+Running multiple Clair containers in this fashion is also possible, but for deployment scenarios beyond a single container the use of a container orchestrator like Kubernetes or OpenShift is strongly recommended.
+
+== Using Clair
+>>>>>>> 0ec0b9f7e6b9aa976eaf6a4ac208a1f4c43d35af
 
 . Log in to your {productname} cluster and select an organization for which you have configured
 Clair v4 scanning.
@@ -310,3 +364,43 @@ for the image to see either all vulnerabilities or those that are fixable. The
 following figure shows information on all vulnerabilities found:
 +
 image:clair-vulnerabilities.png[See all vulnerabilities or only those that are fixable]
+<<<<<<< HEAD
+=======
+
+== Clair Notifications
+<TODO>
+
+== Configuring Clair for Disconnected Environments
+
+Clair utilizes a set of components called Updaters to handle the fetching and parsing of data from various vulnerability databases.  These Updaters are set up by default to pull vulnerability data directly from the internet and work out of the box.  For customers in disconnected environments without direct access to the internet this poses a problem.  Clair supports these environments through the ability to work with different types of update workflows that take into account network isolation.  Using the `clairctl` command line utility, any process can easily fetch Updater data from the internet via an open host, securely transfer the data to an isolated host, and then import the Updater data on the isolated host into Clair itself.
+
+The steps are as follows.
+
+. First ensure that your Clair configuration has disabled automated Updaters from running.
++
+.config.yaml
+[source,yaml]
+----
+matcher:
+  disable_updaters: true
+
+----
+
+. Export out the latest Updater data to a local archive.  This requires the `clairctl` tool which can be run directly as a binary, or via the Clair container image.  Assume your Clair configuration is in `/etc/clairv4/config/config.yaml`, to run via the container image:
++
+```
+$ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v $(pwd):/updaters:Z --entrypoint /bin/clairctl {productrepo}/clair:{productminv} export-updaters --config /cfg/config.yaml /updaters/updaters.gz
+```
++
+Note that you need to explicitly reference the Clair configuration.  This will create the Updater archive in `/etc/clairv4/updaters/updaters.gz`.  If you want to ensure the archive was created without any errors from the source databases, you can supply the `--strict` flag to `clairctl`.  The archive file should be copied over to a volume that is accessible from the disconnected host running Clair.  From the disconnected host, use the same procedure now to import the archive into Clair.
++
+```
+$ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v $(pwd):/updaters:Z --entrypoint /bin/clairctl {productrepo}/clair:{productminv} import-updaters --config /cfg/config.yaml /updaters/updaters.gz
+```
++
+
+
+== Additional Information
+
+For detailed documentation on the internals of Clair, including how the microservices are structured, please see the link:https://quay.github.io/clair[Upstream Clair] and link:https://quay.github.io/claircore[ClairCore] documentation.
+>>>>>>> 0ec0b9f7e6b9aa976eaf6a4ac208a1f4c43d35af
