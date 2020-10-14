@@ -3,17 +3,60 @@
 
 === quay / clair-jwt / quay-builder / clair
 
-Added:
+Added/Changed:
 
-* Clair V4 now GA, including support for notifications and disconnected deployments.
-* New ConfigTool replaces the older Config App, providing better configuration validation and integration with the new Quay Operator.
+* Clair V4 now GA and the default security scanner for Quay 3.4.0.  New features include support for notifications and disconnected deployments.
+* New ConfigTool replaces the older Config App, providing better configuration validation and integration with the new Quay Operator.  Quay now uses same validator as the Config Tool at start time to ensure its configuration is correct.
 * Quay Builders are now supported only on OpenShift/Kubernetes and utilize Fedora CoreOS for builder sandbox VMs.  Quay Build Manager completely re-written to use gRPC and address numerous issues.
-* (Tech Preview) Support for Helm V3 is no longer considered experimental and is now enabled by default. TODO: CONFIRM THIS
+* Quay codebase now completely migrated to python 3 with numerous dependency updates.
+* (Tech Preview) Support for Helm V3 is no longer considered experimental and is now enabled by default.
+    <TODO: CONFIRM THIS>
 
 Fixed:
 
-* Quay codebase has been migrated to Python 3
-* <Other fixes>
+* PROJQUAY-206	Repo mirroring sometimes locks up
+* PROJQUAY-357	properly escape arguments in entrypoint config
+* PROJQUAY-381	Existing tags get deleted when mirroring fails
+* PROJQUAY-399	Cannot setup mysql 8 for Quay via config tool
+* PROJQUAY-480	Defunct Gunicorn Processes
+* PROJQUAY-551	LDAP_USER_FILTER causes errors when not quoted
+* PROJQUAY-575	Broken link for webhook POST in the webhook notifications page
+* PROJQUAY-607	changing SERVER_HOSTNAME triggers storage replication and 100% database CPU
+* PROJQUAY-632	Lost usage logs when set kinesis as the logs producer
+* PROJQUAY-635	Error 500 on Applications tab with naboo
+* PROJQUAY-659	Creating new tags via the UI on a schema 2 manifest creates a schema 1 manifest
+* PROJQUAY-675	Quay export logs select date range less than a month redirect to 500 error page
+* PROJQUAY-676	Wrong image vulnerabilities link in OCP4.4 Overview page
+* PROJQUAY-742	Quay container crashes when no user exists in database
+* PROJQUAY-796	Mirrored images have new digest
+* PROJQUAY-797	Config app does not copy database SSL file to correct place 
+* PROJQUAY-808	Dockerfile upload failure (LocalStorage)
+* PROJQUAY-822	Quay App POD log should not print out LDAP user's password as plaintext
+* PROJQUAY-861	Deploy Quay is failed with AWS S3 as backend storage registry
+* PROJQUAY-907	repo mirror start date not calculated correctly
+* PROJQUAY-915	Simultaneously pushing the same manifest can result in a manifest error
+* PROJQUAY-917	Incorrect encoding of CSRF token in UI
+* PROJQUAY-923	Failed to set GCS as the storage backend for Quay via config tool
+* PROJQUAY-930	Config bundle contains fields for unmanaged components
+* PROJQUAY-934	Quay edit permissions of robot account redirect to quay 500 error page
+* PROJQUAY-935	Quay Image Repository Mirror was stuck 
+* PROJQUAY-940	Quay delete in use robot account get 500 error page
+* PROJQUAY-942	Quay push image was failed when backend storage is Azure Blob Storage
+* PROJQUAY-948	list_manifest_layers should not fail on shared blobs
+* PROJQUAY-953	Quay image repository Tags page can't display existing image tags
+* PROJQUAY-958	Unhandled date token outside the given date range used for elasticsearch pagination
+* PROJQUAY-973	Transaction error if the same repository is created twice during auth flow
+* PROJQUAY-1002	Helm 3 OCI Support Push Fails due to invalid MIME type
+* PROJQUAY-1011	Accessing build logs from super user panel doesnt work
+* PROJQUAY-1015	RPM command error when getting rpm packages from layer database    
+* PROJQUAY-1023	oraclelinux:7 causes matcher bug    
+* PROJQUAY-1035	Unable to override gunicorn worker count in k8s
+* PROJQUAY-1087	Fail to pull from managed objectstorage
+* PROJQUAY-1101	Typo in /tools/generatekeypair.py
+* PROJQUAY-1103	Remove need to modify SCC 
+* PROJQUAY-1112	Quay database reaches connection limit
+* PROJQUAY-1122	Specify pull secret for component images
+
 
 Deprecated:
 
@@ -31,14 +74,14 @@ Known Issues:
 
 === quay-operator
 
-Note:  <TODO- CONFIRM THESE>
-
 * Only supported on OCP-4.2 or newer
 * UI supported on OCP-4.3 or newer
 
 Added:
 
 * Completely redesigned Quay Operator with fully supported default storage configuration using RHOCS.
+* Works in conjunction with new Config Tool to reconcile configuration updates made to a running Quay cluster.
+* Handles migration from older `QuayEcosystem` Custom Resource to new `QuayRegistry` Custom Resource.
 
 Known Issues:
 
@@ -47,9 +90,12 @@ Known Issues:
 
 === quay-container-security-operator
 
-Note:  <TODO- CONFIRM THESE>
 
 * Only supported on OCP-4.2 or newer
+
+Fixed:
+
+* PROJQUAY-676  Wrong image vulnerabilities link in OCP4.4 Overview page
 
 
 === quay-openshift-bridge-operator
@@ -59,4 +105,4 @@ Note:  <TODO- CONFIRM THESE>
 * Only supported on OCP-4.2 or newer
 
 
-link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/red_hat_quay_release_notes#rn-3-300[Link to this Release]
+link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/red_hat_quay_release_notes#rn-3-400[Link to this Release]
