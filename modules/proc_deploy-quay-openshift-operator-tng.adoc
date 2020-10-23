@@ -1,5 +1,5 @@
-= Deploying {productname}
-[id="deploy-quay-openshift-operator"]
+= Using the Quay Operator
+[id="deploy-quay-openshift-operator-tng"]
 
 // Module included in the following assemblies:
 //
@@ -7,32 +7,32 @@
 
 This procedure:
 
-* Installs the {productname} Operator on OpenShift from the OperatorHub
-* Deploys a {productname} cluster on OpenShift via the Quay Operator
+* Installs the Operator on OpenShift from the OperatorHub
+* Deploys a {productname} cluster on OpenShift via the Operator
 
-The Operator automates the entire start-up process,by-passing the need to use the {productname} config tool.  With the Operator, you can get a full Quay installation created with database, storage and security scanning with a single button click.
+The Operator automates the entire start-up process, by-passing the need to use the {productname} config tool.  With the Operator, you can get a full Quay installation created with database, storage and security scanning with a single button click.
 
 .Prerequisites
-
-<TODO- confirm these are still necessary>
 
 * An OpenShift 4.2 (or later) cluster
 * Cluster-scope admin privilege to the OpenShift cluster
 
 == Differences from Earlier Versions
 
-As of {productname} 3.4, the Quay Operator has been completey re-written to provide an improved out of the box experience as well as support for more Day 2 operations.  As a result the new Operator is simpler to use and handles more of thee Quay installation decisions for you.  The key differences from earlier versions of the Operator are:
+As of {productname} 3.4.0, the Operator has been completey re-written to provide an improved out of the box experience as well as support for more Day 2 operations.  As a result the new Operator is simpler to use and handles more of the Quay installation decisions for you.  The key differences from earlier versions of the Operator are:
 
-* The default installation options produces a fully supported Quay environment, ready for production use.
-* The Operator provides 'sensible' default values out of the box for a managed database, object storage and Clair.
+* The default installation options produces a fully supported Quay environment ready for production use.
+* The Operator provides 'sensible' default values for a managed database, object storage and Clair out of the box .
 * The `quayecosystem` Custom Resource has been replaced with the `QuayRegistry` Custom Resource
-* The Operator leverages the internal configuration validation logic of the Config Tool to ensure its results are consistent with configurations that you might create manually.
+* The Operator shares the same internal configuration validation logic of the Config Tool and Quay itself to ensure its results are consistent.
 * The Operator now relies on Red Hat OpenShift Container Storage (RHOCS) to supply light-weight object storage as the default managed storage choice.  It can also utilize an RHOCS presence already on your OpenShift cluster if so desired.
-* The Operator's manifests can be easily customized as needed to facilitate different types of deployments and configurations.
+* The Operator's image references can be customized for testing and development scenarios as needed.
 
-== Install the {productname} Operator
+== Install the Quay Operator
 
-If you want the Operator to use managed object storage, you will first need to insure RHOCS is available on your OpenShift cluster.  If you already have object storage ready to be used by the Operator, skip this step.
+=== Deciding On a Storage Solution
+
+If you want the Operator to managed its own object storage, you will first need to insure RHOCS is available on your OpenShift cluster.  If you already have object storage ready to be used by the Operator, skip to xref:Installing the Operator[Installing the Operator].
 
 To install the RHOCS Operator and configure a lightweight NooBaa (S3-compatible) object storage:
 
@@ -72,11 +72,11 @@ $ oc get -n openshift-storage noobaas noobaa -w
 NAME     MGMT-ENDPOINTS              S3-ENDPOINTS                IMAGE                                                                                                            PHASE   AGE
 noobaa   [https://10.0.32.3:30318]   [https://10.0.32.3:31958]   registry.redhat.io/ocs4/mcg-core-rhel8@sha256:56624aa7dd4ca178c1887343c7445a9425a841600b1309f6deace37ce6b8678d   Ready   3d18h
 ```
-+
 
-To install the {productname} Operator:
 
-. Select Operators -> OperatorHub, then select the {productname} Operator. If there is more than one, be sure to use the
+=== Installing the Operator
+
+. Select Operators -> OperatorHub, then select the Quay Operator. If there is more than one, be sure to use the
 Red Hat certified Operator and not the community version.
 
 . Select Install. The Operator Subscription page appears.
@@ -96,57 +96,115 @@ Red Hat certified Operator and not the community version.
 
 == Basic Quay Installation Via The Operator
 
-The simplest installation choice allows the Operator to manage all of Quay's dependent resources (database, redis, storage).  Create the following `QuayRegistry` Custom Resource in a file called `quay.yaml`
-+
-```
+The simplest installation choice allows the Operator to manage all of Quay's dependent resources (database, redis, storage).  Create the following `QuayRegistry` Custom Resource in a file called `quay.yaml`.
+
+.quay.yaml:
+[source,yaml]
+----
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
   name: skynet
-```
-+
+----
+
+
 Then create the CR in your project as follows:
-+
+
 ```
 $ oc create -n <your-namespace> -f quay.yaml
 ```
-+
-Navigate to your project page in the OpenShift console, or use the CLI to watch the deployments.  You should eventually see the Deployment `skynet-quay-app` completed with a single Pod running.  Navigate to the Networking tab on the OpenShift console and select Routes.  Click on the `Location` entry for the `skynet-quay` Route.  This should bring up the {productname} login page.  You can select 'Create Account' to create a user and sign in.  To create a superuser or configure your {productname} instance to use a different authentication mechanism, please consult the Managing {productname} documentation (<TODO- add a link>)
 
 
-=== Reviewing What Was Created by Default
+Navigate to your project page in the OpenShift console, or use the CLI to watch the deployments.  You should eventually see the `Deployment` called `skynet-quay-app` completed with a single `Pod` running.  Navigate to the Networking tab on the OpenShift console and select Routes.  Click on the `Location` entry for the `skynet-quay` `Route`.  This should bring up the {productname} login page.  You can select 'Create Account' to create a user and sign in.
+
+
+== Managed Components
+
+In the `QuayRegistry` Custom Resource, the `spec.components` field configures components. Each component contains two fields: `kind` - the name of the component, and `managed` - boolean whether the component lifecycle is handled by the Operator. By default (omitting this field), all components are managed and will be autofilled upon reconciliation for visibility:
+
+[source,yaml]
+----
+spec:
+  components:
+    - kind: postgres
+      managed: true
+    ...
+----
 
 Unless your `QuayRegistry` Custom Resource specifies otherwise, the Operator will use defaults for the following managed components:
 
-* Posgres.  <TODO- where do we get it?>
-* Redis.  <TODO- where do we get it?>
-* Object Storage.  Using the NooBaa `BackingStore` and `BucketClass` created prior to installing the {productname} Operator.
+* `postgres`  Stores the registry metadata.
+ifeval::["{productname}" == "Red Hat Quay"]
+Uses a version of Postgres 10 from the link:https://www.softwarecollections.org/en/[Software Collections].
+endif::[]
+ifeval::["{productname}" == "Project Quay"]
+Uses an upstream (CentOS) version of Postgres 10.
+endif::[]
+* `redis`  Handles Quay builder coordination and some internal logging.
+* `objectstorage`  Stores image layer blobs.  Uses the NooBaa `BackingStore` and `BucketClass` created prior to installing the Quay Operator.
+* `clair`  Provides image vulnerability scanning.
+* `horizontalpodautoscaler`  Adjusts the number of Quay pods depending on memory/cpu consumption.
+* `mirror`  Configures a repository mirror worker (to support optional repository mirroring).
+* `route`  Provides an external entrypoint to the Quay registry from outside of OpenShift.
 
-=== Managed Resource Considerations
 
-Wnile the Operator will handle any required configuration and installation work needed for {productname} to use the managed resources, there are several considerations to keep in mind.
+=== Considerations For Managed Components
+
+While the Operator will handle any required configuration and installation work needed for {productname} to use the managed components, there are several considerations to keep in mind.
 
 * Database backups should be performed regularly using either the supplied tools on the Postgres image or your own backup infrastructure.  The Operator does not currently ensure the Postgres database is backed up.
-<TODO: add a cli example how to do this>
-* Restoring the Postgres database from a backup must be done manually and in coordination with the Operator.  If you need to restore the Postgres database from a backup, we suggest the following method:
-<TODO: add simple restore procedure>
+* Restoring the Postgres database from a backup must be done using Postgres tools and procedures.  Be aware that your Quay `Pod`s should not be running while the database restore is in progress.
 * Database disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the database volume is currently not handled by the Operator.
 * Object storage disk space is allocated automatically by the Operator witih 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the RHOCS volume is currently not handled by the Operator.
-* The Operator will deploy a HorizontalPodAutoscaler by default for your Quay installation.
-* The Operator will deploy an OpenShift Route as the default entrpoint to the registry.
+* The Operator will deploy an OpenShift `Route` as the default entrpoint to the registry.  If you prefer a different entrypoint (e.g. `Ingress` or direct `Service` access that configuration will need to be done manually).
 
 If any of these considerations are unacceptable for your environment, it would be suggested to provide the Operator with unmanaged resources or overrides as described in the following sections.
 
-== Using An Existing Database or Redis With the Operator
+== Using Existing (Un-Managed) Components With the Operator
 
-If you have an existing Postgres and would like to use it for your Quay installation, you will need to use the ConfigTool to specify the database details and the Operator will pick up these changes and start using your database instead of the default.
+If you have an existing components such as Postgres, Redis or Object Storage that you would like to use with the operator, you first configure then within the Quay configuration bundle (`config.yaml`) and then reference the bundle in your `QuayRegistry` (as a Kubernetes `secret`) while indicating which Components are unmanaged.
 
-<TODO>
+For example, to use an existing Postgres database:
 
-== Using Existing Object Storage With the Operator
+. Create a Secret with the necessary database fields in a config.yaml:
++
+.config.yaml:
+[source,yaml]
+----
+DB_URI: postgresql://test-quay-database:postgres@test-quay-database:5432/
+test-quay-database 
+----
++
+----
+$ kubectl create secret generic --from-file config.yaml=./config.yaml test-config-bundle
+----
++
+. Create a QuayRegistry which marks postgres component as unmanaged and references the created Secret:
++
+.quayregistry.yaml
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: test
+spec:
+  configBundleSecret: test-config-bundle
+  components:
+    - kind: postgres
+      managed: false
+----
++
+The deployed Quay application will now use the external database.
 
-If you want the Operator to leverage an existing object storage solution,
-<TODO>
+[NOTE]
+====
+The Quay ConfigTool can also be used to create or modify an existing config bundle and simplify the process of updating the Kubernetes secret, especially for multiple changes.  When Quay's configuration is changed via the ConfigTool and sent to the Operator, the Quay deployment will be updated to reflect the new configuration.
+====
+
+=== Using Existing Object Storage With the Operator
+
+Follow the instructions above to register the `objectstorage` component as unmanaged and provide the necessary configuration values for your object storage solution.
 
 ifeval::["{productname}" == "Red Hat Quay"]
 The complete list of tested object storage solutions usable with {projectname} can be found in link:https://access.redhat.com/articles/4067991[the supported configurations page].
@@ -156,31 +214,45 @@ ifeval::["{productname}" == "Project Quay"]
 Most S3-compatible object storage solutions should work well with {productname}.  If possible, use a cloud hosted service such as Amazon S3, or Azure Blobs.  For on-premise deployments RHOCS or minio should work.
 endif::[]
 
-== Customizing Access to the Registry
+== Upgrading From Earlier Versions of Quay Operator
+
+The Quay Operator supports upgrades from previous versions of the Operator.  Quay installations being managed by the Operator version 3.3.0 or earlier will have its `quayecosystem` Custom Resource converted into a `QuayRegistry` resource automatically.  If the database is a managed resource in the `quayecosystem`, a new managed postgres component will be created in the `QuayRegistry` with data automatically migrated.
+
+[WARNING]
+====
+Beginning with Operator version 3.4.0, the Operator version is kept in lockstep with Quay product versions.  For example, Quay Operator 3.4.0 will install Quay 3.4.0 only.  This means that upgrading the Quay Operator will also upgrade your Quay instance.  This may have unintended consequences for production environments, in particular if the Quay upgrade requires any downtime.  Before upgrading the Quay Operator please check release notes to confirm that you also wish to upgrade your Quay deployment at the same time.
+====
+
+
+== Customizing the Quay Deployment
+
+The Quay Operator takes an opinionated strategy towards deploying Quay and Clair, however there are places where the Quay installation can be customized.
+
+=== Customizing Access to the Registry
 
 By default. the Operator creates a Service of `type: Loadbalancer` for your registry.  You can configure your DNS provider to point the `SERVER_HOSTNAME` to the external IP address of the service.
 
-+
 ```
 $ oc get services -n <namespace>
 NAME                    TYPE        CLUSTER-IP       EXTERNAL-IP          PORT(S)             AGE
 some-quay               ClusterIP   172.30.143.199   34.123.133.39        443/TCP,9091/TCP    23h
 ```
-+
 
 When running on OpenShift, the Routes API is available and will automatically be used as a managed component. After creating the QuayRegistry, the external access point can be found in the status block of the `QuayRegistry`:
-+
-```
+
+[source,yaml]
+----
 status:
   registryEndpoint: some-quay.my-namespace.apps.mycluster.com
-```
-+
+----
+
 
 === Using a Custom Hostname and TLS
 
 By default, a Route will be created with the default generated hostname and a certificate/key pair will be generated for TLS.  If you want to access {productname} using a custom hostname and bring your own TLS certificate/key pair, first create a Secret which contains the following:
-+
-```
+
+[source,yaml]
+----
 apiVersion: v1
 kind: Secret
 metadata:
@@ -189,26 +261,27 @@ data:
   config.yaml: <must include SERVER_HOSTNAME field with your custom hostname>
   ssl.cert: <your TLS certificate>
   ssl.key: <your TLS key>
-```
-+
+----
+
 Then, create a QuayRegistry which references the created `Secret`:
-+
-```
+
+[source,yaml]
+----
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
   name: some-quay
 spec:
   configBundleSecret: my-config-bundle
-```
-+
+----
 
 
 === Disabling the Default Route to the Registry
 
 To instruct the Operator not to deploy a Route with your registry, add the following to your `QuayRegistry` Custom Resource.
-+
-```
+
+[source,yaml]
+----
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
@@ -217,15 +290,19 @@ spec:
   components:
     - kind: route
       managed: false
-```
-+
-Note that you are now responsible for creating a Route, Service, or Ingress in order to access the Quay instance and that whatever DNS you use must match the SERVER_HOSTNAME in the Quay config.
+----
 
-== Disabling the Horizontal Pod Autoscaler
+[NOTE]
+====
+Disabling the default `Route` means you are now responsible for creating a Route, Service, or Ingress in order to access the Quay instance and that whatever DNS you use must match the SERVER_HOSTNAME in the Quay config.
+====
+
+=== Disabling the Horizontal Pod Autoscaler
 
 To instruct the Operator not to deploy a HorizontalPodAutoscaler with your registry, add the following to your `QuayRegistry` Custom Resource.
-+
-```
+
+[source,yaml]
+----
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
@@ -234,41 +311,63 @@ spec:
   components:
     - kind: horizontalpodautoscaler
       managed: false
-```
-+
+----
 
-== Upgrading From Earlier Versions of {productname} Operator
+=== Customizing Default Operator Images
 
-The {productname} Operator supports upgrades from previous versions of the Operator.  For Quay installations being managed by the Operator version 3.3.0 or earlier will need to have its `quayecosystem` Custom Resource converted into a `QuayRegistry` resource.  The Operator will handle this automatically when the Operator itself is ugpraded.  Note that upgrading the Operator does not automatically upgrade your Quay installation.
+[NOTE]
+====
+Using this mechanism is not supported for production Quay environments and is strongly encouraged only for development/testing purposes.  Since this technique depends on a specific Kustomize feature it may be changed or removed in future versions without warning.
+====
 
-== Upgrading Quay Via the Operator
+In certain circumstances, it may be necessary to override the default images used by the Operator.  The Operator uses the link:https://github.com/kubernetes-sigs/kustomize[Kustomize] framework to handle manifest generation.  Using this framework it is possible to inject custom values for the following image references:
 
-In order to request that the Operator upgrade your version of Quay, add the `<TODO>` annotation into your `QuayRegistry` Custom Resource:
-<TODO: add the annotation into the example below>
-+
-```
+* `quay.io/projquay/quay`
+* `quay.io/projquay/clair`
+* `postgres`
+* `redis`
+
+==== Create Override ConfigMap
+
+Create a `ConfigMap` called `quay-dev-kustomize` in the same namespace that the Operator is installed in with the following contents in the `kustomization.yaml` key:
+
+[source,yaml]
+----
+# Overlay variant for "dev".
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+commonAnnotations:
+  quay-version: dev
+bases:
+  - ../../../tmp
+images:
+  # Replace `newName` with your custom image or leave it the same.
+  - name: quay.io/projectquay/quay
+    newName: quay.io/alecmerdler/quay
+    newTag: dev
+  - name: quay.io/projectquay/clair
+    newName: quay.io/alecmerdler/clair
+    newTag: dev
+  - name: postgres
+    newName: postgres
+  - name: redis
+    newName: redis
+----
+
+Either create this before installing the Operator, or simply restart the Operator `Pod` so that it mounts in the `ConfigMap` as a volume.
+
+==== Desired Version
+
+Now when you create a `QuayRegistry` with the `spec.desiredVersion` set to `dev`, it will "inflate" to use these custom images:
+
+[source,yaml]
+----
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
-  name: unmanaged
+  name: override
 spec:
-  configBundleSecret: quay-config-bundle-abc123
-  components:
-    - kind: postgres
-      managed: false
-    - kind: redis 
-      managed: false
-    - kind: clair
-      managed: false
-    - kind: objectstorage 
-      managed: false
-```
-+
+  desiredVersion: dev
+----
 
-== Customizing {productname} Operator manifests
-<TODO>
-
-.Additional resources
-
-* For more details on the {productname} Operator, see the upstream
-link:https://github.com/quay/quay-operator/[quay-operator] project.
+Note that this is done at the Operator level, so every QuayRegistry will be deployed using these same overrides.
