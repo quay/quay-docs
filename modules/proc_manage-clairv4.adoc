@@ -1,29 +1,15 @@
 [[clair-v4]]
-= Using Clair V4 Security Scanning
+= Clair Security Scanning
 
-Clair v4 is the next generation of Clair image scanning available
-with {productname}. Clair v4 is currently released as
-link:https://access.redhat.com/support/offerings/techpreview[Technology Preview],
-which means that it is not supported for production use. However, you are
-encouraged to test Clair v4 as it represents the direction of Clair image scanning
-development.
+== What is Clair?
 
-To align with the {productname} release, the current Clair v4 release image
-is clair:{productminv}.
-
-== What is Clair v4?
-
-Technically, Clair v4 is a set of micro services that can be used with {productname}
+Clair is a set of micro services that can be used with {productname}
 to perform vulnerability scanning of container images associated with a set of
-Linux operating systems. The micro services design of Clair v4 makes it
+Linux operating systems. The micro services design of Clair makes it
 appropriate to run in a highly scalable configuration, where
 components can be scaled separately as appropriate for enterprise environments.
 
-For the purposes of trying out Clair v4, we recommend running it in combo mode (see
-link:https://github.com/quay/openshift-demo/blob/master/clairv4/clair-combo.yaml[clair-combo.yaml])
-This mode, described here, brings all the microservices together as one process.
-
-All supported security databases for Clair v4 are turned on. These databases include:
+Clair uses the following vulnerability databases to scan for issues in your images:
 
 * Alpine SecDB database
 * AWS UpdateInfo
@@ -32,25 +18,44 @@ All supported security databases for Clair v4 are turned on. These databases inc
 * RHEL Oval database
 * SUSE Oval database
 * Ubuntu Oval database
+* Pyup.io (python) database
 
 For information on how Clair does security mapping with the different databases, see
-link:https://quay.github.io/claircore/v0.0.19/severity_mapping.html[ClairCore Severity Mapping].
+link:https://quay.github.io/claircore/concepts/severity_mapping.html[ClairCore Severity Mapping].
 
-[WARNING]
+[NOTE]
 ====
-Because Clair v4 is Technology Preview, don't expect 100% accurate reporting.
-Expect that the presentation of vulnerability results will look different going
-forward than they did with v2. Over time, Clair v4 will produce more results.
+With the release of Red Hat Quay 3.4, the default version of Clair is V4.  This new version V4 is no longer being released as link:https://access.redhat.com/support/offerings/techpreview[Technology Preview] and is supported for production use.  Customers are strongly encouraged to use Clair V4 for with Red Hat Quay 3.4.  It is possible to run both Clair V4 and Clair V2 simultaneously if so desired.  In future versions of Red Hat Quay, Clair V2 will eventually be removed.
+
+The documentation on Clair V2 can be found xref:{productname} Security Scanning with Clair V2[here].
 ====
 
-The steps for using Clair v4 alongside an existing {productname} + Clair v2 environment are
-described next.
+=== Running Clair V4 and Clair V2 Simultaneously
 
-== Configuring Clair v4
+While Clair V4 is the recommended go-forward version of Clair, it and Clair V2 can run concurrently with {productname}.  This is useful for existing {productname} deployments that have relied on Clair V2 but wish to start using Clair V4.  When Clair V4 is added to a {productname} deployment currently running Clair V2, new image vulnerability scans will only happen in Clair V4.  Clair V4 will begin re-scanning existing images in {productname} and over time "catch up" to the results already in Clair V2.  
 
-To try out Clair v4, stand up a {productname} cluster
-with a running Clair v2 instance. Then use the following procedure
-to run Clair v4 along side it. Here is how to do that on an OpenShift v4.2 or later cluster on an AWS cloud.
+You can verify which images have already been scanned by Clair V4 by using the following {productname} API (refer to link:use_quay.html#_accessing_your_quay_api_from_a_web_browser[Using The Quay API] for details):
+
+```
+/secscan/_backfill_status
+```
+This will produce a simple JSON response with the percentage of completed manifests scanned by Clair V4:
+
+[source,json]
+```
+{"backfill_percent": 73.4}}
+```
+
+Once the majority of the images in your registry have been scanned by Clair V4, you should be able to disable the Clair V2 deployment entirely.
+
+
+== Setting Up Clair on a {productname} OpenShift deloyment
+
+=== Deploying Via the Quay Operator
+To set up Clair V4 on a new {productname} deployment on OpenShift, it is highly recommended to use the xref:deploy_quay_on_openshift_op_tng.adoc[Quay Operator].  By default, the Quay Operator will install or upgrade a Clair deployment along with your {productname} deployment and configure Clair security scanning automatically. 
+
+=== Manually Deploying Clair
+To configure Clair V4 on an existing {productname} OpenShift deployment running Clair V2, first ensure {productname} has been upgraded to at least version 3.4.0.  Then use the following steps to manually set up Clair V4 alongside Clair V2.
 
 . Set your current project to the name of the project in which {productname} is running.
 For example:
@@ -143,7 +148,7 @@ spec:
 $ oc create -f ./clairv4-postgres.yaml
 ```
 
-. Create a Clair config.yaml file to use for Clair v4. For example:
+. Create a Clair `config.yaml` file to use for Clair v4. For example:
 +
 .config.yaml
 [source,yaml]
@@ -175,7 +180,7 @@ metrics:
 
 More information about Clair's configuration format can be found in link:https://quay.github.io/clair/reference/config.html[upstream Clair documentation]. 
 
-. Create a secret from the Clair config.yaml:
+. Create a secret from the Clair `config.yaml`:
 +
 ```
 $ oc create secret generic clairv4-config-secret --from-file=./config.yaml
@@ -204,7 +209,7 @@ spec:
         quay-component: clair-combo
     spec:
       containers:
-        - image: {productrepo}/clair:{clairnewver}  <1>
+        - image: {productrepo}/clair:{productminv}  <1>
           imagePullPolicy: IfNotPresent
           name: clair-combo
           env:
@@ -253,7 +258,7 @@ spec:
 <1> Change image to latest clair image name and version.
 <2> With the Service set to clairv4, the scanner endpoint for Clair v4
 is entered later into the {productname} config.yaml in the
-SECURITY_SCANNER_V4_ENDPOINT as http://clairv4.
+`SECURITY_SCANNER_V4_ENDPOINT` as `http://clairv4`.
 
 . Create the Clair v4 deployment as follows:
 +
@@ -266,16 +271,11 @@ entries at the end:
 +
 [source,yaml]
 ----
-...
 FEATURE_SECURITY_SCANNER: true
 SECURITY_SCANNER_V4_ENDPOINT: http://clairv4 <1>
-SECURITY_SCANNER_V4_NAMESPACE_WHITELIST: <2>
-  - "clairv4-org"
-  - "foo-org"
 ----
 <1> Identify the Clair v4 service endpoint
-<2> Replace `clair4-org` and `foo-org` with namespaces (organizations and
-users) in your {productname} cluster you want to use Clair v4 scanning
+
 
 . Redeploy the modified `config.yaml` to the secret containing that file
 (for example, `quay-enterprise-config-secret`:
@@ -294,7 +294,7 @@ namespace whitelist will be scanned by Clair v4.
 
 == Setting up Clair on a non-OpenShift {productname} deployment
 
-For {productname} deployments not running on OpenShift, it is possible to configure Clair security scanning.
+For {productname} deployments not running on OpenShift, it is possible to configure Clair security scanning manually.  {productname} deployments already running Clair V2 can use the instructions below to add Clair V4 to their deployment.
 
 . Deloy a (preferably fault-tolerant) Postgres database server.  Note that Clair requires the `uuid-ossp` extension to be added to its Postgres database.  If the user supplied in Clair's `config.yaml` has the necessary privileges to create the extension then it will be added automatically by Clair itself.  If not, then the extension must be added before starting Clair.  If the extension is not present, the following error will be displayed when Clair attempts to start.
 +
@@ -347,7 +347,7 @@ Running multiple Clair containers in this fashion is also possible, but for depl
 == Using Clair
 
 . Log in to your {productname} cluster and select an organization for which you have configured
-Clair v4 scanning.
+Clair scanning.
 
 . Select a repository from that organization that holds some images and
 select Tags from the left navigation. The following figure shows an example
@@ -362,7 +362,10 @@ following figure shows information on all vulnerabilities found:
 image:clair-vulnerabilities.png[See all vulnerabilities or only those that are fixable]
 
 == Clair Notifications
-<TODO>
+
+When Clair received a new vulnerability affecting a previously indexed manifest, it will notify {productname} so that a new scan can be requested.  Only the most severe vulnerabilities trigger a notification to avoid excessive scan requests.  This notification mechanism is automatically set up when Clair is configured in {productname}'s configuration.
+
+Clair notifications can also be set up for external consumption via AMQP and STOMP protocols.  For details on how to set this up please consult the link:https://quay.github.io/clair/concepts/notifications.html[upstream Clair documentation].
 
 == Configuring Clair for Disconnected Environments
 
