@@ -155,7 +155,7 @@ While the Operator will handle any required configuration and installation work 
 * Database backups should be performed regularly using either the supplied tools on the Postgres image or your own backup infrastructure.  The Operator does not currently ensure the Postgres database is backed up.
 * Restoring the Postgres database from a backup must be done using Postgres tools and procedures.  Be aware that your Quay `Pod`s should not be running while the database restore is in progress.
 * Database disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the database volume is currently not handled by the Operator.
-* Object storage disk space is allocated automatically by the Operator witih 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the RHOCS volume is currently not handled by the Operator.
+* Object storage disk space is allocated automatically by the Operator witih 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the RHOCS volume is currently not handled by the Operator.  See the section below on resizing managed storage for more details.
 * The Operator will deploy an OpenShift `Route` as the default entrpoint to the registry.  If you prefer a different entrypoint (e.g. `Ingress` or direct `Service` access that configuration will need to be done manually).
 
 If any of these considerations are unacceptable for your environment, it would be suggested to provide the Operator with unmanaged resources or overrides as described in the following sections.
@@ -214,15 +214,46 @@ ifeval::["{productname}" == "Project Quay"]
 Most S3-compatible object storage solutions should work well with {productname}.  If possible, use a cloud hosted service such as Amazon S3, or Azure Blobs.  For on-premise deployments RHOCS or minio should work.
 endif::[]
 
-== Upgrading From Earlier Versions of Quay Operator
+== Quay Operator and Upgrades
 
-The Quay Operator supports upgrades from previous versions of the Operator.  Quay installations being managed by the Operator version 3.3.0 or earlier will have its `quayecosystem` Custom Resource converted into a `QuayRegistry` resource automatically.  If the database is a managed resource in the `quayecosystem`, a new managed postgres component will be created in the `QuayRegistry` with data automatically migrated.
+The Quay Operator follows a synchronized versioning scheme with Quay itself.  This means that the version of the Quay Operator must match the version of Quay running.  This not only greatly simplifies the complexity of the Operator, it also helps to ensure the Operator being run is fully tested with the version of Quay in use.
+
+A consequence of this, however, is that once the Operator is upgraded the Quay installation that it manages must be upgraded as well.  Please review Quay release notes prior to upgrading your Quay Operator to ensure that the new Quay version is desired as well.
 
 [WARNING]
 ====
-Beginning with Operator version 3.4.0, the Operator version is kept in lockstep with Quay product versions.  For example, Quay Operator 3.4.0 will install Quay 3.4.0 only.  This means that upgrading the Quay Operator will also upgrade your Quay instance.  This may have unintended consequences for production environments, in particular if the Quay upgrade requires any downtime.  Before upgrading the Quay Operator please check release notes to confirm that you also wish to upgrade your Quay deployment at the same time.
+When the Quay Operator is installed via Operator Lifecycle Manager it may be configured to support automatic or manual upgrades.  This option is shown on the Operator Hub page for the Quay Operator during installation.  It can also be found in the Quay Operator `Subscription` object via the `approvalStrategy` field.  Choosing Automatic` means that your Quay Operator will automatically be upgraded whenever a new Operator version is released.  If this is not desireable, then the `Manual` approval strategy should be selected.
 ====
 
+=== How the Quay Operator Performs Upgrades
+
+When the Quay Operator performs an upgrade, the exact actions it takes depends on which version it is upgrading from.  This can be determined by whether you are upgrading from a `QuayEcosystem` Resource ({productname}} 3.3 and prior) or a `QuayRegistry` resource ({productname} 3.4 and higher).
+
+==== Upgrading a QuayRegistry
+
+When the Quay Operator starts up, it immediately looks for any QuayRegistries it can find in the namespace(s) it is configured to watch. When it finds one it consults the `status.currentVersion` field and takes the following actions:
+
+* If `status.currentVersion` is empty or same as Operator's version:
+** do nothing
+* If `status.currentVersion` is not same as the Operator's version:
+** if Quay can be ugpraded:
+*** Perform Quay upgrade.  Set `status.currentVersion` to Operator version
+** if Quay cannot be upgraded:
+*** Set an error status in `QuayRegistry` and do nothing
+
+==== Ugrading a QuayEcosystem
+
+Earlier versions of the Quay Operator used the `QuayEcosystem` resource.  To ensure that migrations do not happen unexpectedly, a special label needs to be applied to the `QuayEcosystem` for it to be migrated. A new `QuayRegistry` will be created for the Operator to manage, but the old `QuayEcosystem` will remain until manually deleted to ensure that you can roll back and still access Quay in case anything goes wrong. To migrate an existing `QuayEcosystem` to a new `QuayRegistry`, follow these steps:
+
+. Add "quay-operator/migrate": "true" to the `metadata.labels` of the `QuayEcosystem`.
+. Wait for a `QuayRegistry` to be created with the same `metadata.name` as your `QuayEcosystem`.
+. Once the `status.registryEndpoint` of the new `QuayRegistry` is set, access Quay and confirm all data and settings were migrated successfully.
+. When you are confident everything worked correctly, you may delete the `QuayEcosystem` and Kubernetes garbage collection will clean up all old resources.
+
+[NOTE]
+====
+If your `QuayEcosystem` was managing the {productname} Postgres database, the upgrade process will migrate your data to a new Postgres database managed by the upgraded Operator.  Your old database will not be changed or removed but Quay will no longer use it once the migration is completed.  If there are issues during the data migration, the upgrade process will exit and it is recommended that you continue with your database as an unmanaged component.
+====
 
 == Customizing the Quay Deployment
 
@@ -296,6 +327,37 @@ spec:
 ====
 Disabling the default `Route` means you are now responsible for creating a Route, Service, or Ingress in order to access the Quay instance and that whatever DNS you use must match the SERVER_HOSTNAME in the Quay config.
 ====
+
+=== Resizing Managed Storage
+
+The Quay Operator creates default object storage using the defaults provided by RHOCS when creating a NooBaa object (50 Gib).  There are two ways to extend this storage; you can resize an existing PVC or add more PVCs to a new storage pool.
+
+==== Resize Noobaa PVC
+
+. Log into the OpenShift console and select `Storage` -> `Persistent Volume Claims`.
+. Select the `PersistentVolumeClaim` named like `noobaa-default-backing-store-noobaa-pvc-*`.
+. From the Action menu, select `Expand PVC`.
+. Enter the new size of the Persistent Volume Claim and select `Expand`.
+
+After a few minutes (depending on the size of the PVC), the expanded size should reflect in the PVC's `Capacity` field.
+
+[NOTE]
+====
+This feature is still considered `Technology Preview` and not recommended for production deployments.
+====
+
+==== Add Another Storage Pool
+
+. Log into the OpenShift console and select `Networking` -> `Routes`.  Make sure the `openshift-storage` project is selected.
+. Click on the `Location` field for the `noobaa-mgmt` Route.
+. Log into the Noobaa Management Console.
+. On the main dashboard, under `Storage Resources`, select `Add Storage Resources`.
+. Select `Deploy Kubernetes Pool`
+. Enter a new pool name.  Click `Next`.
+. Choose the number of Pods to manage the pool and set the size per node.  Click `Next`.
+. Click `Deploy`.
+
+After a few minutes, the additional storage pool will be added to the Noobaa resources and available for use by {productname}.
 
 === Disabling the Horizontal Pod Autoscaler
 
