@@ -2,17 +2,11 @@
 
 = Prerequisites for {productname} on OpenShift
 
-Here are a few things you need to know before you begin
-the {productname} on OpenShift deployment:
+Here are a few things you need to know before you begin the {productname} Operator on OpenShift deployment:
 
-* *OpenShift cluster*: You need a privileged account to an OpenShift 4.2 or later
-cluster on which to deploy
-the {productname}. That account must have the ability to create namespaces at the cluster scope.
+* *OpenShift cluster*: You need a privileged account to an OpenShift 4.5 or later cluster on which to deploy the {productname} Operator. That account must have the ability to create namespaces at the cluster scope.
 
-* *Storage*: AWS cloud storage is used as an example in the following procedure.
-As an alternative, you can create Ceph cloud storage using steps
-from the link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/deploy_red_hat_quay_-_high_availability/#set_up_ceph[Set up Ceph] section of the high availability {productname} deployment guide.
-The following is a list of other supported cloud storage:
+* *Object Storage*: By default, the {productname} Operator uses the `ObjectBucketClaim` Kubernetes API to provision object storage. Consuming this API decouples the Operator from any vendor-specific implementation. OpenShift Container Storage provides this API via its NooBaa component, which will be used in this example. Otherwise, {productname} can be manually configured to use any of the following supported cloud storage options:
 
 ** Amazon S3 (see link:https://access.redhat.com/solutions/3680151[S3 IAM Bucket Policy] for details on configuring an S3 bucket policy for {productname})
 ** Azure Blob Storage
@@ -20,28 +14,3 @@ The following is a list of other supported cloud storage:
 ** Ceph Object Gateway (RADOS)
 ** OpenStack Swift
 ** CloudFront + S3
-** OpenShift Container Storage (NooBaa S3 Storage). (See link:https://access.redhat.com/articles/4356091[Configuring Red Hat OpenShift Container Storage for Red Hat Quay])
-
-* *Services*: The OpenShift cluster must have enough capacity to run
-the following containerized services:
-
-** *Database*: We recommend you use an enterprise-quality database for production use of {productname}.
-PostgreSQL is used as an example in this document. Other options include:
-
-*** Crunchy Data PostgreSQL Operator: Although not supported directly by Red Hat,
-the link:https://access.crunchydata.com/documentation/postgres-operator/latest/[CrunchDB Operator]
-is available from link:https://www.crunchydata.com/[Crunchy Data] for use with {productname}.
-If you take this route, you should have a support contract with Crunchy Data and
-work directly with them for usage guidance or issues relating to the operator and their database.
-
-*** If your organization already has a high-availability (HA) database, you can use that database
-with {productname}. See the
-link:https://access.redhat.com/support/policy/updates/rhquay/policies[{productname} Support Policy]
-for details on support for third-party databases and other components.
-
-** *Key-value database*: Redis is used to serve live builder logs and {productname}
-tutorial content to your {productname} configuration.
-
-** *{productname}*: The quay container provides the features to manage the {productname} registry.
-
-** *Clair*: The clair-jwt container provides Clair scanning services for the registry.
