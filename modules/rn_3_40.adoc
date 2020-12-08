@@ -19,6 +19,8 @@ FEATURE_HELM_OCI_SUPPORT = True
 
 Fixed:
 
+* PROJQUAY-121  Build manager scheduling too many builds
+* PROJQUAY-139  Quay starts unreasonable number of workers when running in a container
 * PROJQUAY-206	Repo mirroring sometimes locks up
 * PROJQUAY-357	properly escape arguments in entrypoint config
 * PROJQUAY-381	Existing tags get deleted when mirroring fails
@@ -36,21 +38,31 @@ Fixed:
 * PROJQUAY-796	Mirrored images have new digest
 * PROJQUAY-797	Config app does not copy database SSL file to correct place 
 * PROJQUAY-808	Dockerfile upload failure (LocalStorage)
+* PROJQUAY-813  Quay cannot connect to mysql db when SSL/TLS is required
 * PROJQUAY-822	Quay App POD log should not print out LDAP user's password as plaintext
+* PROJQUAY-850  config app fails to generate clair security.pem
 * PROJQUAY-861	Deploy Quay is failed with AWS S3 as backend storage registry
+* PROJQUAY-866  Possible name collisions when deplying multiple `QuayRegistries`
+* PROJQUAY-867  Restrict Quay Operator to Single Namespace
+* PROJQUAY-871  Kustomize secrets broken with prefixed resource names
+* PROJQUAY-884  Add support for tar.gz config bundles
+* PROJQUAY-887  Error when controller processes existing QuayRegistry
 * PROJQUAY-907	repo mirror start date not calculated correctly
 * PROJQUAY-915	Simultaneously pushing the same manifest can result in a manifest error
 * PROJQUAY-917	Incorrect encoding of CSRF token in UI
 * PROJQUAY-923	Failed to set GCS as the storage backend for Quay via config tool
 * PROJQUAY-930	Config bundle contains fields for unmanaged components
+* PROJQUAY-933  Quay config app failed to validate Noobaa SSL configurations
 * PROJQUAY-934	Quay edit permissions of robot account redirect to quay 500 error page
 * PROJQUAY-935	Quay Image Repository Mirror was stuck 
 * PROJQUAY-940	Quay delete in use robot account get 500 error page
 * PROJQUAY-942	Quay push image was failed when backend storage is Azure Blob Storage
 * PROJQUAY-948	list_manifest_layers should not fail on shared blobs
+* PROJQUAY-949  Have Clair V4 indexing handle manifest layer error	
 * PROJQUAY-953	Quay image repository Tags page can't display existing image tags
 * PROJQUAY-958	Unhandled date token outside the given date range used for elasticsearch pagination
 * PROJQUAY-973	Transaction error if the same repository is created twice during auth flow
+* PROJQUAY-988  Quay update tag expiration does not work
 * PROJQUAY-1002	Helm 3 OCI Support Push Fails due to invalid MIME type
 * PROJQUAY-1011	Accessing build logs from super user panel doesnt work
 * PROJQUAY-1015	RPM command error when getting rpm packages from layer database    
@@ -61,6 +73,8 @@ Fixed:
 * PROJQUAY-1103	Remove need to modify SCC 
 * PROJQUAY-1112	Quay database reaches connection limit
 * PROJQUAY-1122	Specify pull secret for component images
+* PROJQUAY-1132 running as config should not try to set httppasswd
+
 
 
 Deprecated:
@@ -73,14 +87,13 @@ Note:
 * Upgrading to Quay 3.4 will require a database migration which is does not support downgrading back to a prior version of Quay.  Please back up your database before performing a migration.
 
 Known Issues:
+* Official Red Hat repositories may now contain "source" images which will be included in Mirrored repositories.  See link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index#getting-ubi-container-image-source-code_adding-software-to-a-running-ubi-container[Getting UBI Container Image Source Code] for an example of a source image tag.  There is no simple way to exclude these source containers using Quay's current tag patterns.  This will be addressed in future Quay versions.
 
-* <TODO>
 
 
 === quay-operator
 
-* Only supported on OCP-4.2 or newer
-* UI supported on OCP-4.3 or newer
+* Only supported on OCP-4.5 or newer
 
 Added:
 
@@ -106,6 +119,9 @@ Fixed:
 === quay-openshift-bridge-operator
 
 * Only supported on OCP-4.2 or newer
+
+Fixed:
+* PROJQUAY-1225 bridge-operator update to go-1.15
 
 
 link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/red_hat_quay_release_notes#rn-3-400[Link to this Release]
