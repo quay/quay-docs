@@ -25,8 +25,7 @@ TAG_EXPIRATION_OPTIONS
 ** **Example**: `s3_us_east`
 * **ACTION_LOG_ARCHIVE_PATH** [string]: If action log archiving is enabled, the path in storage in which to place the archived data.
 ** **Example**: `archives/actionlogs`
-* **ACTION_LOG_ROTATION_THRESHOLD** [string]: If action log archiving is enabled, the time interval after which to
-rotate logs.
+* **ACTION_LOG_ROTATION_THRESHOLD** [string]: If action log archiving is enabled, the time interval after which to rotate logs.
 ** **Example**: `30d`
 * **ALLOW_PULLS_WITHOUT_STRICT_LOGGING** [boolean]: If true, pulls in which the pull audit log entry cannot be written will still succeed. Useful if the database can fallback into a read-only state and it is desired for pulls to continue during that time. Defaults to False.
 ** **Example**: `True`
@@ -251,8 +250,81 @@ rotate logs.
 *** **Example**: `0e8dbe15c4c7630b6780`
 ** **CLIENT_SECRET** [string] required: The registered client secret for this {productname} instance.
 *** **Example**: e4a58ddd3d7408b7aec109e85564a0d153d3e846
+* **GPG2_PRIVATE_KEY_FILENAME** [string]: The filename of the private key used to decrypte ACIs.
+** **Example**: `/path/to/file`
+* **GPG2_PRIVATE_KEY_NAME** [string]: The name of the private key used to sign ACIs.
+** **Example**: `gpg2key`
+* **GPG2_PUBLIC_KEY_FILENAME** [string]: The filename of the public key used to encrypt ACIs.
+** **Example**: `/path/to/file`
 * **HEALTH_CHECKER** [string]: The configured health check.
 ** **Example**: `('RDSAwareHealthCheck', {'access_key': 'foo', 'secret_key': 'bar'})`
+* **JWT_AUTH_ISSUER** [string]: The endpoint for JWT users.
+** **Example**: `http://192.168.99.101:6060`
+** **Pattern**: `^http(s)?://(.)+$`
+* **JWT_GETUSER_ENDPOINT** [string]: The endpoint for JWT users.
+** **Example**: `http://192.168.99.101:6060`
+** **Pattern**: `^http(s)?://(.)+$`
+* **JWT_QUERY_ENDPOINT** [string]: The endpoint for JWT queries.
+** **Example**: `http://192.168.99.101:6060`
+** **Pattern**: `^http(s)?://(.)+$`
+* **JWT_VERIFY_ENDPOINT** [string]: The endpoint for JWT verification.
+** **Example**: `http://192.168.99.101:6060`
+** **Pattern**: `^http(s)?://(.)+$`
+* **LDAP_ADMIN_DN** [string]: The admin DN for LDAP authentication.
+* **LDAP_ADMIN_PASSWD** [string]: The admin password for LDAP authentication.
+* **LDAP_ALLOW_INSECURE_FALLBACK** [boolean]: Whether or not to allow SSL insecure fallback for LDAP authentication.
+* **LDAP_BASE_DN** [string]: The base DN for LDAP authentication.
+* **LDAP_EMAIL_ATTR** [string]: The email attribute for LDAP authentication.
+* **LDAP_UID_ATTR** [string]: The uid attribute for LDAP authentication.
+* **LDAP_URI** [string]: The LDAP URI. 
+* **LDAP_USER_FILTER** [string]: The user filter for LDAP authentication.
+* **LDAP_USER_RDN** [array]: The user RDN for LDAP authentication.
+* **LOGS_MODEL** [string]: Logs model for action logs.
+** **enum**: database, transition_reads_both_writes_es, elasticsearch
+** **Example**: `database`
+* **LOGS_MODEL_CONFIG** [object]: Logs model config for action logs
+** **elasticsearch_config** [object]: Elasticsearch cluster configuration
+*** **access_key** [string]: Elasticsearch user (or IAM key for AWS ES)
+**** **Example**: `some_string`
+*** **host** [string]: Elasticsearch cluster endpoint
+**** **Example**: `host.elasticsearch.example`
+*** **index_prefix** [string]: Elasticsearch's index prefix
+**** **Example**: `logentry_`
+*** **index_settings** [object]: Elasticsearch's index settings
+*** **use_ssl** [boolean]: Use ssl for Elasticsearch. Defaults to True
+**** **Example**: `True`
+*** **secret_key** [string]: Elasticsearch password (or IAM secret for AWS ES)
+**** **Example**: `some_secret_string`
+*** **aws_region** [string]: Amazon web service region
+**** **Example**: `us-east-1`
+*** **port** [number]: Elasticsearch cluster endpoint port
+**** **Example**: `1234`
+** **kinesis_stream_config** [object]: AWS Kinesis Stream configuration
+*** **aws_secret_key** [string]: AWS secret key
+**** **Example**: `some_secret_key`
+*** **stream_name** [string]: Kinesis stream to send action logs to
+**** **Example**: `logentry-kinesis-stream`
+*** **aws_access_key** [string]: AWS access key
+**** **Example**: `some_access_key`
+*** **retries** [number]: Max number of attempts made on a single request
+**** **Example**: `5`
+*** **read_timeout** [number]: Number of seconds before timeout when reading from a connection
+**** **Example**: `5`
+*** **max_pool_connections** [number]: The maximum number of connections to keep in a connection pool
+**** **Example**: `10`
+*** **aws_region** [string]: AWS region
+**** **Example**: `us-east-1`
+*** **connect_timeout** [number]: Number of seconds before timeout when attempting to make a connection
+**** **Example**: `5`
+** **producer** [string]: Logs producer if logging to Elasticsearch
+*** **enum**: kafka, elasticsearch, kinesis_stream
+*** **Example**: `kafka`
+** **kafka_config** [object]: Kafka cluster configuration
+*** **topic** [string]: Kafka topic to publish log entries to
+**** **Example**: `logentry`
+*** **bootstrap_servers** [array]: List of Kafka brokers to bootstrap the client from
+*** **max_block_seconds** [number]: Max number of seconds to block during a `send()`, either because the buffer is full or metadata unavailable
+**** **Example**: `10`
 * **LOG_ARCHIVE_LOCATION** [string]: If builds are enabled, the storage engine in which to place the archived build logs.
 ** **Example**: `s3_us_east`
 * **LOG_ARCHIVE_PATH** [string]: If builds are enabled, the path in storage in which to place the archived build logs.
@@ -309,6 +381,8 @@ rotate logs.
 ** **Example**: `http://192.168.99.101:6060`
 * **SECURITY_SCANNER_INDEXING_INTERVAL** [number]: The number of seconds between indexing intervals in the security scanner. Defaults to 30.
 ** **Example**: `30`
+* **SECURITY_SCANNER_NOTIFICATIONS** [boolean]: Whether or not to the security scanner notification feature
+** **Example**: `false`
 * **SECURITY_SCANNER_V4_ENDPOINT** [string]: The endpoint for the V4 security scanner.
 ** **Pattern**: ``^http(s)?://(.)+$``
 ** **Example**: `http://192.168.99.101:6060`
@@ -339,6 +413,10 @@ can occur before a build trigger is automatically disabled. Defaults to 5.
 * **TEAM_RESYNC_STALE_TIME** [string]: If team syncing is enabled for a team, how often to check its membership and resync if necessary (Default: 30m).
 ** **Pattern**: ``^[0-9]+(w|m|d|h|s)$``
 ** **Example**: `2h`
+* **USERFILES_LOCATION** [string]: ID of the storage engine in which to place user-uploaded files
+** **Example**: `s3_us_east`
+* **USERFILES_PATH** [string]: Path under storage in which to place user-uploaded files
+** **Example**: `userfiles`
 * **USER_EVENTS_REDIS** [object] required: Connection information for Redis for user event handling.
 ** **HOST** [string] required: The hostname at which Redis is accessible.
 *** **Example**: `my.redis.cluster`
