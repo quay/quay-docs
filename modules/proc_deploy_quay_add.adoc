@@ -46,13 +46,15 @@ run {productname} as a container, as follows:
 +
 [NOTE]
 ====
-Add `-e DEBUGLOG=true` to the `docker run` command line for
+Add `-e DEBUGLOG=true` to the `podman run` command line for
 the quay container to enable debug level logging.
+Add `-e IGNORE_VALIDATION=true` to bypass validation during
+the startup process.
 ====
 +
 [subs="verbatim,attributes"]
 ```
-# docker run --restart=always -p 443:8443 -p 80:8080 \
+# podman run --restart=always -p 443:8443 -p 80:8080 \
    --sysctl net.core.somaxconn=4096 \
    --privileged=true \
    -v /mnt/quay/config:/conf/stack:Z \
@@ -104,7 +106,7 @@ that is currently stored in `/root/ca.crt`. If not, then remove the line that ad
 +
 [subs="verbatim,attributes"]
 ```
-$ docker run -d --name mirroring-worker \
+$ podman run -d --name mirroring-worker \
   -v /mnt/quay/config:/conf/stack \
   -v /root/ca.crt:/etc/pki/ca-trust/source/anchors/ca.crt \
   {productrepo}/quay:{productminv} repomirror

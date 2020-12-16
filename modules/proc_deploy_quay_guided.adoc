@@ -8,42 +8,25 @@ Later, you use that password to log into the configuration tool as the user `qua
 
 Here's an example of how to do that:
 
-. **Start quay in config mode**: On the first quay node, run the following:
+. **Start quay in setup mode**: On the first quay node, run the following:
 +
 [subs="verbatim,attributes"]
 ....
-# docker run --privileged=true -p 8443:8443 -d {productrepo}/quay:{productminv} config my-secret-password
+# podman run --rm -it --name quay_config -p 8080:8080 {productrepo}/quay:{productminv} config my-secret-password
 ....
 
-. **Open browser**: When the quay configuration tool starts up, open a browser to the URL and port 8443
+. **Open browser**: When the quay configuration tool starts up, open a browser to the URL and port 8080
 of the system you are running the configuration tool on
-(for example https://myquay.example.com:8443). You are prompted for a username and password.
+(for example http://myquay.example.com:8080). You are prompted for a username and password.
 
 . **Log in as quayconfig**: When prompted, enter the `quayconfig` username and password
-(the one from the `docker run` command line).
+(the one from the `podman run` command line).
 
-. **Choose configuration mode**: You are prompted to choose to either create a new
-{productname} configuration file or edit an existing one in these two modes:
-
-* **Start New Registry Setup**: The result of this selection is the creation of a new
-configuration file (`config.yaml`) and optional `ssl.cert` and `ssl.key` files.
-Those files are bundled into a tarball file you can use to
-actually deploy all your {productname} nodes.
-
-* **Modify an existing configuration**: With this selection, you are prompted
-to provide an existing tarball and
-modify it before you use it to start your {productname} nodes.
-+
-The following figure shows an example of the resulting `Choose an option` page:
-+
-image:Figure00x.png[Identifying the database {productname} will use]
-+
-For an initial setup, you are asked to identify the database type.
-For a subsequent configuration, you are prompted for a tarball containing the
-`config.yaml` and credential files (optional). Then you
-can continue on with the configuration.
-
-. **Identify the database**: For the initial setup, add the following information about the type and location of the database to be used by {productname}:
+. **Fill in the required fields**: When you start the config tool without mounting an existing configuration bundle, 
+you will be booted into an initial setup session. In a setup session, default values will be filled automatically. The following 
+steps will walk through how to fill out the remaining required fields. 
+ 
+. **Identify the database**: For the initial setup, you must include the following information about the type and location of the database to be used by {productname}:
 +
 * **Database Type**: Choose MySQL or PostgreSQL. MySQL will be used in the basic example; PostgreSQL is used with the
 high availability {productname} on OpenShift examples.
@@ -62,18 +45,6 @@ along with the port number if it is different from 3306.
 The following figure shows an example of the screen for identifying the database used by {productname}:
 +
 image:Figure01.png[Identifying the database {productname} will use]
-
-+
-. **Validate database**: Select `Validate Database Settings`, and proceed to the next screen.
-
-. **Create {productname} superuser**: You need to set up an account with superuser privileges to {productname}, to use for editing {productname} configuration settings. That information includes a Username, Email address, and Password (entered twice).
-+
-The following figure shows an example of the {productname} Setup screen for setting up a {productname} superuser account:
-+
-image:Figure03.png[Set up a Quay superuser account to do Quay configuration]
-
-+
-Select `Create Super User`, and proceed to the next screen.
 
 . **Identify the Redis hostname, Server Configuration and add other desired settings**: Other setting you can add to complete the setup are as follows. More settings for high availability {productname} deployment that for the basic deployment:
 
@@ -133,9 +104,9 @@ you must explicitly whitelist the namespaces for which it is enabled.
 * **Dockerfile Build Support**: Enable to allow users to submit Dockerfiles to be built and pushed to {productname}.
 This is not recommended for multitenant environments.
 
-. **Save the changes**: Select `Save Configuration Changes`. You are presented with the following Download Configuration screen:
+. **Validate the changes**: Select `Validate Configuration Changes`. If validation is successful, you will be presented with the following Download Configuration modal:
 +
-image:Figure04.png[Download the {productname} configuration tarball to the local system]
+image:Figure05.png[Download the {productname} configuration tarball to the local system]
 . **Download configuration**: Select the `Download Configuration` button and save the
 tarball (`quay-config.tar.gz`) to a local directory to use later to start {productname}.
 

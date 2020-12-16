@@ -74,17 +74,19 @@ after the initial {productname} deployment, you can restart the
 Config Tool to modify your {productname} cluster. Here's how:
 
 . **Start quay in config mode**: On the first `quay` node run the following, replacing
-`my-secret-password` with your password:
+`my-secret-password` with your password. If you would like to modify an existing config bundle, 
+you can simply mount your configuration directory into the Quay container as you would in registry mode.
 +
 [subs="verbatim,attributes"]
 ....
-# podman run --rm  -it --name quay_config -p 8443:8443 -v \
-    -d {productrepo}/quay:{productminv} config my-secret-password
+# podman run --rm -it --name quay_config -p 8080:8080 \
+    -v path/to/config-bundle:/conf/stack \
+    {productrepo}/quay:{productminv} config my-secret-password
 ....
 
-. **Open browser**: When the quay configuration tool starts up, open a browser to the URL and port 8443
+. **Open browser**: When the quay configuration tool starts up, open a browser to the URL and port 8080
 of the system you are running the configuration tool on
-(for example https://myquay.example.com:8443). You are prompted for a username and password.
+(for example https://myquay.example.com:8080). You are prompted for a username and password.
 
 At this point, you can begin modifying your {productname} cluster as described earlier.
 
