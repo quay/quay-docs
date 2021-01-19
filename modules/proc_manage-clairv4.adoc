@@ -47,7 +47,7 @@ This will produce a simple JSON response with the percentage of completed manife
 
 [source,json]
 ```
-{"backfill_percent": 73.4}}
+{"backfill_percent": 73.4}
 ```
 
 Once the majority of the images in your registry have been scanned by Clair V4, the Clair V2 deployment should be removed entirely (both running containers and removal from config).
@@ -213,7 +213,7 @@ spec:
         quay-component: clair-combo
     spec:
       containers:
-        - image: {productrepo}/clair:{productminv}  <1>
+        - image: {productrepo}/{clairimage}:{productminv}  <1>
           imagePullPolicy: IfNotPresent
           name: clair-combo
           env:
@@ -341,7 +341,7 @@ More information about Clair's configuration format can be found in link:https:/
 . Run Clair via the container image, mounting in the configuration from the file you created.
 +
 ```
-$ podman run -p 8080:8080 -p 8089:8089 -e CLAIR_CONF=/clair/config.yaml -e CLAIR_MODE=combo -v /etc/clair4/config:/clair -d {productrepo}/clair:{productminv}
+$ podman run -p 8080:8080 -p 8089:8089 -e CLAIR_CONF=/clair/config.yaml -e CLAIR_MODE=combo -v /etc/clair4/config:/clair -d {productrepo}/{clairimage}:{productminv}
 ```
 
 . Follow the remaining instructions from the previous section for configuring {productname} to use the new Clair V4 endpoint.
@@ -390,13 +390,13 @@ matcher:
 . Export out the latest Updater data to a local archive.  This requires the `clairctl` tool which can be run directly as a binary, or via the Clair container image.  Assume your Clair configuration is in `/etc/clairv4/config/config.yaml`, to run via the container image:
 +
 ```
-$ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v $(pwd):/updaters:Z --entrypoint /bin/clairctl {productrepo}/clair:{productminv} export-updaters --config /cfg/config.yaml /updaters/updaters.gz
+$ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v $(pwd):/updaters:Z --entrypoint /bin/clairctl {productrepo}/{clairimage}:{productminv} export-updaters --config /cfg/config.yaml /updaters/updaters.gz
 ```
 +
 Note that you need to explicitly reference the Clair configuration.  This will create the Updater archive in `/etc/clairv4/updaters/updaters.gz`.  If you want to ensure the archive was created without any errors from the source databases, you can supply the `--strict` flag to `clairctl`.  The archive file should be copied over to a volume that is accessible from the disconnected host running Clair.  From the disconnected host, use the same procedure now to import the archive into Clair.
 +
 ```
-$ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v $(pwd):/updaters:Z --entrypoint /bin/clairctl {productrepo}/clair:{productminv} import-updaters --config /cfg/config.yaml /updaters/updaters.gz
+$ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v $(pwd):/updaters:Z --entrypoint /bin/clairctl {productrepo}/{clairimage}:{productminv} import-updaters --config /cfg/config.yaml /updaters/updaters.gz
 ```
 +
 
