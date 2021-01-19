@@ -66,7 +66,7 @@ $ oc get sa openshift-apiserver-sa --namespace=openshift-apiserver -o json | jq 
 ```
 +
 .. Get the `ca.crt` key value from the secret in the Openshift console. The value should begin with “-----BEGIN CERTIFICATE-----”
-.. Import the CA in {productname} using the ConfigTool
+.. Import the CA in {productname} using the ConfigTool. Ensure the name of this file matches `K8S_API_TLS_CA`.
 . Create the necessary security contexts/role bindings for the `ServiceAccount`:
 [source,yaml]
 ----
@@ -159,6 +159,7 @@ BUILD_MANAGER:
   - EXECUTOR: kubernetes
     BUILDER_NAMESPACE: builder
     K8S_API_SERVER: api.openshift.somehost.org:6443
+    K8S_API_TLS_CA: /conf/stack/extra_ca_cert_build_cluster.crt
     VOLUME_SIZE: 8G
     KUBERNETES_DISTRIBUTION: openshift
     CONTAINER_MEMORY_LIMITS: 5120Mi
@@ -193,6 +194,7 @@ REDIS_SKIP_KEYSPACE_EVENT_SETUP:: By default, {productname} does not set up the 
 EXECUTOR:: Starts a definition of an Executor of this type.  Valid values are ‘kubernetes’ and ‘ec2’
 BUILDER_NAMESPACE:: Kubernetes namespace where {productname} builds will take place
 K8S_API_SERVER:: Hostname for API Server of OpenShift cluster where builds will take place
+K8S_API_TLS_CA:: The filepath in the Quay container of the build cluster's CA certificate for the Quay app to trust when making API calls.
 KUBERNETES_DISTRIBUTION:: Indicates which type of Kubernetes is being used.  Valid values are ‘openshift’ and ‘k8s’.
 CONTAINER_*:: Define the resource requests and limits for each build pod.
 NODE_SELECTOR_*:: Defines the node selector label name/value pair where build Pods should be scheduled.
@@ -256,9 +258,9 @@ The setup steps are identical to OpenShift based builds with the following chang
       - sg-somesg
       EC2_KEY_NAME: Some key
       BLOCK_DEVICE_SIZE: 58
-     SSH_AUTHORIZED_KEYS:
-     - ssh-rsa 12345 someuser@email.com
-     - ssh-rsa 67890 someuser2@email.com
+      SSH_AUTHORIZED_KEYS:
+      - ssh-rsa 12345 someuser@email.com
+      - ssh-rsa 67890 someuser2@email.com
 ----
 
 COREOS_AMI:: Specifies an AMI name where builds will be run.  Unlike the OpenShift based builds, these container builds are done directly within an ephemeral EC2 instance.  This AMI must utilize ignition and contain a docker.  The AMI shown in this example is used by quay.io for its build system.
