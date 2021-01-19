@@ -25,16 +25,20 @@ link:https://quay.github.io/claircore/concepts/severity_mapping.html[ClairCore S
 
 [NOTE]
 ====
-With the release of Red Hat Quay 3.4, the default version of Clair is V4.  This new version V4 is no longer being released as link:https://access.redhat.com/support/offerings/techpreview[Technology Preview] and is supported for production use.  Customers are strongly encouraged to use Clair V4 for with Red Hat Quay 3.4.  It is possible to run both Clair V4 and Clair V2 simultaneously if so desired.  In future versions of Red Hat Quay, Clair V2 will eventually be removed.
 
-The documentation on Clair V2 can be found xref:{productname} Security Scanning with Clair V2[here].
+ifeval::["{productname}" == "Red Hat Quay"]
+With the release of Red Hat Quay 3.4, the new Clair V4 (image {productrepo}/{clairimage} fully replaces the prior Clair V2 (image quay.io/redhat/clair-jwt). See below for how to run V2 in read-only mode while V4 is updating.
+endif::[]
+ifeval::["{productname}" == "Project Quay"]
+With the release of Clair V4 (image clair), the previously used Clair V2 (image clair-jwt) is no longer used. See below for how to run V2 in read-only mode while V4 is updating.
+endif::[]
 ====
 
 === Running Clair V4 and Clair V2 Simultaneously
 
-While Clair V4 is the recommended go-forward version of Clair, it and Clair V2 can run concurrently with {productname}.  This is useful for existing {productname} deployments that have relied on Clair V2 but wish to start using Clair V4.  When Clair V4 is added to a {productname} deployment currently running Clair V2, new image vulnerability scans will only happen in Clair V4.  Clair V4 will begin re-scanning existing images in {productname} and over time "catch up" to the results already in Clair V2.  
+While Clair V4 ({productrepo}/{clairimage}:{productminv}) is the version of Clair that {productname} uses, both it and the prior Clair V2 (quay.io/redhat/clair-jwt) can run concurrently with {productname}. This is useful for existing {productname} deployments that have relied on Clair V2 but wish to have no interruption of scan results using Clair V4. All new image scans will happen in Clair V4 and existing images will be re-scanned automatically. When scan results are requested through {productname}, if the new Clair V4 results are not available, the existing Clair V2 results will be retrieved. Once the Clair V2 scan results are not needed, it may be decommissioned and removed from {productname}'s configuration.
 
-You can verify which images have already been scanned by Clair V4 by using the following {productname} API (refer to link:use_quay.html#_accessing_your_quay_api_from_a_web_browser[Using The Quay API] for details):
+The progress of rescanning images may be monitored via {productname} API. (Refer to link:use_quay.html#_accessing_your_quay_api_from_a_web_browser[Using The Quay API] for details):
 
 ```
 /secscan/_backfill_status
@@ -46,7 +50,7 @@ This will produce a simple JSON response with the percentage of completed manife
 {"backfill_percent": 73.4}}
 ```
 
-Once the majority of the images in your registry have been scanned by Clair V4, you should be able to disable the Clair V2 deployment entirely.
+Once the majority of the images in your registry have been scanned by Clair V4, the Clair V2 deployment should be removed entirely (both running containers and removal from config).
 
 
 == Setting Up Clair on a {productname} OpenShift deloyment
