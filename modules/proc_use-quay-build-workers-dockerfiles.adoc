@@ -294,7 +294,7 @@ $ kubectl get -n <namespace> route <quayregistry-name>-quay-builder -o jsonpath=
 
 Each configuration field is explained below:
 
-BUILDMAN_HOSTNAME:: The externally accessible server hostname which the build jobs use to communicate back to the build manager. Default is the same as `SERVER_HOSTNAME`. For OpenShift `Route`, it is either `status.ingress[0].host` or the CNAME entry if using a custom hostname.
+BUILDMAN_HOSTNAME:: The externally accessible server hostname which the build jobs use to communicate back to the build manager. Default is the same as `SERVER_HOSTNAME`. For OpenShift `Route`, it is either `status.ingress[0].host` or the CNAME entry if using a custom hostname. `BUILDMAN_HOSTNAME` **needs** to include the port number, e.g `somehost:443` for Openshift Route, as the gRPC client used to communicate with the build manager does not infer any port if omitted.
 
 == Troubleshooting Builds
 The builder instances started by the build manager are ephemeral. This means that they will either get shut down by {productname}} on timeouts/failure or garbaged collected by the control plane (EC2/K8s). This means that in order to get the builder logs, one needs to do so **while** the builds are running.
