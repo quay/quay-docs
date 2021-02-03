@@ -3,7 +3,7 @@
 
 == Differences from Earlier Versions
 
-As of {productname} 3.4.0, the Operator has been completey re-written to provide an improved out of the box experience as well as support for more Day 2 operations.  As a result the new Operator is simpler to use and is more opinionated.  The key differences from earlier versions of the Operator are:
+As of {productname} 3.4.0, the Operator has been completely re-written to provide an improved out of the box experience as well as support for more Day 2 operations.  As a result the new Operator is simpler to use and is more opinionated.  The key differences from earlier versions of the Operator are:
 
 * The `QuayEcosystem` custom resource has been replaced with the `QuayRegistry` custom resource
 * The default installation options produces a fully supported Quay environment with all managed dependencies (database, object storage, etc) ready for production use
@@ -126,8 +126,8 @@ While the Operator will handle any required configuration and installation work 
 * Database backups should be performed regularly using either the supplied tools on the Postgres image or your own backup infrastructure.  The Operator does not currently ensure the Postgres database is backed up.
 * Restoring the Postgres database from a backup must be done using Postgres tools and procedures.  Be aware that your Quay `Pods` should not be running while the database restore is in progress.
 * Database disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the database volume is currently not handled by the Operator.
-* Object storage disk space is allocated automatically by the Operator witih 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the RHOCS volume is currently not handled by the Operator.  See the section below on resizing managed storage for more details.
-* The Operator will deploy an OpenShift `Route` as the default entrpoint to the registry.  If you prefer a different entrypoint (e.g. `Ingress` or direct `Service` access that configuration will need to be done manually).
+* Object storage disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the RHOCS volume is currently not handled by the Operator.  See the section below on resizing managed storage for more details.
+* The Operator will deploy an OpenShift `Route` as the default entrypoint to the registry.  If you prefer a different entrypoint (e.g. `Ingress` or direct `Service` access that configuration will need to be done manually).
 
 If any of these considerations are unacceptable for your environment, it would be suggested to provide the Operator with unmanaged resources or overrides as described in the following sections.
 
@@ -176,13 +176,20 @@ The Quay config editor can also be used to create or modify an existing config b
 
 The `spec.configBundleSecret` field is a reference to the `metadata.name` of a `Secret` in the same namespace as the `QuayRegistry`. This `Secret` must contain a `config.yaml` key/value pair. This `config.yaml` file is a Quay config YAML file. This field is optional, and will be auto-filled by the Operator if not provided. If provided, it serves as the base set of config fields which are later merged with other fields from any managed components to form a final output `Secret`, which is then mounted into the Quay application pods.
 
+=== AWS S3 CloudFront
+
+If you use AWS S3 CloudFront for backend registry storage, specify the private key as shown in the following example:
+....
+$ oc create secret generic --from-file config.yaml=./config_awss3cloudfront.yaml --from-file default-cloudfront-signing-key.pem=./default-cloudfront-signing-key.pem test-config-bundle
+....
+
 == QuayRegistry Status
 
-Lifecycle observability for a given Quay deployment is reported in the `status` section of the corresponding `QuayRegistry` object. The Operator constantly updates this section, and this should be the first place to look for any problems or state changes in Quay or its managed depenendencies.
+Lifecycle observability for a given Quay deployment is reported in the `status` section of the corresponding `QuayRegistry` object. The Operator constantly updates this section, and this should be the first place to look for any problems or state changes in Quay or its managed dependencies.
 
 === Registry Endpoint
 
-Once Quay is ready to be used, the `status.registryEndpoint` field will be populated with the publicly availble hostname of the registry.
+Once Quay is ready to be used, the `status.registryEndpoint` field will be populated with the publicly available hostname of the registry.
 
 === Config Editor Endpoint
 
@@ -265,7 +272,7 @@ When the Quay Operator starts up, it immediately looks for any `QuayRegistries` 
 * If `status.currentVersion` equals the Operator version, reconcile as normal.
 * If `status.currentVersion` does not equal the Operator version, check if it can be upgraded. If it can, perform upgrade tasks and set the `status.currentVersion` to the Operator's version once complete. If it cannot be upgraded, return an error and leave the `QuayRegistry` and its deployed Kubernetes objects alone.
 
-=== Ugrading a QuayEcosystem
+=== Upgrading a QuayEcosystem
 
 Upgrades are supported from previous versions of the Operator which used the `QuayEcosystem` API for a limited set of configurations. To ensure that migrations do not happen unexpectedly, a special label needs to be applied to the `QuayEcosystem` for it to be migrated. A new `QuayRegistry` will be created for the Operator to manage, but the old `QuayEcosystem` will remain until manually deleted to ensure that you can roll back and still access Quay in case anything goes wrong. To migrate an existing `QuayEcosystem` to a new `QuayRegistry`, follow these steps:
 
