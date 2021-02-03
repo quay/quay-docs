@@ -1,20 +1,47 @@
-= Preparing for {productname} (basic)
+= Preparing a proof-of-concept deployment of {productname}
 
-[NOTE]
-====
-This installation process is only for POC purposes and is not intended for use as a production install.
-====
+The {productname} registry can be deployed for non-production purposes on a single machine (either physical or virtual) with the following specifications.
 
 == Prerequisites
 
-For a {productname} Registry installation (appropriate for non-production purposes), you need one system (physical or virtual machine) that has the following attributes:
-
-* **Red Hat Enterprise Linux (RHEL)**: Obtain the latest Red Hat Enterprise Linux server media from the link:https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.5/x86_64/product-software[Downloads page] and follow instructions from the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/installation_guide/index[Red Hat Enterprise Linux 7 Installation Guide].
-* **Valid Red Hat Subscription**: Obtain a valid Red Hat Enterprise Linux server subscription.
+ifeval::["{productname}" == "Red Hat Quay"]
+//* **Red Hat Enterprise Linux (RHEL)**: Obtain the latest Red Hat Enterprise Linux 7 server media from the link:https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.9/x86_64/product-software[Downloads page] and follow the installation instructions from the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/installation_guide/index[Red Hat Enterprise Linux 7 Installation Guide].
+* **Red Hat Enterprise Linux (RHEL)**: Obtain the latest Red Hat Enterprise Linux 8 server media from the link:https://access.redhat.com/downloads/content/479/ver=/rhel---8/8.3/x86_64/product-software[Downloads page] and follow the installation instructions available in the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/[Product Documentation for Red Hat Enterprise Linux 8].
+* **Valid Red Hat Subscription**: Configure a valid Red Hat Enterprise Linux 8 server subscription.
+endif::[]
 * **CPUs**: Two or more virtual CPUs
 * **RAM**: 4GB or more
-* **Disk space**:  (dependant on storage needs for registry)
-    - About 30GB of disk space should be enough for a test system (broken down in the following manner):
-        - At least 10GB of disk space for the operating system (Red Hat Enterprise Linux Server).
-        - At least 10GB of disk space for docker storage (to run 3 containers)
-        - At least 10GB of disk space for Quay local storage (CEPH or other local storage might require more memory)
+* **Disk space**:  The required disk space depends on the storage needs for the registry. Approximately 30GB of disk space should be enough for a test system, broken down as follows:
+** At least 10GB of disk space for the operating system (Red Hat Enterprise Linux Server).
+** At least 10GB of disk space for docker storage (to run 3 containers)
+** At least 10GB of disk space for Quay local storage (CEPH or other local storage might require more memory)
+
+
+More information on sizing can be found at link:https://access.redhat.com/articles/5177961[Quay 3.x Sizing Guidlines].
+
+
+== Add 'quay' to your /etc/hosts mapping to localhost
+This step is not strictly required but makes using the ConfigTool easier.
+
+....
+$ cat /etc/hosts
+...
+127.0.0.1   quay
+....
+
+== Using podman
+
+This document uses `podman` for creating and deploying containers. If you do not have `podman` installed on your system, you should be able to use the equivalent `docker` commands. For more information on podman and related technologies, see link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index[Building, running, and managing Linux containers on Red Hat Enterprise Linux 8].
+
+
+== Restarting containers
+
+Because the `--restart` option is not fully supported by podman, instead of using `--restart`, you could configure `podman` as a systemd service, as described 
+in
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index#porting-containers-to-systemd-using-podman_building-running-and-managing-containers[Porting containers to systemd using Podman]
+
+
+
+
+
+

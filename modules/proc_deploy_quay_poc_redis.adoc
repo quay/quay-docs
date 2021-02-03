@@ -1,0 +1,25 @@
+= Configuring Redis
+
+Redis ia a key-value store, used by Quay for live builder logs and the {productname} tutorial.
+
+
+== Setting up Redis
+
+Use podman to run the Redis container, specifying the port and password:
+
+....
+$ sudo podman run -d --rm --name redis \
+        -p 6379:6379 \
+        redis:5.0.7 \
+        --requirepass strongpassword
+....
+
+
+== Determine the IP address of the database server 
+
+Use the `podman inspect` command to determine the IP address for Redis. You will need this information when using the configuration editor later.
+
+....
+$ sudo podman inspect -f "{{.NetworkSettings.IPAddress}}" redis
+10.88.0.18
+....
