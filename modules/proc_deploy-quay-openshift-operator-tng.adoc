@@ -364,7 +364,19 @@ some-quay               ClusterIP   172.30.143.199   34.123.133.39        443/TC
 
 ==== Using a Custom Hostname and TLS
 
-By default, a `Route` will be created with the default generated hostname and a certificate/key pair will be generated for TLS.  If you want to access {productname} using a custom hostname and bring your own TLS certificate/key pair, first create a `Secret` which contains the following:
+By default, a `Route` will be created with the default generated hostname and a certificate/key pair will be generated for TLS.  If you want to access {productname} using a custom hostname and bring your own TLS certificate/key pair, follow these steps.
+
+Because Quay will use TLS for in-cluster communication with other services within Kubernetes (like Clair), you must ensure that the certificate/key pair you use has Subject Alternative Names (SANs) for each of the following hostname patterns:
+
+- `<quayregistry-name>-quay-app`
+- `<quayregistry-name>-quay-app.<quayregistry-namespace>.svc`
+- `<quayregistry-name>-quay-app.<quayregistry-namespace>.svc.cluster.local`
+
+If `FEATURE_BUILD_SUPPORT: true`, then make sure the certificate/key pair also includes `BUILDMAN_HOSTNAME`.
+
+If all of the above hostnames are not included as SANs, then the Quay Operator will reject your provided certificate/key pair and generate one to be used by {productname}.
+
+Next, create a `Secret` with the following content:
 
 [source,yaml]
 ----
