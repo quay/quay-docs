@@ -2,4 +2,84 @@
 
 Because the `--restart` option is not fully supported by podman, you can configure `podman` as a systemd service, as described 
 in
-https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index#porting-containers-to-systemd-using-podman_building-running-and-managing-containers[Porting containers to systemd using Podman]
+link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index#porting-containers-to-systemd-using-podman_building-running-and-managing-containers[Porting containers to systemd using Podman]
+
+
+
+== Using systemd unit files with Podman
+
+By default, Podman generates a unit file for existing containers or pods. You can generate more portable systemd unit files using the `podman generate systemd --new` command. The `--new` flag instructs Podman to generate unit files that create, start and remove containers.
+
+* Create the systemd unit files from a running {productname} registry as follows:
++
+....
+$ sudo podman generate systemd --new --files --name postgresql
+$ sudo podman generate systemd --new --files --name redis
+$ sudo podman generate systemd --new --files --name quay
+....
+
+* Copy the unit files to `/usr/lib/systemd/system` for installing them as a root user:
++
+....
+$ sudo cp -Z container-redis.service /usr/lib/systemd/system
+$ sudo cp -Z container-postgresql.service /usr/lib/systemd/system
+$ sudo cp -Z container-quay.service /usr/lib/systemd/system
+....
+
+
+* Reload systemd manager configuration:
++
+....
+$ sudo systemctl daemon-reload
+....
+
+* Enable the services and start them at boot time:
++
+....
+$ sudo systemctl enable container-redis.service
+$ sudo systemctl enable container-postgresql.service
+$ sudo systemctl enable container-quay.service
+....
+
+
+== Starting, stopping and checking the status of services
+
+* Check the status of the Quay components:
++
+....
+$ sudo systemctl status container-redis.service
+$ sudo systemctl status container-postgresql.service
+$ sudo systemctl status container-quay.service
+....
+
+
+* To stop the Quay component services:
++
+....
+$ sudo systemctl stop container-redis.service
+$ sudo systemctl stop container-postgresql.service
+$ sudo systemctl stop container-quay.service
+....
+
+* To start the Quay component services:
++
+....
+$ sudo systemctl start container-redis.service
+$ sudo systemctl start container-postgresql.service
+$ sudo systemctl start container-quay.service
+....
+
+== Testing restart after reboot
+
+Once you have the services configured and enabled, reboot the system.  When the system has re-started, use `podman ps` to check that all the containers for the Quay components have been restarted:
+
+....
+$ sudo podman ps -a
+CONTAINER ID  IMAGE                                      COMMAND               CREATED         STATUS             PORTS                   NAMES
+215ea92f75be  registry.redhat.io/quay/quay-rhel8:v3.4.0  registry              36 seconds ago  Up 35 seconds ago  0.0.0.0:8080->8080/tcp  quay
+82fd8191ef50  docker.io/library/postgres:10.12           postgres              36 seconds ago  Up 35 seconds ago  0.0.0.0:5432->5432/tcp  postgresql
+bca9a7ea090b  docker.io/library/redis:5.0.7              --requirepass str...  36 seconds ago  Up 36 seconds ago  0.0.0.0:6379->6379/tcp  redis
+....
+
+
+Log in to the {productname} registry at `quay:8080` to check that everything has restarted correctly.
