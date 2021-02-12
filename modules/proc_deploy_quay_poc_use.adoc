@@ -1,0 +1,77 @@
+= Using {productname}
+
+Use your browser to access the user interface for the {productname} registry at `quay:8080` (assuming you have configured the `quay` hostname to point at 127.0.0.1 in your hosts file). Select 'Create User' and add a user, for example, `quayadmin` with a password `password`.
+
+You can now use the user interface to create new organizations and repositories, and to search and browse existing repositories. Alternatively, you can use the command line interface to interact with the registry and to pull and push images.
+
+From the command line, log in to the registry:
+
+....
+$ sudo podman login --tls-verify=false quay:8080
+Username: quayadmin
+Password:
+Login Succeeded!
+....
+
+== Push and pull images
+
+To test pushing and pulling images from the {productname} registry, first pull a sample image from an external registry:
+
+....
+$ sudo podman pull busybox
+Trying to pull docker.io/library/busybox...
+Getting image source signatures
+Copying blob 4c892f00285e done  
+Copying config 22667f5368 done  
+Writing manifest to image destination
+Storing signatures
+22667f53682a2920948d19c7133ab1c9c3f745805c14125859d20cede07f11f9
+....
+
+Use the `podman images` command to see the local copy:
+
+....
+$ sudo podman images
+REPOSITORY                          TAG      IMAGE ID       CREATED         SIZE
+docker.io/library/busybox           latest   22667f53682a   14 hours ago    1.45 MB
+...
+....
+
+
+Tag this image, in preparation for pushing it to the {productname} registry:
+
+....
+$ sudo podman tag docker.io/library/busybox quay:8080/quayadmin/busybox:test
+....
+
+
+Now push the image to the {productname} registry:
+
+....
+$ sudo podman push --tls-verify=false quay:8080/quayadmin/busybox:test
+Getting image source signatures
+Copying blob 6b245f040973 done  
+Copying config 22667f5368 done  
+Writing manifest to image destination
+Storing signatures
+....
+
+At this point, you can use your browser to see the tagged image in your repository. To test access to the image from the command line, first delete the local copy of the image:
+
+....
+$ sudo podman rmi quay:8080/quayadmin/busybox:test
+Untagged: quay:8080/quayadmin/busybox:test
+....
+
+Now pull the image again, this time from your {productname} registry:
+
+....
+$ sudo podman pull --tls-verify=false quay:8080/quayadmin/busybox:test
+Trying to pull quay:8080/quayadmin/busybox:test...
+Getting image source signatures
+Copying blob 6ef22a7134ba [--------------------------------------] 0.0b / 0.0b
+Copying config 22667f5368 done  
+Writing manifest to image destination
+Storing signatures
+22667f53682a2920948d19c7133ab1c9c3f745805c14125859d20cede07f11f9
+....
