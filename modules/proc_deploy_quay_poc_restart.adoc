@@ -13,7 +13,7 @@ By default, Podman generates a unit file for existing containers or pods. You ca
 * Create the systemd unit files from a running {productname} registry as follows:
 +
 ....
-$ sudo podman generate systemd --new --files --name postgresql
+$ sudo podman generate systemd --new --files --name postgresql-quay
 $ sudo podman generate systemd --new --files --name redis
 $ sudo podman generate systemd --new --files --name quay
 ....
@@ -22,7 +22,7 @@ $ sudo podman generate systemd --new --files --name quay
 +
 ....
 $ sudo cp -Z container-redis.service /usr/lib/systemd/system
-$ sudo cp -Z container-postgresql.service /usr/lib/systemd/system
+$ sudo cp -Z container-postgresql-quay.service /usr/lib/systemd/system
 $ sudo cp -Z container-quay.service /usr/lib/systemd/system
 ....
 
@@ -36,9 +36,9 @@ $ sudo systemctl daemon-reload
 * Enable the services and start them at boot time:
 +
 ....
-$ sudo systemctl enable container-redis.service
-$ sudo systemctl enable container-postgresql.service
-$ sudo systemctl enable container-quay.service
+$ sudo systemctl enable --now container-redis.service
+$ sudo systemctl enable --now container-postgresql-quay.service
+$ sudo systemctl enable --now container-quay.service
 ....
 
 
@@ -48,7 +48,7 @@ $ sudo systemctl enable container-quay.service
 +
 ....
 $ sudo systemctl status container-redis.service
-$ sudo systemctl status container-postgresql.service
+$ sudo systemctl status container-postgresql-quay.service
 $ sudo systemctl status container-quay.service
 ....
 
@@ -57,7 +57,7 @@ $ sudo systemctl status container-quay.service
 +
 ....
 $ sudo systemctl stop container-redis.service
-$ sudo systemctl stop container-postgresql.service
+$ sudo systemctl stop container-postgresql-quay.service
 $ sudo systemctl stop container-quay.service
 ....
 
@@ -65,7 +65,7 @@ $ sudo systemctl stop container-quay.service
 +
 ....
 $ sudo systemctl start container-redis.service
-$ sudo systemctl start container-postgresql.service
+$ sudo systemctl start container-postgresql-quay.service
 $ sudo systemctl start container-quay.service
 ....
 
@@ -77,9 +77,9 @@ Once you have the services configured and enabled, reboot the system.  When the 
 $ sudo podman ps -a
 CONTAINER ID  IMAGE                                      COMMAND               CREATED         STATUS             PORTS                   NAMES
 215ea92f75be  registry.redhat.io/quay/quay-rhel8:v3.4.0  registry              36 seconds ago  Up 35 seconds ago  0.0.0.0:8080->8080/tcp  quay
-82fd8191ef50  docker.io/library/postgres:10.12           postgres              36 seconds ago  Up 35 seconds ago  0.0.0.0:5432->5432/tcp  postgresql
+82fd8191ef50  docker.io/library/postgres:10.12           postgres              36 seconds ago  Up 35 seconds ago  0.0.0.0:5432->5432/tcp  postgresql-quay
 bca9a7ea090b  docker.io/library/redis:5.0.7              --requirepass str...  36 seconds ago  Up 36 seconds ago  0.0.0.0:6379->6379/tcp  redis
 ....
 
 
-Log in to the {productname} registry at `quay:8080` to check that everything has restarted correctly.
+Log in to the {productname} registry at `quay-server:8080` to check that everything has restarted correctly.
