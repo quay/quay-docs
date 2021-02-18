@@ -9,36 +9,38 @@ In this proof-of-concept scenario, you will use a directory on the local file sy
 * In the installation folder, denoted here by the variable $QUAY, create a directory for the database data and set the permissions appropriately: 
 +
 ....
-$ mkdir -p $QUAY/postgres
-$ setfacl -m u:26:-wx $QUAY/postgres
+$ mkdir -p $QUAY/postgres-quay
+$ setfacl -m u:26:-wx $QUAY/postgres-quay
 ....
 * Use podman to run the Postgres container, specifying the username, password, database name and port, together with the volume definition for database data:
 +
 [subs="verbatim,attributes"]
 ....
-$ sudo podman run -d --rm --name postgresql \
-  -e POSTGRES_USER=user \
-  -e POSTGRES_PASSWORD=pass \
-  -e POSTGRES_DB=quay \
+$ sudo podman run -d --rm --name postgresql-quay \
+  -e POSTGRESQL_USER=quayuser \
+  -e POSTGRESQL_PASSWORD=quaypass \
+  -e POSTGRESQL_DATABASE=quay \
+  -e POSTGRESQL_ADMIN_PASSWORD=adminpass \
   -p 5432:5432 \
-  -v $QUAY/postgres:/var/lib/postgresql/data:Z \
-  {productrepo}/rhel8/postgresql-10:1
+  -v $QUAY/postgres-quay:/var/lib/pgsql/data:Z \
+  registry.redhat.io/rhel8/postgresql-10:1
 ....
-* Install the Postgres `pg_trgm` module installed, as it is required by Quay:
+* Ensure that the Postgres `pg_trgm` module is installed, as it is required by Quay:
 +
 ....
-$ sudo podman exec -it postgresql /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U user'
+$ sudo podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'
 ....
 
-
+////
 == Determine the IP address of the database server 
 
 Use the `podman inspect` command to determine the IP address for the database. You will need this information when using the configuration editor later.
 
 ....
-$ sudo podman inspect -f "{{.NetworkSettings.IPAddress}}" postgresql
+$ sudo podman inspect -f "{{.NetworkSettings.IPAddress}}" postgresql-quay
 10.88.0.18
 ....
+////
 
 
 
