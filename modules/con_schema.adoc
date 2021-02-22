@@ -9,16 +9,18 @@ the schema of those settings that are available to use in the`config.yaml` file.
 The following fields required (all other are optional):
 
 ----
-PREFERRED_URL_SCHEME
-SERVER_HOSTNAME
-DB_URI
 AUTHENTICATION_TYPE
-DISTRIBUTED_STORAGE_CONFIG
 BUILDLOGS_REDIS
-USER_EVENTS_REDIS
-DISTRIBUTED_STORAGE_PREFERENCE
+DATABASE_SECRET_KEY
+DB_URI
 DEFAULT_TAG_EXPIRATION
+DISTRIBUTED_STORAGE_CONFIG
+DISTRIBUTED_STORAGE_PREFERENCE
+PREFERRED_URL_SCHEME
+SECRET_KEY
+SERVER_HOSTNAME
 TAG_EXPIRATION_OPTIONS
+USER_EVENTS_REDIS
 ----
 
 * **ACTION_LOG_ARCHIVE_LOCATION** [string]: If action log archiving is enabled, the storage engine in which to place the archived data.
@@ -83,6 +85,8 @@ TAG_EXPIRATION_OPTIONS
 ** **ssl** [object]: SSL connection configuration
 *** **ca** [string] required: Absolute container path to the CA certificate to use for SSL connections.
 *** **Example**: `conf/stack/ssl-ca-cert.pem`
+* **DATABASE_SECRET_KEY** [string] required: Key used to encrypt sensitive fields within the database. It is imperative that once set, this value is never changed. The consequence of changing this is invalidating all reliant fields (repository mirror username and password configurations, for example).
+** **Example**: `40157269433064266822674401740626984898972632465622168464725100311621640999470`
 * **DB_URI** [string] required: The URI at which to access the database, including any credentials.
 ** **Reference**: https://www.postgresql.org/docs/9.3/static/libpq-connect.html#AEN39495
 ** **Example**: `mysql+pymysql://username:password@dns.of.database/quay`
@@ -376,6 +380,8 @@ TAG_EXPIRATION_OPTIONS
 ** **Example**: `10`
 * **SEARCH_RESULTS_PER_PAGE** [number]: Number of results returned per page by search page. Defaults to 10.
 ** **Example**: `10`
+* **SECRET_KEY** [string] required: Key used to encrypt sensitive fields within the database and a run time. It is imperative that once set, this value is never changed. The consequence of changing this is invalidating all reliant fields (encrypted password credentials, for example).
+** **Example**: `40157269433064266822674401740626984898972632465622168464725100311621640999470`
 * **SECURITY_SCANNER_ENDPOINT** [string]: The endpoint for the security scanner.
 ** **Pattern**: ``^http(s)?://(.)+$``
 ** **Example**: `http://192.168.99.101:6060`
