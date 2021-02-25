@@ -300,7 +300,7 @@ namespace whitelist will be scanned by Clair v4.
 
 For {productname} deployments not running on OpenShift, it is possible to configure Clair security scanning manually.  {productname} deployments already running Clair V2 can use the instructions below to add Clair V4 to their deployment.
 
-. Deloy a (preferably fault-tolerant) Postgres database server.  Note that Clair requires the `uuid-ossp` extension to be added to its Postgres database.  If the user supplied in Clair's `config.yaml` has the necessary privileges to create the extension then it will be added automatically by Clair itself.  If not, then the extension must be added before starting Clair.  If the extension is not present, the following error will be displayed when Clair attempts to start.
+. Deploy a (preferably fault-tolerant) Postgres database server.  Note that Clair requires the `uuid-ossp` extension to be added to its Postgres database.  If the user supplied in Clair's `config.yaml` has the necessary privileges to create the extension then it will be added automatically by Clair itself.  If not, then the extension must be added before starting Clair.  If the extension is not present, the following error will be displayed when Clair attempts to start.
 +
 ```
 ERROR: Please load the "uuid-ossp" extension. (SQLSTATE 42501)
@@ -325,6 +325,12 @@ matcher:
   run: ""
   migrations: true
   indexer_addr: clair-indexer
+notifier:
+  connstring: host=clairv4-postgres port=5432 dbname=clair user=postgres password=postgres sslmode=disable
+  delivery_interval: 1m
+  poll_interval: 5m
+  migrations: true
+
 # tracing and metrics
 trace:
   name: "jaeger"

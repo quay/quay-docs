@@ -1,0 +1,190 @@
+= Deploying Clair V4
+
+Clair is an application for parsing image contents and reporting vulnerabilities affecting the contents. This is performed via static analysis and not at runtime. Clair's analysis is broken into three distinct parts:
+
+* **Indexing:** Indexing starts with submitting a Manifest to Clair. On receipt, Clair will fetch layers, scan their contents, and return an intermediate representation called an IndexReport. Manifests are Clair's representation of a container image. Clair leverages the fact that OCI Manifests and Layers are content-addressed to reduce duplicated work. Once a Manifest is indexed, the IndexReport is persisted for later retrieval.
+
+* **Matching:** Matching takes an IndexReport and correlates vulnerabilities affecting the manifest that the report represents. Clair is continually ingesting new security data and a request to the matcher will always provide you with the most up to date vulnerability analysis of an IndexReport.
+
+* **Notifications:** Clair implements a notification service. When new vulnerabilities are discovered, the notifier service will determine if these vulnerabilities affect any indexed Manifests. The notifier will then take action according to its configuration.
+
+
+== Deploying a separate database for Clair
+
+Clair requires a database and Postgres is recommended, especially for highly available configurations. You can share a common database between Quay and Clair, but in this example a separate, Clair-specific database is deployed.
+
+In this proof-of-concept scenario, you will use a directory on the local file system to persist database data. 
+
+* In the installation folder, denoted here by the variable $QUAY, create a directory for the Clair database data and set the permissions appropriately: 
++
+....
+$ mkdir -p $QUAY/postgres-clairv4
+$ setfacl -m u:26:-wx $QUAY/postgres-clairv4
+....
+* Use podman to run the Postgres container, specifying the username, password, database name and port, together with the volume definition for database data. As the standard Postgres port, `5432`, is already in use by the Quay deployment, expose a different port, in this instance `5433`: 
++
+[subs="verbatim,attributes"]
+....
+$ sudo podman run -d --rm --name postgresql-clairv4 \
+  -e POSTGRESQL_USER=clairuser \
+  -e POSTGRESQL_PASSWORD=clairpass \
+  -e POSTGRESQL_DATABASE=clair \
+  -e POSTGRESQL_ADMIN_PASSWORD=adminpass \
+  -p 5433:5432 \
+  -v $QUAY/postgres-clairv4:/var/lib/pgsql/data:Z \
+  registry.redhat.io/rhel8/postgresql-10:1
+....
+* Ensure that the Postgres `uuid-ossp` module is installed, as it is required by Clair:
++
+....
+$ sudo podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"" | psql -d clair -U postgres'
+....
+
+
+== Quay configuration for Clair
+
+Stop the Quay container if it is running, and restart it in configuration mode, loading the existing configuration as a volume:
+
+[subs="verbatim,attributes"]
+....
+$ sudo podman run --rm -it --name quay_config \ 
+  -p 8080:8080 \
+  -v $QUAY/config:/conf/stack:Z \
+  {productrepo}/{quayimage}:{productminv} config secret
+....
+
+Log in to the configuration tool and enable scanning, in the Security Scanner section of the UI. Set the HTTP endpoint for Clair, using a port that is not already in use on the `quay-server` system, for example `8081`. Create a Clair pre-shared key (PSK) using the `Generate PSK` button, for example:
+
+* **Security Scanner Endpoint:** `\http://quay-server:8081`
+* **Security Scanner PSK:** `MTU5YzA4Y2ZkNzJoMQ==`
+
+The UI for setting the scanner data is shown in the following image:
+
+.Security Scanner UI
+image:poc-quay-scanner-config.png[Security Scanner]
+
+Validate and download the configuration and then stop the Quay container that is running the configuration editor. Extract the configuration bundle as before into the `$QUAY/config` directory.
+
+....
+$ cp ~/Downloads/quay-config.tar.gz $QUAY/config
+$ cd $QUAY/config
+$ tar xvf quay-config.tar.gz
+....
+
+The Quay configuration file has been updated to contain the fields for the security scanner:
+
+.$QUAY/config/config.yaml
+[source,yaml]
+----
+...
+FEATURE_SECURITY_NOTIFICATIONS: false
+FEATURE_SECURITY_SCANNER: true
+...
+SECURITY_SCANNER_INDEXING_INTERVAL: 30
+SECURITY_SCANNER_V4_ENDPOINT: http://quay-server:8081
+SECURITY_SCANNER_V4_PSK: MTU5YzA4Y2ZkNzJoMQ==
+SERVER_HOSTNAME: quay-server:8080
+...
+----
+
+
+== Clair configuration
+
+Detailed information on Clair configuration is available at link:https://github.com/quay/clair/blob/main/Documentation/reference/config.md[]. The following example provides a minimal configuration for use in a proof of concept deployment:
+
+./etc/clairv4/config/config.yaml
+[source,yaml]
+----
+http_listen_addr: :8081
+introspection_addr: :8089
+log_level: debug
+indexer:
+  connstring: host=quay-server port=5433 dbname=clair user=clairuser password=clairpass sslmode=disable 
+  scanlock_retry: 10
+  layer_scan_concurrency: 5
+  migrations: true
+matcher:
+  connstring: host=quay-server port=5433 dbname=clair user=clairuser password=clairpass sslmode=disable 
+  max_conn_pool: 100
+  run: ""
+  migrations: true
+  indexer_addr: clair-indexer
+notifier:
+  connstring: host=quay-server port=5433 dbname=clair user=clairuser password=clairpass sslmode=disable
+  delivery_interval: 1m
+  poll_interval: 5m
+  migrations: true
+auth:
+  psk:
+    key: "MTU5YzA4Y2ZkNzJoMQ=="
+    iss: ["quay"]
+# tracing and metrics
+trace:
+  name: "jaeger"
+  probability: 1
+  jaeger:
+    agent_endpoint: "localhost:6831"
+    service_name: "clair"
+metrics:
+  name: "prometheus"
+----
+
+* `http_listen_addr` is set to the port of the Clair HTTP endpoint that you specified in the Quay configuration tool, in this case  `:8081`.
+* The Clair pre-shared key (PSK) that you generated in the Quay configuration tool is used for authentication, with the issuer, specified in the `iss` field, set to `quay`.
+
+
+== Running Clair
+
+Use the `podman run` command to run the Clair container, exposing the HTTP endpoint port that you specified in the configuration tool, in this case  `8081`:
+
+[subs="verbatim,attributes"]
+....
+sudo podman run -d --rm --name clairv4 \
+  -p 8081:8081 -p 8089:8089 \
+  -e CLAIR_CONF=/clair/config.yaml -e CLAIR_MODE=combo \
+  -v /etc/clairv4/config:/clair:Z \
+  {productrepo}/{clairimage}:{productminv} 
+....
+
+
+Now restart the Quay container, using the updated configuration file containing the scanner settings:
+
+[subs="verbatim,attributes"]
+....
+$ sudo podman run -d --rm -p 8080:8080  \
+   --name=quay \
+   -v $QUAY/config:/conf/stack:Z \
+   -v $QUAY/storage:/datastorage:Z \
+   {productrepo}/{quayimage}:{productminv}
+....
+
+
+== Using Clair security scanning
+
+
+From the command line, log in to the registry:
+
+....
+$ sudo podman login --tls-verify=false quay-server:8080
+Username: quayadmin
+Password:
+Login Succeeded!
+....
+
+
+Pull, tag and push a sample image to the registry:
+
+....
+$ sudo podman pull ubuntu:20.04
+$ sudo podman tag docker.io/library/ubuntu:20.04 quay-server:8080/quayadmin/ubuntu:20.04
+$ sudo podman push --tls-verify=false quay-server:8080/quayadmin/ubuntu:20.04
+....
+
+
+The results from the security scanning can be seen in the Quay UI, as shown in the following images:
+
+.Scanning summary
+image:poc-clair-1.png[Scanning summary]
+
+.Scanning details
+image:poc-clair-2.png[Scanning details]
