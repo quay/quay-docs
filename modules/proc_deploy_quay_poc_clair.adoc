@@ -11,7 +11,7 @@ Clair is an application for parsing image contents and reporting vulnerabilities
 
 == Deploying a separate database for Clair
 
-Clair requires a database and Postgres is recommended, especially for highly available configurations. You can share a common database between Quay and Clair, but in this example a separate, Clair-specific database is deployed.
+Clair requires a Postgres database.  You can share a common database between Quay and Clair if Quay is also using Postgres, but in this example a separate, Clair-specific database is deployed.
 
 In this proof-of-concept scenario, you will use a directory on the local file system to persist database data. 
 
@@ -37,7 +37,7 @@ $ sudo podman run -d --rm --name postgresql-clairv4 \
 * Ensure that the Postgres `uuid-ossp` module is installed, as it is required by Clair:
 +
 ....
-$ sudo podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"" | psql -d clair -U postgres'
+$ sudo podman exec -it postgresql-clairv4 /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"" | psql -d clair -U postgres'
 ....
 
 
