@@ -1,0 +1,55 @@
+= Quay superuser
+
+A `superuser` is a Quay user account that has extended privileges, including the ability to:
+
+* Manage users
+* Manage organizations
+* Manage service keys
+* View the change log
+* Query the usage logs
+* Create globally visible user messages
+
+== Adding a superuser to Quay using the UI
+
+Stop the Quay registry if it is running, and restart the container in configuration mode, loading the existing configuration as a volume:
+
+[subs="verbatim,attributes"]
+....
+$ sudo podman run --rm -it --name quay_config \ 
+  -p 8080:8080 \
+  -v $QUAY/config:/conf/stack:Z \
+  {productrepo}/{quayimage}:{productminv} config secret
+....
+
+
+In the Access Settings section of the UI, enter the name of the user (in this instance, `quayadmin`) in the Super Users field and press Add. 
+
+image:add-superuser.png[Configuring a sueruser]
+
+Validate and download the configuration bundle and then terminate the Quay container that is running in config mode. Extract the `config.yaml` file to the configuration directory and restart the Quay container in registry mode. 
+
+== Editing the config.yaml file to add a superuser
+
+You can also add a superuser by editing the `config.yaml` file directly. The list of superuser accounts is stored as an array in the field `SUPER_USERS`:
+
+
+.$QUAY/config/config.yaml
+[source,yaml]
+----
+SERVER_HOSTNAME: quay-server:8080
+SETUP_COMPLETE: true
+SUPER_USERS:
+  - quayadmin
+...
+----
+
+== Accessing the superuser admin panel
+
+To access the Super User Admin Panel, click on the current user's name or avatar in the top right-hand corner of the UI. If the user has been added as a superuser, an extra item is presented in the drop-down list called Super User Admin Panel.
+
+image:super-user-admin-panel.png[Super User Admin Panel]
+
+
+
+
+
