@@ -107,6 +107,108 @@ $ curl -X GET -H "Authorization: Bearer <token_here>" \
     "https://<yourquayhost>/api/v1/superuser/users/"
 ```
 
+For example:
+
+[source,json]
+----
+$ curl -X GET -H "Authorization: Bearer mFCdgS7SAIoMcnTsHCGx23vcNsTgziAa4CmmHIsg" http://quay-server:8080/api/v1/superuser/users/ | jq
+
+{
+  "users": [
+    {
+      "kind": "user",
+      "name": "quayadmin",
+      "username": "quayadmin",
+      "email": "quayadmin@example.com",
+      "verified": true,
+      "avatar": {
+        "name": "quayadmin",
+        "hash": "357a20e8c56e69d6f9734d23ef9517e8",
+        "color": "#5254a3",
+        "kind": "user"
+      },
+      "super_user": true,
+      "enabled": true
+    }
+  ]
+}
+----
+
+=== Creating a superuser using the API
+
+* Configure a superuser name, as described in the Deploy Quay book:
+
+** Use the configuration editor UI or
+** Edit the `config.yaml` file directly, with the option of using the configuration API to validate (and download) the updated configuration bundle
+
+
+* Create the user account for the superuser name:
+
+** Obtain an authorization token as detailed above, and use `curl` to create the user:
++
+```
+$ curl -H "Content-Type: application/json"  -H "Authorization: Bearer Fava2kV9C92p1eXnMawBZx9vTqVnksvwNm0ckFKZ" -X POST --data '{
+ "username": "quaysuper",
+ "email": "quaysuper@example.com"
+}'  http://quay-server:8080/api/v1/superuser/users/ | jq
+```
+
+** The returned content includes a generated password for the new user account:
++
+[source,json]
+---- 
+{
+  "username": "quaysuper",
+  "email": "quaysuper@example.com",
+  "password": "EH67NB3Y6PTBED8H0HC6UVHGGGA3ODSE",
+  "encrypted_password": "fn37AZAUQH0PTsU+vlO9lS0QxPW9A/boXL4ovZjIFtlUPrBz9i4j9UDOqMjuxQ/0HTfy38goKEpG8zYXVeQh3lOFzuOjSvKic2Vq7xdtQsU="
+}
+----
+
+
+Now, when you request the list of users , it will show `quaysuper` as a superuser:
+
+
+[source,json]
+----
+$ curl -X GET -H "Authorization: Bearer mFCdgS7SAIoMcnTsHCGx23vcNsTgziAa4CmmHIsg" http://quay-server:8080/api/v1/superuser/users/ | jq
+
+{
+  "users": [
+  {
+      "kind": "user",
+      "name": "quayadmin",
+      "username": "quayadmin",
+      "email": "quayadmin@example.com",
+      "verified": true,
+      "avatar": {
+        "name": "quayadmin",
+        "hash": "357a20e8c56e69d6f9734d23ef9517e8",
+        "color": "#5254a3",
+        "kind": "user"
+      },
+      "super_user": true,
+      "enabled": true
+    },
+    {
+      "kind": "user",
+      "name": "quaysuper",
+      "username": "quaysuper",
+      "email": "quaysuper@example.com",
+      "verified": true,
+      "avatar": {
+        "name": "quaysuper",
+        "hash": "c0e0f155afcef68e58a42243b153df08",
+        "color": "#969696",
+        "kind": "user"
+      },
+      "super_user": true,
+      "enabled": true
+    }
+  ]
+}
+----
+
 === Create a repository build via API
 
 In order to build a repository from the specified input and tag the build with custom tags, users can use requestRepoBuild endpoint. It takes the following data:
