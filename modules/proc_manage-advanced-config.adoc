@@ -249,3 +249,187 @@ If turning off connection pooling is not enough to prevent hitting that 2k
 database connection limit, you need to take additional steps to deal with
 the problem. In this case you might need to increase the maximum database
 connections to better suit your workload.
+
+== Using the configuration API
+
+The configuration tool exposes 4 endpoints that can be used to build, validate,  bundle and deploy a configuration. The config-tool API is documented at link:https://github.com/quay/config-tool/blob/master/pkg/lib/editor/API.md[]. In this section, you will see how to use the API to retrieve the current configuration and how to validate any changes you make.
+
+
+
+
+=== Retrieving the default configuration 
+
+If you are running the configuration tool for the first time, and do not have an existing configuration, you can retrieve the default configuration. Start the container in config mode:
+
+[subs="verbatim,attributes"]
+....
+$ sudo podman run --rm -it --name quay_config \ 
+  -p 8080:8080 \
+  {productrepo}/{quayimage}:{productminv} config secret
+....
+
+Use the `config` endpoint of the configuration API to get the default:
+
+....
+$ curl -X GET -u quayconfig:secret http://quay-server:8080/api/v1/config  | jq
+....
+
+The value returned is the default configuration in JSON format:
+
+[source, json]
+----
+{
+  "config.yaml": {
+    "AUTHENTICATION_TYPE": "Database",
+    "AVATAR_KIND": "local",
+    "DB_CONNECTION_ARGS": {
+      "autorollback": true,
+      "threadlocals": true
+    },
+    "DEFAULT_TAG_EXPIRATION": "2w",
+    "EXTERNAL_TLS_TERMINATION": false,
+    "FEATURE_ACTION_LOG_ROTATION": false,
+    "FEATURE_ANONYMOUS_ACCESS": true,
+    "FEATURE_APP_SPECIFIC_TOKENS": true,
+    ....
+  }
+
+}
+----
+
+=== Retrieving the current configuration
+
+If you have already configured and deployed the Quay registry, stop the container and restart it in configuration mode, loading the existing configuration as a volume:
+
+[subs="verbatim,attributes"]
+....
+$ sudo podman run --rm -it --name quay_config \ 
+  -p 8080:8080 \
+  -v $QUAY/config:/conf/stack:Z \
+  {productrepo}/{quayimage}:{productminv} config secret
+....
+
+Use the `config` endpoint of the API to get the current configuration:
+
+....
+$ curl -X GET -u quayconfig:secret http://quay-server:8080/api/v1/config  | jq
+....
+
+
+The value returned is the current configuration in JSON format, including database and Redis configuration data:
+
+[source, json]
+----
+{
+  "config.yaml": {
+    ....
+    "BROWSER_API_CALLS_XHR_ONLY": false,
+    "BUILDLOGS_REDIS": {
+      "host": "quay-server",
+      "password": "strongpassword",
+      "port": 6379
+    },
+    "DATABASE_SECRET_KEY": "4b1c5663-88c6-47ac-b4a8-bb594660f08b",
+    "DB_CONNECTION_ARGS": {
+      "autorollback": true,
+      "threadlocals": true
+    },
+    "DB_URI": "postgresql://quayuser:quaypass@quay-server:5432/quay",
+    "DEFAULT_TAG_EXPIRATION": "2w",
+    ....
+
+
+  }
+
+}
+----
+
+=== Validating configuration using the API
+
+You can validate a configuration by posting it to the `config/validate` endpoint:
+
+....
+curl -u quayconfig:secret --header 'Content-Type: application/json' --request POST --data '
+{
+  "config.yaml": {
+    ....
+    "BROWSER_API_CALLS_XHR_ONLY": false,
+    "BUILDLOGS_REDIS": {
+      "host": "quay-server",
+      "password": "strongpassword",
+      "port": 6379
+    },
+    "DATABASE_SECRET_KEY": "4b1c5663-88c6-47ac-b4a8-bb594660f08b",
+    "DB_CONNECTION_ARGS": {
+      "autorollback": true,
+      "threadlocals": true
+    },
+    "DB_URI": "postgresql://quayuser:quaypass@quay-server:5432/quay",
+    "DEFAULT_TAG_EXPIRATION": "2w",
+    ....
+
+  }
+
+} http://quay-server:8080/api/v1/config/validate | jq
+....
+
+
+The returned value is an array containing the errors found in the configuration. If the configuration is valid, an empty array `[]` is returned.
+
+
+=== Determining the required fields
+
+You can determine the required fields by posting an empty configuration structure to the `config/validate` endpoint:
+
+....
+curl -u quayconfig:secret --header 'Content-Type: application/json' --request POST --data '
+{
+  "config.yaml": {    
+  }
+
+} http://quay-server:8080/api/v1/config/validate | jq
+....
+
+
+The value returned is an array indicating which fields are required:
+
+----
+[
+  {
+    "FieldGroup": "Database",
+    "Tags": [
+      "DB_URI"
+    ],
+    "Message": "DB_URI is required."
+  },
+  {
+    "FieldGroup": "DistributedStorage",
+    "Tags": [
+      "DISTRIBUTED_STORAGE_CONFIG"
+    ],
+    "Message": "DISTRIBUTED_STORAGE_CONFIG must contain at least one storage location."
+  },
+  {
+    "FieldGroup": "HostSettings",
+    "Tags": [
+      "SERVER_HOSTNAME"
+    ],
+    "Message": "SERVER_HOSTNAME is required"
+  },
+  {
+    "FieldGroup": "HostSettings",
+    "Tags": [
+      "SERVER_HOSTNAME"
+    ],
+    "Message": "SERVER_HOSTNAME must be of type Hostname"
+  },
+  {
+    "FieldGroup": "Redis",
+    "Tags": [
+      "BUILDLOGS_REDIS"
+    ],
+    "Message": "BUILDLOGS_REDIS is required"
+  }
+]
+----
+
