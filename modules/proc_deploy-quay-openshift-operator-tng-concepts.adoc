@@ -1,0 +1,130 @@
+= High Level Concepts
+
+== QuayRegistry API
+
+The Quay Operator provides the `QuayRegistry` custom resource API to declaratively manage Quay container registries on the cluster. Use either the OpenShift UI or a command-line tool to interact with this API.
+
+* Creating a `QuayRegistry` will result in the Operator deploying and configuring all necessary resources needed to run Quay on the cluster.
+* Editing a `QuayRegistry` will result in the Operator reconciling the changes and creating/updating/deleting objects to match the desired configuration.
+* Deleting a `QuayRegistry` will result in garbage collection of all previously created resources and the Quay container registry will no longer be available.
+
+The `QuayRegistry` API is fairly simple, and the fields are outlined in the following sections.
+
+=== Components
+
+Quay is a powerful container registry platform and as a result, requires a decent number of dependencies. These include a database, object storage, Redis, and others. The Quay Operator manages an opinionated deployment of Quay and its dependencies on Kubernetes. These dependencies are treated as _components_ and are configured through the `QuayRegistry` API.
+
+In the `QuayRegistry` custom resource, the `spec.components` field configures components. Each component contains two fields: `kind` - the name of the component, and `managed` - boolean whether the component lifecycle is handled by the Operator. By default (omitting this field), all components are managed and will be autofilled upon reconciliation for visibility:
+
+[source,yaml]
+----
+spec:
+  components:
+    - kind: postgres
+      managed: true
+    ...
+----
+
+Unless your `QuayRegistry` custom resource specifies otherwise, the Operator will use defaults for the following managed components:
+
+* `postgres`  Stores the registry metadata.
+ifeval::["{productname}" == "Red Hat Quay"]
+Uses a version of Postgres 10 from the link:https://www.softwarecollections.org/en/[Software Collections].
+endif::[]
+ifeval::["{productname}" == "Project Quay"]
+Uses an upstream (CentOS) version of Postgres 10.
+endif::[]
+* `redis`  Handles Quay builder coordination and some internal logging.
+* `objectstorage`  Stores image layer blobs.  Utilizes the `ObjectBucketClaim` Kubernetes API which is provided by Noobaa/RHOCS.
+* `clair`  Provides image vulnerability scanning.
+* `horizontalpodautoscaler`  Adjusts the number of Quay pods depending on memory/cpu consumption.
+* `mirror`  Configures a repository mirror worker (to support optional repository mirroring).
+* `route`  Provides an external entrypoint to the Quay registry from outside of OpenShift.
+
+==== Considerations For Managed Components
+
+While the Operator will handle any required configuration and installation work needed for {productname} to use the managed components, there are several considerations to keep in mind.
+
+* Database backups should be performed regularly using either the supplied tools on the Postgres image or your own backup infrastructure.  The Operator does not currently ensure the Postgres database is backed up.
+* Restoring the Postgres database from a backup must be done using Postgres tools and procedures.  Be aware that your Quay `Pods` should not be running while the database restore is in progress.
+* Database disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the database volume is currently not handled by the Operator.
+* Object storage disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the RHOCS volume is currently not handled by the Operator.  See the section below on resizing managed storage for more details.
+* The Operator will deploy an OpenShift `Route` as the default entrypoint to the registry.  If you prefer a different entrypoint (e.g. `Ingress` or direct `Service` access that configuration will need to be done manually).
+
+If any of these considerations are unacceptable for your environment, it would be suggested to provide the Operator with unmanaged resources or overrides as described in the following sections.
+
+==== Using Existing (Un-Managed) Components With the Quay Operator
+
+If you have existing components such as Postgres, Redis or object storage that you would like to use with Quay, you first configure them within the Quay configuration bundle (`config.yaml`) and then reference the bundle in your `QuayRegistry` (as a Kubernetes `Secret`) while indicating which components are unmanaged.
+
+For example, to use an existing Postgres database:
+
+. Create a `Secret` with the necessary database fields in a `config.yaml` file:
++
+.config.yaml:
+[source,yaml]
+----
+DB_URI: postgresql://test-quay-database:postgres@test-quay-database:5432/test-quay-database 
+----
++
+----
+$ kubectl create secret generic --from-file config.yaml=./config.yaml test-config-bundle
+----
++
+. Create a QuayRegistry which marks postgres component as unmanaged and references the created Secret:
++
+.quayregistry.yaml
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: test
+spec:
+  configBundleSecret: test-config-bundle
+  components:
+    - kind: postgres
+      managed: false
+----
++
+The deployed Quay application will now use the external database.
+
+[NOTE]
+====
+The Quay config editor can also be used to create or modify an existing config bundle and simplify the process of updating the Kubernetes `Secret`, especially for multiple changes.  When Quay's configuration is changed via the config editor and sent to the Operator, the Quay deployment will be updated to reflect the new configuration.
+====
+
+=== Config Bundle Secret
+
+The `spec.configBundleSecret` field is a reference to the `metadata.name` of a `Secret` in the same namespace as the `QuayRegistry`. This `Secret` must contain a `config.yaml` key/value pair. This `config.yaml` file is a Quay config YAML file. This field is optional, and will be auto-filled by the Operator if not provided. If provided, it serves as the base set of config fields which are later merged with other fields from any managed components to form a final output `Secret`, which is then mounted into the Quay application pods.
+
+=== AWS S3 CloudFront
+
+If you use AWS S3 CloudFront for backend registry storage, specify the private key as shown in the following example:
+....
+$ oc create secret generic --from-file config.yaml=./config_awss3cloudfront.yaml --from-file default-cloudfront-signing-key.pem=./default-cloudfront-signing-key.pem test-config-bundle
+....
+
+== QuayRegistry Status
+
+Lifecycle observability for a given Quay deployment is reported in the `status` section of the corresponding `QuayRegistry` object. The Operator constantly updates this section, and this should be the first place to look for any problems or state changes in Quay or its managed dependencies.
+
+=== Registry Endpoint
+
+Once Quay is ready to be used, the `status.registryEndpoint` field will be populated with the publicly available hostname of the registry.
+
+=== Config Editor Endpoint
+
+Access Quay's UI-based config editor using `status.configEditorEndpoint`.
+
+=== Config Editor Credentials Secret
+
+The username/password for the config editor UI will be stored in a `Secret` in the same namespace as the `QuayRegistry` referenced by `status.configEditorCredentialsSecret`.
+
+=== Current Version
+
+The current version of Quay that is running will be reported in `status.currentVersion`.
+
+=== Conditions
+
+Certain conditions will be reported in `status.conditions`.
