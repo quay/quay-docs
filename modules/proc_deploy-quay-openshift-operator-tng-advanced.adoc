@@ -1,0 +1,197 @@
+= Advanced Concepts
+
+== Customizing the Quay Deployment
+
+The Quay Operator takes an opinionated strategy towards deploying Quay and its dependencies, however there are places where the Quay deployment can be customized.  
+
+=== Quay Application Configuration
+
+Once deployed, the Quay application itself can be configured as normal using the config editor UI or by modifying the `Secret` containing the Quay configuration bundle.  The Operator uses the `Secret` named in the `spec.configBundleSecret` field but does not watch this resource for changes.  It is recommended that configuration changes be made to a new `Secret` resource and the `spec.configBundleSecret` field be updated to reflect the change.  In the event there are issues with the new configuration, it is simple to revert the value of `spec.configBundleSecret` to the older `Secret`.
+
+=== Customizing External Access to the Registry
+
+When running on OpenShift, the `Routes` API is available and will automatically be used as a managed component. After creating the QuayRegistry, the external access point can be found in the status block of the `QuayRegistry`:
+
+[source,yaml]
+----
+status:
+  registryEndpoint: some-quay.my-namespace.apps.mycluster.com
+----
+
+The Operator creates a Service of `type: Loadbalancer` for your registry.  You can configure your DNS provider to point the `SERVER_HOSTNAME` to the external IP address of the service.
+
+```
+$ oc get services -n <namespace>
+NAME                    TYPE        CLUSTER-IP       EXTERNAL-IP          PORT(S)             AGE
+some-quay               ClusterIP   172.30.143.199   34.123.133.39        443/TCP,9091/TCP    23h
+```
+
+==== Using a Custom Hostname and TLS
+
+By default, a `Route` will be created with the default generated hostname and a certificate/key pair will be generated for TLS.  If you want to access {productname} using a custom hostname and bring your own TLS certificate/key pair, follow these steps.
+
+Because Quay will use TLS for in-cluster communication with other services within Kubernetes (like Clair), you must ensure that the certificate/key pair you use has Subject Alternative Names (SANs) for each of the following hostname patterns:
+
+- `<quayregistry-name>-quay-app`
+- `<quayregistry-name>-quay-app.<quayregistry-namespace>.svc`
+- `<quayregistry-name>-quay-app.<quayregistry-namespace>.svc.cluster.local`
+
+If `FEATURE_BUILD_SUPPORT: true`, then make sure the certificate/key pair also includes `BUILDMAN_HOSTNAME`.
+
+If all of the above hostnames are not included as SANs, then the Quay Operator will reject your provided certificate/key pair and generate one to be used by {productname}.
+
+Next, create a `Secret` with the following content:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-config-bundle
+data:
+  config.yaml: <must include SERVER_HOSTNAME field with your custom hostname>
+  ssl.cert: <your TLS certificate>
+  ssl.key: <your TLS key>
+----
+
+Then, create a QuayRegistry which references the created `Secret`:
+
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: some-quay
+spec:
+  configBundleSecret: my-config-bundle
+----
+
+
+=== Disabling Route Component
+
+To prevent the Operator from creating a `Route`, mark the component as unmanaged in the `QuayRegistry`:
+
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: some-quay
+spec:
+  components:
+    - kind: route
+      managed: false
+----
+
+[NOTE]
+====
+Disabling the default `Route` means you are now responsible for creating a `Route`, `Service`, or `Ingress` in order to access the Quay instance and that whatever DNS you use must match the `SERVER_HOSTNAME` in the Quay config.
+====
+
+=== Resizing Managed Storage
+
+The Quay Operator creates default object storage using the defaults provided by RHOCS when creating a `NooBaa` object (50 Gib).  There are two ways to extend this storage; you can resize an existing PVC or add more PVCs to a new storage pool.
+
+==== Resize Noobaa PVC
+
+. Log into the OpenShift console and select `Storage` -> `Persistent Volume Claims`.
+. Select the `PersistentVolumeClaim` named like `noobaa-default-backing-store-noobaa-pvc-*`.
+. From the Action menu, select `Expand PVC`.
+. Enter the new size of the Persistent Volume Claim and select `Expand`.
+
+After a few minutes (depending on the size of the PVC), the expanded size should reflect in the PVC's `Capacity` field.
+
+[NOTE]
+====
+Expanding CSI volumes is a Technology Preview feature only. For more information, see link:https://access.redhat.com/documentation/en-us/openshift_container_platform/4.6/html/storage/expanding-persistent-volumes[]. 
+====
+
+==== Add Another Storage Pool
+
+. Log into the OpenShift console and select `Networking` -> `Routes`.  Make sure the `openshift-storage` project is selected.
+. Click on the `Location` field for the `noobaa-mgmt` Route.
+. Log into the Noobaa Management Console.
+. On the main dashboard, under `Storage Resources`, select `Add Storage Resources`.
+. Select `Deploy Kubernetes Pool`
+. Enter a new pool name.  Click `Next`.
+. Choose the number of Pods to manage the pool and set the size per node.  Click `Next`.
+. Click `Deploy`.
+
+After a few minutes, the additional storage pool will be added to the Noobaa resources and available for use by {productname}.
+
+=== Disabling the Horizontal Pod Autoscaler
+
+If you wish to disable autoscaling or create your own `HorizontalPodAutoscaler`, simply specify the component as unmanaged in the `QuayRegistry` instance:
+
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: some-quay
+spec:
+  components:
+    - kind: horizontalpodautoscaler
+      managed: false
+----
+
+=== Customizing Default Operator Images
+
+[NOTE]
+====
+Using this mechanism is not supported for production Quay environments and is strongly encouraged only for development/testing purposes.  There is no guarantee your deployment will work correctly when using non-default images with the Quay Operator.
+====
+
+In certain circumstances, it may be useful to override the default images used by the Operator.  This can be done by setting one or more environment variables in the Quay Operator `ClusterServiceVersion`.
+
+==== Environment Variables
+The following environment variables are used in the Operator to override component images:
+
+[cols=2*]
+|===
+|Environment Variable
+|Component
+
+|`RELATED_IMAGE_COMPONENT_QUAY`
+|`base`
+
+|`RELATED_IMAGE_COMPONENT_CLAIR`
+|`clair`
+
+|`RELATED_IMAGE_COMPONENT_POSTGRES`
+|`postgres` and `clair` databases
+
+|`RELATED_IMAGE_COMPONENT_REDIS`
+|`redis`
+|===
+
+[NOTE]
+====
+Override images *must* be referenced by manifest (@sha256:), not by tag (:latest).
+====
+
+==== Applying Overrides to a Running Operator
+
+When the Quay Operator is installed in a cluster via the link:https://docs.openshift.com/container-platform/4.6/operators/understanding/olm/olm-understanding-olm.html[Operator Lifecycle Manager (OLM)], the managed component container images can be easily overridden by modifying the `ClusterServiceVersion` object, which is OLM's representation of a running Operator in the cluster. Find the Quay Operator's `ClusterServiceVersion` either by using a Kubernetes UI or `kubectl`/`oc`:
+
+```
+$ oc get clusterserviceversions -n <your-namespace>
+```
+
+Using the UI, `oc edit`, or any other method, modify the Quay `ClusterServiceVersion` to include the environment variables outlined above to point to the override images:
+
+*JSONPath*: `spec.install.spec.deployments[0].spec.template.spec.containers[0].env`
+
+[source,yaml]
+----
+- name: RELATED_IMAGE_COMPONENT_QUAY
+  value: quay.io/projectquay/quay@sha256:c35f5af964431673f4ff5c9e90bdf45f19e38b8742b5903d41c10cc7f6339a6d
+- name: RELATED_IMAGE_COMPONENT_CLAIR
+  value: quay.io/projectquay/clair@sha256:70c99feceb4c0973540d22e740659cd8d616775d3ad1c1698ddf71d0221f3ce6
+- name: RELATED_IMAGE_COMPONENT_POSTGRES
+  value: centos/postgresql-10-centos7@sha256:de1560cb35e5ec643e7b3a772ebaac8e3a7a2a8e8271d9e91ff023539b4dfb33
+- name: RELATED_IMAGE_COMPONENT_REDIS
+  value: centos/redis-32-centos7@sha256:06dbb609484330ec6be6090109f1fa16e936afcf975d1cbc5fff3e6c7cae7542
+----
+
+Note that this is done at the Operator level, so every QuayRegistry will be deployed using these same overrides.

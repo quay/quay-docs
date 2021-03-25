@@ -1,0 +1,137 @@
+= Standalone upgrade
+
+In general, {productname} supports upgrades from a prior (N-1) minor version only.  For example, upgrading directly from v3.0.5 to {productminv} is not supported.  You will need to first upgrade from v3.0.5 to v3.1.3 to v3.2.2 to v3.3.4 and then finally to {productminv}.  This is required to ensure that any necessary database migrations are done correctly and in the right order during the upgrade.
+
+
+This document describes the steps needed to perform each individual upgrade. Determine your current version and then follow the steps in sequential order, starting with your current version and working up to your desired target version. 
+
+
+* Upgrade to v3.4.3 from v3.4.*
+* Upgrade to v3.4.3 from v3.3.* 
+* Upgrade to v3.3.4 from v3.2.z 
+* Upgrade to v3.2.2 from v3.1.z
+* Upgrade to v3.1.3 from v3.0.z
+* Upgrade to v3.0.5 from v2.9.5
+
+
+See the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_release_notes/index[Red Hat Quay Release Notes] for information on features for individual releases.
+
+
+The general procedure for a manual upgrade consists of the following steps:
+
+* Stop the Quay and Clair containers
+* Backup the database and image storage (optional but recommended)
+* Start Clair using the new version of the image
+* Wait until Clair is ready to accept connections before starting the new version of Quay
+
+
+== Accessing images
+
+Images for Quay 3.4.0 and later are available from `registry.redhat.io` and `registry.access.redhat.com`, with authentication set up as described in link:https://access.redhat.com/RegistryAuthentication[Red Hat Container Registry Authentication].
+
+Images for Quay 3.3.4 and earlier are available from `quay.io`, with authentication set up as described in link:https://access.redhat.com/solutions/3533201[Accessing Red Hat Quay without a CoreOS login].
+
+
+== Upgrade to {productminv}  from v3.4.*
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-10:1
+* **Redis:** registry.redhat.io/rhel8/redis-5:1
+
+
+== Upgrade to v3.4.3 from v3.3.* 
+
+Upgrading to Quay 3.4  requires a database migration which does not support downgrading back to a prior version of Quay. Please back up your database before performing this migration.
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-10:1
+* **Redis:** registry.redhat.io/rhel8/redis-5:1
+
+
+== Upgrade to v3.3.4 from v3.2.z 
+
+=== Target images
+* **Quay:** quay.io/redhat/quay:v3.3.4 
+* **Clair:** quay.io/redhat/clair-jwt:v3.3.4
+* **PostgreSQL:** rhscl/postgresql-96-rhel7
+* **Redis:** registry.access.redhat.com/rhscl/redis-32-rhel7
+
+
+
+== Upgrade to v3.2.2 from v3.1.z
+
+Once your cluster is running any {productname}  3.1.z version,
+to upgrade your cluster to v3.2.2  you must bring down your entire cluster and
+make a small change to the configuration before bringing it back up with the v3.2.2 version.
+
+
+[WARNING]
+====
+Once you set the value of DATABASE_SECRET_KEY in this procedure, do not ever
+change it. If you do so, then existing robot accounts, API tokens, etc. cannot be used anymore. You would have to create a new robot account and API tokens to use with Quay.
+====
+
+. Take all hosts in the {productname} cluster out of service.
+. Generate some random data to use as a database secret key. For example:
++
+```
+$ openssl rand -hex 48
+2d023adb9c477305348490aa0fd9c
+```
+. Add a new DATABASE_SECRET_KEY field to your `config.yaml` file. For example:
++
+```
+DATABASE_SECRET_KEY: "2d023adb9c477305348490aa0fd9c"
+```
++
+[NOTE]
+====
+For an OpenShift installation, the `config.yaml` file is stored as a secret.
+====
+
+. Bring up one quay container to complete the migration to v3.2.2 .
+. Once the migration is done, make sure the same `config.yaml` is available
+on all nodes and bring up the new quay v3.2.2 service on those nodes.
+
+. Start v3.0.z versions of quay-builder and clair to replace any
+instances of those containers you want to return to your cluster.
+
+
+
+=== Target images
+
+* **Quay:** quay.io/redhat/quay:v3.2.2 
+* **Clair:** quay.io/redhat/clair-jwt:v3.2.2
+* **PostgreSQL:** rhscl/postgresql-96-rhel7
+* **Redis:** registry.access.redhat.com/rhscl/redis-32-rhel7
+
+
+
+
+== Upgrade to v3.1.3 from v3.0.z
+
+=== Target images
+* **Quay:** quay.io/redhat/quay:v3.1.3 
+* **Clair:** quay.io/redhat/clair-jwt:v3.1.3
+* **PostgreSQL:** rhscl/postgresql-96-rhel7
+* **Redis:** registry.access.redhat.com/rhscl/redis-32-rhel7
+
+
+
+
+== Upgrade to v3.0.5 from v2.9.5
+
+For the v2.9.5 to v3.0.5 upgrade, you can either do the whole upgrade with {productname} down (Synchronous) or only bring down {productname} for a few minutes and have the bulk of the upgrade continue with {productname} running (Background).
+
+In a background upgrade, it could take much longer to run the upgrade (depending on how many tags need to be processed), but it takes less total downtime. The downside of a background upgrade is that you won't have access to the latest features until the upgrade completes (the cluster runs from the quay v3 container in v2 compatibility mode until the upgrade is done).
+
+
+
+
+include::con_upgrade_v3.adoc[leveloffset=+2]
+
+include::proc_upgrade_v3.adoc[leveloffset=+2]
