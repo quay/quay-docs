@@ -1,1 +1,47 @@
 = Console monitoring and alerting
+
+{productname} {producty} provides support for monitoring Quay instances that were deployed using the Operator, from inside the OpenShift console. The new monitoring features include a Grafana dashboard, access to individual metrics, and alerting to notify for frequently restarting Quay pods.
+
+[NOTE]
+====
+To enable the monitoring features, the Operator must be installed in  "all namespaces" mode.
+====
+
+== Dashboard
+
+In the OpenShift console, navigate to Monitoring -> Dashboards and search for the dashboard of your desired Quay registry instance:
+
+image:choose-dashboard.png[Choose Quay dashboard]
+
+The dashboard shows various statistics including:
+
+* The number of Organizations, Repositories, Users and Robot accounts
+* CPU Usage and Max Memory Usage
+* Rates of Image Pulls and Pushes, and Authentication requests
+* API request rate
+* Latencies
+
+image:console-dashboard-1.png[Console dashboard]
+
+== Metrics
+
+You can see the underlying metrics behind the Quay dashboard, by accessing Monitoring -> Metrics in the UI. In the Expression field, enter the text `quay_` to see the list of metrics available: 
+
+image:quay-metrics.png[Quay metrics]
+
+Select a sample metric, for example, `quay_org_rows`:
+
+image:quay-metrics-org-rows.png[Number of Quay organizations]
+
+This metric shows the number of organizations in the registry, and it is directly surfaced in the dashboard as well.
+
+== Alerting
+
+An alert is raised if the Quay pods restart too often. The alert can be configured by accessing the Alerting rules tab from Monitoring -> Alerting in the consol UI and searching for the Quay-specific alert: 
+
+image:alerting-rules.png[Alerting rules]
+
+Select the QuayPodFrequentlyRestarting rule detail to configure the alert: 
+
+image:quay-pod-frequently-restarting.png[Alerting rule details]
+
