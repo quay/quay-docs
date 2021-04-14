@@ -50,6 +50,22 @@ When the Quay Operator starts up, it immediately looks for any `QuayRegistries` 
 * If `status.currentVersion` equals the Operator version, reconcile as normal.
 * If `status.currentVersion` does not equal the Operator version, check if it can be upgraded. If it can, perform upgrade tasks and set the `status.currentVersion` to the Operator's version once complete. If it cannot be upgraded, return an error and leave the `QuayRegistry` and its deployed Kubernetes objects alone.
 
+== Enabling new features in Quay 3.5
+
+=== Console monitoring and alerting
+
+The support for monitoring of Quay 3.5 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and re-install it for all namespaces, once the upgrade has taken place. 
+
+=== OCI and Helm support
+
+Support for Helm and OCI artifacts is now enabled by default in {productname} {producty}. If you want to explicitly enable the feature, for example, if you are upgrading from a version where it is not enabled by default, you need to reconfigure your Quay deployment to enable the use of OCI artifacts using the following properties:
+
+[source,yaml]
+----
+FEATURE_GENERAL_OCI_SUPPORT: true
+FEATURE_HELM_OCI_SUPPORT: true
+----
+
 == Upgrading a QuayEcosystem
 
 Upgrades are supported from previous versions of the Operator which used the `QuayEcosystem` API for a limited set of configurations. To ensure that migrations do not happen unexpectedly, a special label needs to be applied to the `QuayEcosystem` for it to be migrated. A new `QuayRegistry` will be created for the Operator to manage, but the old `QuayEcosystem` will remain until manually deleted to ensure that you can roll back and still access Quay in case anything goes wrong. To migrate an existing `QuayEcosystem` to a new `QuayRegistry`, follow these steps:
