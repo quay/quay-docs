@@ -1,0 +1,60 @@
+[[rn-3-500]]
+== Version 3.5.0
+
+=== quay / clair / quay-builder
+
+Note:
+
+Some features of Quay are not currently available when running on a FIPS-enabled OCP cluster or RHEL system:
+* FEATURE_MAILING will not work for user create validation, vulnerability notifications, and export logs
+* Azure object storage is not available due to hashing
+* Deprecated app-registry will not function
+
+Tech Preview
+
+* Due to necessary changes, the existing Red Hat Quay builders had to be removed and entirely rewritten. This has resulted in a loss of functionality so the new builders are being released as link:https://access.redhat.com/support/offerings/techpreview[Technology Preview]. Currently, builds are only available on OpenShift/Kubernetes utilizing Red Hat CoreOS for the sandbox VMs. The internal build manager has also been completely re-written to use gRPC and numerous core issues have been addressed. Please follow the provided documentation carefully when setting up.
+
+Deprecated:
+
+* Clair V2 (clair-jwt): With the GA of Clair V4, this version of Clair is now marked as deprecated.  Users are encouraged to migrate to Clair V4 with this release.  Clair V2 will be removed completely in the next release.
+* App Registry: Customers using the App Registry feature should begin migrating to another application storage solution such as Helm V3 which uses the OCI standard container format.  App Registry will be completely removed in the next release.
+
+
+Fixed:
+
+* Fix quay running on a FIPS-enabled OCP cluster
+* Fix validation of LDAP_USER_FILTER when missing from config bundle
+* Upgrade internally-used jQuery
+* Remove usage of TLS1.0 and TLS1.1 ciphers
+* Fix build of uploaded Dockerfile when object storage is Swift
+* Fix whitespace error in UI for repository count checker
+* (CVE-2020-1747) Update PyYAML
+* Fix quay.expires-after label for all linked images
+* Helm chart support now generally available
+* Fix validation of SMTP in config bundle
+* Fix gitlab trigger build images now honor configured storage
+* Fix OIDC session sends invalid state value in URL
+* Fix custom OIDC external authentication ignores PREFERRED_URL_SCHEME configuration
+* Fix config editor opening links in same page
+* Fix setting USERFILES_LOCATION to valid storage if not default
+* Fix typo in user confirmation screen
+* Remove unused nodejs from container
+* Fix default MAIL_DEFAULT_SENDER config value
+* Fix config editor default tag expiration display
+* (CVE-2020-13757) Remove usage of python-rsa package in favor of python-cryptography
+* Added support of github action to publish to a repository
+* Document clair updater URLs
+
+=== quay-operator
+
+Note: The new quay-operator OCP monitor dashboard requires that the operator be install in all namespaces (the default). If installed in a single namespace, the "monitoring" component will be unmanaged and not installed.
+
+* Document using disconnected clair with quay-operator
+* Fix quay-operator version displayed in OCP console
+* Fix BUILDMAN_HOSTNAME in config bundle with managed route component
+* Added OCP monitoring integration
+
+=== quay-container-security-operator
+
+* Fix reading security metadata when FEATURE_ANONYMOUS_ACCESS is set to false
+
