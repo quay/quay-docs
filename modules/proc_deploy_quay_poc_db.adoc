@@ -1,18 +1,18 @@
 = Configuring the database
 
-Quay requires a database for storing metadata and Postgres is recommended, especially for highly available configurations. Alternatively, you can use MySQL with a similar approach to configuration as described below for Postgres.
+Quay requires a database for storing metadata. Postgres is used throughout this document and is recommended for highly available configurations. Alternatively, you can use MySQL with a similar approach to configuration as described below.
 
 == Setting up Postgres
 
 In this proof-of-concept scenario, you will use a directory on the local file system to persist database data. 
 
-* In the installation folder, denoted here by the variable $QUAY, create a directory for the database data and set the permissions appropriately: 
+. In the installation folder, denoted here by the variable $QUAY, create a directory for the database data and set the permissions appropriately: 
 +
 ....
 $ mkdir -p $QUAY/postgres-quay
 $ setfacl -m u:26:-wx $QUAY/postgres-quay
 ....
-* Use podman to run the Postgres container, specifying the username, password, database name and port, together with the volume definition for database data:
+. Use `podman run` to start the `Postgres` container, specifying the username, password, database name and port, together with the volume definition for database data:
 +
 [subs="verbatim,attributes"]
 ....
@@ -25,7 +25,7 @@ $ sudo podman run -d --rm --name postgresql-quay \
   -v $QUAY/postgres-quay:/var/lib/pgsql/data:Z \
   registry.redhat.io/rhel8/postgresql-10:1
 ....
-* Ensure that the Postgres `pg_trgm` module is installed, as it is required by Quay:
+. Ensure that the Postgres `pg_trgm` module is installed, as it is required by Quay:
 +
 ....
 $ sudo podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'
@@ -41,6 +41,3 @@ $ sudo podman inspect -f "{{.NetworkSettings.IPAddress}}" postgresql-quay
 10.88.0.18
 ....
 ////
-
-
-

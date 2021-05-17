@@ -1,8 +1,25 @@
 = Configuring SSL using the UI
 
-Start the Quay container in configuration mode and in the Server Configuration section, specify that you want Quay to handle TLS:  
+We suggest configuring SSL using the Quay UI, because it automatically validates Quay configurations. To  configure SSL using the command line interface, see section 3.1.4. 
 
-image:ssl-config.png[Enable SSL]
+. Start the `Quay` container in configuration mode:
++
+[subs="verbatim,attributes"]
+```
+$ sudo podman run --rm -it --name quay_config -p 80:8080 -p 443:8443 {productrepo}/{quayimage}:{productminv} config secret
+```
 
-Upload the certificate file and private key file created earlier, ensuring that the Server Hostname matches the value used when creating the certs. Validate and download the updated configuration and then restart the registry.
+. In the Server Configuration section, select `Red Hat Quay handles TLS` for TLS. Upload the certificate file and private key file created earlier, ensuring that the Server Hostname matches the value used when creating the certs. Validate and download the updated configuration. 
 
+. Stop the `Quay` container and then restart the registry:
++
+[subs="verbatim,attributes"]
+```
+$ sudo podman rm -f quay
+$ sudo podman run -d --rm -p 80:8080 -p 443:8443 \
+--name=quay \
+-v $QUAY/config:/conf/stack:Z \
+-v $QUAY/storage:/datastorage:Z \
+{productrepo}/{quayimage}:{productminv}
+
+```
