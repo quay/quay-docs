@@ -1,10 +1,13 @@
-= Configuring the RHEL server
+= Configuring the Red Hat Enterprise Linux server
 
 
-== Install and register Red Hat Enterprise Linux server
+== Install and register the RHEL server
 
-Install the latest RHEL 8 server. You can do a minimal install (shell access only) or Server plus GUI (if you want a desktop).
-Register and subscribe your RHEL server system as described in link:https://access.redhat.com/solutions/253273[How to register and subscribe a system...]. The following commands register your system and list available subscriptions. Choose an available RHEL server subscription, attach to its pool ID and upgrade to the latest software:
+. Install the latest RHEL 8 server. You can do a minimal, shell-access only install, or Server plus GUI if you want a desktop.
+
+. Register and subscribe your RHEL server system as described in link:https://access.redhat.com/solutions/253273[How to register and subscribe a system...]. 
+
+. Use the following commands to register your system and list available subscriptions. Choose an available RHEL server subscription, attach to its pool ID and upgrade to the latest software:
 +
 ....
 # subscription-manager register --username=<user_name> --password=<password>
@@ -14,43 +17,43 @@ Register and subscribe your RHEL server system as described in link:https://acce
 # yum update -y
 ....
 
+== Installing Podman
 
-== Installing podman
-
-Install podman, if it is not already present on your system:
-
+* Install Podman if it is not already on your system:
++
 ....
 $ sudo yum install -y podman
 ....
 
-Alternatively, you can install the `container-tools` module, which pulls in the full set of container software packages: 
-
+* Alternatively, you can install the `container-tools` module, which pulls in the full set of container software packages: 
++
 ....
 $ sudo yum module install -y container-tools
 ....
 
 == Registry authentication
 
-Set up authentication to `registry.redhat.io`, so that you can pull the quay container, as described in link:https://access.redhat.com/RegistryAuthentication[Red Hat Container Registry Authentication]. Note that this differs from earlier {productname} releases where the images were hosted on quay.io.
-
-For example, you can log in to the registry:
-
+* Set up authentication to `registry.redhat.io`, so that you can pull the `Quay` container, as described in link:https://access.redhat.com/RegistryAuthentication[Red Hat Container Registry Authentication]. Note that this differs from earlier {productname} releases where the images were hosted on `quay.io`.
++
+You can log in to the registry using the following command:
++
 ....
 $ sudo podman login registry.redhat.io
 Username: <username>
 Password: <password>
 ....
 
-
 == Firewall configuration
 
-If you have a firewall running on your system, to access the Red Hat Quay config tool (port 8443) and application (ports 8080 and 443) outside of the local system, run the following commands (add `--zone=<yourzone>` for each command to open ports on a particular zone):
-
+* If you have a firewall running on your system, you might have to add rules that allow access to {productname}. The commands required depend on the ports you have mapped, for example: 
++
 ....
-# firewall-cmd --permanent --add-port=8443/tcp
-# firewall-cmd --permanent --add-port=8080/tcp
-# firewall-cmd --permanent --add-port=443/tcp
-# firewall-cmd --reload
+$ firewall-cmd --permanent --add-port=80/tcp
+$ firewall-cmd --permanent --add-port=443/tcp
+$ firewall-cmd --permanent --add-port=5432/tcp
+$ firewall-cmd --permanent --add-port=5433/tcp
+$ firewall-cmd --permanent --add-port=6379/tcp
+$ firewall-cmd --reload
 ....
 
 [[ip-naming]]
@@ -69,12 +72,12 @@ This approach is susceptible to host restarts, as the IP addresses for the conta
 * **Using the host network:** You can use the `podman run` command with the `--net=host` option and then use container ports on the host when specifying the addresses in the configuration. This option is susceptible to port conflicts when two containers want to use the same port, and as a result it is not recommended.
 * **Configuring port mapping:**  You can use port mappings to expose ports on the host and then use these ports in combination with the host IP address or host name.
 
-This document uses port mapping in the subsequent examples, and assumes a static IP address for your host system. In this example, `quay-server` has the IP address `192.168.1.112`.
+This document uses port mapping and assumes a static IP address for your host system. Throughout this deployment, we use `quay-server.example.com` with our system's IP address, `192.168.1.112`, and establish this information in the `/etc/hosts` file:
 
 ....
 $ cat /etc/hosts
 ...
-192.168.1.112   quay-server
+192.168.1.112   quay-server.example.com
 ....
 
 
@@ -85,8 +88,8 @@ $ cat /etc/hosts
 |Address
 
 |Quay
-|`-p 8080:8080`
-|\http://quay-server:8080
+|`-p 80:8080` `-p 443:8443`
+|\http://quay-server.example.com
 
 |Postgres for Quay
 |`-p 5432:5432`
@@ -102,6 +105,6 @@ $ cat /etc/hosts
 
 |Clair V4
 |`-p 8081:8080`
-|\http://quay-server:8081
+|\http://quay-server.example.com:8081
 
 |===

@@ -1,6 +1,6 @@
 = Deploying {productname}
 
-To deploy the {productname} service on the nodes in your cluster, you use the same quay container
+To deploy the {productname} service on the nodes in your cluster, you use the same `Quay` container
 you used to create the configuration file. The differences here are that you:
 
 * Identify directories where the configuration files and data are stored
@@ -47,7 +47,7 @@ run {productname} as a container, as follows:
 [NOTE]
 ====
 Add `-e DEBUGLOG=true` to the `podman run` command line for
-the quay container to enable debug level logging.
+the `Quay` container to enable debug level logging.
 Add `-e IGNORE_VALIDATION=true` to bypass validation during
 the startup process.
 ====
@@ -62,15 +62,15 @@ the startup process.
    -d {productrepo}/{quayimage}:{productminv}
 ```
 
-. **Open browser to UI**: Once the quay container has started, go to your web browser and
-open the URL, to the node running the quay container. 
+. **Open browser to UI**: Once the `Quay` container has started, go to your web browser and
+open the URL, to the node running the `Quay` container. 
 
 . **Log into {productname}**: Using the superuser account you created during
 configuration, log in and make sure {productname} is working properly.
 
 . **Add more {productname} nodes**: At this point, you have the option of
 adding more nodes to this {productname} cluster by simply
-going to each node, then adding the tarball and starting the quay container as just shown.
+going to each node, then adding the tarball and starting the `Quay` container as just shown.
 
 . **Add optional features**: To add more features to your {productname} cluster, such as
 Clair images scanning and Repository Mirroring, continue on to the next section.
@@ -99,7 +99,7 @@ The following procedure assumes you already have a running
 {productname} cluster on an OpenShift platform, with the {productname} Setup
 container running in your browser:
 
-. **Start the repo mirroring worker**: Start the quay container in `repomirror` mode.
+. **Start the repo mirroring worker**: Start the `Quay` container in `repomirror` mode.
 This example assumes you have configured TLS communications using a certificate
 that is currently stored in `/root/ca.crt`. If not, then remove the line that adds
 `/root/ca.crt` to the container:
@@ -107,7 +107,7 @@ that is currently stored in `/root/ca.crt`. If not, then remove the line that ad
 [subs="verbatim,attributes"]
 ```
 $ sudo podman run -d --name mirroring-worker \
-  -v /mnt/quay/config:/conf/stack \
+  -v /mnt/quay/config:/conf/stack:Z \
   -v /root/ca.crt:/etc/pki/ca-trust/source/anchors/ca.crt \
   {productrepo}/{quayimage}:{productminv} repomirror
 ```
