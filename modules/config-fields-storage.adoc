@@ -1,0 +1,108 @@
+= Image storage
+
+You specify a list of all storage engines using the DISTRIBUTED_STORAGE_CONFIG field, and choose you preferred storage engine(s) using the DISTRIBUTED_STORAGE_PREFERENCE field.
+
+The DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS field is used to control which locations will have their images replicated by default.
+
+
+.Storage config
+[cols="4a,1a,3a,1a",options="header"]
+|===
+| Field | Type | Description | Values 
+| DISTRIBUTED_STORAGE_CONFIG +
+(Required) | Object | Configuration for storage engine(s) to use in Red Hat Quay. Each key represents an unique identifier for a storage engine. The value consists of a tuple of (key, value) forming an object describing the storage engine parameters. | 
+| DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS +
+(Required) | Array of string | The list of storage engine(s) (by ID in DISTRIBUTED_STORAGE_CONFIG) whose images should be fully replicated, by default, to all other storage engines. | **Default:** +
+`[]`
+| DISTRIBUTED_STORAGE_PREFERENCE +
+(Required) | Array of string | The preferred storage engine(s) (by ID in DISTRIBUTED_STORAGE_CONFIG) to use. A preferred engine means it is first checked for pulling and images are pushed to it. |  **Default:** +
+`[]`
+|===
+
+
+== Examples of storage config
+
+* Local storage
++
+```
+default:
+  - LocalStorage
+  - storage_path: /datastorage/registry`
+```
+
+* OCS/NooBaa
++
+```
+rhocsStorage:
+  - RHOCSStorage
+  - access_key: access_key_here
+    secret_key: secret_key_here
+    bucket_name: quay-datastore-9b2108a3-29f5-43f2-a9d5-2872174f9a56
+    hostname: s3.openshift-storage.svc.cluster.local
+    is_secure: 'true'
+    port: '443'
+    storage_path: /datastorage/registry
+```
+* **Ceph / RadosGW Storage / Hitachi HCP**:
++
+```
+radosGWStorage:
+  - RadosGWStorage
+  - access_key: access_key_here
+    secret_key: secret_key_here
+    bucket_name: bucket_name_here
+    hostname: hostname_here
+    is_secure: 'true'
+    port: '443'
+    storage_path: /datastorage/registry
+```
+
+* **AWS S3 Storage**:
++
+```
+s3Storage:
+  - S3Storage
+  - host: s3.ap-southeast-2.amazonaws.com
+    s3_access_key: s3_access_key_here
+    s3_secret_key: s3_secret_key_here
+    s3_bucket: s3_bucket_here
+    storage_path: /datastorage/registry
+```
+
+* **Azure Storage**:
++
+```
+azureStorage:
+  - AzureStorage
+  - azure_account_name: azure_account_name_here
+    azure_account_key: azure_account_key_here
+    azure_container: azure_container_here
+    sas_token: some/path/
+    storage_path: /datastorage/registry
+```
+
+* **Google Cloud Storage**: 
++
+```
+googleCloudStorage:
+  - GoogleCloudStorage
+  - access_key: access_key_here
+    secret_key: secret_key_here
+    bucket_name: bucket_name_here
+    storage_path: /datastorage/registry
+```
+
+* **Swift Storage**:
++
+```
+swiftStorage:
+  - SwiftStorage
+  - swift_user: swift_user_here
+    swift_password: swift_password_here
+    swift_container: swift_container_here
+    auth_url: https://example.org/swift/v1/quay
+    auth_version: 1
+    ca_cert_path: /conf/stack/swift.cert"
+    storage_path: /datastorage/registry
+```
+
