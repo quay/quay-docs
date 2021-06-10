@@ -92,15 +92,8 @@ SERVER_HOSTNAME: quay-server.example.com
 
 Detailed information on Clair configuration is available at link:https://github.com/quay/clair/blob/main/Documentation/reference/config.md[]. 
 
-. In your installation folder, create a directory for Clair configuration: 
+* Create a config.yaml file in your `/etc/` directory, for example, `/etc/clairv4/config/config.yaml`. Use the following example, which provides a minimal configuration for use in a proof of concept deployment:
 +
-```
-$ mkdir -p clairv4/config
-```
-
-. Create a config.yaml file. Use the following example, which provides a minimal configuration for use in a proof of concept deployment:
-+
-./$QUAY/clairv4/config/config.yaml
 [source,yaml]
 ----
 http_listen_addr: :8081
@@ -136,7 +129,7 @@ trace:
 metrics:
   name: "prometheus"
 ----
-
++
 * `http_listen_addr` is set to the port of the Clair HTTP endpoint that you specified in the Quay configuration tool, in this case  `:8081`.
 * The Clair pre-shared key (PSK) that you generated in the Quay configuration tool is used for authentication, with the issuer, specified in the `iss` field, set to `quay`.
 
@@ -150,7 +143,7 @@ metrics:
 $ sudo podman run -d --rm --name clairv4 \
   -p 8081:8081 -p 8089:8089 \
   -e CLAIR_CONF=/clair/config.yaml -e CLAIR_MODE=combo \
-  -v $QUAY/config/clairv4/config:/clair:Z \
+  -v /etc/clairv4/config:/clair:Z \
   {productrepo}/{clairimage}:{productminv} 
 ....
 
