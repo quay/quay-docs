@@ -10,7 +10,7 @@ link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/ht
 
 By default, Podman generates a unit file for existing containers or pods. You can generate more portable systemd unit files using the `podman generate systemd --new` command. The `--new` flag instructs Podman to generate unit files that create, start and remove containers.
 
-* Create the systemd unit files from a running {productname} registry as follows:
+. Create the systemd unit files from a running {productname} registry as follows:
 +
 ....
 $ sudo podman generate systemd --new --files --name redis
@@ -20,7 +20,7 @@ $ sudo podman generate systemd --new --files --name postgresql-clairv4
 $ sudo podman generate systemd --new --files --name clairv4
 ....
 
-* Copy the unit files to `/usr/lib/systemd/system` for installing them as a root user:
+. Copy the unit files to `/usr/lib/systemd/system` for installing them as a root user:
 +
 ....
 $ sudo cp -Z container-redis.service /usr/lib/systemd/system
@@ -31,13 +31,13 @@ $ sudo cp -Z container-clairv4.service /usr/lib/systemd/system
 ....
 
 
-* Reload systemd manager configuration:
+. Reload systemd manager configuration:
 +
 ....
 $ sudo systemctl daemon-reload
 ....
 
-* Enable the services and start them at boot time:
+. Enable the services and start them at boot time:
 +
 ....
 $ sudo systemctl enable --now container-redis.service
@@ -50,7 +50,7 @@ $ sudo systemctl enable --now container-clairv4.service
 
 == Starting, stopping and checking the status of services
 
-* Check the status of the Quay components:
+. Check the status of the Quay components:
 +
 ....
 $ sudo systemctl status container-redis.service
@@ -61,7 +61,7 @@ $ sudo systemctl status container-clairv4.service
 ....
 
 
-* To stop the Quay component services:
+. To stop the Quay component services:
 +
 ....
 $ sudo systemctl stop container-redis.service
@@ -71,7 +71,7 @@ $ sudo systemctl stop container-postgresql-clairv4.service
 $ sudo systemctl stop container-clairv4.service
 ....
 
-* To start the Quay component services:
+. To start the Quay component services:
 +
 ....
 $ sudo systemctl start container-redis.service
@@ -94,7 +94,7 @@ d959d5bf7a24  registry.redhat.io/rhel8/postgresql-10:1    run-postgresql  18 sec
 e75ff8651dbd  registry.redhat.io/quay/clair-rhel8:v3.4.0                  18 seconds ago  Up 17 seconds ago  0.0.0.0:8081->8080/tcp  clairv4
 ....
 
-In this instance, the Quay container itself has failed to start up. This is due to the fact that, when security scanning is enabled in Quay, it tries to connect to Clair on startup. However, Clair has not finished initializing and cannot accept connections and, as a result, Quay terminates immediately. To overcome this issue, you need to configure the Quay service to have a dependency on the Clair service, as shown in the following section.
+In this instance, the `Quay` container itself has failed to start up. This is due to the fact that, when security scanning is enabled in Quay, it tries to connect to Clair on startup. However, Clair has not finished initializing and cannot accept connections and, as a result, Quay terminates immediately. To overcome this issue, you need to configure the Quay service to have a dependency on the Clair service, as shown in the following section.
 
 == Configuring Quay's dependency on Clair
 
@@ -142,7 +142,7 @@ d959d5bf7a24  registry.redhat.io/rhel8/postgresql-10:1    run-postgresql  28 sec
 e75ff8651dbd  registry.redhat.io/quay/clair-rhel8:v3.4.0                  28 seconds ago  Up 27 seconds ago  0.0.0.0:8081->8080/tcp  clairv4
 ....
 
-Initially, the Quay container will not be available, but once the `RestartSec` delay has expired, it should start up:
+Initially, the `Quay` container will not be available, but once the `RestartSec` delay has expired, it should start up:
 
 ....
 $ sudo podman ps -a
@@ -154,6 +154,6 @@ d959d5bf7a24  registry.redhat.io/rhel8/postgresql-10:1    run-postgresql  34 sec
 e75ff8651dbd  registry.redhat.io/quay/clair-rhel8:v3.4.0                  34 seconds ago  Up 33 seconds ago  0.0.0.0:8081->8080/tcp  clairv4
 ....
 
-The `CREATED` field for the quay container shows the 30 second difference in creation time, as configured in the service definition.
+The `CREATED` field for the `Quay` container shows the 30 second difference in creation time, as configured in the service definition.
 
-Log in to the {productname} registry at `quay-server:8080` to check that everything has restarted correctly.
+Log in to the {productname} registry at `quay-server.example.com` and ensure that everything has restarted correctly.
