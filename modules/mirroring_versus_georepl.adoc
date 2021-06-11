@@ -1,18 +1,24 @@
-= Repository mirroring versus georeplication
+= Repository mirroring versus geo-replication
 
-With repository mirroring, you mirror a specific subset of content,
-between two or more distinct registries, to
-selected datacenters, clusters, or regions. 
+Quay geo-replication mirrors the entire image storage backend data between 2 or more different storage backends while the database is shared (one Quay registry with two different blob storage endpoints).  The primary use cases for geo-replication are: 
 
-By contrast, Georeplication
-provides a single, globally distributed {productname} to serve container
-images from localized storage. The two approaches to sharing content
-differ in the following ways:
+* Speeding up access to the binary blobs for geographically dispersed setups
+* Guaranteeing that the image content is the same across regions
 
-.{productname} Repository Mirroring vs. Georeplication
+Repository mirroring synchronizes selected repositories (or subsets of repositories) from one registry to another. The registries are distinct, with  registry is separate database and image storage. The primary use cases for mirroring are:
+
+* Independent registry deployments in different datacenters or regions, where a certain subset of the overall content is supposed to be shared across the datacenters / regions
+* Automatic synchronization or mirroring of selected (whitelisted) upstream repositories from external registries into a local Quay deployment
+
+[Note]
+====
+Repository mirroring and geo-replication can be used simultaneously.
+====
+
+.{productname} Repository mirroring versus geo-replication
 [width="100%",options="header"]
 |===
-| Feature / Capability | Georeplication | Repository Mirroring
+| Feature / Capability | Geo-replication | Repository mirroring
 | What is the feature designed to do? | A shared, global registry | Distinct, different registries
 | What happens if replication or mirroring hasn’t been completed yet? | The remote copy is used (slower) | No image is served
 | Is access to all storage backends in both regions required? | Yes (all {productname} nodes) | No (distinct storage)
