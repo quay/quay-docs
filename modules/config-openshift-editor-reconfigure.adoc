@@ -1,0 +1,102 @@
+= Reconfiguring Quay on OpenShift using config tool UI
+
+Before making a change to the Quay configuration, list the pods that are currently running:
+
+
+----
+$ oc get pods
+NAME                                          READY   STATUS                  RESTARTS   AGE
+example-clair-app-597fc68867-pv5cl            1/1     Running                 0          3d1h
+example-clair-postgres-7f69cf4f49-nghqw       1/1     Running                 0          3d1h
+example-quay-config-editor-5bf8b576b6-h4lcl   1/1     Running                 0          3d1h
+example-quay-database-5968db796f-fmgsd        1/1     Running                 0          3d1h
+example-quay-mirror-6b6b9998d7-6nt4k          1/1     Running                 0          3d1h
+example-quay-postgres-init-kfggm              0/1     Completed               0          3d1h
+example-quay-redis-565cdb8554-vk424           1/1     Running                 0          3d1h
+quay-operator.v3.5.2-74b7f96d8b-rcfq9         1/1     Running                 0          3d19h
+----
+
+== Updating configuration
+
+. Add a super user to Quay:
++
+image:config-editor-su.png[Add super user]
+. Validate the new configuration and the apply the changes by pressing the Reconfigure Quay button:
++
+image:config-editor-reconfigure.png[Reconfigure]
+
+. The config tool notifies you that the change has been submitted to Quay:
++
+image:config-editor-reconfigured.png[Reconfigured]
+
+
+
+== Monitoring reconfiguration
+
+. Use the `oc get pods` command to watch Quay reconciling. The existing pods are terminated and new pods are created using the updated configuration:
++
+----
+$ oc get pods
+NAME                                          READY   STATUS              RESTARTS   AGE
+example-clair-app-597fc68867-pv5cl            1/1     Running             0          3d1h
+example-clair-app-7d688db485-v4spj            0/1     Running             0          14s
+example-clair-postgres-7f69cf4f49-nghqw       1/1     Terminating         0          3d2h
+example-quay-app-65b679bc79-mlfbt             0/1     ContainerCreating   0          18s
+example-quay-config-editor-5b85c9cdb6-nhswf   1/1     Running             0          17s
+example-quay-config-editor-5bf8b576b6-h4lcl   1/1     Terminating         0          3d1h
+example-quay-database-6b69b49656-h4jht        0/1     ContainerCreating   0          5s
+example-quay-mirror-86db49d475-r2lqd          0/1     Init:0/1            0          4s
+example-quay-postgres-init-mf57v              1/1     Running             0          14s
+example-quay-redis-86557f4899-7s2vf           1/1     Running             0          12s
+quay-operator.v3.5.2-74b7f96d8b-rcfq9         1/1     Running             0          3d19h
+----
+
+
+. Once Quay has reconciled the changes, the pods should show as `Running`:
++
+----
+$ oc get pods
+NAME                                          READY   STATUS      RESTARTS   AGE
+example-clair-app-7d688db485-v4spj            1/1     Running     0          102s
+example-clair-postgres-758847d994-jvgvp       1/1     Running     0          68s
+example-quay-app-65b679bc79-mlfbt             1/1     Running     2          106s
+example-quay-config-editor-5b85c9cdb6-nhswf   1/1     Running     0          105s
+example-quay-database-6b69b49656-h4jht        1/1     Running     0          93s
+example-quay-mirror-86db49d475-r2lqd          1/1     Running     0          92s
+example-quay-postgres-init-mf57v              0/1     Completed   0          102s
+example-quay-redis-86557f4899-7s2vf           1/1     Running     0          100s
+quay-operator.v3.5.2-74b7f96d8b-rcfq9         1/1     Running     0          3d20h
+----
+
+
+== Accessing the updated secret
+
+Since a new pod has been created for the config tool, a new secret will have been created, and you will need to use the updated password when you next attempt to login:
+
+image:config-editor-secret-updated.png[Config editor secret updated]
+
+
+
+== Accessing the updated config.yaml
+
+Use the config bundle to access the updated `config.yaml` file. 
+
+. On the QuayRegistry details screen, click on the Config Bundle Secret
+
+. In the Data section of the Secret details screen, click Reveal values to see the `config.yaml` file
+
+. Check that the change has been applied. In this case, `quayadmin` should be in the list of superusers: 
++
+[source,yaml]
+----
+...
+SERVER_HOSTNAME: example-quay-openshift-operators.apps.docs.quayteam.org
+SETUP_COMPLETE: true
+SUPER_USERS:
+- quayadmin
+TAG_EXPIRATION_OPTIONS:
+- 2w
+...
+----
+
+
