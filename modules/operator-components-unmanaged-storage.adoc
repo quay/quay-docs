@@ -1,0 +1,52 @@
+[[operator-components-unmanaged-storage]]
+= Unmanaged storage
+
+The following example uses NooBaa storage, but can be applied to other image storage options such as Azure, S3, etc.
+
+. Create a NooBaa Object Bucket Claim in the console at Storage -> Object Bucket Claims.
+. Retrieve the Object Bucket Claim Data details including the Access Key, Bucket Name, Endpoint (hostname) and Secret Key.
+. Create a `config.yaml` configuration file, using the information for the Object Bucket Claim:
++
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+    - RHOCSStorage
+    - access_key: WmrXtSGk8B3nABCDEFGH
+      bucket_name: my-noobaa-bucket-claim-8b844191-dc6c-444e-9ea4-87ece0abcdef
+      hostname: s3.openshift-storage.svc
+      is_secure: true
+      port: "443"
+      secret_key: X9P5SDGJtmSuHFCMSLMbdNCMfUABCDEFGH+C5QD
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+  - default
+----
+. Create a Secret using the configuration file:
++
+----
+$ kubectl create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
+----
++
+. Create a QuayRegistry YAML file `quayregistry.yaml` which marks storage component as unmanaged and references the created Secret:
++
+.quayregistry.yaml
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: test
+spec:
+  configBundleSecret: config-bundle-secret
+  components:
+    - kind: storage
+      managed: false
+----
+. Create the QuayRegistry:
++
+----
+oc create -f quayregistry.yaml 
+----
+
+The deployed Quay application will now use the created storage.
