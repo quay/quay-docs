@@ -1,0 +1,38 @@
+[[operator-components-unmanaged-postgres]]
+= Using an existing Postgres database
+
+. Create a  configuration file `config.yaml` with the necessary database fields:
++
+.config.yaml:
+[source,yaml]
+----
+DB_URI: postgresql://test-quay-database:postgres@test-quay-database:5432/test-quay-database 
+----
+. Create a Secret using the configuration file:
++
+----
+$ kubectl create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
+----
++
+. Create a QuayRegistry YAML file `quayregistry.yaml` which marks postgres component as unmanaged and references the created Secret:
++
+.quayregistry.yaml
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: test
+spec:
+  configBundleSecret: config-bundle-secret
+  components:
+    - kind: postgres
+      managed: false
+----
+. Create the QuayRegistry:
++
+----
+$ oc create -f quayregistry.yaml 
+----
+
+The deployed Quay application will now use the external database.
