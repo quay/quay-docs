@@ -1,0 +1,12 @@
+[[operator-components-managed]]
+= Using managed components
+
+While the Operator will handle any required configuration and installation work needed for {productname} to use the managed components, there are several considerations to keep in mind.
+
+* Database backups should be performed regularly using either the supplied tools on the Postgres image or your own backup infrastructure.  The Operator does not currently ensure the Postgres database is backed up.
+* Restoring the Postgres database from a backup must be done using Postgres tools and procedures.  Be aware that your Quay `Pods` should not be running while the database restore is in progress.
+* Database disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the database volume is currently not handled by the Operator.
+* Object storage disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the RHOCS volume is currently not handled by the Operator.  See the section below on resizing managed storage for more details.
+* The Operator will deploy an OpenShift `Route` as the default entrypoint to the registry.  If you prefer a different entrypoint (e.g. `Ingress` or direct `Service` access that configuration will need to be done manually).
+
+If any of these considerations are unacceptable for your environment, it would be suggested to provide the Operator with unmanaged resources or overrides as described in the following sections.
