@@ -168,21 +168,7 @@ Expanding CSI volumes is a Technology Preview feature only. For more information
 
 After a few minutes, the additional storage pool will be added to the Noobaa resources and available for use by {productname}.
 
-=== Disabling the Horizontal Pod Autoscaler
 
-If you wish to disable autoscaling or create your own `HorizontalPodAutoscaler`, simply specify the component as unmanaged in the `QuayRegistry` instance:
-
-[source,yaml]
-----
-apiVersion: quay.redhat.com/v1
-kind: QuayRegistry
-metadata:
-  name: some-quay
-spec:
-  components:
-    - kind: horizontalpodautoscaler
-      managed: false
-----
 
 === Customizing Default Operator Images
 
@@ -244,3 +230,11 @@ Using the UI, `oc edit`, or any other method, modify the Quay `ClusterServiceVer
 ----
 
 Note that this is done at the Operator level, so every QuayRegistry will be deployed using these same overrides.
+
+
+=== AWS S3 CloudFront
+
+If you use AWS S3 CloudFront for backend registry storage, specify the private key as shown in the following example:
+....
+$ oc create secret generic --from-file config.yaml=./config_awss3cloudfront.yaml --from-file default-cloudfront-signing-key.pem=./default-cloudfront-signing-key.pem test-config-bundle
+....
