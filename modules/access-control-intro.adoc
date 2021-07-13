@@ -1,18 +1,11 @@
 [[access-control-intro]]
 = Access control
 
-{productname} provides fine granular access control and has team features that allow for limited access control to repositories. {productname} access control features also provide support for dispersed organizations. 
+{productname} provides both Role Based Access Control (RBAC) and Fine-Grained Access Control, and has team features that allow for limited access control to repositories organizations and user privileges. {productname} access control features also provide support for dispersed organizations. 
 
-== Repository organization
+== Repository organizations and users
 
-{productname} repository organizations provides a way to share repositories under a common namespace that does not belong to a single user. These organizations allow repositories to be used in a shared setting, for example, by a company. 
-
-Organizations are organized into a set of Teams and can provide access to a subset of the repositories under that namespace. Permissions for users within an organization can be set for individuals or teams, and can be delegated both globally and on specific repositories. For example, `Read` permissions can be set to a specific team within the organization, while `Admin` permissions can be given to all users across all repositories within the organization.  
-
-[NOTE]
-====
-Permissions are only applied to new users and teams when a new repository is created. 
-====
+{productname} repository organizations provide a way to share repositories under a common namespace that does not belong to a single user. These organizations allow repositories to be used in a shared setting, for example, by a company. 
 
 The following is a brief overview of the organization's main page: 
 
@@ -67,7 +60,7 @@ Robot accounts are managed inside of the `Robot Accounts` tab. They can only bel
 Teams and users can belong to multiple organizations. 
 ====
 
-For more information on robot accounts, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.5/html-single/manage_red_hat_quay/index#working-with-mirrored-repo[Working with mirrored repositories]
+For more information on robot accounts, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.5/html-single/manage_red_hat_quay/index#working-with-mirrored-repo[Working with mirrored repositories].
 
 === {productname} Super users 
 
@@ -87,6 +80,75 @@ Primary super users are created during the initial {productname} configuration, 
 ====
 Super users cannot delete repositories or organizations without taking ownership of them first. 
 ====
+
+== Permissions
+
+Organizations are organized into a set of Teams and can provide access to a subset of the repositories under that namespace. Permissions for users within an organization can be set for individuals, teams, and robot accounts.
+
+[NOTE]
+====
+Permissions are only applied to new users and teams when a new repository is created. 
+====
+
+=== Role Based Access Control (RBAC)
+
+{productname} offers three types of permissions: 
+
+* `Read`, which allows users, robots, and teams to pull images
+* `Write`, which allows users, robots, and teams to push images
+* `Admin`, which provides users, robots, and teams with administrative privileges
+
+[NOTE]
+====
+Administrative users can delegate new permissions for existing users and teams, change existing permissions, and revoke permissions when necessary 
+====
+
+Permissions can be delegated across the entire organization and on specific repositories. For example, `Read` permissions can be set to a specific team within the organization, while `Admin` permissions can be given to all users across all repositories within the organization.  
+
+=== Fine Grained Access Control
+
+{productname} allow users to integrate their existing identity infrastructure and use a fine-grained permissions system to map their organizational structure and grant access to whole teams to manage specific repositories. 
+
+{productname} is supported by the following authentication providers: 
+
+* Built-in Database Authentication
+* Lightweight Directory Access Protocol (LDAP) authentication and _sync
+* External OpenID Connect (OIDC) provider 
+* OpenStack Keystone 
+
+==== Bind team membership to specific LDAP groups 
+
+With {productname}, team sync support can be enabled via the config application by clicking on the `Enable team synchronization support` button once  Lightweight Directory Access Protocol (LDAP) is selected as the internal authentication method:
+
+// insert images
+
+The default time to sync groups is 60 minutes, but can be modified to any other time frame if needed. The first sync happens immediately after linking a team to a specific group. The last option enables any team admin, and not just super users, to sync groups. 
+
+Once {productname} is configured and restarted with the new settings, open up `org account settings` and proceed to `Teams`. Create a new team, or use an existing one, and click on `Enable Directory Synchronization` button. You will need to enter a distinguished name of the group relative to your base DN. For example: 
+
+----
+cn=quayusers,ou=cloud
+----
+
+If binding to the group goes correctly, {productname} will display the group's distinguished name and the "last updated" status on the page. 
+
+[IMPORTANT]
+====
+Once sync is enabled, adding users to the group is no longer possible. It becomes read only.
+====
+
+Users that are added to the LDAP group will automatically be added to the team as well. Robot accounts can still be added to the group directly. 
+
+ ==== LDAP Filtering
+ 
+ Lightweight Directory Access Protocol (LDAP) is an open, vendor neutral, industry standard application protocol for accessing and maintaining distributed directory information services over an IP network. {productname} supports using LDAP as an identity provider. {productname} users can now apply additional filters for lookup queries if (LDAP) / AD authentication is used. For information on LDAP authentication setup for {productname}, see *include link*. 
+ 
+ 
+ ==== {productname} and Red Hat SSO / Keycloak 
+
+Quay Enterprise can support authentication via OpenID Connect (OIDC). Red Hat Single Sign On (SSO) is an OIDC provider that allows administrators to have a seamless authentication integration between Quay Enterprise and other application platforms such as Red Hat OpenShift Container Platform.
+
+{productname} and Red Hat SSO / Keycloak requires that TLS/SSL is properly configured on both sides. 
 
 * Authentication providers
 * Fine-grained RBAC
