@@ -8,31 +8,16 @@
 preferred storage engine for the region in which the machine is running.
 +
 For example, for a machine running in Europe with the config
-directory on the host available from /mnt/quay/config:
-ifdef::upstream[]
+directory on the host available from `$QUAY/config`:
 +
-[source,yaml,subs="verbatim,attributes"]
-----
-# sudo podman login quay.io
-Username: yourquayuser
-Password: *****
-# sudo podman run -d -p 443:8443 -p 8080:8080 -v /mnt/quay/config:/conf/stack:Z \
-    -e QUAY_DISTRIBUTED_STORAGE_PREFERENCE=europestorage \
-    <registry>/<repo>/quay:{productmin}
-----
-endif::upstream[]
-ifdef::downstream[]
-+
-[source,yaml,subs="verbatim,attributes"]
-----
-# sudo podman login quay.io
-Username: yourquayuser
-Password: *****
-# sudo podman run -d -p 443:8443 -p 8080:8080 -v /mnt/quay/config:/conf/stack:Z \
-    -e QUAY_DISTRIBUTED_STORAGE_PREFERENCE=europestorage \
-    {productrepo}/{quayimage}:{productminv}
-----
-endif::downstream[]
+[subs="verbatim,attributes"]
+....
+$ sudo podman run -d --rm -p 80:8080 -p 443:8443  \
+   --name=quay \
+   -v $QUAY/config:/conf/stack:Z \
+   -e QUAY_DISTRIBUTED_STORAGE_PREFERENCE=europestorage \
+   {productrepo}/{quayimage}:{productminv}
+....
 +
 [NOTE]
 ====
