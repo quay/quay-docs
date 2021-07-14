@@ -1,0 +1,26 @@
+[[config-ui-storage-georepl]]
+= Enable storage replication
+
+.  Scroll down to the section
+entitled `Registry Storage`.
+.  Click `Enable Storage Replication`.
+.  Add each of the storage engines to which data will be replicated.
+All storage engines to be used must be listed.
+.  If complete replication of all images to all storage engines is
+required, under each storage engine configuration click `Replicate to
+storage engine by default`. This will ensure that all images are
+replicated to that storage engine. To instead enable per-namespace
+replication, please contact support.
+.  When you are done, click `Save Configuration Changes`.
+Configuration changes will take effect the next time {productname} restarts.
+
+.  After adding storage and enabling “Replicate to storage engine by default” for Georeplications, you need to sync existing image data across all storage.
+To do this, you need to `oc exec` (or docker/kubectl exec) into the container
+and run:
++
+```
+# scl enable python27 bash
+# python -m util.backfillreplication
+```
++
+This is a one time operation to sync content after adding new storage.
