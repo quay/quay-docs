@@ -13,19 +13,6 @@ Geo-replication allows multiple, geographically distributed Quay deployments to 
 
 
 
-== Geo-replication requirements and constraints
-
-* A single database, and therefore all metadata and Quay configuration, is shared across all regions.
-* A single Redis cache is shared across the entire Quay setup and needs to accessible by all Quay pods.
-* The exact same configuration should be used across all regions, with exception of the storage backend, which can be configured explicitly using the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environment variable. 
-* Geo-Replication requires object storage in each region. It does not work with local storage or NFS.
-* Each region must be able to access every storage engine in each region (requires a network path).
-* Alternatively, the storage proxy option can be used.
-* The entire storage backend (all blobs) is replicated. This is in contrast to repository mirroring, which can be limited to an organization or repository or image.
-* All Quay instances must share the same entrypoint, typically via load balancer.
-* All Quay instances must have the same set of superusers, as they are defined inside the common configuration file.
-
-If the above requirements cannot be met, you should instead use two or more distinct Quay deployments and take advantage of repository mirroring functionality.
 
 
 
