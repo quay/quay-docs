@@ -17,128 +17,13 @@ Clair supports the extraction of contents and assignment of vulnerabilities from
 * VMWare Photon
 * Python
 
-== {productname} vulnerability scanning using Clair
 
-Clair is equipped with three types of scanners, a matcher, and an updater:
 
-- **Distribution Scanner**: This scanner discovers `Distribution` information, which is typically the base operator system the layer demonstrates features of. 
 
-- **Package Scanner**: This scanner performs a package scan on the selected layer and returns all of the found packages. 
 
-- **Repository Scanner**: This scanner discovers any package repositories that are present in the layers.
 
-- **Matcher**: Matcher implementation is responsible for telling ClairCore which packages to query, how to query the security advisory database, and whether the discovered `Vulnerability` from the security advisory database affects the provided package. 
 
-- **Updater**: The updater is responsible for fetching a security advisory database and parsing the contents. 
 
-=== Understanding Clair analyses
-
-Clair analyses can be broken down into three distinct parts: 
-
-- **Indexing**: Indexing starts with submitting a `Manifest` to Clair. On receipt, Clair will fetch layers, scan their contents, and return an intermediate representation called an `IndexReport`. 
-+
-Manifests are Clair's representation of a container image. Clair leverages the fact `OCI Manifests` and `Layers` are content-addressed to reduce duplicated work. 
-+
-Once a `Manifest` is indexed, the `IndexReport` is persisted for later retrieval. 
-
-- **Matching**: Matching is taking an `IndexReport` and correlating vulnerabilities affecting the `Manifest` the report represents. 
-+
-Clair continuously ingests new security data and a request to the matcher will always provide users with the most to date vulnerability analysis of an `IndexReport`. 
-
-- **Notifications**: Clair implements a notification service. When new vulnerabilities are discovered, the notifier service will determine if these vulnerabilities affect any indexed `Manifests`. The notifier will then take action according to its configuration.
-
-==== Notifications for vulnerabilities found by Clair
-
-{productname} 3.4 triggers different notifications for various repository events. These notifications vary based on enabled features. 
-
-[NOTE]
-====
-This include the event type `Package Vulnerability Found`
-====
-
-`Additional Filter` can be applied for `Security Level`, and there are various notification methods. Custom notification titles are also optional.  
-
-== Clair v4
-Released with {productname} 3.4, Clair v4 is the latest version of Clair. It is built on a new architecture consisting of Clair Core and a service wrapper. Clair v4  made several enhancements to Clair v2, including: 
-
-* Support for the Python programming language package. Support for additional languages is planned for future versions of Clair and {productname}.
-* Immutable data model and a new manifest-oriented API.
-* Refocus on the latest Open Container Initiative (OCI) specifications.
-* Image hashes and layer hashes are now treated as content addressable, so that images are uniquely identified as a whole. 
-
-=== Clair v4 architecture
-
-Clair v4 utilizes the ClairCore library as its engine for examining contents and reporting vulnerabilities. At a high level you can consider Clair a service wrapper to the functionality provided in the ClairCore library. 
-
-==== ClairCore 
-
-ClairCore is the engine behind Clair v4's container security solution. The ClairCore package exports our domain models, interfaces necessary to plug into our business logic, and a default set of implementations. This default set of implementations defines our support matrix. 
-
-ClairCore relies on Postgres for its persistence and the library will handle migrations if configured to do so. 
-
-The diagram below is a high level overview of ClairCore's architecture.
-
-image:clair-core-architecture.png[Connection not secure]
-
-When a `claircore.Manifest` is submitted to the LibIndex, the library will index its constituent parts and create a report with its findings. 
-
-When a `claircore.IndexReport` is provided to LibVuln, the library will discover vulnerabilities affecting it and generate a `claircore.Volunerability` report. 
-
-=== Clair v2 and Clair v4 Comparison
-
-.Clair v2 and Clair v4 component comparison
-[cols="2,1,1",options="header"]
-|===
-|Component |Clair v2 |Clair v4
-|API layers
-|In Clair v2, clients were required to provide layers to the API. 
-|Clair v4 is manifest-based, providing an easier API for users. 
-
-|Insights and reports
-|Clair v2 provided only insights on vulnerabilities
-|Clair v4 provides detailed reports on the content of the container, which can be fed to other tools for analyses or inventory purposes. 
-
-|Architecture
-|Clair v2 ran as a monolithic application. 
-|Clair v4 divides functionality across multiple services for ease of development and scaling use cases. 
-
-|Support for language packages
-|Clair v2 does not support computer language packages. 
-|Clair v4 supports Python language packages, with plans of adding more in future versions. 
-
-|Package locator
-|Clair v2 did not provide details on where packages were located inside of the container. 
-|Clair v4 identifies where packages are located inside of the container. 
-|===
-
-=== Migrating from Clair v2 to Clair v4 
-
-Starting with {productname} 3.4, Clair v4 will be used by default. It will also be the only version of Clair continually supported, as older {productname} versions are not supported with Clair v4 in production. Users should continue using Clair v2 if using a version of {productname} earlier than 3.4. 
-
-Existing {productname} 3.3 deployments will be upgraded to Clair v4 when managed via the {productname} Operator. Manually upgraded {productname} deployments can install Clair v4 side-by-side, which will cause the following:
-
-* All new image vulnerability scans to be performed by Clair v4
-* Existing images to be rescanned by Clair v4
-
-=== Clair v4 limitations
-
-The following limitations are currently being addressed by the development team: 
-
-* As of Clair v4, both operating system level and programming language packages are covered. The latter is currently limited to Python, however support for other languages will be added in the future. 
-
-* There is currently limited multi-arch support on Clair v4, which works for package managers like `rpm`, `yum`, and `dnf` that compensates for differences in endianess. 
-
-* Clair v4 does not currently support MSFT Windows images. 
-
-* Clair v4 does not currently support slim/scratch container images. 
-
-=== Air-gapped Clair v4
-
-{productname} 3.4 and Clair v4 are supported in disconnected environments. By default, Clair v4 will attempt to run automated updates against Red Hat servers. When Clair v4 in network environments is disconnected from the internet: 
-
-* The Clair v4 auto-update is disabled in the Clair `config` bundle. 
-* On a system with internet access, the vulnerability database updates is performed manually and exported to a disk. 
-* The on-disk data is then transferred to the target system with offline media. It is then manually imported. 
 
 
  
