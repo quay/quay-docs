@@ -1,0 +1,18 @@
+[[clairv4-arch]]
+= Clair v4 architecture
+
+Clair v4 utilizes the ClairCore library as its engine for examining contents and reporting vulnerabilities. At a high level you can consider Clair a service wrapper to the functionality provided in the ClairCore library. 
+
+== ClairCore 
+
+ClairCore is the engine behind Clair v4's container security solution. The ClairCore package exports our domain models, interfaces necessary to plug into our business logic, and a default set of implementations. This default set of implementations defines our support matrix. 
+
+ClairCore relies on Postgres for its persistence and the library will handle migrations if configured to do so. 
+
+The diagram below is a high level overview of ClairCore's architecture.
+
+image:clair-core-architecture.png[Connection not secure]
+
+When a `claircore.Manifest` is submitted to the LibIndex, the library will index its constituent parts and create a report with its findings. 
+
+When a `claircore.IndexReport` is provided to LibVuln, the library will discover vulnerabilities affecting it and generate a `claircore.Volunerability` report. 
