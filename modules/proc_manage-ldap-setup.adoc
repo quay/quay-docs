@@ -11,13 +11,13 @@ identity provider.
 
 [[considerations-for-existing-quay-deployments]]
 === Existing Quay deployments
-If you are enabling to LDAP for an existing Quay deployment, that already has users configured, you need to be aware of potential user name conflicts. If a user `alice` got created manually in Quay prior to enabling LDAP, and the same user also exists in the LDAP directory, upon logging for the first time as `alice` from LDAP, Quay will create a user `alice-1` and map the LDAP credentials to this account. This might be undesirable for consistency reasons and the recommendation is to remove potentially conflicting local account names from Quay prior to enabling LDAP.
+Conflicts between user names can arise when you enable LDAP for an existing Quay deployment that already has users configured. Consider the scenario where a particular user, `alice`, was manually created in Quay prior to enabling LDAP. If the user name `alice` also exists in the LDAP directory, Quay will create a new user `alice-1` when `alice` logs in for the first time using LDAP, and will map the LDAP credentials to this account. This might not be want you want, for consistency reasons, and it is recommended that you remove any potentially conflicting local account names from Quay prior to enabling LDAP.
 
 [[considerations-for-manual-user-creation]]
 === Manual User Creation and LDAP authentication
 
-When Quay is configured for LDAP, LDAP-authenticated users are automatically created in Quay's database, the first time they are logging in. For this to work the configuration option `FEATURE_USER_CREATION` needs to be set to `true`. If it is set to `false` the automatic user creation for LDAP users will fail and the user is not allowed to log in. In this scenario the superuser needs to create the desired user account first.
-Conversely, if `FEATURE_USER_CREATION` is set to `true`, this also means that users can still create their own account from the Quay login screen, regardless of whether the account is mapping to a user in LDAP or not.
+When Quay is configured for LDAP, LDAP-authenticated users are automatically created in Quay's database on first log in, if the configuration option `FEATURE_USER_CREATION` is set to `true`. If this option is set to `false`, the automatic user creation for LDAP users will fail and the user is not allowed to log in. In this scenario, the superuser needs to create the desired user account first.
+Conversely, if `FEATURE_USER_CREATION` is set to `true`, this also means that a user can still create an account from the Quay login screen, even if there is an equivalent user in LDAP.
 
 [[setup-ldap-configuration]]
 == Set Up LDAP Configuration
