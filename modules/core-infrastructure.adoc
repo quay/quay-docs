@@ -3,15 +3,16 @@
 Quay runs on any physical or virtual infrastructure, both on-premise or public cloud. Deployments range from simple to massively scaled, including:
 
 * All-in-one setup on a developer laptop
-* Highly available on OpenShift
+* Highly available on Virtual Machines or on OpenShift
 * Geographically dispersed setup across multiple availability zones and regions
 
 == Running Quay on standalone hosts
 
-* Poof-of-concept deployment, where Quay runs on the same machine as the image storage, database, Redis and optionally, Clair security scanning
-* Highly available setups running on multiple hosts, using `systemd` to ensure restart on failure/reboot
+* Poof-of-concept deployment, where Quay runs on a machine with image storage and containerized database, Redis and optionally, Clair security scanning (scanning only works with object storage)
+* Highly available setups running Quay and Clair in containers across multiple hosts, using `systemd` to ensure restart on failure/reboot
+* High availability setups on standalone hosts require customer-provided load balancers, either low-level TCP load balancers or Application Load Balancers capable of terminating TLS
 
-Standalone deployment is typically a manual process, but it can be automated using Ansible.  All standalone hosts require valid RHEL subscriptions.
+Standalone deployment is a manual process, but it can easily be automated by the customer, for example, using Ansible.  All standalone hosts require valid RHEL subscriptions.
 
 == Running Quay on OpenShift
 
@@ -19,24 +20,29 @@ Standalone deployment is typically a manual process, but it can be automated usi
 * Quay Operator can manage Quay and all dependencies
 * Automated scaling and updates
 * Integration with existing OpenShift processes like GitOps, monitoring, alerting, logging
+* Can provide out-of-the-box object storage with limited availability, backed by the Multi-Cloud Object Gateway (NooBaa), as part of the ODF Operator (no additional subscription required)
+* Can leverage scale-out, high availability object storage provided by the ODF Operator (additional subscription required)
 
 Quay can run on OpenShift infra nodes, meaning no further subscriptions are required.
 
+== Running Quay outside OpenShift
 
-== Running Quay with OpenShift
+While the Quay Operator ensures seamless deployment and management of Quay running on OpenShift, it is also possible to run Quay in standalone mode (see above) and then serve content to one or many OpenShift clusters, wherever they are running. 
 
-While the Quay Operator ensures seamless deployment and management of Quay running on OpenShift, it is also possible to run Quay in standalone mode and then serve content to one or many OpenShift clusters, wherever they are running. A number of operators are available to help integrate standalone Quay with OpenShift:
+image:178_Quay_architecture_0821_deployment_ex2.png[Quay outside OpenShift]
 
-* **Quay Cluster Security Operator:** brings Quay / Clair vulnerability data into the OpenShift Console
-* **Quay Bridge Operator:** ensures seamless integration and user experience for using Quay with OpenShift
+A number of operators are available to help integrate standalone Quay with OpenShift:
+
+* **Quay Cluster Security Operator:** relays Quay vulnerability scanning results into the OpenShift Console
+* **Quay Bridge Operator:** ensures seamless integration and user experience for using Quay with OpenShift in conjunction with OpenShift Builds and ImageStreams
 
 
 == Benefits of running Quay on OpenShift
 
 * **Zero to Hero:** Simplified deployment of Quay and associated components means that you can start using the product immediately
-* **Scalability:** Leverage cluster compute capacity to manage expected demand
-* **Simplified Networking:** Diverse ingress options using well established patterns for any application deployed on the platform  
-* **Centralized configuration management:** Configurations stored in `etcd` provide a centralized source of truth
+* **Scalability:** Leverage cluster compute capacity to manage demand via automated scaling, based on actual load
+* **Simplified Networking:** Automated provisioning of load balancers and traffic ingress secured via HTTPS using OpenShift TLS certificates and Routes  
+* **Declarative configuration management:** Configurations stored in in CustomResource objects for GitOps-friendly lifecycle management
 * **Repeatability:** Consistency regardless of the number of replicas of Quay / Clair
-* **Expanded Options:** Additional solutions that are specifically designed to take advantage of an OpenShift deployment
+* **OpenShift integration:** Additional services to leverage OpenShift Monitoring and Alerting facilities to manage multiple Quay deployments on a single cluster
 
