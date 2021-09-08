@@ -5,33 +5,71 @@ include::modules/attributes.adoc[]
 
 {productname} is an enterprise-quality container registry. Use {productname} to build and store container images, then make them available to deploy across your enterprise.
 
-The {productname} Operator provides a simple method to deploy and manage a {productname} cluster. This is the preferred procedure for deploying {productname} on OpenShift and is covered in this guide.
+The {productname} Operator provides a simple method to deploy and manage {productname} on an OpenShift cluster.
 
-Note that this version of the {productname} Operator has been completely rewritten and differs substantially from earlier versions.  Please review this documentation carefully.
-ifeval::["{productname}" == "Project Quay"]
-If you are looking for documentation for prior versions of the {productname} Operator, please xref:deploy_quay_on_openshift_op.adoc[check here.]
-endif::[]
-
-include::modules/con_quay_openshift_prereq.adoc[leveloffset=+1]
+include::modules/operator-differences.adoc[leveloffset=+2]
 
 
-include::modules/proc_deploy-quay-openshift-operator-tng-install.adoc[leveloffset=+1]
 
-//include::modules/proc_deploy-quay-openshift-operator-tng-concepts.adoc[leveloffset=+1]
 
-== High Level Concepts
+
+
+include::modules/operator-concepts.adoc[leveloffset=+1]
+
 include::modules/operator-quayregistry-api.adoc[leveloffset=+2]
 include::modules/operator-components-intro.adoc[leveloffset=+2]
 include::modules/operator-components-managed.adoc[leveloffset=+2]
 include::modules/operator-components-unmanaged.adoc[leveloffset=+2]
-include::modules/operator-components-unmanaged-postgres.adoc[leveloffset=+3]
-include::modules/operator-components-unmanaged-storage.adoc[leveloffset=+3]
-include::modules/operator-components-unmanaged-hpa.adoc[leveloffset=+3]
 include::modules/operator-config-bundle-secret.adoc[leveloffset=+2]
+include::modules/operator-prereq.adoc[leveloffset=+2]
+
+
+
+== Configuring components before deployment
+
+You can allow the Operator manage all the {productname} components when deploying on OpenShift and this is the default configuration. Alternatively, you can manage one or more components externally where you want more control over the set up, and then allow the Operator to manage the remaining ones. 
+
+// Storage
+=== Configuring object storage
+
+You need to configure object storage before installing {productname}, irrespective of whether you are allowing the Operator to manage the storage or managing it yourself. 
+
+==== Unmanaged storage
+
+The configuration guide for {productname} provides full details for setting up  
+
+include::modules/operator-unmanaged-storage-gcp.adoc[leveloffset=+4]
+include::modules/operator-unmanaged-storage-noobaa.adoc[leveloffset=+4]
+
+
+include::modules/operator-managed-storage.adoc[leveloffset=3]
+ifeval::["{productname}" == "Red Hat Quay"]
+include::modules/operator-standalone-object-gateway.adoc[leveloffset=5]
+endif::[]
+
+
+//Database
+=== Configuring the database
+include::modules/operator-unmanaged-postgres.adoc[leveloffset=+3]
+include::modules/operator-managed-postgres.adoc[leveloffset=+3]
+
+
+=== Configuring other components
+include::modules/operator-components-unmanaged-hpa.adoc[leveloffset=+3]
+
+
+
+
+== Install and deploy operator
+include::modules/operator-install.adoc[leveloffset=+2]
+include::modules/operator-deploy.adoc[leveloffset=+2]
 include::modules/operator-quayregistry-status.adoc[leveloffset=+2]
 
-include::modules/proc_deploy-quay-openshift-operator-tng-deploy.adoc[leveloffset=+1]
-include::modules/proc_deploy-quay-openshift-operator-tng-upgrade.adoc[leveloffset=+1]
+
+include::modules/operator-customize.adoc[leveloffset=+1]
+include::modules/operator-customize-external-access.adoc[leveloffset=+2]
+include::modules/operator-disable-route.adoc[leveloffset=+2]
+
 
 == Quay Operator features
 include::modules/helm-oci-intro.adoc[leveloffset=+2]
@@ -40,7 +78,7 @@ include::modules/helm-oci-quay.adoc[leveloffset=+3]
 include::modules/config-fields-helm-oci.adoc[leveloffset=+3]
 include::modules/operator-helm-oci.adoc[leveloffset=+3]
 
-include::modules/proc_deploy-quay-operator-console.adoc[leveloffset=+2]
+include::modules/operator-console-monitoring-alerting.adoc[leveloffset=+2]
 
 
 include::modules/clair-openshift-airgap-update.adoc[leveloffset=+2]
@@ -56,7 +94,15 @@ include::modules/clair-openshift-airgap-import-bundle.adoc[leveloffset=+3]
 include::modules/fips-overview.adoc[leveloffset=+2]
 
 
-include::modules/proc_deploy-quay-openshift-operator-tng-advanced.adoc[leveloffset=+1]
+include::modules/operator-advanced.adoc[leveloffset=+1]
+include::modules/operator-deploy-infrastructure.adoc[leveloffset=+2]
+include::modules/operator-resize-storage.adoc[leveloffset=+2]
+include::modules/operator-customize-images.adoc[leveloffset=+2]
+include::modules/operator-cloudfront.adoc[leveloffset=+2]
+
+
+
+include::modules/operator-upgrade.adoc[leveloffset=+1]
 
 
 [discrete]
