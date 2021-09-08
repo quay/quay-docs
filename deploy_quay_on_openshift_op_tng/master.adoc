@@ -10,10 +10,6 @@ The {productname} Operator provides a simple method to deploy and manage {produc
 include::modules/operator-differences.adoc[leveloffset=+2]
 
 
-
-
-
-
 include::modules/operator-concepts.adoc[leveloffset=+1]
 
 include::modules/operator-quayregistry-api.adoc[leveloffset=+2]
@@ -27,7 +23,37 @@ include::modules/operator-prereq.adoc[leveloffset=+2]
 
 == Configuring components before deployment
 
-You can allow the Operator manage all the {productname} components when deploying on OpenShift and this is the default configuration. Alternatively, you can manage one or more components externally where you want more control over the set up, and then allow the Operator to manage the remaining ones. 
+You can allow the Operator manage all the {productname} components when deploying on OpenShift and this is the default configuration. Alternatively, you can manage one or more components externally yourself, where you want more control over the set up, and then allow the Operator to manage the remaining components. 
+
+The standard pattern for configuring unmanaged components is:
+
+. Create a `config.yaml` configuration file with the appropriate settings
+. Create a Secret using the configuration file
++
+----
+$ kubectl create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
+----
+. Create a QuayRegistry YAML file `quayregistry.yaml`, identifying the unmanaged components and also referencing the created Secret, for example:
++
+.quayregistry.yaml
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+spec:
+  configBundleSecret: config-bundle-secret
+  components:
+    - kind: storage
+      managed: false
+----
+. Deploy the registry using the YAML file
++
+----
+oc create -f quayregistry.yaml 
+----
+
 
 // Storage
 === Configuring object storage
@@ -36,15 +62,16 @@ You need to configure object storage before installing {productname}, irrespecti
 
 ==== Unmanaged storage
 
-The configuration guide for {productname} provides full details for setting up  
+The configuration guide for {productname} provides details for setting up object storage. Some examples are provided below for convenience.
 
-include::modules/operator-unmanaged-storage-gcp.adoc[leveloffset=+4]
+include::modules/config-fields-storage-aws.adoc[leveloffset=+4]
+include::modules/config-fields-storage-gcp.adoc[leveloffset=+4]
 include::modules/operator-unmanaged-storage-noobaa.adoc[leveloffset=+4]
 
-
+// Managed storage
 include::modules/operator-managed-storage.adoc[leveloffset=3]
 ifeval::["{productname}" == "Red Hat Quay"]
-include::modules/operator-standalone-object-gateway.adoc[leveloffset=5]
+include::modules/operator-standalone-object-gateway.adoc[leveloffset=4]
 endif::[]
 
 
@@ -54,19 +81,44 @@ include::modules/operator-unmanaged-postgres.adoc[leveloffset=+3]
 include::modules/operator-managed-postgres.adoc[leveloffset=+3]
 
 
+=== Configuring TLS and routes
+
+Multiple permutations are possible when configuring TLS and routes, but the following rules apply:
+
+* If TLS is `managed`, then route must also be `managed`
+* In general, if TLS is `unmanaged` then you must supply certs, either with the config tool or directly in the config bundle
+* However, it is possible to have both TLS and route `unmanaged` and not supply certs. 
+
+The following table outlines the valid options:
+
+.Valid configuration options for TLS and routes
+[width="100%",cols="2,2,2,2,3"options="header"]
+|===
+|Option | Route | TLS | Certs  provided |Result
+| My own load balancer handles TLS |  Managed | Managed | No |Edge Route with default wildcard cert
+| {productname} handles TLS | Managed | Unmanaged | Yes | Passthrough route with certs mounted inside the pod
+| {productname} handles TLS | Unmanaged | Unmanaged | Yes | Certificates are set inside the quay pod but route must be created manually
+| None (Not for production) | Unmanaged | Unmanaged | No | Sets a passthrough route, allows HTTP traffic directly from the route and into the Pod
+|===
+
+
+
 === Configuring other components
 include::modules/operator-components-unmanaged-hpa.adoc[leveloffset=+3]
 
 
 
 
-== Install and deploy operator
+== Install and deploy the Operator
 include::modules/operator-install.adoc[leveloffset=+2]
 include::modules/operator-deploy.adoc[leveloffset=+2]
 include::modules/operator-quayregistry-status.adoc[leveloffset=+2]
 
 
 include::modules/operator-customize.adoc[leveloffset=+1]
+include::modules/config-openshift-editor-details.adoc[leveloffset=+2]
+include::modules/config-openshift-editor-reconfigure.adoc[leveloffset=+2]
+
 include::modules/operator-customize-external-access.adoc[leveloffset=+2]
 include::modules/operator-disable-route.adoc[leveloffset=+2]
 
