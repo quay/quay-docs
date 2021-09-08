@@ -26,21 +26,7 @@ spec:
       kind: mirror
     - managed: true
       kind: monitoring
+    - managed: true
+      kind: tls      
 ----
 
-Unless your `QuayRegistry` custom resource specifies otherwise, the Operator will use defaults for the following managed components:
-
-* `postgres`  Stores the registry metadata.
-ifeval::["{productname}" == "Red Hat Quay"]
-Uses a version of Postgres 10 from the link:https://www.softwarecollections.org/en/[Software Collections].
-endif::[]
-ifeval::["{productname}" == "Project Quay"]
-Uses an upstream (CentOS) version of Postgres 10.
-endif::[]
-* `redis`  Handles Quay builder coordination and some internal logging.
-* `objectstorage`  Stores image layer blobs.  Utilizes the `ObjectBucketClaim` Kubernetes API which is provided by Noobaa/RHOCS.
-* `clair`  Provides image vulnerability scanning.
-* `horizontalpodautoscaler`  Adjusts the number of Quay pods depending on memory/cpu consumption.
-* `mirror`  Configures a repository mirror worker (to support optional repository mirroring).
-* `route`  Provides an external entrypoint to the Quay registry from outside of OpenShift.
-* `monitoring` Features include a Grafana dashboard, access to individual metrics, and alerting to notify for frequently restarting Quay pods.
