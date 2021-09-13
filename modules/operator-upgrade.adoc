@@ -17,6 +17,19 @@ When the Quay Operator is installed via Operator Lifecycle Manager it may be con
 
 The general approach for upgrading installed Operators on OpenShift is documented at link:https://docs.openshift.com/container-platform/4.7/operators/admin/olm-upgrading-operators.html[Upgrading installed Operators].
 
+[NOTE]
+====
+In general, {productname} only supports upgrading from one minor version to the next, for example, 3.4 -> 3.5.
+
+However, for v3.6, multiple upgrade paths are supported:
+
+* 3.3 -> 3.6
+* 3.4 -> 3.6
+* 3.5 -> 3.6
+
+TODO more details here
+====
+
 
 === Upgrading Quay 
 From a {productname} point of view, to update from one minor version to the next, for example, 3.4 -> 3.5, you need to actively change the update channel for the Quay Operator. 
@@ -51,21 +64,25 @@ When the Quay Operator starts up, it immediately looks for any `QuayRegistries` 
 * If `status.currentVersion` equals the Operator version, reconcile as normal.
 * If `status.currentVersion` does not equal the Operator version, check if it can be upgraded. If it can, perform upgrade tasks and set the `status.currentVersion` to the Operator's version once complete. If it cannot be upgraded, return an error and leave the `QuayRegistry` and its deployed Kubernetes objects alone.
 
-== Enabling new features in Quay 3.5
+== Enabling features in Quay 3.6
 
 === Console monitoring and alerting
 
-The support for monitoring of Quay 3.5 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and re-install it for all namespaces, once the upgrade has taken place. 
+The support for monitoring of Quay 3.6 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and re-install it for all namespaces, once the upgrade has taken place. 
 
 === OCI and Helm support
 
-Support for Helm and OCI artifacts is now enabled by default in {productname} {producty}. If you want to explicitly enable the feature, for example, if you are upgrading from a version where it is not enabled by default, you need to reconfigure your Quay deployment to enable the use of OCI artifacts using the following properties:
+Support for Helm and some OCI artifacts is now enabled by default in {productname} {producty}. If you want to explicitly enable the feature, for example, if you are upgrading from a version where it is not enabled by default, you need to reconfigure your Quay deployment to enable the use of OCI artifacts using the following properties:
 
+TODO
+
+////
 [source,yaml]
 ----
 FEATURE_GENERAL_OCI_SUPPORT: true
 FEATURE_HELM_OCI_SUPPORT: true
 ----
+////
 
 == Upgrading a QuayEcosystem
 

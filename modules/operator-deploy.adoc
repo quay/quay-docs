@@ -1,3 +1,4 @@
+[[operator-deploy]]
 = Deploying Quay using the Quay Operator
 
 == Creating a Quay Registry
@@ -42,3 +43,41 @@ $ oc get -n <your-namespace> quayregistry example-registry -o jsonpath="{.status
 
 . Once the `status.registryEndpoint` has a value, navigate to it using your web browser to access your new Quay registry via the UI. You can now select 'Create Account' to create a user and sign in.
 
+
+== Monitoring and debugging the deployment process
+
+{productname} 3.6 provides new functionality to troubleshoot problems during the deployment phase.
+
+TODO: more details
+
+
+== Viewing created components
+
+Use the `oc get pods` command to view the deployed components:
+
+```
+$ oc get pods -n quay-enterprise
+
+example-registry-clair-app-5f896c5cb7-2t8sl            1/1     Running            0          1d
+example-registry-clair-app-5f896c5cb7-826sg            1/1     Running            0          1d
+example-registry-clair-postgres-54956d6d9c-g9q2l       0/1     Running            0          1d
+example-registry-quay-app-6984d7fdc6-55rft             1/1     Running            0          1d
+example-registry-quay-app-6984d7fdc6-zh77k             1/1     Running            0          1d
+example-registry-quay-app-upgrade-ccllp                0/1     Completed          0          1d
+example-registry-quay-config-editor-5f79d55b74-ll6k8   1/1     Running            0          1d
+example-registry-quay-database-78bf6868c9-mxlvk        1/1     Running            0          1d
+example-registry-quay-mirror-84bd968858-n8jk7          1/1     Running            0          1d
+example-registry-quay-mirror-84bd968858-tmswk          1/1     Running            0          1d
+example-registry-quay-postgres-init-xgwmb              0/1     Completed          0          1d
+example-registry-quay-redis-8bd67b647-jwpg9            1/1     Running            0          1d
+```
+
+A default deployment shows the following running pods:
+
+* Two pods for the Quay application itself (`example-registry-quay-app-*``)
+* One Redis pod for Quay logging  (`example-registry-quay-redis-*`)
+* One database pod for PostgreSQL used by Quay for metadata storage (`example-registry-quay-database-*`)
+* One pod for the Quay config editor (`example-registry-quay-config-editor-*`)
+* Two Quay mirroring pods (`example-registry-quay-mirror-*`)
+* Two pods for the Clair application (`example-registry-clair-app-*`)
+* One PostgreSQL pod for Clair (`example-registry-clair-postgres-*`)
