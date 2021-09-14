@@ -1,48 +1,5 @@
-= Installing the Quay Operator
-[id="deploy-quay-openshift-operator-tng"]
-
-== Differences from Earlier Versions
-
-As of {productname} 3.4.0, the Operator has been completely re-written to provide an improved out of the box experience as well as support for more Day 2 operations.  As a result the new Operator is simpler to use and is more opinionated.  The key differences from earlier versions of the Operator are:
-
-* The `QuayEcosystem` custom resource has been replaced with the `QuayRegistry` custom resource
-* The default installation options produces a fully supported Quay environment with all managed dependencies (database, caches, object storage, etc) supported for production use (some components may not be highly available)
-* A new robust validation library for Quay's configuration which is shared by the Quay application and config tool for consistency
-ifeval::["{productname}" == "Red Hat Quay"]
-* Object storage can now be managed by the Operator using the `ObjectBucketClaim` Kubernetes API (Red Hat OpenShift Data Foundations can be used to provide a supported implementation of this API on OpenShift)
-endif::[]
-ifeval::["{productname}" == "Project Quay"]
-* Object storage can now be provided by the Operator using the `ObjectBucketClaim` Kubernetes API (e.g. the NooBaa Operator can be from OperatorHub.io can be used to provide an implementation of that API)
-endif::[]
-* Customization of the container images used by deployed pods for testing and development scenarios
-
-== Before Installing the Quay Operator
-
-=== Deciding On a Storage Solution
-
-ifeval::["{productname}" == "Red Hat Quay"]
-If you want the Operator to manage object storage for Quay, your cluster needs to be capable of providing object storage via the `ObjectBucketClaim` API. Using the Red Hat OpenShift Data Foundations (ODF) Operator, there are two supported options available:
-
-* A standalone instance of the Multi-Cloud Object Gateway backed by a local Kubernetes `PersistentVolume` storage 
-** Not highly available 
-** Included in the Quay subscription 
-** Does not require a separate subscription for ODF
-* A production deployment of ODF with scale-out Object Service and Ceph 
-** Highly available
-** Requires a separate subscription for ODF
-
-To use the standalone instance option, continue reading below. For production deployment of ODF, please refer to the link:https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/[official documentation].
-
-If you already have object storage available via the `ObjectBucketClaim` API or using an external S3-compatible object storage service (e.g. from a cloud provider), skip to xref:Installing the Operator from OperatorHub[Installing the Operator].
-endif::[]
-ifeval::["{productname}" == "Project Quay"]
-If you want the Operator to manage object storage for Quay, your cluster needs to be capable of providing it via the `ObjectBucketClaim` API. There are multiple implementations of this API available, for instance, link:https://operatorhub.io/operator/noobaa-operator[NooBaa] in combination with Kubernetes `PersistentVolumes` or scalable storage backends like Ceph. Refer to the link:https://github.com/noobaa/noobaa-core[NooBaa documentation] for more details on how to deploy this component.
-endif::[]
-
-
-ifeval::["{productname}" == "Red Hat Quay"]
-
-=== About The Standalone Object Gateway
+[[operator-standalone-object-gateway]]
+= About The Standalone Object Gateway
 
 As part of a Red Hat Quay subscription, users are entitled to use the _Multi-Cloud Object Gateway_ (MCG) component of the Red Hat OpenShift Data Foundations Operator (formerly known as OpenShift Container Storage Operator). This gateway component allows you to provide an S3-compatible object storage interface to Quay backed by Kubernetes `PersistentVolume`-based block storage. The usage is limited to a Quay deployment managed by the Operator and to the exact specifications of the MCG instance as documented below.
 
@@ -50,7 +7,7 @@ Since Red Hat Quay does not support local filesystem storage, users can leverage
 
 By the nature of `PersistentVolume`, this is not a scale-out, highly available solution and does not replace a scale-out storage system like Red Hat OpenShift Data Foundations (ODF). Only a single instance of the gateway is running. If the the pod running the gateway becomes unavailable due to rescheduling, updates or unplanned downtime, this will cause temporary degradation of the connected Quay instances.
 
-=== Create A Standalone Object Gateway
+== Create A Standalone Object Gateway
 
 To install the ODF (formerly known as OpenShift Container Storage) Operator and configure a single instance Multi-Cloud Gateway service, follow these steps:
 
@@ -137,22 +94,3 @@ $ oc patch bucketclass noobaa-default-bucket-class --patch '{"spec":{"placementP
 
 This concludes the setup of the _Multi-Cloud Object Gateway_ instance for Red Hat Quay. Note that this configuration cannot be run in parallel on a cluster with Red Hat OpenShift Data Foundations installed.
 
-endif::[]
-
-== Installing the Operator from OperatorHub
-
-. Using the OpenShift console, Select Operators -> OperatorHub, then select the Quay Operator. If there is more than one, be sure to use the Red Hat certified Operator and not the community version.
-
-. Select Install. The Operator Subscription page appears.
-
-. Choose the following then select Subscribe:
-
-* Installation Mode: Choose either 'All namespaces' or 'A specific namespace' depending on whether you want the Operator to be available cluster-wide or only within a single namespace (all-namespaces recommended)
-
-* Update Channel: Choose the update channel (only one may be available)
-
-* Approval Strategy: Choose to approve automatic or manual updates
-
-. Select Install.
-
-. After a minute you will see the Operator installed successfully in the Installed Operators page.

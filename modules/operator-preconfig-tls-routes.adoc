@@ -1,0 +1,20 @@
+[[operator-preconfig-tls-routes]]
+= Configuring TLS and routes
+
+Multiple permutations are possible when configuring TLS and routes, but the following rules apply:
+
+* If TLS is `managed`, then route must also be `managed`
+* In general, if TLS is `unmanaged` then you must supply certs, either with the config tool or directly in the config bundle
+* However, it is possible to have both TLS and route `unmanaged` and not supply certs. 
+
+The following table outlines the valid options:
+
+.Valid configuration options for TLS and routes
+[width="100%",cols="2,2,2,2,3"options="header"]
+|===
+|Option | Route | TLS | Certs  provided |Result
+| My own load balancer handles TLS |  Managed | Managed | No |Edge Route with default wildcard cert
+| {productname} handles TLS | Managed | Unmanaged | Yes | Passthrough route with certs mounted inside the pod
+| {productname} handles TLS | Unmanaged | Unmanaged | Yes | Certificates are set inside the quay pod but route must be created manually
+| None (Not for production) | Unmanaged | Unmanaged | No | Sets a passthrough route, allows HTTP traffic directly from the route and into the Pod
+|===
