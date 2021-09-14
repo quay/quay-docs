@@ -5,15 +5,8 @@ Before making a change to the Quay configuration, list the pods that are current
 
 ----
 $ oc get pods
-NAME                                          READY   STATUS                  RESTARTS   AGE
-example-clair-app-597fc68867-pv5cl            1/1     Running                 0          3d1h
-example-clair-postgres-7f69cf4f49-nghqw       1/1     Running                 0          3d1h
-example-quay-config-editor-5bf8b576b6-h4lcl   1/1     Running                 0          3d1h
-example-quay-database-5968db796f-fmgsd        1/1     Running                 0          3d1h
-example-quay-mirror-6b6b9998d7-6nt4k          1/1     Running                 0          3d1h
-example-quay-postgres-init-kfggm              0/1     Completed               0          3d1h
-example-quay-redis-565cdb8554-vk424           1/1     Running                 0          3d1h
-quay-operator.v3.5.2-74b7f96d8b-rcfq9         1/1     Running                 0          3d19h
+
+
 ----
 
 == Updating configuration
@@ -38,37 +31,83 @@ image:config-editor-reconfigured.png[Reconfigured]
 . Use the `oc get pods` command to watch Quay reconciling. The existing pods are terminated and new pods are created using the updated configuration:
 +
 ----
-$ oc get pods
-NAME                                          READY   STATUS              RESTARTS   AGE
-example-clair-app-597fc68867-pv5cl            1/1     Running             0          3d1h
-example-clair-app-7d688db485-v4spj            0/1     Running             0          14s
-example-clair-postgres-7f69cf4f49-nghqw       1/1     Terminating         0          3d2h
-example-quay-app-65b679bc79-mlfbt             0/1     ContainerCreating   0          18s
-example-quay-config-editor-5b85c9cdb6-nhswf   1/1     Running             0          17s
-example-quay-config-editor-5bf8b576b6-h4lcl   1/1     Terminating         0          3d1h
-example-quay-database-6b69b49656-h4jht        0/1     ContainerCreating   0          5s
-example-quay-mirror-86db49d475-r2lqd          0/1     Init:0/1            0          4s
-example-quay-postgres-init-mf57v              1/1     Running             0          14s
-example-quay-redis-86557f4899-7s2vf           1/1     Running             0          12s
-quay-operator.v3.5.2-74b7f96d8b-rcfq9         1/1     Running             0          3d19h
+$ oc get pods -n quay-enterprise
+
+NAME                                                   READY   STATUS              RESTARTS   AGE
+example-registry-clair-app-5f896c5cb7-2t8sl            1/1     Running             0          1d
+example-registry-clair-app-5f896c5cb7-826sg            1/1     Terminating         0          1d
+example-registry-clair-app-666d4dd49-xblsz             0/1     ContainerCreating   0          0s
+example-registry-clair-postgres-54956d6d9c-g9q2l       1/1     Terminating         0          1d
+example-registry-quay-app-64b8db6fb8-8brtg             0/1     ContainerCreating   0          0s
+example-registry-quay-app-6984d7fdc6-55rft             1/1     Terminating         0          1d
+example-registry-quay-app-6984d7fdc6-zh77k             1/1     Running             0          1d
+example-registry-quay-app-upgrade-p8fzp                0/1     ContainerCreating   0          7s
+example-registry-quay-config-editor-5f79d55b74-ll6k8   1/1     Running             0          1d
+example-registry-quay-config-editor-85cc6b4c48-m94tf   0/1     ContainerCreating   0          0s
+example-registry-quay-database-56b9cddb47-bnksb        0/1     ContainerCreating   0          0s
+example-registry-quay-database-78bf6868c9-mxlvk        1/1     Running             0          1d
+example-registry-quay-mirror-84bd968858-n8jk7          1/1     Terminating         0          1d
+example-registry-quay-mirror-84bd968858-tmswk          1/1     Terminating         0          1d
+example-registry-quay-postgres-init-qbkn2              0/1     ContainerCreating   0          0s
+example-registry-quay-redis-8bd67b647-jwpg9            1/1     Running             0          1d
 ----
+
+
+. You can also monitor the health of the components during reconcilliation:
++
+----
+$ oc get quayregistry -n quay-enterprise -o yaml
+
+apiVersion: v1
+items:
+- apiVersion: quay.redhat.com/v1
+  kind: QuayRegistry
+...
+    unhealthyComponents:
+      base:
+      - lastTransitionTime: "2021-09-13T14:52:23Z"
+        lastUpdateTime: "2021-09-13T14:52:23Z"
+        message: 'Deployment example-registry-quay-app: Deployment does not have minimum availability.'
+        reason: MinimumReplicasUnavailable
+        status: "False"
+        type: Available
+      clair:
+      - lastTransitionTime: "2021-09-13T14:52:23Z"
+        lastUpdateTime: "2021-09-13T14:52:23Z"
+        message: 'Deployment example-registry-clair-app: Deployment does not have minimum availability.'
+        reason: MinimumReplicasUnavailable
+        status: "False"
+        type: Available
+      mirror:
+      - lastTransitionTime: "2021-09-13T14:52:16Z"
+        lastUpdateTime: "2021-09-13T14:52:16Z"
+        message: 'Deployment example-registry-quay-mirror: Deployment does not have minimum availability.'
+        reason: MinimumReplicasUnavailable
+        status: "False"
+        type: Available
+...
+----
+
 
 
 . Once Quay has reconciled the changes, the pods should show as `Running`:
 +
 ----
 $ oc get pods
-NAME                                          READY   STATUS      RESTARTS   AGE
-example-clair-app-7d688db485-v4spj            1/1     Running     0          102s
-example-clair-postgres-758847d994-jvgvp       1/1     Running     0          68s
-example-quay-app-65b679bc79-mlfbt             1/1     Running     2          106s
-example-quay-config-editor-5b85c9cdb6-nhswf   1/1     Running     0          105s
-example-quay-database-6b69b49656-h4jht        1/1     Running     0          93s
-example-quay-mirror-86db49d475-r2lqd          1/1     Running     0          92s
-example-quay-postgres-init-mf57v              0/1     Completed   0          102s
-example-quay-redis-86557f4899-7s2vf           1/1     Running     0          100s
-quay-operator.v3.5.2-74b7f96d8b-rcfq9         1/1     Running     0          3d20h
-----
+
+NAME                                                   READY   STATUS             RESTARTS   AGE
+example-registry-clair-app-666d4dd49-xblsz             0/1     Running            0          89s
+example-registry-clair-app-666d4dd49-zv5ls             0/1     Running            0          82s
+example-registry-clair-postgres-54956d6d9c-g9q2l       0/1     Running            0          
+example-registry-quay-app-64b8db6fb8-8brtg             1/1     Running            0          89s
+example-registry-quay-app-64b8db6fb8-lpfjw             1/1     Running            0          82s
+example-registry-quay-app-upgrade-p8fzp                0/1     Completed          0          96s
+example-registry-quay-config-editor-85cc6b4c48-m94tf   1/1     Running            0          89s
+example-registry-quay-database-56b9cddb47-bnksb        1/1     Running            0          89s
+example-registry-quay-mirror-6cb99dc448-gkpjr          1/1     Running            0          52s
+example-registry-quay-mirror-6cb99dc448-s92tp          1/1     Running            0          52s
+example-registry-quay-postgres-init-qbkn2              0/1     Completed          0          89s
+example-registry-quay-redis-8bd67b647-jwpg9            1/1     Running            0          1d
 
 
 == Accessing the updated secret
