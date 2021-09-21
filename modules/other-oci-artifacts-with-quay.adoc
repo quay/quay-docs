@@ -1,0 +1,32 @@
+[[other-oci-artifacts-with-quay]]
+= Adding other OCI media types to Quay
+
+Helm, cosign, and ztsd compression scheme artifacts are built into {productname} {producty} by default. For any other OCI media type that is not supported by default, you can add them to the ALLOWED_OCI_ARTIFACT_TYPES config in Quay's config.yaml using the following format: 
+
+....
+ALLOWED_OCI_ARTIFACT_TYPES: 
+  <oci config type 1>:
+  - <oci layer type 1>
+  - <oci layer type 2>
+    
+  <oci config type 2>:
+  - <oci layer type 3>
+  - <oci layer type 4>
+...
+....
+
+For example, you can add Singularity (SIF) support by adding the following to your config.yaml: 
+
+....
+ALLOWED_OCI_ARTIFACT_TYPES:
+  application/vnd.sylabs.sif.config.v1+json
+  - application/vnd.sylabs.sif.layer.v1+tar
+....
+
+Alternatively, if you want to disable OCI artifact support, you can set `FEATURE_GENERAL_OCI_SUPPORT` to  `False` in your config.yaml: 
+
+....
+...
+FEATURE_GENERAL_OCI_SUPPORT = False
+...
+....
