@@ -1,0 +1,52 @@
+[[operator-config-cli-download]]
+= Downloading the existing configuration
+
+There are a number of methods for accessing the current configuration: 
+
+. Using the config editor endpoint, specifying the username  and password for the config editor:
++
+----
+$ curl -k -u quayconfig:JFpBEJMCtkPTfjxt https://example-registry-quay-config-editor-quay-enterprise.apps.docs.quayteam.org/api/v1/config | json_reformat
+
+{
+    "config.yaml": {
+        "ALLOW_PULLS_WITHOUT_STRICT_LOGGING": false,
+        "AUTHENTICATION_TYPE": "Database",
+        ...
+        "USER_RECOVERY_TOKEN_LIFETIME": "30m"
+    },
+    "certs": {
+        "extra_ca_certs/service-ca.crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVVENDQWptZ0F3SUJBZ0lJRE9kWFhuUXFjMUF3RFFZSktvWklodmNOQVFFTEJRQXdOakUwTURJR0ExVUUKQXd3cmIzQmxibk5vYVdaMExYTmxjblpwWTJVdGMyVnlkbWx1WnkxemFXZHVaWEpBTVRZek1UYzNPREV3TXpBZQpGdzB5TVRBNU1UWXdOelF4TkRKYUZ
+...
+    }
+}
+----
+. Using the config bundle secret
+.. Get the secret data:
++
+----
+$ oc get secret -n quay-enterprise example-registry-quay-config-bundle-jkfhs -o jsonpath='{.data}' | json_reformat
+{
+    "config.yaml": "QUxMT1dfUFVMTFNfV0lUSE9VVF9TVFJJQ1RfTE9HR0lORzogZmFsc2UKQVVUSEVOVElDQVRJT05fVFlQRTogRGF0YWJhc2UKQVZBVEFSX0tJTkQ6IGxvY2FsCkRBVEFCQVNFX1NFQ1JFVF9LRVk6IHhlOEc1VDBNbkllaGxNQzNkTjd3MWR5WWxwVmo0a0R2enlxZ3l6Ulp5ZjFpODBmWWU3VDUxU1FPZ3hXelpocFlqYlVxNzRKaDllVVVEVWpyCkRFR
+...
+OgotIDJ3ClRFQU1fUkVTWU5DX1NUQUxFX1RJTUU6IDYwbQpURVNUSU5HOiBmYWxzZQpVU0VSX1JFQ09WRVJZX1RPS0VOX0xJRkVUSU1FOiAzMG0K",
+    "extra_ca_cert_service-ca.crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVVENDQWptZ0F3SUJBZ0lJRE9kWFhuUXFjMUF3RFFZSktvWklodmNOQVFFTEJRQXdOakUwTURJR0ExVUUKQXd3cmIzQmxibk5vYVdaMExYTmxjblpwWTJVdGMyVnlkbWx1WnkxemFXZHVaWEpBTVRZek1UYzNPREV3TXpBZQpGdzB5TVRBNU1UWXdOelF4TkRKYUZ3MHl
+...
+XSW1jaApkQXZTWGpFUnZOZEZzN3pHK1VzTmZwN0ZIQkJVWkY4L2RZNWJCR2MwWTVaY0J6bFNjQT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+}
+----
+.. Decode the data:
++
+----
+$ echo 'QUxMT1dfUFVMTFN...U1FOiAzMG0K' | base64 --decode
+
+ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
+AUTHENTICATION_TYPE: Database
+...
+TAG_EXPIRATION_OPTIONS:
+- 2w
+TEAM_RESYNC_STALE_TIME: 60m
+TESTING: false
+USER_RECOVERY_TOKEN_LIFETIME: 30m
+----
+
