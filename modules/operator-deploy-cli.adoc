@@ -1,0 +1,64 @@
+[[operator-deploy-cli]]
+= Deploying {productname} from the command line
+
+
+. Create a namespace, for example, `quay-enterprise`.
+. Create a secret for the config bundle, if you want to pre-configure any aspects of the deployment
+. Create a `QuayRegistry` custom resource in a file called `quayregistry.yaml`
+.. For a minimal deployment, using all the defaults:
++
+.quayregistry.yaml:
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+  namespace: quay-enterprise
+----
+.. If you want to have some components unmanaged, add this information in the `spec` field. For example, a minimal deployment might look like:
++
+.quayregistry.yaml:
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+  namespace: quay-enterprise
+spec:
+  components:
+    - kind: clair
+      managed: false
+    - kind: horizontalpodautoscaler
+      managed: false
+    - kind: mirror
+      managed: false
+    - kind: monitoring
+      managed: false
+----
+.. If you have created a config bundle, for example, `init-config-bundle-secret`, reference it in the `quayregistry.yaml` file:
++
+.quayregistry.yaml:
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+  namespace: quay-enterprise
+spec:
+  configBundleSecret: init-config-bundle-secret  
+----
+. Create the `QuayRegistry` in specified namespace:
++
+```sh
+$ oc create -f quayregistry.yaml
+```
+. See the section xref:operator-monitor-deploy-cli[Monitoring and debugging the deployment process] for information on how to track the progress of the deployment.
+. Wait until the `status.registryEndpoint` is populated. 
++
+```sh
+$ oc get quayregistry -n quay-enterprise example-registry -o jsonpath="{.status.registryEndpoint}" -w
+```
+

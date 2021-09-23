@@ -1,32 +1,5 @@
-= Reconfiguring Quay on OpenShift using config tool UI
-
-Before making a change to the Quay configuration, list the pods that are currently running:
-
-
-----
-$ oc get pods
-
-
-----
-
-== Updating configuration
-
-In this example of updating the configuration, a superuser is added via the config editor tool:
-
-. Add a super user to Quay:
-+
-image:config-editor-su.png[Add super user]
-. Validate the new configuration and the apply the changes by pressing the Reconfigure Quay button:
-+
-image:config-editor-reconfigure.png[Reconfigure]
-
-. The config tool notifies you that the change has been submitted to Quay:
-+
-image:config-editor-reconfigured.png[Reconfigured]
-
-
-
-== Monitoring reconfiguration
+[[operator-config-monitoring]]
+= Monitoring reconfiguration
 
 . Use the `oc get pods` command to watch Quay reconciling. The existing pods are terminated and new pods are created using the updated configuration:
 +
@@ -109,35 +82,4 @@ example-registry-quay-mirror-6cb99dc448-s92tp          1/1     Running          
 example-registry-quay-postgres-init-qbkn2              0/1     Completed          0          89s
 example-registry-quay-redis-8bd67b647-jwpg9            1/1     Running            0          1d
 ----
-
-== Accessing the updated secret
-
-Since a new pod has been created for the config tool, a new secret will have been created, and you will need to use the updated password when you next attempt to login:
-
-image:config-editor-secret-updated.png[Config editor secret updated]
-
-
-
-== Accessing the updated config.yaml
-
-Use the config bundle to access the updated `config.yaml` file. 
-
-. On the QuayRegistry details screen, click on the Config Bundle Secret
-
-. In the Data section of the Secret details screen, click Reveal values to see the `config.yaml` file
-
-. Check that the change has been applied. In this case, `quayadmin` should be in the list of superusers: 
-+
-[source,yaml]
-----
-...
-SERVER_HOSTNAME: example-quay-openshift-operators.apps.docs.quayteam.org
-SETUP_COMPLETE: true
-SUPER_USERS:
-- quayadmin
-TAG_EXPIRATION_OPTIONS:
-- 2w
-...
-----
-
 

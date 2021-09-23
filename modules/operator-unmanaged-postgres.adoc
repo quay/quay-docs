@@ -14,7 +14,7 @@ DB_URI: postgresql://test-quay-database:postgres@test-quay-database:5432/test-qu
 $ kubectl create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
 ----
 +
-. Create a QuayRegistry YAML file `quayregistry.yaml` which marks postgres component as unmanaged and references the created Secret:
+. Create a QuayRegistry YAML file `quayregistry.yaml` which marks the `postgres` component as unmanaged and references the created Secret:
 +
 .quayregistry.yaml
 [source,yaml]
@@ -22,11 +22,12 @@ $ kubectl create secret generic --from-file config.yaml=./config.yaml config-bun
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
-  name: test
+  name: example-registry
+  namespace: quay-enterprise
 spec:
   configBundleSecret: config-bundle-secret
   components:
     - kind: postgres
       managed: false
 ----
-. Deploy the registry
+. Deploy the registry as detailed in the following sections.
