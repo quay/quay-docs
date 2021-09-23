@@ -1,0 +1,65 @@
+[[operator-config-cli-access]]
+= Determining QuayRegistry endpoints and secrets
+
+You can examine the QuayRegistry resource, using `oc describe quayregistry` or `oc get quayregistry -o yaml`, to determine the current endpoints and secrets:
+
+[source,yaml]
+----
+$ oc get quayregistry example-registry -n quay-enterprise -o yaml
+
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  ...
+  name: example-registry
+  namespace: quay-enterprise
+  ...
+spec:
+  components:
+  ...
+  configBundleSecret: example-registry-quay-config-bundle-fjpnm
+status:
+  configEditorCredentialsSecret: example-registry-quay-config-editor-credentials-kk55dc7299
+  configEditorEndpoint: https://example-registry-quay-config-editor-quay-enterprise.apps.docs.quayteam.org
+  currentVersion: 3.6.0
+  lastUpdated: 2021-09-21 11:18:13.285192787 +0000 UTC
+  registryEndpoint: https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org
+  unhealthyComponents: {}
+----
+
+The relevant fields are:
+
+* `registryEndpoint`: The URL for your registry, for browser access to the registry UI, and for the registry API endpoint
+* `configBundleSecret`: The config bundle secret, containing the `config.yaml` file and any SSL certs
+* `configEditorEndpoint`: The URL for the config editor tool, for browser access to the config tool, and for the configuration API
+* `configEditorCredentialsSecret`: The secret containing the username (typically `quayconfig`) and the password for the config editor tool
+
+
+To determine the username and password for the config editor tool:
+
+. Retrieve the secret:
++
+[source,yaml]
+----
+$ oc get secret -n quay-enterprise example-registry-quay-config-editor-credentials-kk55dc7299 -o yaml
+
+apiVersion: v1
+data:
+  password: SkZwQkVKTUN0a1BUZmp4dA==
+  username: cXVheWNvbmZpZw==
+kind: Secret
+----
+. Decode the username:
++
+----
+$ echo 'cXVheWNvbmZpZw==' | base64 --decode
+
+quayconfig
+----
+. Decode the password:
++
+----
+$ echo 'SkZwQkVKTUN0a1BUZmp4dA==' | base64 --decode
+
+JFpBEJMCtkPTfjxt
+----
