@@ -1,0 +1,1399 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" class="chrometwo"><head><title>Use Red Hat Quay</title><link rel="stylesheet" type="text/css" href="Common_Content/css/default.css"/><meta name="generator" content="publican v4.3.2"/><meta name="description" content="Learn to use Red Hat Quay"/><link rel="next" href="#idm46071491564112" title="Preface"/><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><script type="text/javascript" src="Common_Content/scripts/jquery-1.7.1.min.js"> </script><script type="text/javascript" src="Common_Content/scripts/utils.js"> </script><script type="text/javascript" src="Common_Content/scripts/highlight.js/highlight.pack.js"> </script></head><body><div id="chrometwo"><div id="main"><div xml:lang="en-US" class="book" id="idm46071493496912"><div class="titlepage"><div><div class="producttitle"><span class="productname">Red Hat Quay</span> <span class="productnumber">3.6</span></div><div><h1 class="title">Use Red Hat Quay</h1></div><div><h2 class="subtitle">Use Red Hat Quay</h2></div><div><div xml:lang="en-US" class="authorgroup"><span class="orgname">Red Hat OpenShift Documentation Team</span></div></div><div><a href="#idm46071489373728">Legal Notice</a></div><div><div class="abstract"><p class="title"><strong>Abstract</strong></p><div class="para">
+				Learn to use Red Hat Quay
+			</div></div></div></div><hr/></div><div class="toc"><ul class="toc"><li><span class="preface"><a href="#idm46071491564112">Preface</a></span></li><li><span class="chapter"><a href="#user-org-intro">1. Users and organizations in Red Hat Quay</a></span><ul><li><span class="section"><a href="#tenancy-model">1.1. Red Hat Quay tenancy model</a></span></li><li><span class="section"><a href="#user-create">1.2. Creating user accounts</a></span></li><li><span class="section"><a href="#org-create">1.3. Creating organization accounts</a></span></li></ul></li><li><span class="chapter"><a href="#use-quay-create-repo">2. Creating a repository</a></span><ul><li><span class="section"><a href="#creating-an-image-repository-via-the-ui">2.1. Creating an image repository via the UI</a></span></li><li><span class="section"><a href="#creating-an-image-repository-via-docker">2.2. Creating an image repository via docker or podman</a></span></li></ul></li><li><span class="chapter"><a href="#use-quay-manage-repo">3. Managing access to repositories</a></span><ul><li><span class="section"><a href="#allow-access-user-repo">3.1. Allowing access to user repositories</a></span><ul><li><span class="section"><a href="#allow-user-access-user-repo">3.1.1. Allowing user access to a user repository</a></span></li></ul></li><li><span class="section"><a href="#allow-robot-access-user-repo">3.2. Allowing robot access to a user repository</a></span></li><li><span class="section"><a href="#allow-access-org-repo">3.3. Allowing access to organization repositories</a></span><ul><li><span class="section"><a href="#allow-team-access-org-repo">3.3.1. Adding a Team to an organization</a></span></li><li><span class="section"><a href="#set-team-role">3.3.2. Setting a Team role</a></span></li><li><span class="section"><a href="#add-users-to-team">3.3.3. Adding users to a Team</a></span></li></ul></li></ul></li><li><span class="chapter"><a href="#working_with_tags">4. Working with tags</a></span><ul><li><span class="section"><a href="#viewing-and-modifying-tags">4.1. Viewing and modifying tags</a></span><ul><li><span class="section"><a href="#adding-a-new-tag-to-a-tagged-image">4.1.1. Adding a new tag to a tagged image</a></span></li><li><span class="section"><a href="#moving-a-tag">4.1.2. Moving a tag</a></span></li><li><span class="section"><a href="#deleting-a-tag">4.1.3. Deleting a tag</a></span></li><li><span class="section"><a href="#viewing-tag-history-and-going-back-in-time">4.1.4. Viewing tag history and going back in time</a></span></li><li><span class="section"><a href="#fetching-images-and-tags">4.1.5. Fetching an image by tag or digest</a></span></li></ul></li><li><span class="section"><a href="#tag-expiration">4.2. Tag Expiration</a></span><ul><li><span class="section"><a href="#setting_tag_expiration_from_a_dockerfile">4.2.1. Setting tag expiration from a Dockerfile</a></span></li><li><span class="section"><a href="#setting_tag_expiration_from_the_repository">4.2.2. Setting tag expiration from the repository</a></span></li></ul></li><li><span class="section"><a href="#security-scanning">4.3. Security scanning</a></span></li></ul></li><li><span class="chapter"><a href="#use-quay-view-export-logs">5. Viewing and exporting logs</a></span><ul><li><span class="section"><a href="#use-quay-view-logs">5.1. Viewing logs</a></span></li><li><span class="section"><a href="#use-quay-export-logs">5.2. Exporting repository logs</a></span></li></ul></li><li><span class="chapter"><a href="#build-support">6. Automatically building Dockerfiles with Build workers</a></span><ul><li><span class="section"><a href="#architecture-overview">6.1. Architecture Overview</a></span><ul><li><span class="section"><a href="#build_manager">6.1.1. Build manager</a></span></li><li><span class="section"><a href="#build_workers_control_plane">6.1.2. Build workers’ control plane</a></span></li><li><span class="section"><a href="#orchestrator">6.1.3. Orchestrator</a></span></li></ul></li><li><span class="section"><a href="#openshift-requirements">6.2. OpenShift Requirements</a></span></li><li><span class="section"><a href="#orchestrator-requirements">6.3. Orchestrator Requirements</a></span></li><li><span class="section"><a href="#setting-up-builders">6.4. Setting Up Red Hat Quay Builders With OpenShift</a></span><ul><li><span class="section"><a href="#prepare_openshift_for_red_hat_quay_builds">6.4.1. Prepare OpenShift for Red Hat Quay Builds</a></span></li><li><span class="section"><a href="#enable_builders_and_add_build_configuration_to_red_hat_quay_s_configuration_bundle">6.4.2. Enable Builders and add Build Configuration to Red Hat Quay’s Configuration Bundle</a></span></li></ul></li><li><span class="section"><a href="#openshift_routes_limitation">6.5. OpenShift Routes Limitation</a></span></li><li><span class="section"><a href="#troubleshooting_builds">6.6. Troubleshooting Builds</a></span><ul><li><span class="section"><a href="#debug_config_flag">6.6.1. DEBUG config flag</a></span></li></ul></li><li><span class="section"><a href="#set-up-github-build">6.7. Setting up GitHub builds (optional)</a></span></li></ul></li><li><span class="chapter"><a href="#building_dockerfiles">7. Building Dockerfiles</a></span><ul><li><span class="section"><a href="#viewing-and-managing-builds">7.1. Viewing and managing builds</a></span></li><li><span class="section"><a href="#manually-starting-a-build">7.2. Manually starting a build</a></span></li><li><span class="section"><a href="#build-triggers">7.3. Build Triggers</a></span><ul><li><span class="section"><a href="#creating-a-new-build-trigger">7.3.1. Creating a new build trigger</a></span></li><li><span class="section"><a href="#manually-triggering-a-build-trigger">7.3.2. Manually triggering a build trigger</a></span></li><li><span class="section"><a href="#build-contexts">7.3.3. Build Contexts</a></span></li></ul></li></ul></li><li><span class="chapter"><a href="#setting_up_a_custom_git_trigger">8. Setting up a Custom Git Trigger</a></span><ul><li><span class="section"><a href="#creating-a-custom-git-trigger">8.1. Creating a Trigger</a></span></li><li><span class="section"><a href="#post-git-trigger-creation-setup">8.2. Post trigger-creation setup</a></span><ul><li><span class="section"><a href="#ssh-public-key-access">8.2.1. SSH public key access</a></span></li><li><span class="section"><a href="#webhook">8.2.2. Webhook</a></span></li></ul></li></ul></li><li><span class="chapter"><a href="#skipping_a_source_control_triggered_build">9. Skipping a source control-triggered build</a></span></li><li><span class="chapter"><a href="#github-build-triggers">10. Set up GitHub build trigger tags</a></span><ul><li><span class="section"><a href="#understanding_tag_naming_for_build_triggers">10.1. Understanding tag naming for build triggers</a></span></li><li><span class="section"><a href="#setting_tag_names_for_build_triggers">10.2. Setting tag names for build triggers</a></span></li></ul></li><li><span class="chapter"><a href="#github-app">11. Creating an OAuth application in GitHub</a></span><ul><li><span class="section"><a href="#github-app-create">11.1. Create new GitHub application</a></span></li></ul></li><li><span class="chapter"><a href="#repository_notifications">12. Repository Notifications</a></span><ul><li><span class="section"><a href="#repository-events">12.1. Repository Events</a></span><ul><li><span class="section"><a href="#repository-push">12.1.1. Repository Push</a></span></li><li><span class="section"><a href="#dockerfile-build-queued">12.1.2. Dockerfile Build Queued</a></span></li><li><span class="section"><a href="#dockerfile-build-started">12.1.3. Dockerfile Build Started</a></span></li><li><span class="section"><a href="#dockerfile-build-successfully-completed">12.1.4. Dockerfile Build Successfully Completed</a></span></li><li><span class="section"><a href="#dockerfile-build-failed">12.1.5. Dockerfile Build Failed</a></span></li><li><span class="section"><a href="#dockerfile-build-cancelled">12.1.6. Dockerfile Build Cancelled</a></span></li><li><span class="section"><a href="#vulnerability-detected">12.1.7. Vulnerability Detected</a></span></li></ul></li><li><span class="section"><a href="#notification-actions">12.2. Notification Actions</a></span><ul><li><span class="section"><a href="#quay-notification">12.2.1. Quay Notification</a></span></li><li><span class="section"><a href="#e-mail">12.2.2. E-mail</a></span></li><li><span class="section"><a href="#webhook-post">12.2.3. Webhook POST</a></span></li><li><span class="section"><a href="#flowdock-notification">12.2.4. Flowdock Notification</a></span></li><li><span class="section"><a href="#hipchat-notification">12.2.5. Hipchat Notification</a></span></li><li><span class="section"><a href="#slack-notification">12.2.6. Slack Notification</a></span></li></ul></li></ul></li><li><span class="chapter"><a href="#oci-intro">13. OCI Support and Red Hat Quay</a></span><ul><li><span class="section"><a href="#helm-oci-prereqs">13.1. Helm and OCI prerequisites</a></span></li><li><span class="section"><a href="#helm-oci-quay">13.2. Using Helm charts with Quay</a></span></li><li><span class="section"><a href="#config-fields-helm-oci">13.3. OCI and Helm configuration</a></span></li><li><span class="section"><a href="#cosign-oci-intro">13.4. Cosign OCI support with Red Hat Quay</a></span></li><li><span class="section"><a href="#cosign-oci-with-quay">13.5. Using cosign with quay</a></span></li><li><span class="section"><a href="#other-oci-artifacts-with-quay">13.6. Adding other OCI media types to Quay</a></span></li></ul></li><li><span class="chapter"><a href="#using_the_red_hat_quay_api">14. Using the Red Hat Quay API</a></span><ul><li><span class="section"><a href="#accessing_the_quay_api_from_quay_io">14.1. Accessing the Quay API from Quay.io</a></span></li><li><span class="section"><a href="#create_oauth_access_token">14.2. Create OAuth access token</a></span></li><li><span class="section"><a href="#accessing_your_quay_api_from_a_web_browser">14.3. Accessing your Quay API from a web browser</a></span></li><li><span class="section"><a href="#accessing_the_red_hat_quay_api_from_the_command_line">14.4. Accessing the Red Hat Quay API from the command line</a></span><ul><li><span class="section"><a href="#get_superuser_information">14.4.1. Get superuser information</a></span></li><li><span class="section"><a href="#creating_a_superuser_using_the_api">14.4.2. Creating a superuser using the API</a></span></li><li><span class="section"><a href="#directory_synchronization">14.4.3. Directory synchronization</a></span></li><li><span class="section"><a href="#create_a_repository_build_via_api">14.4.4. Create a repository build via API</a></span></li><li><span class="section"><a href="#create_an_org_robot">14.4.5. Create an org robot</a></span></li><li><span class="section"><a href="#trigger_a_build">14.4.6. Trigger a build</a></span></li><li><span class="section"><a href="#create_a_private_repository">14.4.7. Create a private repository</a></span></li></ul></li></ul></li></ul></div><section class="preface" id="idm46071491564112"><div class="titlepage"><div><div><h1 class="title">Preface</h1></div></div></div><p>
+			Red Hat Quay container image registries let you store container images in a central location. As a regular user of a Red Hat Quay registry, you can create repositories to organize your images and selectively add read (pull) and write (push) access to the repositories you control. A user with administrative privileges can perform a broader set of tasks, such as the ability to add users and control default settings.
+		</p><p>
+			This guide assumes you have a Red Hat Quay deployed and are ready to start setting it up and using it.
+		</p></section><section class="chapter" id="user-org-intro"><div class="titlepage"><div><div><h1 class="title">Chapter 1. Users and organizations in Red Hat Quay</h1></div></div></div><p>
+			Before you begin creating repositories to hold your container images in Red Hat Quay, you should consider how you want to organize those repositories. Every repository in a Red Hat Quay instance must be associated with either an Organization or a User.
+		</p><section class="section" id="tenancy-model"><div class="titlepage"><div><div><h2 class="title">1.1. Red Hat Quay tenancy model</h2></div></div></div><p>
+				<span class="inlinemediaobject"><img src="images/178_Quay_architecture_0821_tenancy_model.png" alt="Quay tenancy model"/></span>
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						<span class="strong strong"><strong>Organizations</strong></span> provide a way of sharing repositories under a common namespace that does not belong to a single user, but rather to many users in a shared setting (such as a company).
+					</li><li class="listitem">
+						<span class="strong strong"><strong>Teams</strong></span> provide a way for an organization to delegate permissions (both global and on specific repositories) to sets or groups of users
+					</li><li class="listitem">
+						<span class="strong strong"><strong>Users</strong></span> can log in to a registry through the Quay web UI or a client (such as <code class="literal">podman login</code>). Each users automatically gets a user namespace, for example, <code class="literal">quay-server.example.com/user/&lt;username&gt;</code>
+					</li><li class="listitem">
+						<span class="strong strong"><strong>Super users</strong></span> have enhanced access and privileges via the Super User Admin Panel in the user interface and through Super User API calls that are not visible or accessible to normal users
+					</li><li class="listitem">
+						<span class="strong strong"><strong>Robot accounts</strong></span> provide automated access to repositories for non-human users such as pipeline tools and are similar in nature to OpenShift service accounts. Permissions can be granted to a robot account in a repository by adding that account like any other user or team.
+					</li></ul></div></section><section class="section" id="user-create"><div class="titlepage"><div><div><h2 class="title">1.2. Creating user accounts</h2></div></div></div><p>
+				To create a new user for your Red Hat Quay instance:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+						Log in to Red Hat Quay as the superuser (quay by default).
+					</li><li class="listitem">
+						Select your account name from the upper right corner of the home page and choose Super User Admin Panel.
+					</li><li class="listitem">
+						Select the Users icon from the left column.
+					</li><li class="listitem">
+						Select the Create User button.
+					</li><li class="listitem">
+						Enter the new user’s Username and Email address, then select the Create User button.
+					</li><li class="listitem"><p class="simpara">
+						Back on the Users page, select the Options icon to the right of the new Username. A drop-down menu appears, as shown in the following figure:
+					</p><p class="simpara">
+						<span class="inlinemediaobject"><img src="images/user-options.png" alt="Select Options drop-down to change user passwords"/></span>
+					</p></li><li class="listitem">
+						Choose Change Password from the menu.
+					</li><li class="listitem">
+						Add the new password and verify it, then select the Change User Password button.
+					</li></ol></div><p>
+				The new user can now use that username and password to log in via the web ui or through some container client.
+			</p></section><section class="section" id="org-create"><div class="titlepage"><div><div><h2 class="title">1.3. Creating organization accounts</h2></div></div></div><p>
+				Any user can create their own organization to share repositories of container images. To create a new organization:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+						While logged in as any user, select the plus sign (+) from the upper right corner of the home page and choose New Organization.
+					</li><li class="listitem">
+						Type the name of the organization. The name must be alphanumeric, all lower case, and between 2 and 255 characters long
+					</li><li class="listitem"><p class="simpara">
+						Select Create Organization. The new organization appears, ready for you to begin adding repositories, teams, robot accounts and other features from icons on the left column. The following figure shows an example of the new organization’s page with the settings tab selected.
+					</p><p class="simpara">
+						<span class="inlinemediaobject"><img src="images/new-org.png" alt="Create new repos and teams from an Organization page"/></span>
+					</p></li></ol></div></section></section><section class="chapter" id="use-quay-create-repo"><div class="titlepage"><div><div><h1 class="title">Chapter 2. Creating a repository</h1></div></div></div><p>
+			A repository provides a central location for storing a related set of container images. There are two ways to create a repository in Red Hat Quay: via a push (from <code class="literal">docker</code> or <code class="literal">podman</code>) and via the Red Hat Quay UI. These are essentially the same, whether you are using Quay.io or your own instance of Red Hat Quay.
+		</p><section class="section" id="creating-an-image-repository-via-the-ui"><div class="titlepage"><div><div><h2 class="title">2.1. Creating an image repository via the UI</h2></div></div></div><p>
+				To create a repository in the Red Hat Quay UI under a user account: . Log in to the user account through the web UI. . Click the + icon in the top right of the header on the home page (or other page related to the user) and choose New Repository, as shown in the following figure:
+			</p><p>
+				+ 
+				<span class="inlinemediaobject"><img src="images/repo-create.png" alt="Create a new repository for a user."/></span>
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+						On the Create New Repository page that appears
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+								Add the new repository name to your user name
+							</li><li class="listitem">
+								Click Repository Description and type a description of the repository
+							</li><li class="listitem">
+								In Repository Visibility, select whether you want the repository to be public or private
+							</li><li class="listitem">
+								Click the Create Repository button.
+							</li></ul></div></li></ol></div><p>
+				The new repository is created, starting out empty. A docker pull command you could use to pull an image from this repository (minus the image name) appears on the screen.
+			</p><p>
+				To create a repository in the Red Hat Quay UI under an organization:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+						Log in as a user that has Admin or Write permission to the organization.
+					</li><li class="listitem">
+						From the Repositories view, select the organization name from the right column under Users and Organizations. The page for the organization appears, similar to the page shown in Figure 2.x:
+					</li><li class="listitem">
+						Click +Create New Repository in the upper-right part of the page.
+					</li><li class="listitem"><p class="simpara">
+						On the Create New Repository page that appears:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+								Add the new repository name to the organization name
+							</li><li class="listitem">
+								Click Repository Description and type a description of the repository
+							</li><li class="listitem">
+								In Repository Visibility, select whether you want the repository to be public or private
+							</li><li class="listitem">
+								Click the Create Repository button.
+							</li></ul></div></li></ol></div><p>
+				The new repository is created, starting out empty. A docker pull command you could use to pull an image from this repository (minus the image name) appears on the screen.
+			</p></section><section class="section" id="creating-an-image-repository-via-docker"><div class="titlepage"><div><div><h2 class="title">2.2. Creating an image repository via docker or podman</h2></div></div></div><p>
+				Assuming you have the proper credentials, pushing an image to a repository that does not yet exist in your Red Hat Quay instance will create that repository as it pushes the image to that repository. Either the <code class="literal">docker</code> or <code class="literal">podman</code> commands will work for these examples.
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+						Tag the image: With an image available from <code class="literal">docker</code> or <code class="literal">podman</code> on your local system, tag that image with the new repository name and image name. Here are examples for pushing images to Quay.io or your own Red Hat Quay setup (for example, reg.example.com). For the examples, replace namespace with your Red Hat Quay user name or organization and repo_name with the name of the repository you want to create:
+					</p><pre class="screen"># sudo podman tag myubi-minimal quay.io/namespace/repo_name
+# sudo podman tag myubi-standard reg.example.com/namespace/repo_name</pre></li><li class="listitem"><p class="simpara">
+						Push to the appropriate registry. For example:
+					</p><pre class="screen"># sudo podman push quay.io/namespace/repo_name
+# sudo podman push reg.example.com/namespace/repo_name</pre></li></ol></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					To create an application repository, follow the same procedure you did for creating a container image repository.
+				</p></div></div></section></section><section class="chapter" id="use-quay-manage-repo"><div class="titlepage"><div><div><h1 class="title">Chapter 3. Managing access to repositories</h1></div></div></div><p>
+			As a Red Hat Quay user, you can create your own repositories and make them accessible to other users on your Red Hat Quay instance. As an alternative, you can create organizations to allow access to repositories based on teams. In both user and organization repositories, you can allow access to those repositories by creating credentials associated with robot accounts. Robot accounts make it easy for a variety of container clients (such as docker or podman) to access your repos, without requiring that the client have a Red Hat Quay user account.
+		</p><section class="section" id="allow-access-user-repo"><div class="titlepage"><div><div><h2 class="title">3.1. Allowing access to user repositories</h2></div></div></div><p>
+				When you create a repository in a user namespace, you can add access to that repository to user accounts or through robot accounts.
+			</p><section class="section" id="allow-user-access-user-repo"><div class="titlepage"><div><div><h3 class="title">3.1.1. Allowing user access to a user repository</h3></div></div></div><p>
+					To allow access to a repository associated with a user account, do the following:
+				</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+							Log into your Red Hat Quay user account.
+						</li><li class="listitem">
+							Select a repository under your user namespace to which you want to share access.
+						</li><li class="listitem">
+							Select the Settings icon from the left column.
+						</li><li class="listitem"><p class="simpara">
+							Type the name of the user to which you want to grant access to your repository. The user name should appear as you type, as shown in the following figure:
+						</p><p class="simpara">
+							<span class="inlinemediaobject"><img src="images/grant-user-access.png" alt="Grant user access to a user repository"/></span>
+						</p></li><li class="listitem"><p class="simpara">
+							In the permissions box, select one of the following:
+						</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+									Read - Allows the user to view the repository and pull from it.
+								</li><li class="listitem">
+									Write - Allows the user to view the repository, as well as pull images from or push images to the repository.
+								</li><li class="listitem">
+									Admin - Allows all administrative settings to the repository, as well as all Read and Write permissions.
+								</li></ul></div></li><li class="listitem">
+							Select the Add Permission button. The user now has the assigned permission.
+						</li></ol></div><p>
+					To remove the user permissions to the repository, select the Options icon to the right of the user entry, then select Delete Permission.
+				</p></section></section><section class="section" id="allow-robot-access-user-repo"><div class="titlepage"><div><div><h2 class="title">3.2. Allowing robot access to a user repository</h2></div></div></div><p>
+				Robot accounts are used to set up automated access to the repositories in your Red Hat Quay registry. They are similar to OpenShift service accounts. When you set up a robot account, you:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Generate credentials that are associated with the robot account
+					</li><li class="listitem">
+						Identify repositories and images that the robot can push images to or pull images from
+					</li><li class="listitem">
+						Copy and paste generated credentials to use with different container clients (such as Docker, podman, Kubernetes, Mesos and others) to access each defined repository
+					</li></ul></div><p>
+				Keep in mind that each robot account is limited to a single user namespace or organization. So, for example, the robot could provide access to all repositories accessible to a user jsmith, but not to any that are not in the user’s list of repositories.
+			</p><p>
+				The following procedure steps you through setting up a robot account to allow access to your repositories.
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+						Select Robot icon: From the Repositories view, select the Robot icon from the left column.
+					</li><li class="listitem">
+						Create Robot account: Select the Create Robot Account button.
+					</li><li class="listitem">
+						Set Robot name: Enter the name and description, then select the Create robot account button. The robot name becomes a combination of your user name, plus the robot name you set (for example, jsmith+myrobot)
+					</li><li class="listitem"><p class="simpara">
+						Add permission to the robot account: From the Add permissions screen for the robot account, define the repositories you want the robot to access as follows:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+								Put a check mark next to each repository the robot can access
+							</li><li class="listitem"><p class="simpara">
+								For each repository, select one of the following, and click Add permissions:
+							</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
+										None - Robot has no permission to the repository
+									</li><li class="listitem">
+										Read - Robot can view and pull from the repository
+									</li><li class="listitem">
+										Write - Robot can read (pull) from and write (push) to the repository
+									</li><li class="listitem">
+										Admin - Full access to pull from and push to the repository, plus the ability to do administrative tasks associated with the repository
+									</li></ul></div></li><li class="listitem">
+								Select the Add permissions button to apply the settings
+							</li></ul></div></li><li class="listitem">
+						Get credentials to access repositories via the robot: Back on the Robot Accounts page, select the Robot account name to see credential information for that robot.
+					</li><li class="listitem"><p class="simpara">
+						Get the token: Select Robot Token, as shown in the following figure, to see the token that was generated for the robot. If you want to reset the token, select Regenerate Token.
+					</p><div class="informalexample"><p>
+						It is important to understand that regenerating a token makes any previous tokens for this robot invalid.
+					</p></div><p class="simpara">
+						<span class="inlinemediaobject"><img src="images/robot-gen-token.png" alt="Select Options drop-down to change user passwords"/></span>
+					</p></li><li class="listitem"><p class="simpara">
+						Get credentials: Once you are satisfied with the generated token, get the resulting credentials in the following ways:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+								Kubernetes Secret: Select this to download credentials in the form of a Kubernetes pull secret yaml file.
+							</li><li class="listitem">
+								rkt Configuration: Select this to download credentials for the rkt container runtime in the form of a json file.
+							</li><li class="listitem">
+								Docker Login: Select this to copy a full <code class="literal">docker login</code> command line that includes the credentials.
+							</li><li class="listitem">
+								Docker Configuration: Select this to download a file to use as a Docker config.json file, to permanently store the credentials on your client system.
+							</li><li class="listitem">
+								Mesos Credentials: Select this to download a tarball that provides the credentials that can be identified in the uris field of a Mesos configuration file.
+							</li></ul></div></li></ol></div></section><section class="section" id="allow-access-org-repo"><div class="titlepage"><div><div><h2 class="title">3.3. Allowing access to organization repositories</h2></div></div></div><p>
+				Once you have created an organization, you can associate a set of repositories directly to that organization. To add access to the repositories in that organization, you can add Teams (sets of users with the same permissions) and individual users. Essentially, an organization has the same ability to create repositories and robot accounts as a user does, but an organization is intended to set up shared repositories through groups of users (in teams or individually).
+			</p><p>
+				Other things to know about organizations:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						You cannot have an organization in another organization. To subdivide an organization, you use teams.
+					</li><li class="listitem">
+						Organizations can’t contain users directly. You must first add a team, then add one or more users to each team.
+					</li><li class="listitem">
+						Teams can be set up in organizations as just members who use the repos and associated images or as administrators with special privileges for managing the organization
+					</li></ul></div><section class="section" id="allow-team-access-org-repo"><div class="titlepage"><div><div><h3 class="title">3.3.1. Adding a Team to an organization</h3></div></div></div><p>
+					When you create a team for your organization you can select the team name, choose which repositories to make available to the team, and decide the level of access to the team.
+				</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+							From the Organization view, select the Teams and Membership icon from the left column. You will see that an owners Team exists with Admin privilege for the user who created the Organization.
+						</li><li class="listitem">
+							Select Create New Team. You are prompted for the new team name to be associated with the organization. Type the team name, which must start with a lowercase letter, with the rest of the team name as any combination of lowercase letters and numbers (no capitals or special characters allowed).
+						</li><li class="listitem">
+							Select the Create team button. The Add permissions window appears, displaying a list of repositories in the organization.
+						</li><li class="listitem"><p class="simpara">
+							Check each repository you want the team to be able to access. Then select one of the following permissions for each:
+						</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+									Read - Team members are able to view and pull images
+								</li><li class="listitem">
+									Write - Team members can view, pull, and push images
+								</li><li class="listitem">
+									Admin - Team members have full read/write privilege, plus the ability to do administrative tasks related to the repository
+								</li></ul></div></li><li class="listitem">
+							Select Add permissions to save the repository permissions for the team.
+						</li></ol></div></section><section class="section" id="set-team-role"><div class="titlepage"><div><div><h3 class="title">3.3.2. Setting a Team role</h3></div></div></div><p>
+					After you have added a team, you can set the role of that team within the organization. From the Teams and Membership screen within the organization, select the TEAM ROLE drop-down menu, as shown in the following figure:
+				</p><p>
+					<span class="inlinemediaobject"><img src="images/set-team-role.png" alt="Set the role that a team has within an organization"/></span>
+				</p><p>
+					For the selected team, choose one of the following roles:
+				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+							Member - Inherits all permissions set for the team
+						</li><li class="listitem">
+							Creator - All member permissions, plus the ability to create new repositories
+						</li><li class="listitem">
+							Admin - Full administrative access to the organization, including the ability to create teams, add members, and set permissions.
+						</li></ul></div></section><section class="section" id="add-users-to-team"><div class="titlepage"><div><div><h3 class="title">3.3.3. Adding users to a Team</h3></div></div></div><p>
+					As someone with Admin privilege to an organization, you can add users and robots to a team. When you add a user, it sends an email to that user. The user remains pending until that user accepts the invitation.
+				</p><p>
+					To add users or robots to a team, start from the organization’s screen and do the following:
+				</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+							Select the team you want to add users or robots to.
+						</li><li class="listitem"><p class="simpara">
+							In the Team Members box, type one of the following:
+						</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+									A username from an account on the Red Hat Quay registry
+								</li><li class="listitem">
+									The email address for a user account on the registry
+								</li><li class="listitem">
+									The name of a robot account. The name must be in the form of orgname+robotname
+								</li></ul></div></li><li class="listitem">
+							In the case of the robot account, it is immediately added to the team. For a user account, an invitation to join is mailed to the user. Until the user accepts that invitation, the user remains in the INVITED TO JOIN state.
+						</li></ol></div><p>
+					Next, the user accepts the email invitation to join the team. The next time the user logs in to the Red Hat Quay instance, the user moves from the INVITED TO JOIN list to the MEMBERS list for the organization.
+				</p></section></section></section><section class="chapter" id="working_with_tags"><div class="titlepage"><div><div><h1 class="title">Chapter 4. Working with tags</h1></div></div></div><p>
+			Tags provide a way to identify the version of an image, as well as offering a means of naming the same image in different ways. Besides an image’s version, an image tag can identify its uses (such as devel, testing, or prod) or the fact that it is the most recent version (latest).
+		</p><p>
+			From the <span class="strong strong"><strong>Tags</strong></span> tab of an image repository, you can view, modify, add, move, delete, and see the history of tags. You also can fetch command-lines you can use to download (pull) a specific image (based on its name and tag) using different commands.
+		</p><section class="section" id="viewing-and-modifying-tags"><div class="titlepage"><div><div><h2 class="title">4.1. Viewing and modifying tags</h2></div></div></div><p>
+				The tags of a repository can be viewed and modified in the tags panel of the repository page, found by clicking on the <span class="strong strong"><strong>Tags</strong></span> tab. 
+				<span class="inlinemediaobject"><img src="images/tag-operations.png" alt="View and modify tags from your repository"/></span>
+			</p><section class="section" id="adding-a-new-tag-to-a-tagged-image"><div class="titlepage"><div><div><h3 class="title">4.1.1. Adding a new tag to a tagged image</h3></div></div></div><p>
+					A new tag can be added to a tagged image by clicking on the gear icon next to the tag and choosing <code class="literal">Add New Tag</code>. Red Hat Quay will confirm the addition of the new tag to the image.
+				</p></section><section class="section" id="moving-a-tag"><div class="titlepage"><div><div><h3 class="title">4.1.2. Moving a tag</h3></div></div></div><p>
+					Moving a tag to a different image is accomplished by performing the same operation as adding a new tag, but giving an existing tag name. Red Hat Quay will confirm that you want the tag moved, rather than added.
+				</p></section><section class="section" id="deleting-a-tag"><div class="titlepage"><div><div><h3 class="title">4.1.3. Deleting a tag</h3></div></div></div><p>
+					A specific tag and all its images can be deleted by clicking on the tag’s gear icon and choosing <code class="literal">Delete Tag</code>. This will delete the tag and any images unique to it. Images will not be deleted until no tag references them either directly or indirectly through a parent child relationship.
+				</p></section><section class="section" id="viewing-tag-history-and-going-back-in-time"><div class="titlepage"><div><div><h3 class="title">4.1.4. Viewing tag history and going back in time</h3></div></div></div><section class="section" id="viewing-tag-history"><div class="titlepage"><div><div><h4 class="title">4.1.4.1. Viewing tag history</h4></div></div></div><p>
+						To view the image history for a tag, click on the <code class="literal">View Tags History</code> menu item located under the <code class="literal">Actions</code> menu. The page shown will display each image to which the tag pointed in the past and when it pointed to that image.
+					</p></section><section class="section" id="going-back-in-time"><div class="titlepage"><div><div><h4 class="title">4.1.4.2. Going back in time</h4></div></div></div><p>
+						To revert the tag to a previous image, find the history line where your desired image was overwritten, and click on the Restore link.
+					</p></section></section><section class="section" id="fetching-images-and-tags"><div class="titlepage"><div><div><h3 class="title">4.1.5. Fetching an image by tag or digest</h3></div></div></div><p>
+					From the <span class="strong strong"><strong>Tags</strong></span> tab, you can view different ways of pulling images from the clients that are ready to use those images.
+				</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+							Select a particular repository/image
+						</li><li class="listitem">
+							Select Tags in the left column
+						</li><li class="listitem">
+							Select the Fetch Tag icon for a particular image/tag combination
+						</li><li class="listitem">
+							When the Fetch Tag pop-up appears, select the Image format box to see a drop-down menu that shows different ways that are available to pull the image. The selections offer full command lines for pulling a specific container image to the local system:
+						</li></ol></div><p>
+					<span class="inlinemediaobject"><img src="images/image-fetch.png" alt="Get commands for fetching images in different ways"/></span>
+				</p><p>
+					You can select to pull a regular of an image by tag name or by digest name using the <span class="strong strong"><strong>docker</strong></span> command. . Choose the type of pull you want, then select <code class="literal">Copy Command</code>. The full command-line is copied into your clipboard. These two commands show a <span class="strong strong"><strong>docker pull</strong></span> by tag and by digest:
+				</p><pre class="screen">docker pull quay.io/cnegus/whatever:latest
+docker pull quay.io/cnegus/whatever@sha256:e02231a6aa8ba7f5da3859a359f99d77e371cb47e643ce78e101958782581fb9</pre><p>
+					Paste the command into a command-line shell on a system that has the <span class="strong strong"><strong>docker</strong></span> command and service available, and press Enter. At this point, the container image is ready to run on your local system.
+				</p><p>
+					On RHEL and Fedora systems, you can substitute <span class="strong strong"><strong>podman</strong></span> for <span class="strong strong"><strong>docker</strong></span> to pull and run the selected image.
+				</p></section></section><section class="section" id="tag-expiration"><div class="titlepage"><div><div><h2 class="title">4.2. Tag Expiration</h2></div></div></div><p>
+				Images can be set to expire from a Red Hat Quay repository at a chosen date and time using a feature called <code class="literal">tag expiration</code>. Here are a few things to know about about tag expiration:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						When a tag expires, the tag is deleted from the repository. If it is the last tag for a specific image, the image is set to be deleted.
+					</li><li class="listitem">
+						Expiration is set on a per-tag basis, not for a repository on the whole.
+					</li><li class="listitem">
+						When a tag expires or is deleted, it is not immediately removed from the registry. The value of Time Machine (in User settings) defines when the deleted tag is actually removed and garbage collected. By default, that value is 14 days. Up until that time, a tag can be repointed to an expired or deleted image.
+					</li><li class="listitem">
+						The Red Hat Quay superuser has no special privilege related to deleting expired images from user repositories. There is no central mechanism for the superuser to gather information and act on user repositories. It is up to the owners of each repository to manage expiration and ultimate deletion of their images.
+					</li></ul></div><p>
+				Tag expiration can be set in different ways:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						By setting the <code class="literal">quay.expires-after=</code> LABEL in the Dockerfile when the image is created. This sets a time to expire from when the image is built.
+					</li><li class="listitem">
+						By choosing the expiration date from the EXPIRES column for the repository tag and selecting a specific date and time to expire.
+					</li></ul></div><p>
+				The following figure shows the Options entry for changing tag expiration and the EXPIRES field for when the tag expires. Hover over the EXPIRES field to see the expiration date and time that is currently set.
+			</p><p>
+				<span class="inlinemediaobject"><img src="images/tag-expires-ui.png" alt="Change tag expiration under the Options icon or from the EXPIRES column"/></span>
+			</p><section class="section" id="setting_tag_expiration_from_a_dockerfile"><div class="titlepage"><div><div><h3 class="title">4.2.1. Setting tag expiration from a Dockerfile</h3></div></div></div><p>
+					Adding a label like <code class="literal">quay.expires-after=20h</code> via the Dockerfile LABEL command will cause a tag to automatically expire after the time indicated. The time values could be something like <code class="literal">1h</code>, <code class="literal">2d</code>, <code class="literal">3w</code> for hours, days, and weeks, respectively, from the time the image is built.
+				</p></section><section class="section" id="setting_tag_expiration_from_the_repository"><div class="titlepage"><div><div><h3 class="title">4.2.2. Setting tag expiration from the repository</h3></div></div></div><p>
+					On the Repository Tag page there is a UI column titled <span class="strong strong"><strong>EXPIRES</strong></span> that indicates when a tag will expire. Users can set this by clicking on the time that it will expire or by clicking the Settings button (gear icon) on the right and choosing <code class="literal">Change Expiration</code>.
+				</p><p>
+					Choose the date and time when prompted and select <code class="literal">Change Expiration</code>. The tag will be set to be deleted from the repository when the expiration time is reached.
+				</p></section></section><section class="section" id="security-scanning"><div class="titlepage"><div><div><h2 class="title">4.3. Security scanning</h2></div></div></div><p>
+				By clicking the on the vulnerability or fixable count next to a tab you can jump into the security scanning information for that tag. There you can find which CVEs your image is susceptible to, and what remediation options you may have available.
+			</p><p>
+				Keep in mind that image scanning only lists vulnerabilities found by the Clair image scanner. What each user does about the vulnerabilities that are uncovered is completely up to that user. The Red Hat Quay superuser does not act on those vulnerabilities found.
+			</p></section></section><section class="chapter" id="use-quay-view-export-logs"><div class="titlepage"><div><div><h1 class="title">Chapter 5. Viewing and exporting logs</h1></div></div></div><p>
+			Activity logs are gathered for all repositories and namespaces (users and organizations) in Red Hat Quay. There are multiple ways of accessing log files, including:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					Viewing logs through the web UI
+				</li><li class="listitem">
+					Exporting logs so they can be saved externally.
+				</li><li class="listitem">
+					Accessing log entries via the API
+				</li></ul></div><p>
+			To access logs, you must have Admin privilege to the selected repository or namespace.
+		</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+				A maximum of 100 log results are available at a time via the API. To gather more results that that, you must use the log exporter feature described in this chapter.
+			</p></div></div><section class="section" id="use-quay-view-logs"><div class="titlepage"><div><div><h2 class="title">5.1. Viewing logs</h2></div></div></div><p>
+				To view log entries for a repository or namespace from the web UI, do the following:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+						Select a repository or namespace (organization or user) for which you have Admin privileges.
+					</li><li class="listitem"><p class="simpara">
+						Select the Usage Logs icon from the left column. A Usage Logs screen appears, like the one shown in the following figure:
+					</p><p class="simpara">
+						<span class="inlinemediaobject"><img src="images/logs.png" alt="View usage logs"/></span>
+					</p></li><li class="listitem"><p class="simpara">
+						From the Usage Logs page, you can:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+								Set the date range for viewing log entries by adding dates to the From and to boxes. By default, the most recent one week of log entries is displayed.
+							</li><li class="listitem">
+								Type a string into the Filter Logs box to display log entries that container the given string.
+							</li><li class="listitem">
+								Toggle the arrow to the left of any log entry to see more or less text associated with that log entry.
+							</li></ul></div></li></ol></div></section><section class="section" id="use-quay-export-logs"><div class="titlepage"><div><div><h2 class="title">5.2. Exporting repository logs</h2></div></div></div><p>
+				To be able to grab a larger number of log files and save them outside of the Red Hat Quay database, you can use the Export Logs feature. Here are a few things you should know about using Export Logs:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						You can choose a range of dates for the logs you want to gather from a repository.
+					</li><li class="listitem">
+						You can request that the logs be sent to you via an email attachment or directed to a callback URL.
+					</li><li class="listitem">
+						You need Admin privilege to the repository or namespace to export logs
+					</li><li class="listitem">
+						A maximum of 30 days of log data can be exported at a time
+					</li><li class="listitem">
+						Export Logs only gathers log data that was previously produced. It does not stream logging data.
+					</li><li class="listitem">
+						Your Red Hat Quay instance must be configured for external storage for this feature (local storage will not work).
+					</li><li class="listitem">
+						Once the logs are gathered and available, you should immediately copy that data if you want to save it. By default, the data expires in an hour.
+					</li></ul></div><p>
+				To use the Export Logs feature:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+						Select a repository for which you have Admin privileges.
+					</li><li class="listitem">
+						Select the Usage Logs icon from the left column. A Usage Logs screen appears.
+					</li><li class="listitem">
+						Choose the From and to date range of the log entries you want to gather.
+					</li><li class="listitem"><p class="simpara">
+						Select the Export Logs button. An Export Usage Logs pop-up appears, as shown
+					</p><p class="simpara">
+						<span class="inlinemediaobject"><img src="images/export-usage-logs.png" alt="Enter email or callback URL to receive exported logs"/></span>
+					</p></li><li class="listitem">
+						Enter the email address or callback URL you want to receive the exported logs. For the callback URL, you could use a URL to a place such as webhook.site.
+					</li><li class="listitem">
+						Select Start Logs Export. This causes Red Hat Quay to begin gathering the selected log entries. Depending on the amount of logging data being gathered, this can take anywhere from one minute to an hour to complete.
+					</li><li class="listitem"><p class="simpara">
+						When the log export is completed you will either:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+								Receive an email, alerting you to the availability of your requested exported log entries.
+							</li><li class="listitem">
+								See a successful status of your log export request from the webhook URL. A link to the exported data will be available for you to select to download the logs.
+							</li></ul></div></li></ol></div><p>
+				Keep in mind that the URL points to a location in your Red Hat Quay external storage and is set to expire within an hour. So make sure you copy the exported logs before that expiration time if you intend to keep them.
+			</p></section></section><section class="chapter" id="build-support"><div class="titlepage"><div><div><h1 class="title">Chapter 6. Automatically building Dockerfiles with Build workers</h1></div></div></div><p>
+			Red Hat Quay supports building Dockerfiles using a set of worker nodes on OpenShift or Kubernetes. Build triggers, such as GitHub webhooks can be configured to automatically build new versions of your repositories when new code is committed. This document will walk you through enabling builds with your Red Hat Quay installation and setting up one or more OpenShift/K8s clusters to accept builds from Red Hat Quay. With Red Hat Quay 3.4, the underlying Build Manager has been completely re-written as part of Red Hat Quay’s migration from Python 2 to Python 3. As a result, builder nodes are now dynamically created as Kubernetes Jobs versus builder nodes that ran continuously in Red Hat Quay 3.3 and earlier. This greatly simplifies how Red Hat Quay manages builds and provides the same mechanism quay.io utilizes to handle thousands of container image builds daily. Customers who are currently running static (“Enterprise” builders under Red Hat Quay 3.3) will be required to migrate to a Kubernetes-based build mechanism.
+		</p><section class="section" id="architecture-overview"><div class="titlepage"><div><div><h2 class="title">6.1. Architecture Overview</h2></div></div></div><p>
+				The Red Hat Quay Build system is designed for scalability (since it is used to host all builds at quay.io). The Build Manager component of Red Hat Quay provides an orchestration layer that tracks build requests and ensures that a Build Executor (OpenShift/K8s cluster) will carry out each request. Each build is handled by a Kubernetes Job which launches a small virtual machine to completely isolate and contain the image build process. This ensures that container builds do not affect each other or the underlying build system. Multiple Executors can be configured to ensure that builds are performed even in the event of infrastructure failures. Red Hat Quay will automatically send builds to a different Executor if it detects that one Executor is having difficulties.
+			</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					The upstream version of Red Hat Quay provides instructions on how to configure an AWS/EC2 based Executor. This configuration is not supported for Red Hat Quay customers.
+				</p></div></div><section class="section" id="build_manager"><div class="titlepage"><div><div><h3 class="title">6.1.1. Build manager</h3></div></div></div><p>
+					The build manager is responsible for the lifecycle of scheduled build. Operations requiring updating the build queue, build phase and running jobs’ status is handled by the build manager.
+				</p></section><section class="section" id="build_workers_control_plane"><div class="titlepage"><div><div><h3 class="title">6.1.2. Build workers’ control plane</h3></div></div></div><p>
+					Build jobs are run on separate worker nodes, and are scheduled on separate control planes (executor). Currently, Red Hat Quay supports running jobs on AWS and Kubernetes. Builds are executed using quay.io/quay/quay-builder. On AWS, builds are scheduled on EC2 instances. On k8s, the builds are scheduled as job resources.
+				</p></section><section class="section" id="orchestrator"><div class="titlepage"><div><div><h3 class="title">6.1.3. Orchestrator</h3></div></div></div><p>
+					The orchestrator is used to store the state of currently running build jobs, and publish events for the build manager to consume. e.g expiry events. Currently, the supported orchestrator backend is Redis.
+				</p></section></section><section class="section" id="openshift-requirements"><div class="titlepage"><div><div><h2 class="title">6.2. OpenShift Requirements</h2></div></div></div><p>
+				Red Hat Quay builds are supported on Kubernetes and OpenShift 4.5 and higher. A bare metal (non-virtualized) worker node is required since build pods require the ability to run kvm virtualization. Each build is done in an ephemeral virtual machine to ensure complete isolation and security while the build is running. In addition, your OpenShift cluster should permit the ServiceAccount associated with Red Hat Quay builds to run with the necessary SecurityContextConstraint to support privileged containers.
+			</p></section><section class="section" id="orchestrator-requirements"><div class="titlepage"><div><div><h2 class="title">6.3. Orchestrator Requirements</h2></div></div></div><p>
+				The Red Hat Quay builds need access to a Redis instance to track build status information. It is acceptable to use the same Redis instance already deployed with your Red Hat Quay installation. All build queues are managed in the Red Hat Quay database so there is no need for a highly available Redis instance.
+			</p></section><section class="section" id="setting-up-builders"><div class="titlepage"><div><div><h2 class="title">6.4. Setting Up Red Hat Quay Builders With OpenShift</h2></div></div></div><section class="section" id="prepare_openshift_for_red_hat_quay_builds"><div class="titlepage"><div><div><h3 class="title">6.4.1. Prepare OpenShift for Red Hat Quay Builds</h3></div></div></div><p>
+					There are several actions that are needed on an OpenShift cluster before it can accept builds from Red Hat Quay.
+				</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+							Create a project where builds will be run (e.g. ‘builder’)
+						</p><pre class="screen">$ oc new-project builder</pre></li><li class="listitem"><p class="simpara">
+							Create a <code class="literal">ServiceAccount</code> in this <code class="literal">Project</code> that will be used to run builds. Ensure that it has sufficient privileges to create <code class="literal">Jobs</code> and <code class="literal">Pods</code>. Copy the <code class="literal">ServiceAccount</code>’s token for use later.
+						</p><pre class="screen">$ oc create sa -n builder quay-builder
+$ oc policy add-role-to-user -n builder edit system:serviceaccount:builder:quay-builder
+$ oc sa get-token -n builder quay-builder</pre></li><li class="listitem">
+							Identify the URL for the OpenShift cluster’s API server. This can be found from the OpenShift Console.
+						</li><li class="listitem">
+							Identify a worker node label to be used when scheduling build <code class="literal">Jobs</code>. Because build pods need to run on bare metal worker nodes, typically these are identified with specific labels. Check with your cluster administrator to determine exactly which node label should be used.
+						</li><li class="listitem"><p class="simpara">
+							If the cluster is using a self-signed certificate, get the kube apiserver’s CA to add to Red Hat Quay’s extra certs.
+						</p><div class="orderedlist"><ol class="orderedlist" type="a"><li class="listitem"><p class="simpara">
+									Get the name of the secret containing the CA:
+								</p><pre class="screen">$ oc get sa openshift-apiserver-sa --namespace=openshift-apiserver -o json | jq '.secrets[] | select(.name | contains("openshift-apiserver-sa-token"))'.name</pre></li><li class="listitem">
+									Get the <code class="literal">ca.crt</code> key value from the secret in the Openshift console. The value should begin with “-----BEGIN CERTIFICATE-----”
+								</li><li class="listitem">
+									Import the CA in Red Hat Quay using the ConfigTool. Ensure the name of this file matches <code class="literal">K8S_API_TLS_CA</code>.
+								</li></ol></div></li><li class="listitem">
+							Create the necessary security contexts/role bindings for the <code class="literal">ServiceAccount</code>:
+						</li></ol></div><pre class="screen">apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: quay-builder
+priority: null
+readOnlyRootFilesystem: false
+requiredDropCapabilities: null
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+seccompProfiles:
+- '*'
+supplementalGroups:
+  type: RunAsAny
+volumes:
+- '*'
+allowHostDirVolumePlugin: true
+allowHostIPC: true
+allowHostNetwork: true
+allowHostPID: true
+allowHostPorts: true
+allowPrivilegeEscalation: true
+allowPrivilegedContainer: true
+allowedCapabilities:
+- '*'
+allowedUnsafeSysctls:
+- '*'
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: quay-builder-scc
+  namespace: builder
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - quay-builder
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: quay-builder-scc
+  namespace: builder
+subjects:
+- kind: ServiceAccount
+  name: quay-builder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: quay-builder-scc</pre></section><section class="section" id="enable_builders_and_add_build_configuration_to_red_hat_quay_s_configuration_bundle"><div class="titlepage"><div><div><h3 class="title">6.4.2. Enable Builders and add Build Configuration to Red Hat Quay’s Configuration Bundle</h3></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+							Ensure that you’ve got Builds enabled in your Red Hat Quay configuration.
+						</li></ol></div><pre class="screen">FEATURE_BUILD_SUPPORT: True</pre><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+							Add the following to your Red Hat Quay configuration bundle, replacing each value with a value specific to your installation.
+						</li></ol></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+						Currently only the Build feature itself can be enabled via the Red Hat Quay Config Tool. The actual configuration of the Build Manager and Executors must be done manually in the config.yaml file.
+					</p></div></div><pre class="programlisting language-yaml">BUILD_MANAGER:
+- ephemeral
+- ALLOWED_WORKER_COUNT: 1
+  ORCHESTRATOR_PREFIX: buildman/production/
+  ORCHESTRATOR:
+    REDIS_HOST: quay-redis-host
+    REDIS_PASSWORD: quay-redis-password
+    REDIS_SSL: true
+    REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+  EXECUTORS:
+  - EXECUTOR: kubernetes
+    BUILDER_NAMESPACE: builder
+    K8S_API_SERVER: api.openshift.somehost.org:6443
+    K8S_API_TLS_CA: /conf/stack/extra_ca_cert_build_cluster.crt
+    VOLUME_SIZE: 8G
+    KUBERNETES_DISTRIBUTION: openshift
+    CONTAINER_MEMORY_LIMITS: 5120Mi
+    CONTAINER_CPU_LIMITS: 1000m
+    CONTAINER_MEMORY_REQUEST: 3968Mi
+    CONTAINER_CPU_REQUEST: 500m
+    NODE_SELECTOR_LABEL_KEY: beta.kubernetes.io/instance-type
+    NODE_SELECTOR_LABEL_VALUE: n1-standard-4
+    CONTAINER_RUNTIME: podman
+    SERVICE_ACCOUNT_NAME: *****
+    SERVICE_ACCOUNT_TOKEN: *****
+    QUAY_USERNAME: quay-username
+    QUAY_PASSWORD: quay-password
+    WORKER_IMAGE: &lt;registry&gt;/quay-quay-builder
+    WORKER_TAG: some_tag
+    BUILDER_VM_CONTAINER_IMAGE: &lt;registry&gt;/quay-quay-builder-qemu-rhcos:v3.4.0
+    SETUP_TIME: 180
+    MINIMUM_RETRY_THRESHOLD: 0
+    SSH_AUTHORIZED_KEYS:
+    - ssh-rsa 12345 someuser@email.com
+    - ssh-rsa 67890 someuser2@email.com</pre><p>
+					Each configuration field is explained below.
+				</p><div class="variablelist"><dl class="variablelist"><dt><span class="term">ALLOWED_WORKER_COUNT</span></dt><dd>
+								Defines how many Build Workers are instantiated per Red Hat Quay Pod. Typically this is ‘1’.
+							</dd><dt><span class="term">ORCHESTRATOR_PREFIX</span></dt><dd>
+								Defines a unique prefix to be added to all Redis keys (useful to isolate Orchestrator values from other Redis keys).
+							</dd><dt><span class="term">REDIS_HOST</span></dt><dd>
+								Hostname for your Redis service.
+							</dd><dt><span class="term">REDIS_PASSWORD</span></dt><dd>
+								Password to authenticate into your Redis service.
+							</dd><dt><span class="term">REDIS_SSL</span></dt><dd>
+								Defines whether or not your Redis connection uses SSL.
+							</dd><dt><span class="term">REDIS_SKIP_KEYSPACE_EVENT_SETUP</span></dt><dd>
+								By default, Red Hat Quay does not set up the keyspace events required for key events at runtime. To do so, set REDIS_SKIP_KEYSPACE_EVENT_SETUP to <code class="literal">false</code>.
+							</dd><dt><span class="term">EXECUTOR</span></dt><dd>
+								Starts a definition of an Executor of this type. Valid values are ‘kubernetes’ and ‘ec2’
+							</dd><dt><span class="term">BUILDER_NAMESPACE</span></dt><dd>
+								Kubernetes namespace where Red Hat Quay builds will take place
+							</dd><dt><span class="term">K8S_API_SERVER</span></dt><dd>
+								Hostname for API Server of OpenShift cluster where builds will take place
+							</dd><dt><span class="term">K8S_API_TLS_CA</span></dt><dd>
+								The filepath in the <code class="literal">Quay</code> container of the build cluster’s CA certificate for the Quay app to trust when making API calls.
+							</dd><dt><span class="term">KUBERNETES_DISTRIBUTION</span></dt><dd>
+								Indicates which type of Kubernetes is being used. Valid values are ‘openshift’ and ‘k8s’.
+							</dd><dt><span class="term">CONTAINER_*</span></dt><dd>
+								Define the resource requests and limits for each build pod.
+							</dd><dt><span class="term">NODE_SELECTOR_*</span></dt><dd>
+								Defines the node selector label name/value pair where build Pods should be scheduled.
+							</dd><dt><span class="term">CONTAINER_RUNTIME</span></dt><dd>
+								Specifies whether the builder should run <code class="literal">docker</code> or <code class="literal">podman</code>. Customers using Red Hat’s <code class="literal">quay-builder</code> image should set this to <code class="literal">podman</code>.
+							</dd><dt><span class="term">SERVICE_ACCOUNT_NAME/SERVICE_ACCOUNT_TOKEN</span></dt><dd>
+								Defines the Service Account name/token that will be used by build Pods.
+							</dd><dt><span class="term">QUAY_USERNAME/QUAY_PASSWORD</span></dt><dd>
+								Defines the registry credentials needed to pull the Red Hat Quay build worker image that is specified in the WORKER_IMAGE field. Customers should provide a Red Hat Service Account credential as defined in the section "Creating Registry Service Accounts" against registry.redhat.io in the article at <a class="link" href="https://access.redhat.com/RegistryAuthentication">https://access.redhat.com/RegistryAuthentication</a>.
+							</dd><dt><span class="term">WORKER_IMAGE</span></dt><dd>
+								Image reference for the Red Hat Quay builder image. registry.redhat.io/quay/quay-builder
+							</dd><dt><span class="term">WORKER_TAG</span></dt><dd>
+								Tag for the builder image desired. The latest version is v3.4.0.
+							</dd><dt><span class="term">BUILDER_VM_CONTAINER_IMAGE</span></dt><dd>
+								The full reference to the container image holding the internal VM needed to run each Red Hat Quay build (<code class="literal">registry.redhat.io/quay/quay-builder-qemu-rhcos:v3.4.0</code>).
+							</dd><dt><span class="term">SETUP_TIME</span></dt><dd>
+								Specifies the number of seconds at which a build times out if it has not yet registered itself with the Build Manager (default is 500 seconds). Builds that time out are attempted to be restarted three times. If the build does not register itself after three attempts it is considered failed.
+							</dd><dt><span class="term">MINIMUM_RETRY_THRESHOLD</span></dt><dd>
+								This setting is used with multiple Executors; it indicates how many retries are attempted to start a build before a different Executor is chosen. Setting to 0 means there are no restrictions on how many tries the build job needs to have. This value should be kept intentionally small (three or less) to ensure failovers happen quickly in the event of infrastructure failures. E.g Kubernetes is set as the first executor and EC2 as the second executor. If we want the last attempt to run a job to always be executed on EC2 and not Kubernetes, we would set the Kubernetes executor’s <code class="literal">MINIMUM_RETRY_THRESHOLD</code> to 1 and EC2’s <code class="literal">MINIMUM_RETRY_THRESHOLD</code> to 0 (defaults to 0 if not set). In this case, kubernetes’ <code class="literal">MINIMUM_RETRY_THRESHOLD</code> &gt; retries_remaining(1) would evaluate to False, thus falling back to the second executor configured
+							</dd><dt><span class="term">SSH_AUTHORIZED_KEYS</span></dt><dd>
+								List of ssh keys to bootstrap in the ignition config. This allows other keys to be used to ssh into the EC2 instance or QEMU VM
+							</dd></dl></div></section></section><section class="section" id="openshift_routes_limitation"><div class="titlepage"><div><div><h2 class="title">6.5. OpenShift Routes Limitation</h2></div></div></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					This section only applies if you are using the Quay Operator on OpenShift with managed <code class="literal">route</code> component.
+				</p></div></div><p>
+				Due to a limitation of OpenShift <code class="literal">Routes</code> to only be able to serve traffic to a single port, additional steps are required to set up builds. Ensure that your <code class="literal">kubectl</code> or <code class="literal">oc</code> CLI tool is configured to work with the cluster where the Quay Operator is installed and that your <code class="literal">QuayRegistry</code> exists (not necessarily the same as the bare metal cluster where your builders run).
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Ensure that HTTP/2 ingress is enabled on the OpenShift cluster by following <a class="link" href="https://docs.openshift.com/container-platform/4.5/networking/ingress-operator.html#nw-http2-haproxy_configuring-ingress">these steps</a>.
+					</li><li class="listitem"><p class="simpara">
+						The Quay Operator will create a <code class="literal">Route</code> which directs gRPC traffic to the build manager server running inside the existing Quay pod(s). If you want to use a custom hostname (such as a subdomain like <code class="literal">builder.registry.example.com</code>), ensure that you create a CNAME record with your DNS provider which points to the <code class="literal">status.ingress[0].host</code> of the created <code class="literal">Route</code>:
+					</p><pre class="screen">$ kubectl get -n &lt;namespace&gt; route &lt;quayregistry-name&gt;-quay-builder -o jsonpath={.status.ingress[0].host}</pre></li><li class="listitem"><p class="simpara">
+						Using the OpenShift UI or CLI, update the <code class="literal">Secret</code> referenced by <code class="literal">spec.configBundleSecret</code> of the <code class="literal">QuayRegistry</code> with the build cluster CA certificate (name the key <code class="literal">extra_ca_cert_build_cluster.cert</code>), and update the <code class="literal">config.yaml</code> entry with the correct values referenced in the builder config above (depending on your build executor) along with the <code class="literal">BUILDMAN_HOSTNAME</code> field:
+					</p><pre class="programlisting language-yaml">BUILD_MANAGER:
+- ephemeral
+- ALLOWED_WORKER_COUNT: 1
+  ORCHESTRATOR_PREFIX: buildman/production/
+  ORCHESTRATOR:
+    REDIS_HOST: quay-redis-host
+    REDIS_PASSWORD: quay-redis-password
+    REDIS_SSL: true
+    REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+  EXECUTORS:
+  - EXECUTOR: kubernetes
+    BUILDER_NAMESPACE: builder
+    BUILDMAN_HOSTNAME: &lt;build-manager-hostname&gt;
+    ...</pre></li></ul></div><p>
+				The extra configuration field is explained below:
+			</p><div class="variablelist"><dl class="variablelist"><dt><span class="term">BUILDMAN_HOSTNAME</span></dt><dd>
+							The externally accessible server hostname which the build jobs use to communicate back to the build manager. Default is the same as <code class="literal">SERVER_HOSTNAME</code>. For OpenShift <code class="literal">Route</code>, it is either <code class="literal">status.ingress[0].host</code> or the CNAME entry if using a custom hostname. <code class="literal">BUILDMAN_HOSTNAME</code> <span class="strong strong"><strong>needs</strong></span> to include the port number, e.g <code class="literal">somehost:443</code> for Openshift Route, as the gRPC client used to communicate with the build manager does not infer any port if omitted.
+						</dd></dl></div></section><section class="section" id="troubleshooting_builds"><div class="titlepage"><div><div><h2 class="title">6.6. Troubleshooting Builds</h2></div></div></div><p>
+				The builder instances started by the build manager are ephemeral. This means that they will either get shut down by Red Hat Quay} on timeouts/failure or garbage collected by the control plane (EC2/K8s). This means that in order to get the builder logs, one needs to do so <span class="strong strong"><strong>while</strong></span> the builds are running.
+			</p><section class="section" id="debug_config_flag"><div class="titlepage"><div><div><h3 class="title">6.6.1. DEBUG config flag</h3></div></div></div><p>
+					A DEBUG flag can be set in order to prevent the builder instances from getting cleaned up after completion/failure. To do so, in the desired executor configuration, set DEBUG to true. For example:
+				</p><pre class="programlisting language-yaml">  EXECUTORS:
+    - EXECUTOR: ec2
+      DEBUG: true
+      ...
+    - EXECUTOR: kubernetes
+      DEBUG: true
+      ...</pre><p>
+					When set to true, DEBUG will prevent the build nodes from shutting down after the quay-builder service is done or fails, and will prevent the build manager from cleaning up the instances (terminating EC2 instances or deleting k8s jobs). This will allow debugging builder node issues, and <span class="strong strong"><strong>should not</strong></span> be set in a production environment. The lifetime service will still exist. i.e The instance will still shutdown after approximately 2 hours (EC2 instances will terminate, k8s jobs will complete) Setting DEBUG will also affect ALLOWED_WORKER_COUNT, as the unterminated instances/jobs will still count towards the total number of running workers. This means the existing builder workers will need to manually be deleted if ALLOWED_WORKER_COUNT is reached to be able to schedule new builds.
+				</p><p>
+					Use the followings steps:
+				</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+							The guest VM forwards its SSH port (22) to its host’s (the pod) port 2222. Port forward the builder pod’s port 2222 to a port on localhost. e.g
+						</p><pre class="screen">$ kubectl port-forward &lt;builder pod&gt; 9999:2222</pre></li><li class="listitem"><p class="simpara">
+							SSH into the VM running inside the container using a key set from SSH_AUTHORIZED_KEYS:
+						</p><pre class="screen">$ ssh -i /path/to/ssh/key/set/in/ssh_authorized_keys -p 9999 core@localhost</pre></li><li class="listitem"><p class="simpara">
+							Get the quay-builder service logs:
+						</p><pre class="screen">$ systemctl status quay-builder
+$ journalctl -f -u quay-builder</pre><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p class="simpara">
+									Step 2-3 can also be done in a single SSH command:
+								</p><pre class="screen">$ ssh -i /path/to/ssh/key/set/in/ssh_authorized_keys -p 9999 core@localhost ‘systemctl status quay-builder’
+$ ssh -i /path/to/ssh/key/set/in/ssh_authorized_keys -p 9999 core@localhost ‘journalctl -f -u quay-builder’</pre></li></ul></div></li></ol></div></section></section><section class="section" id="set-up-github-build"><div class="titlepage"><div><div><h2 class="title">6.7. Setting up GitHub builds (optional)</h2></div></div></div><p>
+				If your organization plans to have builds be conducted via pushes to GitHub (or GitHub Enterprise), continue with <span class="emphasis"><em>Creating an OAuth application in GitHub</em></span>.
+			</p></section></section><section class="chapter" id="building_dockerfiles"><div class="titlepage"><div><div><h1 class="title">Chapter 7. Building Dockerfiles</h1></div></div></div><p>
+			Red Hat Quay supports the ability to build <a class="link" href="http://docs.docker.com/reference/builder/">Dockerfiles</a> on our build fleet and push the resulting image to the repository.
+		</p><section class="section" id="viewing-and-managing-builds"><div class="titlepage"><div><div><h2 class="title">7.1. Viewing and managing builds</h2></div></div></div><p>
+				Repository Builds can be viewed and managed by clicking the Builds tab in the <code class="literal">Repository View</code>.
+			</p></section><section class="section" id="manually-starting-a-build"><div class="titlepage"><div><div><h2 class="title">7.2. Manually starting a build</h2></div></div></div><p>
+				To manually start a repository build, click the <code class="literal">+</code> icon in the top right of the header on any repository page and choose <code class="literal">New Dockerfile Build</code>. An uploaded <code class="literal">Dockerfile</code>, <code class="literal">.tar.gz</code>, or an HTTP URL to either can be used for the build.
+			</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					You will not be able to specify the Docker build context when manually starting a build.
+				</p></div></div></section><section class="section" id="build-triggers"><div class="titlepage"><div><div><h2 class="title">7.3. Build Triggers</h2></div></div></div><p>
+				Repository builds can also be automatically triggered by events such as a push to an SCM (GitHub, BitBucket or GitLab) or via <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.6/html-single/use_red_hat_quay/#webhook">a call to a webhook</a>.
+			</p><section class="section" id="creating-a-new-build-trigger"><div class="titlepage"><div><div><h3 class="title">7.3.1. Creating a new build trigger</h3></div></div></div><p>
+					To setup a build trigger, click the <code class="literal">Create Build Trigger</code> button on the Builds view page and follow the instructions of the dialog. You will need to grant Red Hat Quay access to your repositories in order to setup the trigger and your account <span class="emphasis"><em>requires admin access on the SCM repository</em></span>.
+				</p></section><section class="section" id="manually-triggering-a-build-trigger"><div class="titlepage"><div><div><h3 class="title">7.3.2. Manually triggering a build trigger</h3></div></div></div><p>
+					To trigger a build trigger manually, click the icon next to the build trigger and choose <code class="literal">Run Now</code>.
+				</p></section><section class="section" id="build-contexts"><div class="titlepage"><div><div><h3 class="title">7.3.3. Build Contexts</h3></div></div></div><p>
+					When building an image with Docker, a directory is specified to become the build context. This holds true for both manual builds and build triggers because the builds conducted by Red Hat Quay are no different from running <code class="literal">docker build</code> on your own machine.
+				</p><p>
+					Red Hat Quay build contexts are always the specified <span class="emphasis"><em>subdirectory</em></span> from the build setup and fallback to the root of the build source if none is specified. When a build is triggered, Red Hat Quay build workers clone the git repository to the worker machine and enter the build context before conducting a build.
+				</p><p>
+					For builds based on tar archives, build workers extract the archive and enter the build context. For example:
+				</p><pre class="screen">example
+├── .git
+├── Dockerfile
+├── file
+└── subdir
+    └── Dockerfile</pre><p>
+					Imagine the example above is the directory structure for a GitHub repository called "example". If no subdirectory is specified in the build trigger setup or while manually starting a build, the build will operate in the example directory.
+				</p><p>
+					If <code class="literal">subdir</code> is specified to be the subdirectory in the build trigger setup, only the Dockerfile within it is visible to the build. This means that you cannot use the <code class="literal">ADD</code> command in the Dockerfile to add <code class="literal">file</code>, because it is outside of the build context.
+				</p><p>
+					Unlike the Docker Hub, the Dockerfile is part of the build context on Red Hat Quay. Thus, it must not appear in the <code class="literal">.dockerignore</code> file.
+				</p></section></section></section><section class="chapter" id="setting_up_a_custom_git_trigger"><div class="titlepage"><div><div><h1 class="title">Chapter 8. Setting up a Custom Git Trigger</h1></div></div></div><p>
+			A Custom Git Trigger is a generic way for any git server to act as a build trigger. It relies solely on SSH keys and webhook endpoints; everything else is left to the user to implement.
+		</p><section class="section" id="creating-a-custom-git-trigger"><div class="titlepage"><div><div><h2 class="title">8.1. Creating a Trigger</h2></div></div></div><p>
+				Creating a Custom Git Trigger is similar to the creation of any other trigger with a few subtle differences:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						It is not possible for Red Hat Quay to automatically detect the proper robot account to use with the trigger. This must be done manually in the creation process.
+					</li><li class="listitem">
+						There are extra steps after the creation of the trigger that must be done in order to use the trigger. These steps are detailed below.
+					</li></ul></div></section><section class="section" id="post-git-trigger-creation-setup"><div class="titlepage"><div><div><h2 class="title">8.2. Post trigger-creation setup</h2></div></div></div><p>
+				Once a trigger has been created, <span class="strong strong"><strong>there are 2 additional steps required</strong></span> before the trigger can be used:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Provide read access to the <span class="emphasis"><em>SSH public key</em></span> generated when creating the trigger.
+					</li><li class="listitem">
+						Setup a <span class="emphasis"><em>webhook</em></span> that POSTs to the Red Hat Quay endpoint to trigger a build.
+					</li></ul></div><p>
+				The key and the URL are both available at all times by selecting <code class="literal">View Credentials</code> from the gear located in the trigger listing. 
+				<span class="inlinemediaobject"><img src="images/view-credentials.png" alt="View and modify tags from your repository"/></span>
+			</p><section class="section" id="ssh-public-key-access"><div class="titlepage"><div><div><h3 class="title">8.2.1. SSH public key access</h3></div></div></div><p>
+					Depending on the Git server setup, there are various ways to install the SSH public key that Red Hat Quay generates for a custom git trigger. For example, <a class="link" href="https://git-scm.herokuapp.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server">Git documentation</a> describes a small server setup in which simply adding the key to <code class="literal">$HOME/.ssh/authorize_keys</code> would provide access for builders to clone the repository. For any git repository management software that isn’t officially supported, there is usually a location to input the key often labeled as <code class="literal">Deploy Keys</code>.
+				</p></section><section class="section" id="webhook"><div class="titlepage"><div><div><h3 class="title">8.2.2. Webhook</h3></div></div></div><p>
+					In order to automatically trigger a build, one must POST a JSON payload to the webhook URL with the following format:
+				</p><pre class="screen">{
+  "commit": "1c002dd",                                   // required
+  "ref": "refs/heads/master",                            // required
+  "default_branch": "master",                            // required
+  "commit_info": {                                       // optional
+    "url": "gitsoftware.com/repository/commits/1234567", // required
+    "message": "initial commit",                         // required
+    "date": "timestamp",                                 // required
+    "author": {                                          // optional
+      "username": "user",                                // required
+      "avatar_url": "gravatar.com/user.png",             // required
+      "url": "gitsoftware.com/users/user"                // required
+    },
+    "committer": {                                       // optional
+      "username": "user",                                // required
+      "avatar_url": "gravatar.com/user.png",             // required
+      "url": "gitsoftware.com/users/user"                // required
+    }
+  }
+}</pre><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+						This request requires a <code class="literal">Content-Type</code> header containing <code class="literal">application/json</code> in order to be valid.
+					</p></div></div><p>
+					Once again, this can be accomplished in various ways depending on the server setup, but for most cases can be done via a <a class="link" href="https://git-scm.herokuapp.com/book/en/v2/Customizing-Git-Git-Hooks#idp26374144">post-receive git hook</a>.
+				</p></section></section></section><section class="chapter" id="skipping_a_source_control_triggered_build"><div class="titlepage"><div><div><h1 class="title">Chapter 9. Skipping a source control-triggered build</h1></div></div></div><p id="skipping-source-control-trigger-build">
+			To specify that a commit should be ignored by the Red Hat Quay build system, add the text <code class="literal">[skip build]</code> or <code class="literal">[build skip]</code> anywhere in the commit message.
+		</p></section><section class="chapter" id="github-build-triggers"><div class="titlepage"><div><div><h1 class="title">Chapter 10. Set up GitHub build trigger tags</h1></div></div></div><p>
+			Red Hat Quay supports using GitHub or GitHub Enterprise as a trigger to building images. If you have not yet done so, go ahead and <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.6/html-single/use_red_hat_quay/index#build-support">enable build support in Red Hat Quay</a>.
+		</p><section class="section" id="understanding_tag_naming_for_build_triggers"><div class="titlepage"><div><div><h2 class="title">10.1. Understanding tag naming for build triggers</h2></div></div></div><p>
+				Prior to Red Hat Quay 3.3, how images created from build triggers were named was limited. Images built by build triggers were named:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						With the branch or tag whose change invoked the trigger
+					</li><li class="listitem">
+						With a <code class="literal">latest</code> tag for images that used the default branch
+					</li></ul></div><p>
+				As of Red Hat Quay 3.3 and later, you have more flexibility in how you set image tags. The first thing you can do is enter custom tags, to have any string of characters assigned as a tag for each built image. However, as an alternative, you could use the following tag templates to to tag images with information from each commit:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						<span class="strong strong"><strong>${commit_info.short_sha}</strong></span>: The commit’s short SHA
+					</li><li class="listitem">
+						<span class="strong strong"><strong>${commit_info.date}</strong></span>: The timestamp for the commit
+					</li><li class="listitem">
+						<span class="strong strong"><strong>${commit_info.author}</strong></span>: The author from the commit
+					</li><li class="listitem">
+						<span class="strong strong"><strong>${commit_info.committer}</strong></span>: The committer of the commit
+					</li><li class="listitem">
+						<span class="strong strong"><strong>${parsed_ref.branch}</strong></span>: The branch name
+					</li></ul></div><p>
+				The following procedure describes how you set up tagging for build triggers.
+			</p></section><section class="section" id="setting_tag_names_for_build_triggers"><div class="titlepage"><div><div><h2 class="title">10.2. Setting tag names for build triggers</h2></div></div></div><p>
+				Follow these steps to configure custom tags for build triggers:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+						From the repository view, select the Builds icon from the left navigation.
+					</li><li class="listitem"><p class="simpara">
+						Select the Create Build Trigger menu, and select the type of repository push you want (GitHub, Bitbucket, GitLab, or Custom Git repository push). For this example, <span class="emphasis"><em>GitHub Repository Push</em></span> is chosen, as illustrated in the following figure.
+					</p><p class="simpara">
+						<span class="inlinemediaobject"><img src="images/create-build-trigger.png" alt="Choose the type of build trigger to use"/></span>
+					</p></li><li class="listitem">
+						When the <span class="emphasis"><em>Setup Build Trigger</em></span> page appears, select the repository and namespace in which you want the trigger set up.
+					</li><li class="listitem"><p class="simpara">
+						Under Configure Trigger, select either <span class="emphasis"><em>Trigger for all branches and tags</em></span> or <span class="emphasis"><em>Trigger only on branches and tags matching a regular expression</em></span>. Then select Continue. The Configure Tagging section appears, as shown in the following figure:
+					</p><p class="simpara">
+						<span class="inlinemediaobject"><img src="images/configure-tagging.png" alt="Set tagging with your own tags or using tag templates"/></span>
+					</p></li><li class="listitem"><p class="simpara">
+						Scroll down to <span class="emphasis"><em>Configure Tagging</em></span> and select from the following options:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+								<span class="strong strong"><strong>Tag manifest with the branch or tag name</strong></span>: Check this box to use the name of the branch or tag in which the commit occurred as the tag used on the image. This is enabled by default.
+							</li><li class="listitem">
+								<span class="strong strong"><strong>Add latest tag if on default branch</strong></span>: Check this box to use the <code class="literal">latest</code> tag for the image if it is on the default branch for the repository. This is enabled by default.
+							</li><li class="listitem">
+								<span class="strong strong"><strong>Add custom tagging templates</strong></span>: Enter a custom tag or a template into the <span class="emphasis"><em>Enter a tag template</em></span> box. There are multiple tag templates you can enter here, as described earlier in this section. They include ways of using short SHA, timestamps, author name, committer, and branch name from the commit as tags.
+							</li></ul></div></li><li class="listitem">
+						Select Continue. You are prompted to select the directory build context for the Docker build. The build context directory identifies the location of the directory containing the Dockerfile, along with other files needed when the build is triggered. Enter "/" if the Dockerfile is in the root of the git repository.
+					</li><li class="listitem">
+						Select Continue. You are prompted to add an optional Robot Account. Do this if you want to pull a private base image during the build process. The robot account would need access to the build.
+					</li><li class="listitem">
+						Select Continue to complete the setup of the build trigger.
+					</li></ol></div><p>
+				If you were to return to the Repository Builds page for the repository, the build triggers you set up will be listed under the Build Triggers heading.
+			</p><p>
+				<span class="inlinemediaobject"><img src="images/view-tags-set.png" alt="See the tagging options you set from the repository view"/></span>
+			</p></section></section><section class="chapter" id="github-app"><div class="titlepage"><div><div><h1 class="title">Chapter 11. Creating an OAuth application in GitHub</h1></div></div></div><p>
+			You can authorize your registry to access a GitHub account and its repositories by registering it as a GitHub OAuth application.
+		</p><section class="section" id="github-app-create"><div class="titlepage"><div><div><h2 class="title">11.1. Create new GitHub application</h2></div></div></div><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+						Log into GitHub (Enterprise)
+					</li><li class="listitem">
+						Visit the Applications page under your organization’s settings.
+					</li><li class="listitem">
+						Click <a class="link" href="https://github.com/settings/applications/new">Register New Application</a>. The <code class="literal">Register a new OAuth application</code> configuration screen is displayed: 
+						<span class="inlinemediaobject"><img src="images/register-app.png" alt="Register a new OAuth application"/></span>
+					</li><li class="listitem"><p class="simpara">
+						Set Homepage URL: Enter the Quay Enterprise URL as the <code class="literal">Homepage URL</code>
+					</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+							If using public GitHub, the Homepage URL entered must be accessible by your users. It can still be an internal URL.
+						</p></div></div></li><li class="listitem">
+						Set Authorization callback URL: Enter <a class="link" href="https://{$RED_HAT_QUAY_URL}/oauth2/github/callback">https://{$RED_HAT_QUAY_URL}/oauth2/github/callback</a> as the Authorization callback URL.
+					</li><li class="listitem">
+						Save your settings by clicking the Register application button. The new new application’s summary is shown:
+					</li><li class="listitem">
+						Record the Client ID and Client Secret shown for the new application.
+					</li></ol></div></section></section><section class="chapter" id="repository_notifications"><div class="titlepage"><div><div><h1 class="title">Chapter 12. Repository Notifications</h1></div></div></div><p>
+			Quay supports adding <span class="emphasis"><em>notifications</em></span> to a repository for various events that occur in the repository’s lifecycle. To add notifications, click the <span class="strong strong"><strong>Settings</strong></span> tab while viewing a repository and select <code class="literal">Create Notification</code>. From the <code class="literal">When this event occurs</code> field, select the items for which you want to receive notifications:
+		</p><p>
+			<span class="inlinemediaobject"><img src="images/event-select.png" alt="Create repository notifications"/></span>
+		</p><p>
+			After selecting an event, further configure it by adding how you will be notified of that event.
+		</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+				Adding notifications requires <span class="emphasis"><em>repository admin permission</em></span>.
+			</p></div></div><p>
+			The following are examples of repository events.
+		</p><section class="section" id="repository-events"><div class="titlepage"><div><div><h2 class="title">12.1. Repository Events</h2></div></div></div><section class="section" id="repository-push"><div class="titlepage"><div><div><h3 class="title">12.1.1. Repository Push</h3></div></div></div><p>
+					A successful push of one or more images was made to the repository:
+				</p><pre class="screen">{
+  "name": "repository",
+  "repository": "dgangaia/test",
+  "namespace": "dgangaia",
+  "docker_url": "quay.io/dgangaia/test",
+  "homepage": "https://quay.io/repository/dgangaia/repository",
+  "updated_tags": [
+    "latest"
+  ]
+}</pre></section><section class="section" id="dockerfile-build-queued"><div class="titlepage"><div><div><h3 class="title">12.1.2. Dockerfile Build Queued</h3></div></div></div><p>
+					Here is a sample response for a Dockerfile build has been queued into the build system. The response can differ based on the use of optional attributes.
+				</p><pre class="screen">{
+  "build_id": "296ec063-5f86-4706-a469-f0a400bf9df2",
+  "trigger_kind": "github",                                                       //Optional
+  "name": "test",
+  "repository": "dgangaia/test",
+  "namespace": "dgangaia",
+  "docker_url": "quay.io/dgangaia/test",
+  "trigger_id": "38b6e180-9521-4ff7-9844-acf371340b9e",                           //Optional
+  "docker_tags": [
+    "master",
+    "latest"
+  ],
+  "repo": "test",
+  "trigger_metadata": {
+    "default_branch": "master",
+    "commit": "b7f7d2b948aacbe844ee465122a85a9368b2b735",
+    "ref": "refs/heads/master",
+    "git_url": "git@github.com:dgangaia/test.git",
+    "commit_info": {                                                             //Optional
+      "url": "https://github.com/dgangaia/test/commit/b7f7d2b948aacbe844ee465122a85a9368b2b735",
+      "date": "2019-03-06T12:48:24+11:00",
+      "message": "adding 5",
+      "author": {                                                                //Optional
+        "username": "dgangaia",
+        "url": "https://github.com/dgangaia",                                    //Optional
+        "avatar_url": "https://avatars1.githubusercontent.com/u/43594254?v=4"    //Optional
+      },
+      "committer": {
+        "username": "web-flow",
+        "url": "https://github.com/web-flow",
+        "avatar_url": "https://avatars3.githubusercontent.com/u/19864447?v=4"
+      }
+    }
+  },
+  "is_manual": false,
+  "manual_user": null,
+  "homepage": "https://quay.io/repository/dgangaia/test/build/296ec063-5f86-4706-a469-f0a400bf9df2"
+}</pre></section><section class="section" id="dockerfile-build-started"><div class="titlepage"><div><div><h3 class="title">12.1.3. Dockerfile Build Started</h3></div></div></div><p>
+					Here is an example of a Dockerfile build being started by the build system. The response can differ based on some attributes being optional.
+				</p><pre class="screen">{
+  "build_id": "a8cc247a-a662-4fee-8dcb-7d7e822b71ba",
+  "trigger_kind": "github",                                                     //Optional
+  "name": "test",
+  "repository": "dgangaia/test",
+  "namespace": "dgangaia",
+  "docker_url": "quay.io/dgangaia/test",
+  "trigger_id": "38b6e180-9521-4ff7-9844-acf371340b9e",                         //Optional
+  "docker_tags": [
+    "master",
+    "latest"
+  ],
+  "build_name": "50bc599",
+  "trigger_metadata": {                                                         //Optional
+    "commit": "50bc5996d4587fd4b2d8edc4af652d4cec293c42",
+    "ref": "refs/heads/master",
+    "default_branch": "master",
+    "git_url": "git@github.com:dgangaia/test.git",
+    "commit_info": {                                                            //Optional
+      "url": "https://github.com/dgangaia/test/commit/50bc5996d4587fd4b2d8edc4af652d4cec293c42",
+      "date": "2019-03-06T14:10:14+11:00",
+      "message": "test build",
+      "committer": {                                                            //Optional
+        "username": "web-flow",
+        "url": "https://github.com/web-flow",                                   //Optional
+        "avatar_url": "https://avatars3.githubusercontent.com/u/19864447?v=4"   //Optional
+      },
+      "author": {                                                               //Optional
+        "username": "dgangaia",
+        "url": "https://github.com/dgangaia",                                   //Optional
+        "avatar_url": "https://avatars1.githubusercontent.com/u/43594254?v=4"   //Optional
+      }
+    }
+  },
+  "homepage": "https://quay.io/repository/dgangaia/test/build/a8cc247a-a662-4fee-8dcb-7d7e822b71ba"
+}</pre></section><section class="section" id="dockerfile-build-successfully-completed"><div class="titlepage"><div><div><h3 class="title">12.1.4. Dockerfile Build Successfully Completed</h3></div></div></div><p>
+					Here is a sample response of a Dockerfile build that has been successfully completed by the build system.
+				</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+						This event will occur <span class="strong strong"><strong>simultaneously</strong></span> with a <span class="emphasis"><em>Repository Push</em></span> event for the built image(s)
+					</p></div></div><pre class="screen">{
+  "build_id": "296ec063-5f86-4706-a469-f0a400bf9df2",
+  "trigger_kind": "github",                                                       //Optional
+  "name": "test",
+  "repository": "dgangaia/test",
+  "namespace": "dgangaia",
+  "docker_url": "quay.io/dgangaia/test",
+  "trigger_id": "38b6e180-9521-4ff7-9844-acf371340b9e",                           //Optional
+  "docker_tags": [
+    "master",
+    "latest"
+  ],
+  "build_name": "b7f7d2b",
+  "image_id": "sha256:0339f178f26ae24930e9ad32751d6839015109eabdf1c25b3b0f2abf8934f6cb",
+  "trigger_metadata": {
+    "commit": "b7f7d2b948aacbe844ee465122a85a9368b2b735",
+    "ref": "refs/heads/master",
+    "default_branch": "master",
+    "git_url": "git@github.com:dgangaia/test.git",
+    "commit_info": {                                                              //Optional
+      "url": "https://github.com/dgangaia/test/commit/b7f7d2b948aacbe844ee465122a85a9368b2b735",
+      "date": "2019-03-06T12:48:24+11:00",
+      "message": "adding 5",
+      "committer": {                                                              //Optional
+        "username": "web-flow",
+        "url": "https://github.com/web-flow",                                     //Optional
+        "avatar_url": "https://avatars3.githubusercontent.com/u/19864447?v=4"                                                        //Optional
+      },
+      "author": {                                                                 //Optional
+        "username": "dgangaia",
+        "url": "https://github.com/dgangaia",                                     //Optional
+        "avatar_url": "https://avatars1.githubusercontent.com/u/43594254?v=4"     //Optional
+      }
+    }
+  },
+  "homepage": "https://quay.io/repository/dgangaia/test/build/296ec063-5f86-4706-a469-f0a400bf9df2",
+  "manifest_digests": [
+    "quay.io/dgangaia/test@sha256:2a7af5265344cc3704d5d47c4604b1efcbd227a7a6a6ff73d6e4e08a27fd7d99",
+    "quay.io/dgangaia/test@sha256:569e7db1a867069835e8e97d50c96eccafde65f08ea3e0d5debaf16e2545d9d1"
+  ]
+}</pre></section><section class="section" id="dockerfile-build-failed"><div class="titlepage"><div><div><h3 class="title">12.1.5. Dockerfile Build Failed</h3></div></div></div><p>
+					A Dockerfile build has failed
+				</p><pre class="screen">{
+  "build_id": "5346a21d-3434-4764-85be-5be1296f293c",
+  "trigger_kind": "github",                                                       //Optional
+  "name": "test",
+  "repository": "dgangaia/test",
+  "docker_url": "quay.io/dgangaia/test",
+  "error_message": "Could not find or parse Dockerfile: unknown instruction: GIT",
+  "namespace": "dgangaia",
+  "trigger_id": "38b6e180-9521-4ff7-9844-acf371340b9e",                           //Optional
+  "docker_tags": [
+    "master",
+    "latest"
+  ],
+  "build_name": "6ae9a86",
+  "trigger_metadata": {                                                           //Optional
+    "commit": "6ae9a86930fc73dd07b02e4c5bf63ee60be180ad",
+    "ref": "refs/heads/master",
+    "default_branch": "master",
+    "git_url": "git@github.com:dgangaia/test.git",
+    "commit_info": {                                                              //Optional
+      "url": "https://github.com/dgangaia/test/commit/6ae9a86930fc73dd07b02e4c5bf63ee60be180ad",
+      "date": "2019-03-06T14:18:16+11:00",
+      "message": "failed build test",
+      "committer": {                                                              //Optional
+        "username": "web-flow",
+        "url": "https://github.com/web-flow",                                     //Optional
+        "avatar_url": "https://avatars3.githubusercontent.com/u/19864447?v=4"     //Optional
+      },
+      "author": {                                                                 //Optional
+        "username": "dgangaia",
+        "url": "https://github.com/dgangaia",                                     //Optional
+        "avatar_url": "https://avatars1.githubusercontent.com/u/43594254?v=4"     //Optional
+      }
+    }
+  },
+  "homepage": "https://quay.io/repository/dgangaia/test/build/5346a21d-3434-4764-85be-5be1296f293c"
+}</pre></section><section class="section" id="dockerfile-build-cancelled"><div class="titlepage"><div><div><h3 class="title">12.1.6. Dockerfile Build Cancelled</h3></div></div></div><p>
+					A Dockerfile build was cancelled
+				</p><pre class="screen">{
+  "build_id": "cbd534c5-f1c0-4816-b4e3-55446b851e70",
+  "trigger_kind": "github",
+  "name": "test",
+  "repository": "dgangaia/test",
+  "namespace": "dgangaia",
+  "docker_url": "quay.io/dgangaia/test",
+  "trigger_id": "38b6e180-9521-4ff7-9844-acf371340b9e",
+  "docker_tags": [
+    "master",
+    "latest"
+  ],
+  "build_name": "cbce83c",
+  "trigger_metadata": {
+    "commit": "cbce83c04bfb59734fc42a83aab738704ba7ec41",
+    "ref": "refs/heads/master",
+    "default_branch": "master",
+    "git_url": "git@github.com:dgangaia/test.git",
+    "commit_info": {
+      "url": "https://github.com/dgangaia/test/commit/cbce83c04bfb59734fc42a83aab738704ba7ec41",
+      "date": "2019-03-06T14:27:53+11:00",
+      "message": "testing cancel build",
+      "committer": {
+        "username": "web-flow",
+        "url": "https://github.com/web-flow",
+        "avatar_url": "https://avatars3.githubusercontent.com/u/19864447?v=4"
+      },
+      "author": {
+        "username": "dgangaia",
+        "url": "https://github.com/dgangaia",
+        "avatar_url": "https://avatars1.githubusercontent.com/u/43594254?v=4"
+      }
+    }
+  },
+  "homepage": "https://quay.io/repository/dgangaia/test/build/cbd534c5-f1c0-4816-b4e3-55446b851e70"
+}</pre></section><section class="section" id="vulnerability-detected"><div class="titlepage"><div><div><h3 class="title">12.1.7. Vulnerability Detected</h3></div></div></div><p>
+					A vulnerability was detected in the repository
+				</p><pre class="screen">{
+  "repository": "dgangaia/repository",
+  "namespace": "dgangaia",
+  "name": "repository",
+  "docker_url": "quay.io/dgangaia/repository",
+  "homepage": "https://quay.io/repository/dgangaia/repository",
+
+  "tags": ["latest", "othertag"],
+
+  "vulnerability": {
+    "id": "CVE-1234-5678",
+    "description": "This is a bad vulnerability",
+    "link": "http://url/to/vuln/info",
+    "priority": "Critical",
+    "has_fix": true
+  }
+}</pre></section></section><section class="section" id="notification-actions"><div class="titlepage"><div><div><h2 class="title">12.2. Notification Actions</h2></div></div></div><section class="section" id="quay-notification"><div class="titlepage"><div><div><h3 class="title">12.2.1. Quay Notification</h3></div></div></div><p>
+					A notification will be added to the Quay.io notification area. The notification area can be found by clicking on the bell icon in the top right of any Quay.io page.
+				</p><p>
+					Quay.io notifications can be setup to be sent to a <span class="emphasis"><em>User</em></span>, <span class="emphasis"><em>Team</em></span>, or the <span class="emphasis"><em>organization</em></span> as a whole.
+				</p></section><section class="section" id="e-mail"><div class="titlepage"><div><div><h3 class="title">12.2.2. E-mail</h3></div></div></div><p>
+					An e-mail will be sent to the specified address describing the event that occurred.
+				</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+						All e-mail addresses will have to be verified on a <span class="emphasis"><em>per-repository</em></span> basis
+					</p></div></div></section><section class="section" id="webhook-post"><div class="titlepage"><div><div><h3 class="title">12.2.3. Webhook POST</h3></div></div></div><p>
+					An HTTP POST call will be made to the specified URL with the event’s data (see above for each event’s data format).
+				</p><p>
+					When the URL is HTTPS, the call will have an SSL client certificate set from Quay.io. Verification of this certificate will prove the call originated from Quay.io. Responses with status codes in the 2xx range are considered successful. Responses with any other status codes will be considered failures and result in a retry of the webhook notification.
+				</p></section><section class="section" id="flowdock-notification"><div class="titlepage"><div><div><h3 class="title">12.2.4. Flowdock Notification</h3></div></div></div><p>
+					Posts a message to Flowdock.
+				</p></section><section class="section" id="hipchat-notification"><div class="titlepage"><div><div><h3 class="title">12.2.5. Hipchat Notification</h3></div></div></div><p>
+					Posts a message to HipChat.
+				</p></section><section class="section" id="slack-notification"><div class="titlepage"><div><div><h3 class="title">12.2.6. Slack Notification</h3></div></div></div><p>
+					Posts a message to Slack.
+				</p></section></section></section><section class="chapter" id="oci-intro"><div class="titlepage"><div><div><h1 class="title">Chapter 13. OCI Support and Red Hat Quay</h1></div></div></div><p>
+			Container registries such as Red Hat Quay were originally designed to support container images in the Docker image format. To promote the use of additional runtimes apart from Docker, the Open Container Initiative (OCI) was created to provide a standardization surrounding container runtimes and image formats. Most container registries support the OCI standardization as it is based on the <a class="link" href="https://docs.docker.com/registry/spec/manifest-v2-2/">Docker image manifest V2, Schema 2</a> format.
+		</p><p>
+			In addition to container images, a variety of artifacts have emerged that support not just individual applications, but the Kubernetes platform as a whole. These range from Open Policy Agent (OPA) policies for security and governance to Helm charts and Operators to aid in application deployment.
+		</p><p>
+			Red Hat Quay is a private container registry that not only stores container images, but supports an entire ecosystem of tooling to aid in the management of containers. With the release of Red Hat Quay 3.6, support for the use of OCI based artifacts, include Helm charts, cosign, and ztsd compression schemes, has graduated from Technical Preview (TP) and now has General Availability (GA) status.
+		</p><p>
+			When Red Hat Quay 3.6 is deployed using the OpenShift Operator, support for Helm and OCI artifacts is now enabled by default. If you need to explicitly enable the feature, for example, if it has previously been disabled or if you have upgraded from a version where it is not enabled by default, see the section <a class="link" href="#config-fields-helm-oci" title="13.3. OCI and Helm configuration">Explicitly enabling OCI and Helm support</a>.
+		</p><section class="section" id="helm-oci-prereqs"><div class="titlepage"><div><div><h2 class="title">13.1. Helm and OCI prerequisites</h2></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Trusted certificates:</strong></span> Communication between the Helm client and Quay is facilitated over HTTPS and as of Helm 3.5, support is only available for registries communicating over HTTPS with trusted certificates. In addition, the operating system must trust the certificates exposed by the registry. Support in future Helm releases will allow for communicating with remote registries insecurely. With that in mind, ensure that your operating system has been configured to trust the certificates used by Quay, for example:
+					</p><pre class="screen">$ sudo cp rootCA.pem   /etc/pki/ca-trust/source/anchors/
+$ sudo update-ca-trust extract</pre></li><li class="listitem">
+						<span class="strong strong"><strong>Experimental feature:</strong></span> Many of the commands for interacting with Helm and OCI registries make use of the <code class="literal">helm chart</code> subcommand. At the time of writing, OCI support in Helm is still marked as an “experimental” feature and must be enabled explicitly. This is accomplished by setting the environment variable <code class="literal">HELM_EXPERIMENTAL_OCI=1</code>.
+					</li><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Install Helm client:</strong></span> Download your desired version from <a class="link" href="https://github.com/helm/helm/releases">https://github.com/helm/helm/releases</a>, for example, <a class="link" href="https://get.helm.sh/helm-v3.5.3-linux-amd64.tar.gz">https://get.helm.sh/helm-v3.5.3-linux-amd64.tar.gz</a>. Unpack it and move the helm binary to its desired destination:
+					</p><pre class="screen">$ tar -zxvf helm-v3.5.3-linux-amd64.tar.gz
+$ mv linux-amd64/helm /usr/local/bin/helm</pre></li><li class="listitem">
+						<span class="strong strong"><strong>Create organization in Quay:</strong></span> Create a new organization for storing the Helm charts, using the Quay registry UI. For example, create an organization named <code class="literal">helm</code>.
+					</li></ul></div></section><section class="section" id="helm-oci-quay"><div class="titlepage"><div><div><h2 class="title">13.2. Using Helm charts with Quay</h2></div></div></div><p>
+				Helm, as a graduated project of the Cloud Native Computing Foundation (CNCF), has become the de facto package manager for Kubernetes as it simplifies how applications are packaged and deployed. Helm uses a packaging format called Charts which contain the Kubernetes resources representing an application. Charts can be made available for general distribution and consumption in repositories. A Helm repository is an HTTP server that serves an index.yaml metadata file and optionally a set of packaged charts. Beginning with Helm version 3, support was made available for distributing charts in OCI registries as an alternative to a traditional repository. To demonstrate how Quay can be used as a registry for Helm charts, an existing chart from a Helm repository will be used to showcase the interaction with OCI registries for chart developers and users.
+			</p><p>
+				In the following example, a sample etherpad chart is downloaded from from the Red Hat Community of Practice (CoP) repository and pushed to a local Red Hat Quay repository using the following steps:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Add the appropriate repository
+					</li><li class="listitem">
+						Update the repository with the latest metadata
+					</li><li class="listitem">
+						Download and untar the chart to create a local directory called <code class="literal">etherpad</code>
+					</li></ul></div><p>
+				For example:
+			</p><pre class="screen">$ helm repo add redhat-cop https://redhat-cop.github.io/helm-charts
+$ helm repo update
+$ helm pull redhat-cop/etherpad --version=0.0.4 --untar</pre><p>
+				Tagging the chart requires use of the <code class="literal">helm chart save</code> command - this corresponds to using <code class="literal">podman tag</code> for tagging images.
+			</p><pre class="screen">$ helm chart save ./etherpad example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
+
+ref:     example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
+digest:  6850d9b21dd4b87cf20ad49f2e2c7def9655c52ea573e1ddb9d1464eeb6a46a6
+size:    3.5 KiB
+name:    etherpad
+version: 0.0.4
+0.0.4: saved</pre><p>
+				Use the <code class="literal">helm chart list</code> command to see the local instance of the chart:
+			</p><pre class="screen">helm chart list
+
+REF                                                                               NAME     VERSION DIGEST SIZE   CREATED
+example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4 etherpad 0.0.4   ce0233f 3.5 KiB 23 seconds</pre><p>
+				Before pushing the chart, log in to the repository using the <code class="literal">helm registry login</code> command:
+			</p><pre class="screen">$ helm registry login example-registry-quay-quay-enterprise.apps.user1.example.com
+Username: quayadmin
+Password:
+Login succeeded</pre><p>
+				Push the chart to your local Quay repository using the <code class="literal">helm chart push</code> command:
+			</p><pre class="screen">$ helm chart push example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
+
+The push refers to repository [example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad]
+ref:     example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
+digest:  ce0233fd014992b8e27cc648cdabbebd4dd6850aca8fb8e50f7eef6f2f49833d
+size:    3.5 KiB
+name:    etherpad
+version: 0.0.4
+0.0.4: pushed to remote (1 layer, 3.5 KiB total)</pre><p>
+				To test that the push worked, delete the local copy and then pull the chart from the repository:
+			</p><pre class="screen">$ helm chart rm example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
+$ rm -rf etherpad
+$ helm chart pull example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
+
+0.0.4: Pulling from example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad
+ref:     example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
+digest:  6850d9b21dd4b87cf20ad49f2e2c7def9655c52ea573e1ddb9d1464eeb6a46a6
+size:    3.5 KiB
+name:    etherpad
+version: 0.0.4
+Status: Downloaded newer chart for example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4</pre><p>
+				Use the <code class="literal">helm chart export</code> command to extract the chart files:
+			</p><pre class="screen">$ helm chart export example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
+
+ref:     example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
+digest:  ce0233fd014992b8e27cc648cdabbebd4dd6850aca8fb8e50f7eef6f2f49833d
+size:    3.5 KiB
+name:    etherpad
+version: 0.0.4
+Exported chart to etherpad/</pre></section><section class="section" id="config-fields-helm-oci"><div class="titlepage"><div><div><h2 class="title">13.3. OCI and Helm configuration</h2></div></div></div><p>
+				Support for Helm and OCI artifacts is now enabled by default in Red Hat Quay 3.6. If you need to explicitly enable the feature, for example, if it has previously been disabled or if you have upgraded from a version where it is not enabled by default, you need to add two properties in the Quay configuration to enable the use of OCI artifacts:
+			</p><pre class="programlisting language-yaml">FEATURE_GENERAL_OCI_SUPPORT: true
+FEATURE_HELM_OCI_SUPPORT: true</pre><div class="table" id="idm46071492160688"><p class="title"><strong>Table 13.1. OCI and Helm configuration</strong></p><div class="table-contents"><table class="lt-4-cols lt-7-rows"><colgroup><col style="width: 50%; " class="col_1"/><col style="width: 17%; " class="col_2"/><col style="width: 33%; " class="col_3"/></colgroup><thead><tr><th align="left" valign="top" id="idm46071492154768" scope="col">Field</th><th align="left" valign="top" id="idm46071492153680" scope="col">Type</th><th align="left" valign="top" id="idm46071492152592" scope="col">Description</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm46071492154768">
+							<p>
+								<span class="strong strong"><strong>FEATURE_GENERAL_OCI_SUPPORT</strong></span>
+							</p>
+							</td><td align="left" valign="top" headers="idm46071492153680">
+							<p>
+								Boolean
+							</p>
+							</td><td align="left" valign="top" headers="idm46071492152592">
+							<p>
+								Enable support for OCI artifacts<br/><br/><span class="strong strong"><strong>Default:</strong></span> True
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm46071492154768">
+							<p>
+								<span class="strong strong"><strong>FEATURE_HELM_OCI_SUPPORT</strong></span>
+							</p>
+							</td><td align="left" valign="top" headers="idm46071492153680">
+							<p>
+								Boolean
+							</p>
+							</td><td align="left" valign="top" headers="idm46071492152592">
+							<p>
+								Enable support for Helm artifacts<br/><br/><span class="strong strong"><strong>Default:</strong></span> True
+							</p>
+							</td></tr></tbody></table></div></div><div class="admonition important"><div class="admonition_header">Important</div><div><p>
+					As of Red Hat Quay 3.6, <code class="literal">FEATURE_HELM_OCI_SUPPORT</code> has been deprecated and will be removed in a future version of Red Hat Quay. In Red Hat Quay 3.6, Helm artifacts are supported by default, and users will no longer be required to update their config.yaml files to enable support.
+				</p></div></div></section><section class="section" id="cosign-oci-intro"><div class="titlepage"><div><div><h2 class="title">13.4. Cosign OCI support with Red Hat Quay</h2></div></div></div><p>
+				Cosign is a tool that can be used to sign and verify container images. It uses the ECDSA-P256 signature algorithm and Red Hat’s Simple Signing payload format to create public keys that are stored in PKIX files. Private keys that are stored as encrypted PEM files.
+			</p><p>
+				Cosign currently supports the following:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Hardware and KMS Signing
+					</li><li class="listitem">
+						Bring-your-own PKI
+					</li><li class="listitem">
+						OIDC PKI
+					</li><li class="listitem">
+						Built-in binary transparency and timestamping service
+					</li></ul></div></section><section class="section" id="cosign-oci-with-quay"><div class="titlepage"><div><div><h2 class="title">13.5. Using cosign with quay</h2></div></div></div><p>
+				If you have Go 1.16+, you can directly install cosign with the following command:
+			</p><pre class="literallayout">$ go install github.com/sigstore/cosign/cmd/cosign@v1.0.0
+go: downloading github.com/sigstore/cosign v1.0.0
+go: downloading github.com/peterbourgon/ff/v3 v3.1.0
+...</pre><p>
+				Next, generate a keypair:
+			</p><pre class="literallayout">$ cosign generate-key-pair
+Enter password for private key:
+Enter again:
+Private key written to cosign.key
+Public key written to cosign.pub</pre><p>
+				Sign the keypair with the following command:
+			</p><pre class="literallayout">$ cosign sign -key cosign.key quay-server.example.com/user1/busybox:test
+Enter password for private key:
+Pushing signature to: quay-server.example.com/user1/busybox:sha256-ff13b8f6f289b92ec2913fa57c5dd0a874c3a7f8f149aabee50e3d01546473e3.sig</pre><p>
+				Some users may experience the following error:
+			</p><pre class="literallayout">error: signing quay-server.example.com/user1/busybox:test: getting remote image: GET https://quay-server.example.com/v2/user1/busybox/manifests/test: UNAUTHORIZED: access to the requested resource is not authorized; map[]</pre><p>
+				Because cosign relies on ~/.docker/config.json for authorization, you might need to execute the following command:
+			</p><pre class="literallayout">$ podman login --authfile ~/.docker/config.json quay-server.example.com
+Username:
+Password:
+Login Succeeded!</pre><p>
+				You can ensure you are logged in with the following command:
+			</p><pre class="literallayout">$ cat ~/.docker/config.json
+{
+	"auths": {
+		"quay-server.example.com": {
+			"auth": "cXVheWFkbWluOnBhc3N3b3Jk"
+		}
+	}</pre></section><section class="section" id="other-oci-artifacts-with-quay"><div class="titlepage"><div><div><h2 class="title">13.6. Adding other OCI media types to Quay</h2></div></div></div><p>
+				Helm, cosign, and ztsd compression scheme artifacts are built into Red Hat Quay 3.6 by default. For any other OCI media type that is not supported by default, you can add them to the <code class="literal">ALLOWED_OCI_ARTIFACT_TYPES</code> configuration in Quay’s config.yaml using the following format:
+			</p><pre class="literallayout">ALLOWED_OCI_ARTIFACT_TYPES:
+  &lt;oci config type 1&gt;:
+  - &lt;oci layer type 1&gt;
+  - &lt;oci layer type 2&gt;
+
+  &lt;oci config type 2&gt;:
+  - &lt;oci layer type 3&gt;
+  - &lt;oci layer type 4&gt;
+...</pre><p>
+				For example, you can add Singularity (SIF) support by adding the following to your config.yaml:
+			</p><pre class="literallayout">...
+ALLOWED_OCI_ARTIFACT_TYPES:
+  application/vnd.oci.image.config.v1+json
+  - application/vnd.oci.image.layer.v1.tar+zstd
+  application/vnd.oci.image.config.v1+json
+  - application/vnd.dev.cosign.simplesigning.v1+json
+  application/vnd.cncf.helm.config.v1+json
+  - application/tar+gzip
+  application/vnd.sylabs.sif.config.v1+json
+  - application/vnd.sylabs.sif.layer.v1+tar
+...</pre><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					When adding OCI media types that are not supported by default, users will also need to manually add support for cosign and helm if desired. The ztsd compression scheme is hard-coded, so users will not need to add that OCI media type to their config.yaml.
+				</p></div></div><p>
+				Alternatively, if you want to disable OCI artifact support, you can set <code class="literal">FEATURE_GENERAL_OCI_SUPPORT</code> to <code class="literal">False</code> in your config.yaml:
+			</p><pre class="literallayout">...
+FEATURE_GENERAL_OCI_SUPPORT = False
+...</pre></section></section><section class="chapter" id="using_the_red_hat_quay_api"><div class="titlepage"><div><div><h1 class="title">Chapter 14. Using the Red Hat Quay API</h1></div></div></div><p id="using-the-api">
+			Red Hat Quay provides a full <a class="link" href="https://oauth.net/2/">OAuth 2</a>, RESTful API that:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					Is available from endpoints of each Red Hat Quay instance from the URL <a class="link" href="https://&lt;yourquayhost&gt;/api/v1">https://&lt;yourquayhost&gt;/api/v1</a>
+				</li><li class="listitem">
+					Lets you connect to endpoints, via a browser, to get, delete, post, and put Red Hat Quay settings by enabling the Swagger UI
+				</li><li class="listitem">
+					Can be accessed by applications that make API calls and use OAuth tokens
+				</li><li class="listitem">
+					Sends and receives data as JSON
+				</li></ul></div><p>
+			The following text describes how to access the Red Hat Quay API and use it to view and modify setting in your Red Hat Quay cluster. Appendix A lists and describes API endpoints.
+		</p><section class="section" id="accessing_the_quay_api_from_quay_io"><div class="titlepage"><div><div><h2 class="title">14.1. Accessing the Quay API from Quay.io</h2></div></div></div><p>
+				If you don’t have your own Red Hat Quay cluster running yet, you can explore the Red Hat Quay API available from Quay.io from your web browser:
+			</p><pre class="screen">https://docs.quay.io/api/swagger/</pre><p>
+				The API Explorer that appears shows Quay.io API endpoints. You will not see superuser API endpoints or endpoints for Red Hat Quay features that are not enabled on Quay.io (such as Repository Mirroring).
+			</p><p>
+				From API Explorer, you can get, and sometimes change, information on:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Billing, subscriptions, and plans
+					</li><li class="listitem">
+						Repository builds and build triggers
+					</li><li class="listitem">
+						Error messages and global messages
+					</li><li class="listitem">
+						Repository images, manifests, permissions, notifications, vulnerabilities, and image signing
+					</li><li class="listitem">
+						Usage logs
+					</li><li class="listitem">
+						Organizations, members and OAuth applications
+					</li><li class="listitem">
+						User and robot accounts
+					</li><li class="listitem">
+						and more…​
+					</li></ul></div><p>
+				Select to open an endpoint to view the Model Schema for each part of the endpoint. Open an endpoint, enter any required parameters (such as a repository name or image), then select the <code class="literal">Try it out!</code> button to query or change settings associated with a Quay.io endpoint.
+			</p></section><section class="section" id="create_oauth_access_token"><div class="titlepage"><div><div><h2 class="title">14.2. Create OAuth access token</h2></div></div></div><p>
+				To create an OAuth access token so you can access the API for your organization:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem">
+						Log in to Red Hat Quay and select your Organization (or create a new one).
+					</li><li class="listitem">
+						Select the Applications icon from the left navigation.
+					</li><li class="listitem">
+						Select Create New Application and give the new application a name when prompted.
+					</li><li class="listitem">
+						Select the new application.
+					</li><li class="listitem">
+						Select Generate Token from the left navigation.
+					</li><li class="listitem">
+						Select the checkboxes to set the scope of the token and select Generate Access Token.
+					</li><li class="listitem">
+						Review the permissions you are allowing and select Authorize Application to approve it.
+					</li><li class="listitem">
+						Copy the newly generated token to use to access the API.
+					</li></ol></div></section><section class="section" id="accessing_your_quay_api_from_a_web_browser"><div class="titlepage"><div><div><h2 class="title">14.3. Accessing your Quay API from a web browser</h2></div></div></div><p>
+				By enabling Swagger, you can access the API for your own Red Hat Quay instance through a web browser. This URL exposes the Red Hat Quay API explorer via the Swagger UI and this URL:
+			</p><pre class="screen">https://&lt;yourquayhost&gt;/api/v1/discovery.</pre><p>
+				That way of accessing the API does not include superuser endpoints that are available on Red Hat Quay installations. Here is an example of accessing a Red Hat Quay API interface running on the local system by running the swagger-ui container image:
+			</p><pre class="screen"># export SERVER_HOSTNAME=&lt;yourhostname&gt;
+# sudo podman run -p 8888:8080 -e API_URL=https://$SERVER_HOSTNAME:8443/api/v1/discovery docker.io/swaggerapi/swagger-ui</pre><p>
+				With the swagger-ui container running, open your web browser to localhost port 8888 to view API endpoints via the swagger-ui container.
+			</p><p>
+				To avoid errors in the log such as "API calls must be invoked with an X-Requested-With header if called from a browser," add the following line to the <code class="literal">config.yaml</code> on all nodes in the cluster and restart Red Hat Quay:
+			</p><pre class="screen">BROWSER_API_CALLS_XHR_ONLY: false</pre></section><section class="section" id="accessing_the_red_hat_quay_api_from_the_command_line"><div class="titlepage"><div><div><h2 class="title">14.4. Accessing the Red Hat Quay API from the command line</h2></div></div></div><p>
+				You can use the <code class="literal">curl</code> command to GET, PUT, POST, or DELETE settings via the API for your Red Hat Quay cluster. Replace <code class="literal">&lt;token&gt;</code> with the OAuth access token you created earlier to get or change settings in the following examples.
+			</p><section class="section" id="get_superuser_information"><div class="titlepage"><div><div><h3 class="title">14.4.1. Get superuser information</h3></div></div></div><pre class="screen">$ curl -X GET -H "Authorization: Bearer &lt;token_here&gt;" \
+    "https://&lt;yourquayhost&gt;/api/v1/superuser/users/"</pre><p>
+					For example:
+				</p><pre class="programlisting language-json">$ curl -X GET -H "Authorization: Bearer mFCdgS7SAIoMcnTsHCGx23vcNsTgziAa4CmmHIsg" http://quay-server:8080/api/v1/superuser/users/ | jq
+
+{
+  "users": [
+    {
+      "kind": "user",
+      "name": "quayadmin",
+      "username": "quayadmin",
+      "email": "quayadmin@example.com",
+      "verified": true,
+      "avatar": {
+        "name": "quayadmin",
+        "hash": "357a20e8c56e69d6f9734d23ef9517e8",
+        "color": "#5254a3",
+        "kind": "user"
+      },
+      "super_user": true,
+      "enabled": true
+    }
+  ]
+}</pre></section><section class="section" id="creating_a_superuser_using_the_api"><div class="titlepage"><div><div><h3 class="title">14.4.2. Creating a superuser using the API</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p class="simpara">
+							Configure a superuser name, as described in the Deploy Quay book:
+						</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
+									Use the configuration editor UI or
+								</li><li class="listitem">
+									Edit the <code class="literal">config.yaml</code> file directly, with the option of using the configuration API to validate (and download) the updated configuration bundle
+								</li></ul></div></li><li class="listitem"><p class="simpara">
+							Create the user account for the superuser name:
+						</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem"><p class="simpara">
+									Obtain an authorization token as detailed above, and use <code class="literal">curl</code> to create the user:
+								</p><pre class="screen">$ curl -H "Content-Type: application/json"  -H "Authorization: Bearer Fava2kV9C92p1eXnMawBZx9vTqVnksvwNm0ckFKZ" -X POST --data '{
+ "username": "quaysuper",
+ "email": "quaysuper@example.com"
+}'  http://quay-server:8080/api/v1/superuser/users/ | jq</pre></li><li class="listitem"><p class="simpara">
+									The returned content includes a generated password for the new user account:
+								</p><pre class="programlisting language-json">{
+  "username": "quaysuper",
+  "email": "quaysuper@example.com",
+  "password": "EH67NB3Y6PTBED8H0HC6UVHGGGA3ODSE",
+  "encrypted_password": "fn37AZAUQH0PTsU+vlO9lS0QxPW9A/boXL4ovZjIFtlUPrBz9i4j9UDOqMjuxQ/0HTfy38goKEpG8zYXVeQh3lOFzuOjSvKic2Vq7xdtQsU="
+}</pre></li></ul></div></li></ul></div><p>
+					Now, when you request the list of users , it will show <code class="literal">quaysuper</code> as a superuser:
+				</p><pre class="programlisting language-json">$ curl -X GET -H "Authorization: Bearer mFCdgS7SAIoMcnTsHCGx23vcNsTgziAa4CmmHIsg" http://quay-server:8080/api/v1/superuser/users/ | jq
+
+{
+  "users": [
+  {
+      "kind": "user",
+      "name": "quayadmin",
+      "username": "quayadmin",
+      "email": "quayadmin@example.com",
+      "verified": true,
+      "avatar": {
+        "name": "quayadmin",
+        "hash": "357a20e8c56e69d6f9734d23ef9517e8",
+        "color": "#5254a3",
+        "kind": "user"
+      },
+      "super_user": true,
+      "enabled": true
+    },
+    {
+      "kind": "user",
+      "name": "quaysuper",
+      "username": "quaysuper",
+      "email": "quaysuper@example.com",
+      "verified": true,
+      "avatar": {
+        "name": "quaysuper",
+        "hash": "c0e0f155afcef68e58a42243b153df08",
+        "color": "#969696",
+        "kind": "user"
+      },
+      "super_user": true,
+      "enabled": true
+    }
+  ]
+}</pre></section><section class="section" id="directory_synchronization"><div class="titlepage"><div><div><h3 class="title">14.4.3. Directory synchronization</h3></div></div></div><p>
+					To enable directory synchronization for the team <code class="literal">newteam</code> in organization <code class="literal">testadminorg</code>, where the corresponding group name in LDAP is <code class="literal">ldapgroup</code>:
+				</p><pre class="screen">$ curl -X POST -H "Authorization: Bearer 9rJYBR3v3pXcj5XqIA2XX6Thkwk4gld4TCYLLWDF" \
+       -H "Content-type: application/json" \
+       -d '{"group_dn": "cn=ldapgroup,ou=Users"}' \
+       http://quay1-server:8080/api/v1/organization/testadminorg/team/newteam/syncing</pre><p>
+					To disable synchronization for the same team:
+				</p><pre class="screen">$ curl -X DELETE -H "Authorization: Bearer 9rJYBR3v3pXcj5XqIA2XX6Thkwk4gld4TCYLLWDF" \
+       http://quay1-server:8080/api/v1/organization/testadminorg/team/newteam/syncing</pre></section><section class="section" id="create_a_repository_build_via_api"><div class="titlepage"><div><div><h3 class="title">14.4.4. Create a repository build via API</h3></div></div></div><p>
+					In order to build a repository from the specified input and tag the build with custom tags, users can use requestRepoBuild endpoint. It takes the following data:
+				</p><pre class="screen">{
+"docker_tags": [
+   "string"
+],
+"pull_robot": "string",
+"subdirectory": "string",
+"archive_url": "string"
+}</pre><p>
+					The <code class="literal">archive_url</code> parameter should point to a <code class="literal">tar</code> or <code class="literal">zip</code> archive that includes the Dockerfile and other required files for the build. The <code class="literal">file_id</code> parameter was apart of our older build system. It cannot be used anymore. If Dockerfile is in a sub-directory it needs to be specified as well.
+				</p><p>
+					The archive should be publicly accessible. OAuth app should have "Administer Organization" scope because only organization admins have access to the robots' account tokens. Otherwise, someone could get robot permissions by simply granting a build access to a robot (without having access themselves), and use it to grab the image contents. In case of errors, check the json block returned and ensure the archive location, pull robot, and other parameters are being passed correctly. Click "Download logs" on the top-right of the individual build’s page to check the logs for more verbose messaging.
+				</p></section><section class="section" id="create_an_org_robot"><div class="titlepage"><div><div><h3 class="title">14.4.5. Create an org robot</h3></div></div></div><pre class="screen">$ curl -X PUT https://quay.io/api/v1/organization/{orgname}/robots/{robot shortname} \
+   -H 'Authorization: Bearer &lt;token&gt;''</pre></section><section class="section" id="trigger_a_build"><div class="titlepage"><div><div><h3 class="title">14.4.6. Trigger a build</h3></div></div></div><pre class="screen">$ curl -X POST https://quay.io/api/v1/repository/YOURORGNAME/YOURREPONAME/build/ \
+   -H 'Authorization: Bearer &lt;token&gt;'</pre><p>
+					Python with requests
+				</p><pre class="screen">import requests
+r = requests.post('https://quay.io/api/v1/repository/example/example/image', headers={'content-type': 'application/json', 'Authorization': 'Bearer &lt;redacted&gt;'}, data={[&lt;request-body-contents&gt;})
+print(r.text)</pre></section><section class="section" id="create_a_private_repository"><div class="titlepage"><div><div><h3 class="title">14.4.7. Create a private repository</h3></div></div></div><pre class="screen">$ curl -X POST https://quay.io/api/v1/repository \
+    -H 'Authorization: Bearer {token}' \
+    -H 'Content-Type: application/json' \
+    -d '{"namespace":"yournamespace", "repository":"yourreponame",
+    "description":"descriptionofyourrepo", "visibility": "private"}' | jq</pre></section></section></section><div><div xml:lang="en-US" class="legalnotice" id="idm46071489373728"><h1 class="legalnotice">Legal Notice</h1><div class="para">
+		Copyright <span class="trademark"/>© 2021 Red Hat, Inc.
+	</div><div class="para">
+		The text of and illustrations in this document are licensed by Red Hat under a Creative Commons Attribution–Share Alike 3.0 Unported license ("CC-BY-SA"). An explanation of CC-BY-SA is available at <a class="uri" href="http://creativecommons.org/licenses/by-sa/3.0/">http://creativecommons.org/licenses/by-sa/3.0/</a>. In accordance with CC-BY-SA, if you distribute this document or an adaptation of it, you must provide the URL for the original version.
+	</div><div class="para">
+		Red Hat, as the licensor of this document, waives the right to enforce, and agrees not to assert, Section 4d of CC-BY-SA to the fullest extent permitted by applicable law.
+	</div><div class="para">
+		Red Hat, Red Hat Enterprise Linux, the Shadowman logo, the Red Hat logo, JBoss, OpenShift, Fedora, the Infinity logo, and RHCE are trademarks of Red Hat, Inc., registered in the United States and other countries.
+	</div><div class="para">
+		<span class="trademark">Linux</span>® is the registered trademark of Linus Torvalds in the United States and other countries.
+	</div><div class="para">
+		<span class="trademark">Java</span>® is a registered trademark of Oracle and/or its affiliates.
+	</div><div class="para">
+		<span class="trademark">XFS</span>® is a trademark of Silicon Graphics International Corp. or its subsidiaries in the United States and/or other countries.
+	</div><div class="para">
+		<span class="trademark">MySQL</span>® is a registered trademark of MySQL AB in the United States, the European Union and other countries.
+	</div><div class="para">
+		<span class="trademark">Node.js</span>® is an official trademark of Joyent. Red Hat is not formally related to or endorsed by the official Joyent Node.js open source or commercial project.
+	</div><div class="para">
+		The <span class="trademark">OpenStack</span>® Word Mark and OpenStack logo are either registered trademarks/service marks or trademarks/service marks of the OpenStack Foundation, in the United States and other countries and are used with the OpenStack Foundation's permission. We are not affiliated with, endorsed or sponsored by the OpenStack Foundation, or the OpenStack community.
+	</div><div class="para">
+		All other trademarks are the property of their respective owners.
+	</div></div></div></div></div></div><script type="text/javascript">
+                        jQuery(document).ready(function() {
+                            initSwitchery();
+                            jQuery('pre[class*="language-"]').each(function(i, block){hljs.highlightBlock(block);});
+                        });
+                    </script></body></html>
