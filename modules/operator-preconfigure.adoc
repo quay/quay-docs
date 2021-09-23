@@ -1,7 +1,7 @@
-[[operator-configure-pre-deploy]]
-= Configuring components before deployment
+[[operator-preconfigure]]
+= Configuring Quay before deployment
 
-You can allow the Operator manage all the {productname} components when deploying on OpenShift and this is the default configuration. Alternatively, you can manage one or more components externally yourself, where you want more control over the set up, and then allow the Operator to manage the remaining components. 
+The Operator can manage all the {productname} components when deploying on OpenShift, and this is the default configuration. Alternatively, you can manage one or more components externally yourself, where you want more control over the set up, and then allow the Operator to manage the remaining components. 
 
 The standard pattern for configuring unmanaged components is:
 
@@ -9,7 +9,7 @@ The standard pattern for configuring unmanaged components is:
 . Create a Secret using the configuration file
 +
 ----
-$ kubectl create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
+$ oc create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
 ----
 . Create a QuayRegistry YAML file `quayregistry.yaml`, identifying the unmanaged components and also referencing the created Secret, for example:
 +
@@ -20,13 +20,14 @@ apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
   name: example-registry
+  namespace: quay-enterprise
 spec:
   configBundleSecret: config-bundle-secret
   components:
     - kind: storage
       managed: false
 ----
-. Deploy the registry using the YAML file
+. Deploy the registry using the YAML file:
 +
 ----
 oc create -f quayregistry.yaml 
