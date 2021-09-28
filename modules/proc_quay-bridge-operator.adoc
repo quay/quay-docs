@@ -122,7 +122,7 @@ spec:
 $ oc create -f quay-webhook.yaml
 ```
 . Download the
-link:https://github.com/quay/quay-bridge-operator/blob/v1.0.0/hack/webhook-create-signed-cert.sh[webhook-create-signed-cert.sh]
+link:https://github.com/quay/quay-bridge-operator/blob/redhat-3.5/hack/webhook-create-signed-cert.sh[webhook-create-signed-cert.sh]
 script, so you can use it to generate a certificate signed by a Kubernetes certificate authority.
 
 . Execute the following command to request the certificate:
@@ -147,24 +147,28 @@ $ oc get configmap -n kube-system \
 .quay-mutating-webhook.yaml
 [source,yaml]
 ----
-apiVersion: admissionregistration.k8s.io/v1beta1
-kind: MutatingWebhookConfiguration
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration 
 metadata:
   name: quay-bridge-operator
 webhooks:
   - name: quayintegration.redhatcop.redhat.io
-    clientConfig:
+    clientConfig: 
       service:
         namespace: openshift-operators
         name: quay-bridge-operator
         path: "/admissionwebhook"
       caBundle: "${CA_BUNDLE}" <1>
-    rules:
+    rules: 
     - operations:  [ "CREATE" ]
       apiGroups: [ "build.openshift.io" ]
       apiVersions: ["v1" ]
       resources: [ "builds" ]
     failurePolicy: Fail
+    matchPolicy: Exact
+    timeoutSeconds: 30
+    sideEffects: None
+    admissionReviewVersions: [v1beta1]
 ----
 <1> Replace ${CA_BUNDLE} with the output of the previous step. It will appear as one long line that you copy and paste to replace ${CA_BUNDLE}.
 
