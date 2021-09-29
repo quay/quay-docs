@@ -5,7 +5,28 @@
 
 Added/Changed: 
 
-* {productname} 3.6 now includes support for Open Container Initiative (OCI) mimetypes, including CLI cosigning, helm, and alternate compression schemes such as ztsd. (https://issues.redhat.com/browse/PROJQUAY-1417?filter=12382147[PROQUAY-1417]), (link:https://issues.redhat.com/browse/PROJQUAY-1032?filter=12382147[PROJQUAY-1032]) 
+* {productname} 3.6 now includes support for the following Open Container Initiative (OCI) image media types by default: CLI cosigning, Helm, and the ztsd compression scheme. Other OCI media types can be configured by the user in their config.yaml file, for example: 
++
+.config.yaml
+[source,yaml]
+----
+...
+ALLOWED_OCI_ARTIFACT_TYPES:
+  application/vnd.oci.image.config.v1+json
+  - application/vnd.dev.cosign.simplesigning.v1+json
+  application/vnd.cncf.helm.config.v1+json
+  - application/tar+gzip
+  application/vnd.sylabs.sif.config.v1+json
+  - application/vnd.sylabs.sif.layer.v1+tar
+...
+----
++
+[NOTE]
+====
+When adding OCI media types that are not configured by default, users will also need to manually add support for cosign and Helm if desired. The ztsd compression scheme is supported by default, so users will not need to add that OCI media type to their config.yaml to enable support.
+====
++
+For more information, see https://issues.redhat.com/browse/PROJQUAY-1417?filter=12382147[PROQUAY-1417] and link:https://issues.redhat.com/browse/PROJQUAY-1032?filter=12382147[PROJQUAY-1032]. 
 
 * You can now use the API to create a first user. (link:https://issues.redhat.com/browse/PROJQUAY-1926?filter=12382147[PROJQUAY-1926])
 
@@ -28,7 +49,7 @@ Added/Changed:
 ** `io.Pipe` is used to cross-wire JSON encoding and API requests in order to avoid buffering the entire body request in memory; 
 ** `encoding/JSON` has been replaced with `github.com/ugorji/go/codec` configured for JSON in order to allow streaming the JSON encoding;
 ** `affected_manifests` calls in the notifier, which should prevent large vulnerability turnovers from causing extremely large API calls. 
-
++
 For more information, see link:https://issues.redhat.com/browse/PROJQUAY-1693?filter=12382147[PROJQUAY-1963]. 
 
 Fixed:
@@ -68,7 +89,7 @@ Fixed:
 
 Deprecated:
 
-* *FEATURE_HELM_OCI_SUPPORT*: This feature has been deprecated as of {productname} 3.6 and will be removed in a future release. Instead, `OCI artifact config` should be used, which offers the same features. (link:https://issues.redhat.com/browse/PROJQUAY-2334[PROJQUAY-2334])
+* *FEATURE_HELM_OCI_SUPPORT*: This feature has been deprecated and will be removed in a future version of {productname}. In {productname} {producty}, Helm artifacts are supported by default and included under the `FEATURE_GENERAL_OCI_SUPPORT` property. Users are no longer required to update their config.yaml files to enable support. (link:https://issues.redhat.com/browse/PROJQUAY-2334[PROJQUAY-2334])
 
 * *MySQL and MariaDB database support*: The MySQL and mariaDB databases have been deprecated as of {productname} 3.6. Support for these databases will be removed in a future version of {productname}. If starting a new {productname} installation, it is strongly recommended to use PostgreSQL. (link:https://issues.redhat.com/browse/PROJQUAY-1998?filter=12382147[PROJQUAY-1998])
 
@@ -130,6 +151,7 @@ Fixed:
 === quay-openshift-bridge-operators
 
 * The installation experience for the Quay Bridge Operator (QBO) has been improved. Enhancements include the following:
+
 ** `MutatingAdmissionWebhook` is created automatically during install. 
 ** The QBO leverages the Operator Lifecycle Manager feature of auto-generating certificates and webhook configurations.
 ** The number of manual steps required to get the Quay Bridge Operator running has been decreased. 
