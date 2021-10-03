@@ -9,7 +9,7 @@ The Quay Operator should be installed and upgraded using the link:https://docs.o
 
 [WARNING]
 ====
-When the Quay Operator is installed via Operator Lifecycle Manager it may be configured to support automatic or manual upgrades.  This option is shown on the Operator Hub page for the Quay Operator during installation.  It can also be found in the Quay Operator `Subscription` object via the `approvalStrategy` field.  Choosing `Automatic` means that your Quay Operator will automatically be upgraded whenever a new Operator version is released.  If this is not desireable, then the `Manual` approval strategy should be selected.
+When the Quay Operator is installed via Operator Lifecycle Manager it may be configured to support automatic or manual upgrades.  This option is shown on the Operator Hub page for the Quay Operator during installation.  It can also be found in the Quay Operator `Subscription` object via the `approvalStrategy` field.  Choosing `Automatic` means that your Quay Operator will automatically be upgraded whenever a new Operator version is released.  If this is not desirable, then the `Manual` approval strategy should be selected.
 ====
 
 
@@ -68,7 +68,7 @@ When the Quay Operator starts up, it immediately looks for any `QuayRegistries` 
 
 === Console monitoring and alerting
 
-The support for monitoring of Quay 3.6 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and re-install it for all namespaces, once the upgrade has taken place. 
+The support for monitoring of Quay 3.6 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and reinstall it for all namespaces, once the upgrade has taken place. 
 
 === OCI and Helm support
 
@@ -137,7 +137,7 @@ Nothing special needed.
 
 *External Access*
 
-Only passthrough `Route` access supported for automatic migration. Manual migration required for other methods.
+Only passthrough `Route` access is supported for automatic migration. Manual migration required for other methods.
 
 * `LoadBalancer` without custom hostname:
 After the `QuayEcosystem` is marked with label `"quay-operator/migration-complete": "true"`, delete the `metadata.ownerReferences` field from existing `Service` _before_ deleting the `QuayEcosystem` to prevent Kubernetes from garbage collecting the `Service` and removing the load balancer. A new `Service` will be created with `metadata.name` format `<QuayEcosystem-name>-quay-app`. Edit the `spec.selector` of the existing `Service` to match the `spec.selector` of the new `Service` so traffic to the old load balancer endpoint will now be directed to the new pods. You are now responsible for the old `Service`; the Quay Operator will not manage it.
