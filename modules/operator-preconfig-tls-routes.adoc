@@ -1,7 +1,11 @@
 [[operator-preconfig-tls-routes]]
 = Configuring TLS and routes
 
-Multiple permutations are possible when configuring TLS and routes, but the following rules apply:
+Support for OpenShift Container Platform Edge-Termination Routes has been added by way of a new managed component, `tls`. This separates the `route` component from TLS and allows users to configure both separately. `EXTERNAL_TLS_TERMINATION: true` is the opinionated setting. Managed `tls` means that the default cluster wildcart cert is used. Unmanaged `tls` means that the user provided cert/key pair will be injected into the `Route`.
+
+ssl.cert` and `ssl.key` are now moved to a separate, persistent Secret, which ensures that the cert/key pair is not re-generated upon every reconcile. These are now formatted as `edge` routes and mounted to the same directory in the Quay container.
+
+Multiple permutations are possible when configuring TLS and Routes, but the following rules apply:
 
 * If TLS is `managed`, then route must also be `managed`
 * If TLS is `unmanaged` then you must supply certs, either with the config tool or directly in the config bundle
