@@ -37,6 +37,8 @@ For `z` stream upgrades, for example, 3.4.2 -> 3.4.3, updates are released in th
 [[upgrade-33-36]]
 === Notes on upgrading directly from 3.3.* to 3.6
 
+==== Upgrading with edge routing enabled
+
 * Previously, when running a 3.3.x version of {productname} with edge routing enabled, users were unable to upgrade to 3.4.x versions of {productname}. This has been resolved with the release of {productname} 3.6.
 
 * If `tls.termination` is set to `none` in your Quay 3.3.* deployment, as shown in the example below: 
@@ -62,6 +64,19 @@ spec:
 ----
 +
 When you upgrade from 3.3.* to 3.6.*, it will change to HTTPS with TLS edge termination, using the default cluster wildcart cert.
+
+
+==== Upgrading with custom TLS cert/key pairs without Subject Alternative Names
+
+There is an issue when upgrading from Quay 3.3.4 to Quay 3.6.0 directly, when customers are using their own TLS Cert/key pairs without Subject Alternative Names (SANs).  During the upgrade to Quay 3.6.0, the deployment is blocked, with the error message from the Quay Operator pod logs indicating that the Quay TLS Cert must have SANs.
+
+If possible, you should regenerate your TLS certs with the correct hostname in the SANs. A possible workaround involves defining an environment variable in the `quay-app`, `quay-upgrade` and `quay-config-editor` pods after upgrade, to enable CommonName matching:
+
+```
+ GODEBUG=x509ignoreCN=0
+```
+
+The `GODEBUG=x509ignoreCN=0` flag enables the legacy behavior of treating the CommonName field on X.509 certificates as a host name when no SANs are present. However, this workaround is not recommended, as it will not persist across a redeployment.
 
 
 === Changing the update channel for an Operator
