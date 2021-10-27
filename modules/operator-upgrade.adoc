@@ -35,13 +35,13 @@ To update Quay from one minor version to the next, for example, 3.4 -> 3.5, you 
 For `z` stream upgrades, for example, 3.4.2 -> 3.4.3, updates are released in the major-minor channel that the user initially selected during install. The procedure to perform a `z` stream upgrade depends on the `approvalStrategy` as outlined above. If the approval strategy is set to `Automatic`, the Quay Operator will upgrade automatically to the newest `z` stream. This results in automatic, rolling Quay updates to newer `z` streams with little to no downtime. Otherwise, the update must be manually approved before installation can begin.
 
 [[upgrade-33-36]]
-=== Notes on upgrading directly from 3.3.* to 3.6
+=== Notes on upgrading directly from 3.3.z to 3.6
 
 ==== Upgrading with edge routing enabled
 
-* Previously, when running a 3.3.x version of {productname} with edge routing enabled, users were unable to upgrade to 3.4.x versions of {productname}. This has been resolved with the release of {productname} 3.6.
+* Previously, when running a 3.3.z version of {productname} with edge routing enabled, users were unable to upgrade to 3.4.z versions of {productname}. This has been resolved with the release of {productname} 3.6.
 
-* If `tls.termination` is set to `none` in your Quay 3.3.* deployment, as shown in the example below: 
+* When upgrading from 3.3.z to 3.6, if `tls.termination` is set to `none` in your {productname} 3.3.z deployment, it will change to HTTPS with TLS edge termination and use the default cluster wildcard cert. For example: 
 +
 [source,yaml]
 ----
@@ -62,15 +62,12 @@ spec:
     database:
 ...
 ----
-+
-When you upgrade from 3.3.* to 3.6.*, it will change to HTTPS with TLS edge termination, using the default cluster wildcart cert.
 
+==== Upgrading with custom TLS certificate/key pairs without Subject Alternative Names
 
-==== Upgrading with custom TLS cert/key pairs without Subject Alternative Names
+There is an issue for customers using their own TLS certificate/key pairs without Subject Alternative Names (SANs) when upgrading from {productname} 3.3.4 to {productname} 3.6 directly. During the upgrade to {productname} 3.6, the deployment is blocked, with the error message from the Quay Operator pod logs indicating that the Quay TLS certificate must have SANs.
 
-There is an issue when upgrading from Quay 3.3.4 to Quay 3.6.0 directly, when customers are using their own TLS Cert/key pairs without Subject Alternative Names (SANs).  During the upgrade to Quay 3.6.0, the deployment is blocked, with the error message from the Quay Operator pod logs indicating that the Quay TLS Cert must have SANs.
-
-If possible, you should regenerate your TLS certs with the correct hostname in the SANs. A possible workaround involves defining an environment variable in the `quay-app`, `quay-upgrade` and `quay-config-editor` pods after upgrade, to enable CommonName matching:
+If possible, you should regenerate your TLS certificates with the correct hostname in the SANs. A possible workaround involves defining an environment variable in the `quay-app`, `quay-upgrade` and `quay-config-editor` pods after upgrade, to enable CommonName matching:
 
 ```
  GODEBUG=x509ignoreCN=0
@@ -78,22 +75,20 @@ If possible, you should regenerate your TLS certs with the correct hostname in t
 
 The `GODEBUG=x509ignoreCN=0` flag enables the legacy behavior of treating the CommonName field on X.509 certificates as a host name when no SANs are present. However, this workaround is not recommended, as it will not persist across a redeployment.
 
-==== Configuring Clair v4 when upgrading from 3.3.* to 3.6 using the Quay Operator 
-To set up Clair V4 on a new {productname} deployment on OpenShift, it is highly recommended to use the Quay Operator. By default, the Quay Operator will install or upgrade a Clair deployment along with your {productname} deployment and configure Clair security scanning automatically. 
+==== Configuring Clair v4 when upgrading from 3.3.z to 3.6 using the Quay Operator 
+To set up Clair v4 on a new {productname} deployment on OpenShift, it is highly recommended to use the Quay Operator. By default, the Quay Operator will install or upgrade a Clair deployment along with your {productname} deployment and configure Clair security scanning automatically. 
 
 ===== Manually Deploying Clair
 
-To configure Clair V4 on an existing {productname} OpenShift deployment running Clair V2, first ensure {productname} has been upgraded to at least version 3.4.0.  Then use the following steps to manually set up Clair V4 alongside Clair V2.
+To configure Clair v4 on an existing {productname} OpenShift deployment running Clair v2, first ensure {productname} has been upgraded to at least version 3.4.0.  Then use the following steps to manually set up Clair v4 alongside Clair v2.
 
-. Set your current project to the name of the project in which {productname} is running.
-For example:
+. Set your current project to the name of the project in which {productname} is running. For example: 
 +
 ```
 $ oc project quay-enterprise
 ```
 
-. Create a Postgres deployment file for Clair v4 (for example, `clairv4-postgres.yaml`)
-as follows.
+. Create a Postgres deployment file for Clair v4, for example, `clairv4-postgres.yaml`, as follows:
 +
 .clairv4-postgres.yaml
 [source,yaml]
@@ -224,7 +219,7 @@ More information about Clair's configuration format can be found in link:https:/
 $ oc create secret generic clairv4-config-secret --from-file=./config.yaml
 ```
 
-. Create the Clair v4 deployment file (for example, `clair-combo.yaml`) and modify it as necessary:
+. Create the Clair v4 deployment file, for example, `clair-combo.yaml`, and modify it as necessary:
 +
 .clair-combo.yaml
 [source,yaml,subs="verbatim,attributes"]
@@ -294,7 +289,7 @@ spec:
   type: ClusterIP
 ----
 <1> Change image to latest clair image name and version.
-<2> With the Service set to clairv4, the scanner endpoint for Clair v4
+<2> With the Service set to `clairv4`, the scanner endpoint for Clair v4
 is entered later into the {productname} config.yaml in the
 `SECURITY_SCANNER_V4_ENDPOINT` as `http://clairv4`.
 
@@ -304,8 +299,7 @@ is entered later into the {productname} config.yaml in the
 $ oc create -f ./clair-combo.yaml
 ```
 
-. Modify the `config.yaml` file for your {productname} deployment to add the following
-entries at the end:
+. Modify the `config.yaml` file for your {productname} deployment to add the following entries at the end:
 +
 [source,yaml]
 ----
@@ -315,8 +309,7 @@ SECURITY_SCANNER_V4_ENDPOINT: http://clairv4 <1>
 <1> Identify the Clair v4 service endpoint
 
 
-. Redeploy the modified `config.yaml` to the secret containing that file
-(for example, `quay-enterprise-config-secret`:
+. Redeploy the modified `config.yaml` to the secret containing that file, for example, `quay-enterprise-config-secret`:
 +
 ```
 $ oc delete secret quay-enterprise-config-secret
@@ -327,8 +320,8 @@ $ oc create secret generic quay-enterprise-config-secret --from-file=./config.ya
 
 At this point, images in any of the organizations identified in the namespace whitelist will be scanned by Clair v4.
 
-==== Configuring Clair v4 when performing a standalone upgrade from 3.3.* to 3.6 
-For {productname} deployments not running on OpenShift, it is possible to configure Clair security scanning manually. {productname} deployments already running Clair V2 can use the instructions below to add Clair V4 to their deployment.
+==== Configuring Clair v4 when performing a standalone upgrade from 3.3.z to 3.6 
+For {productname} deployments not running on OpenShift, it is possible to configure Clair security scanning manually. {productname} deployments already running Clair v2 can use the instructions below to add Clair v4 to their deployment.
 
 ===== Setting up Clair on a non-OpenShift {productname} deployment
 
