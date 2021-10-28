@@ -1,36 +1,43 @@
 = Standalone upgrade
 
-In general, {productname} supports upgrades from a prior (N-1) minor version only.  For example, upgrading directly from v3.0.5 to v3.5.latest is not supported.  You will need to first upgrade from v3.0.5 to v3.1.3 to v3.2.2 to v3.3.4 to v3.4.latest and finally to v3.5.latest.  This is required to ensure that any necessary database migrations are done correctly and in the right order during the upgrade.
+In general, {productname} supports upgrades from a prior (N-1) minor version only.  For example, upgrading directly from {productname} 3.0.5 to the latest version of 3.5 is not supported. Instead, would have to upgrade as follows: 
+
+. 3.0.5 -> 3.1.3
+. 3.1.3 -> 3.2.2
+. 3.2.2 -> 3.3.4
+. 3.3.4 -> 3.4.latest
+. 3.4.latest -> 3.5.latest
+
+ This is required to ensure that any necessary database migrations are done correctly and in the right order during the upgrade.
 
 
 // TODO 36 Expand on standalone upgrade from 33->36, 34->36
 [NOTE]
 ====
-{productname} v3.6 supports direct, single-step upgrade from v3.3.* and from v3.4.*. This exception to the normal, prior minor version-only, upgrade simplifies the upgrade procedure for customers on older releases.
+{productname} 3.6 supports direct, single-step upgrade from 3.3.z and from 3.4.z. This exception to the normal, prior minor version-only, upgrade simplifies the upgrade procedure for customers on older releases.
 ====
 
 This document describes the steps needed to perform each individual upgrade. Determine your current version and then follow the steps in sequential order, starting with your current version and working up to your desired target version. 
 
-* Upgrade to v3.6.latest from v3.5.*
-* Upgrade to v3.6.latest from v3.4.*
-* Upgrade to v3.6.latest from v3.3.*
-* Upgrade to v3.5.latest from v3.4.*
-* Upgrade to v3.4.latest from v3.3.* 
-* Upgrade to v3.3.4 from v3.2.z 
-* Upgrade to v3.2.2 from v3.1.z
-* Upgrade to v3.1.3 from v3.0.z
-* Upgrade to v3.0.5 from v2.9.5
-
+* Upgrade to 3.6.latest from 3.5.z
+* Upgrade to 3.6.latest from 3.4.z
+* Upgrade to 3.6.latest from 3.3.z
+* Upgrade to 3.5.latest from 3.4.z
+* Upgrade to 3.4.latest from 3.3.z
+* Upgrade to 3.3.4 from 3.2.z 
+* Upgrade to 3.2.2 from 3.1.z
+* Upgrade to 3.1.3 from 3.0.z
+* Upgrade to 3.0.5 from 2.9.5
 
 See the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_release_notes/index[Red Hat Quay Release Notes] for information on features for individual releases.
 
 
 The general procedure for a manual upgrade consists of the following steps:
 
-* Stop the Quay and Clair containers
-* Backup the database and image storage (optional but recommended)
-* Start Clair using the new version of the image
-* Wait until Clair is ready to accept connections before starting the new version of Quay
+. Stop the Quay and Clair containers.
+. Backup the database and image storage (optional but recommended).
+. Start Clair using the new version of the image.
+. Wait until Clair is ready to accept connections before starting the new version of Quay.
 
 
 == Accessing images
@@ -41,7 +48,7 @@ Images for Quay 3.3.4 and earlier are available from `quay.io`, with authenticat
 
 
 
-== Upgrade to v3.6.latest from v3.5.*
+== Upgrade to 3.6.z from 3.5.z
 
 [IMPORTANT]
 ====
@@ -54,19 +61,9 @@ As of {productname} {producty}, `FEATURE_HELM_OCI_SUPPORT` has been deprecated a
 * **PostgreSQL:** registry.redhat.io/rhel8/postgresql-10:1
 * **Redis:** registry.redhat.io/rhel8/redis-5:1
 
-== Upgrade to v3.6.latest from v3.4.*
+== Upgrade to 3.6.z from 3.4.z
 
-Upgrading to {productname} 3.6 from v3.4.* requires a database migration which does not support downgrading back to a prior version of {productname}. Please back up your database before performing this migration.
-
-=== Target images
-* **Quay:** {productrepo}/{quayimage}:{productminv}
-* **Clair:** {productrepo}/{clairimage}:{productminv}
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-10:1
-* **Redis:** registry.redhat.io/rhel8/redis-5:1
-
-== Upgrade to v3.6.latest from v3.3.*
-
-Upgrading to {productname} 3.6 from v3.3.* requires a database migration which does not support downgrading back to a prior version of {productname}. Please back up your database before performing this migration.
+Upgrading to {productname} 3.6 from 3.4.z requires a database migration which does not support downgrading back to a prior version of {productname}. Please back up your database before performing this migration.
 
 === Target images
 * **Quay:** {productrepo}/{quayimage}:{productminv}
@@ -74,7 +71,17 @@ Upgrading to {productname} 3.6 from v3.3.* requires a database migration which d
 * **PostgreSQL:** registry.redhat.io/rhel8/postgresql-10:1
 * **Redis:** registry.redhat.io/rhel8/redis-5:1
 
-== Upgrade to v3.5.7 from v3.4.*
+== Upgrade to 3.6.z from 3.3.z
+
+Upgrading to {productname} 3.6.z from 3.3.z requires a database migration which does not support downgrading back to a prior version of {productname}. Please back up your database before performing this migration.
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-10:1
+* **Redis:** registry.redhat.io/rhel8/redis-5:1
+
+== Upgrade to 3.5.7 from 3.4.z
 
 === Explicitly enabling OCI and Helm support
 
@@ -88,24 +95,24 @@ FEATURE_HELM_OCI_SUPPORT: true
 
 
 === Target images
-* **Quay:** {productrepo}/{quayimage}:3.5.7
-* **Clair:** {productrepo}/{clairimage}:3.5.7
+* **Quay:** {productrepo}/{quayimage}:v3.5.7
+* **Clair:** {productrepo}/{clairimage}:v3.5.7
 * **PostgreSQL:** registry.redhat.io/rhel8/postgresql-10:1
 * **Redis:** registry.redhat.io/rhel8/redis-5:1
 
 
-== Upgrade to v3.4.6 from v3.3.* 
+== Upgrade to 3.4.6 from 3.3.z 
 
 Upgrading to Quay 3.4 requires a database migration which does not support downgrading back to a prior version of Quay. Please back up your database before performing this migration.
 
 === Target images
-* **Quay:** {productrepo}/{quayimage}:3.4.6
-* **Clair:** {productrepo}/{clairimage}:3.4.6
+* **Quay:** {productrepo}/{quayimage}:v3.4.6
+* **Clair:** {productrepo}/{clairimage}:v3.4.6
 * **PostgreSQL:** registry.redhat.io/rhel8/postgresql-10:1
 * **Redis:** registry.redhat.io/rhel8/redis-5:1
 
 
-== Upgrade to v3.3.4 from v3.2.z 
+== Upgrade to 3.3.4 from 3.2.z 
 
 === Target images
 * **Quay:** quay.io/redhat/quay:v3.3.4 
@@ -115,11 +122,10 @@ Upgrading to Quay 3.4 requires a database migration which does not support downg
 
 
 
-== Upgrade to v3.2.2 from v3.1.z
+== Upgrade to 3.2.2 from 3.1.z
 
 Once your cluster is running any {productname} 3.1.z version,
-to upgrade your cluster to v3.2.2  you must bring down your entire cluster and
-make a small change to the configuration before bringing it back up with the v3.2.2 version.
+to upgrade your cluster to 3.2.2  you must bring down your entire cluster and make a small change to the configuration before bringing it back up with the 3.2.2 version.
 
 
 [WARNING]
@@ -146,11 +152,11 @@ DATABASE_SECRET_KEY: "2d023adb9c477305348490aa0fd9c"
 For an OpenShift installation, the `config.yaml` file is stored as a secret.
 ====
 
-. Bring up one `Quay` container to complete the migration to v3.2.2 .
+. Bring up one `Quay` container to complete the migration to 3.2.2.
 . Once the migration is done, make sure the same `config.yaml` is available
-on all nodes and bring up the new quay v3.2.2 service on those nodes.
+on all nodes and bring up the new quay 3.2.2 service on those nodes.
 
-. Start v3.0.z versions of quay-builder and clair to replace any
+. Start 3.0.z versions of quay-builder and Clair to replace any
 instances of those containers you want to return to your cluster.
 
 
@@ -165,7 +171,7 @@ instances of those containers you want to return to your cluster.
 
 
 
-== Upgrade to v3.1.3 from v3.0.z
+== Upgrade to 3.1.3 from 3.0.z
 
 === Target images
 * **Quay:** quay.io/redhat/quay:v3.1.3 
@@ -176,11 +182,11 @@ instances of those containers you want to return to your cluster.
 
 
 
-== Upgrade to v3.0.5 from v2.9.5
+== Upgrade to 3.0.5 from 2.9.5
 
-For the v2.9.5 to v3.0.5 upgrade, you can either do the whole upgrade with {productname} down (Synchronous) or only bring down {productname} for a few minutes and have the bulk of the upgrade continue with {productname} running (Background).
+For the 2.9.5 to 3.0.5 upgrade, you can either do the whole upgrade with {productname} down (Synchronous) or only bring down {productname} for a few minutes and have the bulk of the upgrade continue with {productname} running (Background).
 
-In a background upgrade, it could take much longer to run the upgrade (depending on how many tags need to be processed), but it takes less total downtime. The downside of a background upgrade is that you won't have access to the latest features until the upgrade completes (the cluster runs from the quay v3 container in v2 compatibility mode until the upgrade is done).
+In a background upgrade, it could take much longer to run the upgrade (depending on how many tags need to be processed), but it takes less total downtime. The downside of a background upgrade is that you won't have access to the latest features until the upgrade completes (the cluster runs from the Quay v3 container in v2 compatibility mode until the upgrade is done).
 
 
 

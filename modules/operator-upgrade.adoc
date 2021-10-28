@@ -288,7 +288,7 @@ spec:
     quay-component: clair-combo
   type: ClusterIP
 ----
-<1> Change image to latest clair image name and version.
+<1> Change image to latest Clair image name and version.
 <2> With the Service set to `clairv4`, the scanner endpoint for Clair v4
 is entered later into the {productname} config.yaml in the
 `SECURITY_SCANNER_V4_ENDPOINT` as `http://clairv4`.
@@ -325,9 +325,9 @@ For {productname} deployments not running on OpenShift, it is possible to config
 
 ===== Setting up Clair on a non-OpenShift {productname} deployment
 
-For {productname} deployments not running on OpenShift, it is possible to configure Clair security scanning manually.  {productname} deployments already running Clair V2 can use the instructions below to add Clair V4 to their deployment.
+For {productname} deployments not running on OpenShift, it is possible to configure Clair security scanning manually. {productname} deployments already running Clair v2 can use the instructions below to add Clair v4 to their deployment.
 
-. Deploy a (preferably fault-tolerant) Postgres database server.  Note that Clair requires the `uuid-ossp` extension to be added to its Postgres database.  If the user supplied in Clair's `config.yaml` has the necessary privileges to create the extension then it will be added automatically by Clair itself.  If not, then the extension must be added before starting Clair.  If the extension is not present, the following error will be displayed when Clair attempts to start.
+. Deploy a (preferably fault-tolerant) Postgres database server. Note that Clair requires the `uuid-ossp` extension to be added to its Postgres database. If the user supplied in Clair's `config.yaml` has the necessary privileges to create the extension then it will be added automatically by Clair itself. If not, then the extension must be added before starting Clair. If the extension is not present, the following error will be displayed when Clair attempts to start.
 +
 ```
 ERROR: Please load the "uuid-ossp" extension. (SQLSTATE 42501)
@@ -368,7 +368,7 @@ trace:
 metrics:
   name: "prometheus"
 ----
-
++
 More information about Clair's configuration format can be found in link:https://quay.github.io/clair/reference/config.html[upstream Clair documentation].
 
 . Run Clair via the container image, mounting in the configuration from the file you created.
@@ -378,7 +378,7 @@ More information about Clair's configuration format can be found in link:https:/
 $ podman run -p 8080:8080 -p 8089:8089 -e CLAIR_CONF=/clair/config.yaml -e CLAIR_MODE=combo -v /etc/clair4/config:/clair -d {productrepo}/{clairimage}:{productminv}
 ```
 
-. Follow the remaining instructions from the previous section for configuring {productname} to use the new Clair V4 endpoint.
+. Follow the remaining instructions from the previous section for configuring {productname} to use the new Clair v4 endpoint.
 
 Running multiple Clair containers in this fashion is also possible, but for deployment scenarios beyond a single container the use of a container orchestrator like Kubernetes or OpenShift is strongly recommended.
 
@@ -403,7 +403,7 @@ image:installed-operators-list.png[Installed Operators]
 
 == Upgrading a QuayRegistry
 
-When the Quay Operator starts up, it immediately looks for any `QuayRegistries` it can find in the namespace(s) it is configured to watch. When it finds one, the following logic is used:
+When the Quay Operator starts, it immediately looks for any `QuayRegistries` it can find in the namespace(s) it is configured to watch. When it finds one, the following logic is used:
 
 * If `status.currentVersion` is unset, reconcile as normal.
 * If `status.currentVersion` equals the Operator version, reconcile as normal.
@@ -413,7 +413,7 @@ When the Quay Operator starts up, it immediately looks for any `QuayRegistries` 
 
 === Console monitoring and alerting
 
-The support for monitoring of Quay 3.6 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and reinstall it for all namespaces, once the upgrade has taken place. 
+The support for monitoring Quay 3.6 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and reinstall it for all namespaces once the upgrade has taken place. 
 
 === OCI and Helm support
 
@@ -461,7 +461,7 @@ $ kubectl delete -n <namespace> quayregistry <quayecosystem-name>
 
 [NOTE]
 ====
-If your `QuayEcosystem` was managing the Postgres database, the upgrade process will migrate your data to a new Postgres database managed by the upgraded Operator.  Your old database will not be changed or removed but Quay will no longer use it once the migration is complete.  If there are issues during the data migration, the upgrade process will exit and it is recommended that you continue with your database as an unmanaged component.
+If your `QuayEcosystem` was managing the Postgres database, the upgrade process will migrate your data to a new Postgres database managed by the upgraded Operator. Your old database will not be changed or removed but Quay will no longer use it once the migration is complete. If there are issues during the data migration, the upgrade process will exit and it is recommended that you continue with your database as an unmanaged component.
 ====
 
 === Supported QuayEcosystem Configurations for Upgrades
