@@ -7,7 +7,7 @@ Both of these major-release upgrades require that the {productname} cluster be d
 for at least a short period of time.
 
 Regardless of which upgrade type you choose, during the time that the {productname}
-cluster is down, if you are using builder and clair images, you need to also upgrade to
+cluster is down, if you are using builder and Clair images, you need to also upgrade to
 those new images:
 
 * *Builder*: quay.io/redhat/quay-builder:v3.0.5
@@ -19,7 +19,7 @@ Both of those images are available from the {productrepo} repository.
 = Running a synchronous upgrade
 To run a synchronous upgrade, where your whole cluster is down for the entire upgrade, do the following:
 
-. Take down your entire {productname} cluster, including any quay-builder and clair containers.
+. Take down your entire {productname} cluster, including any quay-builder and Clair containers.
 
 . Add the following setting to the `config.yaml` file on all nodes:
 +
@@ -27,15 +27,12 @@ To run a synchronous upgrade, where your whole cluster is down for the entire up
 V3_UPGRADE_MODE: complete
 ====
 
-. Pull and start up the v3 container on a single node and wait for however long it takes to do the upgrade
-(it should take just a few minutes). Use the following container or later:
+. Pull and start up the v3 container on a single node and wait for however long it takes to do the upgrade (it will take a few minutes). Use the following container or later:
 +
-====
-quay.io/redhat/quay:v3.0.5
-====
+* *Quay*:  quay.io/redhat/quay:v3.0.5 
 +
-Note that the `Quay` container comes up on ports 8080 and 8443 for v3, instead
-of 80 and 443, as they did for v2. Therefore, we recommend remapping 8080
+Note that the `Quay` container comes up on ports 8080 and 8443 for {productname} 3, instead
+of 80 and 443, as they did for {productname} 2. Therefore, we recommend remapping 8080
 and 8443 into 80 and 443, respectively, as shown in this example:
 
 +
@@ -49,9 +46,9 @@ and 8443 into 80 and 443, respectively, as shown in this example:
    -d quay.io/redhat/quay:v3.0.5
 ```
 
-. After the upgrade completes, bring the {productname} v3 container up on all other nodes.
+. After the upgrade completes, bring the {productname} 3 container up on all other nodes.
 
-. Start v3.0.z versions of quay-builder and clair to replace any
+. Start 3.0.z versions of quay-builder and Clair to replace any
 instances of those containers you want to return to your cluster.
 
 . Verify that {productname} is working, including pushes and pulls of containers compatible with Docker version 2, schema 2.
@@ -59,22 +56,19 @@ This can include windows container images and images of different computer archi
 
 [[background-upgrade-v3]]
 = Running a background upgrade
-To run a background upgrade, you need only bring down your cluster for a short period of time on two occasions. When you
-bring the cluster back up after the first downtime, the quay v3 container runs in v2 compatibility mode as it backfills the database.
-This background process can take hours or even days to complete. Background upgrades are recommended for
+To run a background upgrade, you need only bring down your cluster for a short period of time on two occasions. When you bring the cluster back up after the first downtime, the quay v3 container runs in v2 compatibility mode as it backfills the database. This background process can take hours or even days to complete. Background upgrades are recommended for
 large installations where downtime of more than a few hours would be a problem.
 
-For this type of upgrade, you put {productname} into a compatibility mode, where you have a v3 `Quay` container
-running, but it is running on the old data model while the upgrade completes. Here's what you do:
+For this type of upgrade, you put {productname} into a compatibility mode, where you have a `Quay` 3 container running, but it is running on the old data model while the upgrade completes. Here's what you do:
 
-. Pull the {productname} v3 container to all the nodes. Use the following container or later:
+. Pull the {productname} 3 container to all the nodes. Use the following container or later:
 +
 [subs="verbatim,attributes"]
 ====
 quay.io/redhat/quay:v3.0.5
 ====
 
-. Take down your entire {productname} cluster, including any quay-builder and clair containers.
+. Take down your entire {productname} cluster, including any quay-builder and Clair containers.
 
 . Edit the `config.yaml` file on each node and set the upgrade mode to background as follows:
 +
@@ -82,12 +76,12 @@ quay.io/redhat/quay:v3.0.5
 V3_UPGRADE_MODE: background
 ====
 
-. Bring the {productname} v3 container up on a single node and wait for the migrations to
+. Bring the {productname} 3 container up on a single node and wait for the migrations to
 complete (should take a few minutes maximum).
 Here is an example of that command:
 +
-Note that the `Quay` container comes up on ports 8080 and 8443 for v3, instead
-of 80 and 443, as they did for v2. Therefore, we recommend remapping 8080
+Note that the `Quay` container comes up on ports 8080 and 8443 for {productname} 3, instead
+of 80 and 443, as they did for {productname} 2. Therefore, we recommend remapping 8080
 and 8443 into 80 and 443, respectively, as shown in this example:
 
 +
@@ -101,7 +95,7 @@ and 8443 into 80 and 443, respectively, as shown in this example:
    -d quay.io/redhat/quay:v3.0.5
 ```
 
-. Bring the {productname} v3 container up on all the other nodes.
+. Bring the {productname} 3 container up on all the other nodes.
 
 . Monitor the `/upgradeprogress` API endpoint until it reports done
 enough to move to the next step (the status reaches 99%).
@@ -113,19 +107,18 @@ For example, view `https://myquay.example.com/upgradeprogress` or use some other
 
 . Edit the `config.yaml` file on each node and set the upgrade mode to `complete` as follows:
 +
-====
+[source,yaml]
+----
 V3_UPGRADE_MODE: complete
-====
+----
 
 . Bring {productname} back up on one node to have it do a final check.
 
 . Once the final check is done, bring {productname} v3 back up on all the other nodes.
 
-. Start v3.0.z versions of quay-builder and clair to replace any
-instances of those containers you want to return to your cluster.
+. Start 3.0.z versions of quay-builder and Clair to replace any instances of those containers you want to return to your cluster.
 
-. Verify Quay is working, including pushes and pulls of containers compatible with Docker version 2, schema 2.
-This can include windows container images and images of different computer architectures (arm, ppc, etc.).
+. Verify Quay is working, including pushes and pulls of containers compatible with Docker version 2, schema 2. This can include windows container images and images of different computer architectures (arm, ppc, etc.).
 
 
 = Target images
