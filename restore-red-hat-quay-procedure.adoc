@@ -1,0 +1,82 @@
+=== Restore Red Hat Quay procedure 
+
+. Install the Quay Operator and redeploy the Quay Registry instance. 
+
+. Restore the Quay config bundle secret:
+.. Create a new secret from the back up config bundle: 
++
+----
+$ oc create secret generic SECRET_NAME --from-file="${QUAY_BACKUP_DIR}/config/"
+----
+
+.. Patch the QuayRegistry CRD:
++
+----
+$ oc patch quayregistries.quay.redhat.com REGISTRY_NAME --type='merge' -p '{"spec":{"configBundleSecret":"SECRET_NAME"}}'
+----
+
+.. Vertify that Quay is running with the desired configurations. 
+
+. Scale down the Quay Operator, Quay App, and Quay Mirror deployments: 
++
+----
+$ oc scale deployment quay-operator.v3.5.7 --replicas=0 -n openshift-operators
+$ oc scale deployment instance-quay-app --replicas=0
+$ oc scale deployment instance-quay-mirror --replicas=0
+----
+
+. Patch the new secret `<registry_name>-<namespace>-managed-secret-keys-xxxxxxxxx` to insert the old `SECRET_KEY` and `DATABASE_SECRET_KEY` values from the backup. 
+
+. Restore the s3 bucket:
+.. Configure `s3cmd` with the new NooBaa bucket credentials:
+... Obtain the NooBaa credentials: 
++
+----
+$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_ACCESS_KEY_ID | base64decode }}" ; echo
+$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_SECRET_ACCESS_KEY | base64decode }}" ; echo
+----
+... Edit the `$HOME/.s3cfg` file to insert the above credentials. 
+.. Restore the data:
++
+----
+$ s3cmd sync /var/tmp/quay-backup/data/ s3://instance00-obc-[...]/ 
+----
+. Restore the back up database: 
+..  Copy the following dump on the database pod: 
++
+----
+$ oc cp /path/to/quay/backup.sql <REGISTRY_NAME>-quay-database-xxxxxxxxxx-xxxxx:/tmp
+----
+
+.. Run a remote shell on the database pod: 
++
+----
+$ oc rsh REGISTRY_NAME-quay-database-xxxxxxxxxx-xxxxx
+sh-4.4$ psql
+postgres=# DROP DATABASE "database-name";
+postgres=# CREATE DATABASE "database-name" OWNER "database-username";
+sh-4.4$ psql database-name < /tmp/backup.sql
+----
+
+.. Optional recommendation: Enable debut by setting `DEBUGLOG=true`: 
++
+----
+$ oc edit deployment instance-quay-app
+----
+.. Scale up the Quay Operator, Quay App, and Quay Mirror Deployments:
++
+----
+$ oc scale deployment quay-operator.v3.5.7 --replicas=1 -n openshift-operators
+$ oc scale deployment instance-quay-app --replicas=1
+$ oc scale deployment instance-quay-mirror --replicas=1
+----
+.. Verify that Quay is up and running
+
+.. Verify that the installation is functional:
+... Pull an image from an existing repository
+... Push an image into an existing repository
+... Create a new repository
+... Create a new organization
+... Sync a mirror repository
+
+.. Optional recommendation: Disable debut by setting `DEBUGLOG=false`. 
