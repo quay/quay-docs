@@ -9,3 +9,187 @@ This procedure is tested within the same {productname} minor version, regardless
 * {productname} is deployed on OpenShift Container Platform using the Quay Operator. 
 * The SQL database is managed by the Quay Operator. 
 * Quay is backed by an s3 storage provided by the OpenShift Container Storage NooBaa bucket. 
+
+== Back up Red Hat Quay procedure 
+
+.Procedure 
+
+. Scale down the Quay operator, Quay App, and Quay Mirror deployments: 
++
+----
+$ oc scale deployment quay-operator.v3.5.7 --replicas=0 -n openshift-operators
+$ oc scale deployment instance-quay-app --replicas=0
+$ oc scale deployment instance-quay-mirror --replicas=0
+----
+
+. Wait until the Quay App and Quay Mirror pods are terminated:
++
+----
+$ watch oc get pods -n quay-registry
+----
+
+. Back up your Quay Secrets: 
+.. Back up the config bundle secret: 
++
+----
+$ QUAY_NAMESPACE="quay-registry"
+$ QUAY_CURR_CONFIG_BUNDLE=$( oc get quayregistries.quay.redhat.com -o jsonpath="{.items[0].spec.configBundleSecret}{'\n'}" ) 
+$ QUAY_BACKUP_DIR="/var/tmp/quay-backup"
+$ mkdir -pv "$QUAY_BACKUP_DIR/config"
+$ oc extract secret/"$QUAY_CURR_CONFIG_BUNDLE" -n "$QUAY_NAMESPACE" --to="${QUAY_BACKUP_DIR}/config/"
+----
+
+. Back up `managed-secret-keys` secret: 
++
+----
+$ oc get secrets -o json | jq '.items[] | .metadata | {name} | select(.name | contains("managed-secret-keys"))'
+$ oc get secret <registry_name>-<namespace>-managed-secret-keys-xxxxxxxxxx -o yaml > "${QUAY_BACKUP_DIR}/managed-secret-keys.yaml"
+----
+
+. Back up Quay's database: 
++
+----
+$ QUAY_BACKUP_DIR="/var/tmp/quay-backup"
+$ mkdir -pv $QUAY_BACKUP_DIR/db
+$ DB_DEPLOYMENT="$(oc get deployment | awk '/quay-database/ { print $1 }')"
+$ DB_SECRET=$(oc get deployment/$DB_DEPLOYMENT -o jsonpath="{.spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name}{'\n'}")
+$ PSQL_USER="$(oc get secret/"$DB_SECRET" -o template='{{ index .data "database-username" | base64decode }}')"
+$ PSQL_DB="$(oc get secret/"$DB_SECRET" -o template='{{ index .data "database-name" | base64decode }}')"
+$ DB_POD="$(oc get pods | awk '/quay-database/ { print $1 }')"
+$ QUAY_BACKUP_FILE="${QUAY_BACKUP_DIR}/db/${PSQL_DB}.sql"
+$ oc exec "$DB_POD" -- pg_dump -U "$PSQL_USER" -h localhost "$PSQL_DB" > "$QUAY_BACKUP_FILE"
+----
+
+. Back up the s3 bucket:
++
+[NOTE]
+====
+s3 credentials and URL are required in order to backup the s3 bucket. If Quay is using an unmanaged s3 object store such details are defined under the DISTRIBUTED_STORAGE_CONFIG section of quay.config.
+====
++ 
+The following steps explain how to extract the data from NooBaa:
+
+.. Get the NooBaa secrets: 
++
+----
+$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_ACCESS_KEY_ID | base64decode }}" ; echo
+$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_SECRET_ACCESS_KEY | base64decode }}" ; echo
+----
+
+.. Get the s3 route: 
++
+----
+$ oc get route s3 -n openshift-storage -o yaml -o jsonpath="{.spec.host}{'\n'}"
+----
+
+.. Set up `s3cmd` with the s3 credentials, URL, and required details:
++
+----
+$ pip install s3cmd
+$ s3cmd --configure
+----
++
+.. Edit `$HOME/.s3cfg` as follows: 
++
+----
+check_ssl_certificate = False
+host_bucket =
+----
+.. Back up your data: 
++
+----
+$ mkdir "${QUAY_BACKUP_DIR}/data"
+$ s3cmd sync --delete-removed s3://instance00-obc-[...]/ "${QUAY_BACKUP_DIR}/data"
+----
+. Scale up the Quay Operator, Quay App, and Quay Mirror deployments: 
++
+----
+$ oc scale deployment quay-operator.v3.5.7 --replicas=1 -n openshift-operators
+$ oc scale deployment instance-quay-app --replicas=1
+$ oc scale deployment instance-quay-mirror --replicas=1
+----
+
+== Restore Red Hat Quay when the Operator manages the database procedure 
+
+.Procedure 
+
+. Install the Quay Operator and redeploy the Quay Registry instance. 
+
+. Restore the Quay config bundle secret:
+.. Create a new secret from the back up config bundle: 
++
+----
+$ oc create secret generic SECRET_NAME --from-file="${QUAY_BACKUP_DIR}/config/"
+----
+
+.. Patch the QuayRegistry CRD:
++
+----
+$ oc patch quayregistries.quay.redhat.com REGISTRY_NAME --type='merge' -p '{"spec":{"configBundleSecret":"SECRET_NAME"}}'
+----
+
+.. Vertify that Quay is running with the desired configurations. 
+
+. Scale down the Quay Operator, Quay App, and Quay Mirror deployments: 
++
+----
+$ oc scale deployment quay-operator.v3.5.7 --replicas=0 -n openshift-operators
+$ oc scale deployment instance-quay-app --replicas=0
+$ oc scale deployment instance-quay-mirror --replicas=0
+----
+
+. Patch the new secret `<registry_name>-<namespace>-managed-secret-keys-xxxxxxxxx` to insert the old `SECRET_KEY` and `DATABASE_SECRET_KEY` values from the backup. 
+
+. Restore the s3 bucket:
+.. Configure `s3cmd` with the new NooBaa bucket credentials:
+... Obtain the NooBaa credentials: 
++
+----
+$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_ACCESS_KEY_ID | base64decode }}" ; echo
+$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_SECRET_ACCESS_KEY | base64decode }}" ; echo
+----
+... Edit the `$HOME/.s3cfg` file to insert the above credentials. 
+.. Restore the data:
++
+----
+$ s3cmd sync /var/tmp/quay-backup/data/ s3://instance00-obc-[...]/ 
+----
+. Restore the back up database: 
+..  Copy the following dump on the database pod: 
++
+----
+$ oc cp /path/to/quay/backup.sql <REGISTRY_NAME>-quay-database-xxxxxxxxxx-xxxxx:/tmp
+----
+
+.. Run a remote shell on the database pod: 
++
+----
+$ oc rsh REGISTRY_NAME-quay-database-xxxxxxxxxx-xxxxx
+sh-4.4$ psql
+postgres=# DROP DATABASE "database-name";
+postgres=# CREATE DATABASE "database-name" OWNER "database-username";
+sh-4.4$ psql database-name < /tmp/backup.sql
+----
+
+. Optional recommendation: Enable debut by setting `DEBUGLOG=true`: 
++
+----
+$ oc edit deployment instance-quay-app
+----
+. Scale up the Quay Operator, Quay App, and Quay Mirror Deployments:
++
+----
+$ oc scale deployment quay-operator.v3.5.7 --replicas=1 -n openshift-operators
+$ oc scale deployment instance-quay-app --replicas=1
+$ oc scale deployment instance-quay-mirror --replicas=1
+----
+. Verify that Quay is up and running
+
+. Verify that the installation is functional:
+.. Pull an image from an existing repository
+.. Push an image into an existing repository
+.. Create a new repository
+.. Create a new organization
+.. Sync a mirror repository
+
+. Optional recommendation: Disable debut by setting `DEBUGLOG=false`. 
