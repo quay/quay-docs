@@ -1,7 +1,7 @@
 === Back up procedure 
 
 . Scale down the Quay operator, Quay App, and Quay Mirror deployments: 
-
++
 ----
 $ oc scale deployment quay-operator.v3.5.7 --replicas=0 -n openshift-operators
 $ oc scale deployment instance-quay-app --replicas=0
@@ -9,7 +9,7 @@ $ oc scale deployment instance-quay-mirror --replicas=0
 ----
 
 . Wait until the Quay App and Quay Mirror pods are terminated:
-
++
 ----
 $ watch oc get pods -n quay-registry
 ----
@@ -26,13 +26,14 @@ $ oc extract secret/"$QUAY_CURR_CONFIG_BUNDLE" -n "$QUAY_NAMESPACE" --to="${QUAY
 ----
 
 . Back up `managed-secret-keys` secret: 
-
++
 ----
 $ oc get secrets -o json | jq '.items[] | .metadata | {name} | select(.name | contains("managed-secret-keys"))'
 $ oc get secret <registry_name>-<namespace>-managed-secret-keys-xxxxxxxxxx -o yaml > "${QUAY_BACKUP_DIR}/managed-secret-keys.yaml"
 ----
 
 . Back up Quay's database: 
++
 ----
 $ QUAY_BACKUP_DIR="/var/tmp/quay-backup"
 $ mkdir -pv $QUAY_BACKUP_DIR/db
