@@ -45,3 +45,53 @@ $ DB_POD="$(oc get pods | awk '/quay-database/ { print $1 }')"
 $ QUAY_BACKUP_FILE="${QUAY_BACKUP_DIR}/db/${PSQL_DB}.sql"
 $ oc exec "$DB_POD" -- pg_dump -U "$PSQL_USER" -h localhost "$PSQL_DB" > "$QUAY_BACKUP_FILE"
 ----
+
+. Back up the s3 bucket:
++
+[NOTE]
+====
+s3 credentials and URL are required in order to backup the s3 bucket. If Quay is using an unmanaged s3 object store such details are defined under the DISTRIBUTED_STORAGE_CONFIG section of quay.config.
+====
++ 
+The following steps explain how to extract the data from NooBaa:
+
+.. Get the NooBaa secrets: 
++
+----
+$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_ACCESS_KEY_ID | base64decode }}" ; echo
+$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_SECRET_ACCESS_KEY | base64decode }}" ; echo
+----
+
+.. Get the s3 route: 
++
+----
+$ oc get route s3 -n openshift-storage -o yaml -o jsonpath="{.spec.host}{'\n'}"
+----
+
+.. Set up `s3cmd` with the s3 credentials, URL, and required details:
++
+----
+$ pip install s3cmd
+$ s3cmd --configure
+----
++
+Edit `$HOME/.s3cfg` as follows: 
++
+----
+check_ssl_certificate = False
+host_bucket =
+----
+.. Back up your data: 
++
+----
+$ mkdir "${QUAY_BACKUP_DIR}/data"
+$ s3cmd sync --delete-removed s3://instance00-obc-[...]/ "${QUAY_BACKUP_DIR}/data"
+----
+. Scale up the Quay Operator, Quay App, and Quay Mirror deployments: 
++
+----
+Raw
+$ oc scale deployment quay-operator.v3.5.7 --replicas=1 -n openshift-operators
+$ oc scale deployment instance-quay-app --replicas=1
+$ oc scale deployment instance-quay-mirror --replicas=1
+----
