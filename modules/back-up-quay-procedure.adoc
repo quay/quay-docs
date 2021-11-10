@@ -1,0 +1,46 @@
+=== Back up procedure 
+
+. Scale down the Quay operator, Quay App, and Quay Mirror deployments: 
+
+----
+$ oc scale deployment quay-operator.v3.5.7 --replicas=0 -n openshift-operators
+$ oc scale deployment instance-quay-app --replicas=0
+$ oc scale deployment instance-quay-mirror --replicas=0
+----
+
+. Wait until the Quay App and Quay Mirror pods are terminated:
+
+----
+$ watch oc get pods -n quay-registry
+----
+
+. Back up your Quay Secrets: 
+.. Back up the config bundle secret: 
++
+----
+$ QUAY_NAMESPACE="quay-registry"
+$ QUAY_CURR_CONFIG_BUNDLE=$( oc get quayregistries.quay.redhat.com -o jsonpath="{.items[0].spec.configBundleSecret}{'\n'}" ) 
+$ QUAY_BACKUP_DIR="/var/tmp/quay-backup"
+$ mkdir -pv "$QUAY_BACKUP_DIR/config"
+$ oc extract secret/"$QUAY_CURR_CONFIG_BUNDLE" -n "$QUAY_NAMESPACE" --to="${QUAY_BACKUP_DIR}/config/"
+----
+
+. Back up `managed-secret-keys` secret: 
+
+----
+$ oc get secrets -o json | jq '.items[] | .metadata | {name} | select(.name | contains("managed-secret-keys"))'
+$ oc get secret <registry_name>-<namespace>-managed-secret-keys-xxxxxxxxxx -o yaml > "${QUAY_BACKUP_DIR}/managed-secret-keys.yaml"
+----
+
+. Back up Quay's database: 
+----
+$ QUAY_BACKUP_DIR="/var/tmp/quay-backup"
+$ mkdir -pv $QUAY_BACKUP_DIR/db
+$ DB_DEPLOYMENT="$(oc get deployment | awk '/quay-database/ { print $1 }')"
+$ DB_SECRET=$(oc get deployment/$DB_DEPLOYMENT -o jsonpath="{.spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name}{'\n'}")
+$ PSQL_USER="$(oc get secret/"$DB_SECRET" -o template='{{ index .data "database-username" | base64decode }}')"
+$ PSQL_DB="$(oc get secret/"$DB_SECRET" -o template='{{ index .data "database-name" | base64decode }}')"
+$ DB_POD="$(oc get pods | awk '/quay-database/ { print $1 }')"
+$ QUAY_BACKUP_FILE="${QUAY_BACKUP_DIR}/db/${PSQL_DB}.sql"
+$ oc exec "$DB_POD" -- pg_dump -U "$PSQL_USER" -h localhost "$PSQL_DB" > "$QUAY_BACKUP_FILE"
+----
