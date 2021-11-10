@@ -1,0 +1,31 @@
+=== Back up Red Hat Quay when the Operator does not manage the database procedure 
+
+.Procedure 
+
+. Create a new database in the database engine:
++
+----
+
+----
+
+. Create the `pg_trgm` extension on the newly-created database: 
++
+----
+
+----
+
+. Restore the Quay database from backup with psql:
++
+----
+
+----
+
+. Create a new blob storage bucket and copy all blobs to the bucket from backup with the appropriate tool, such as s3cmd, awscli, or Azure: 
++
+----
+
+----
+
+. Edit the custom config bundle and modify the `DB_URI` and storage parameters if needed. Create the custom config bundle secret with the same name as before. 
+
+. Install the Quay Operator and apply the same QuayRegistry CR as before. It should reference the created custom config bundle. The Operator should reconcile everything and create necessary secrets and start Quay: 
