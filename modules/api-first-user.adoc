@@ -13,26 +13,38 @@ For more information on pre-configuring the deployment, see the section xref:con
 
 Using the `status.registryEndpoint` URL, invoke the `/api/v1/user/initialize` API, passing in the username, password and email address. You can also request an OAuth token by specifying `"access_token": true`.
 
+[source,bash]
 ----
 $  curl -X POST -k  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayadmin", "password":"quaypass123", "email": "quayadmin@example.com", "access_token": true}'
+----
 
+[source,yaml]
+----
 {"access_token":"6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED", "email":"quayadmin@example.com","encrypted_password":"1nZMLH57RIE5UGdL/yYpDOHLqiNCgimb6W9kfF8MjZ1xrfDpRyRs9NUnUuNuAitW","username":"quayadmin"}
 ----
 
 If successful, the method returns an object with the username, email and encrypted password. If a user already exists in the database, an error is returned:
 
+[source,bash]
 ----
 $  curl -X POST -k  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayuser2", "password":"quaypass123", "email": "quayuser2@example.com"}'
+----
 
+[source,yaml]
+----
 {"message":"Cannot initialize user in a non-empty database"}
 ----
 
 
 The password must be at least 8 characters and contain no whitespace:
 
+[source,bash]
 ----
  $  curl -X POST -k  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayadmin", "password":"pass123", "email": "quayadmin@example.com"}'
+----
 
+[source,yaml]
+----
 {"message":"Failed to initialize user: Invalid password, password must be at least 8 characters and contain no whitespace."}
 ----
 
@@ -40,11 +52,13 @@ The password must be at least 8 characters and contain no whitespace:
 
 You can now invoke the rest of the Quay API specifying the returned OAuth code. For example, to get a list of the current users:
 
+[source,bash]
+----
+$ curl -X GET -k -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/superuser/users/
+----
+
 [source,yaml]
 ----
-$ curl -X GET -k -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/superuser/users/  | json-reformat
-
-
 {
     "users": [
         {
@@ -72,9 +86,13 @@ In this instance, the details for the `quayadmin` user are returned as it is the
 
 To create an organization, use a POST call to `api/v1/organization/` endpoint:
 
+[source,bash]
 ----
 $ curl -X POST -k --header 'Content-Type: application/json' -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/organization/ --data '{"name": "testorg", "email": "testorg@example.com"}'  
+----
 
+[source,yaml]
+----
 "Created"
 ----
 
@@ -84,11 +102,13 @@ $ curl -X POST -k --header 'Content-Type: application/json' -H "Authorization: B
 To retrieve the details of the organization you created:
 
 
+[source,bash]
+----
+$ curl -X GET -k --header 'Content-Type: application/json' -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://min-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/organization/testorg 
+----
+
 [source,yaml]
 ----
-$ curl -X GET -k --header 'Content-Type: application/json' -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://min-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/organization/testorg | json_reformat
-
-
 {
     "name": "testorg",
     "email": "testorg@example.com",
