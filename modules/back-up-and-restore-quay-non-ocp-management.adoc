@@ -8,27 +8,51 @@ This procedure is tested within the same {productname} minor version, regardless
 
 * {productname} is deployed on OpenShift Container Platform using the Quay Operator. 
 
-==== Back up Red Hat Quay when the Operator does not manage the database procedure 
+==== Back up Red Hat Quay when the Operator does not manage the database procedure
+
+.Prerequisites 
+
+* to create a PostgreSQL database, you must be a superuser or have the `CREATEDB` privilege. 
 
 .Procedure 
 
 . Create a new database in the database engine:
 +
 ----
-
+$ CREATE DATABASE <name> 
 ----
++
+For a list of available parameters, see link:https://www.postgresql.org/docs/11/sql-createdatabase.html[Creating a PostgreSQL database].
 
 . Create the `pg_trgm` extension on the newly-created database: 
 +
 ----
-
+$ CREATE EXTENSION pg_trgm
 ----
 
-. Restore the Quay database from backup with psql:
+. Restore the Quay database from backup with psql.
+.. Generate a file with the SQL commands that will recreate the database in the same state as it was at the time of the dump: 
 +
 ----
-
+$ pg_dump dbname > dumpfile
 ----
+.. Restoring the dump
+... Files created by `pg_dump` are intended to be read by the psql program. To restore a dump, use the following command:
++
+----
+$ psql dbname <1> < dumpfile <2> 
+----
++
+<1> The database `dbname` will not be created by this command. You must create it yourself from `template0` before executing psql. For example, `createdb -T template0 dbname`. 
+<2> Your dumpfile is the file output by the `pg_dump` command. 
+
+... By default, the `psql` script will continue executing after an SQL error is encountered. Running `psql` with the `ON_ERROR_STOP` variable set has `psql exit` with an exist status of 3 if an SQL error occurs: 
++
+----
+$ psql --set ON_ERROR_STOP=on dbname < dumpfile
+----
+
+
 
 . Create a new blob storage bucket and copy all blobs to the bucket from backup with the appropriate tool, such as s3cmd, awscli, or Azure: 
 +
