@@ -12,7 +12,7 @@ This procedure is tested within the same {productname} minor version, regardless
 
 .Prerequisites 
 
-* to create a PostgreSQL database, you must be a superuser or have the `CREATEDB` privilege. 
+* To create a PostgreSQL database, you must be a superuser or have the `CREATEDB` privilege. 
 
 .Procedure 
 
@@ -36,7 +36,8 @@ $ CREATE EXTENSION pg_trgm
 ----
 $ pg_dump dbname > dumpfile
 ----
-. Restoring the dump
+
+. Restoring the dump.
 .. Files created by `pg_dump` are intended to be read by the psql program. To restore a dump, use the following command:
 +
 ----
@@ -53,7 +54,17 @@ Your dumpfile is the file output by the `pg_dump` command.
 $ psql --set ON_ERROR_STOP=on dbname < dumpfile
 ----
 
+.. Using `pg_dump` and `psql` to write or read from pipes makes it possible to dump a database from one server to another. For example: 
++
+----
+pg_dump -h host1 dbname | psql -h host2 dbname
+----
+[IMPORTANT]
+====
+The dumps produced by pg_dump are relative to template0. This means that any languages, procedures, etc. added via template1 will also be dumped by pg_dump. As a result, when restoring, if you are using a customized template1, you must create the empty database from template0, as in the example above.
 
+After restoring a backup, we suggesting running link:https://www.postgresql.org/docs/11/sql-analyze.html[ANALYZE] on each database so that thequeryoptimizer has useful statistics; see link:https://www.postgresql.org/docs/11/routine-vacuuming.html#VACUUM-FOR-STATISTICS[Section 24.1.3] and link:https://www.postgresql.org/docs/11/routine-vacuuming.html#AUTOVACUUM[Section 24.1.6] for more information. For more advice on how to load large amounts of data into PostgreSQL efficiently, see link:https://www.postgresql.org/docs/11/populate.html[section 14.4]. 
+====
 
 . Create a new blob storage bucket and copy all blobs to the bucket from backup with the appropriate tool, such as s3cmd, awscli, or Azure: 
 +
