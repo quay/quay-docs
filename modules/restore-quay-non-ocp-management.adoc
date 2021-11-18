@@ -1,0 +1,76 @@
+=== Restore Quay when the Quay Operator does not manage the database
+
+This procedure is used to back up and restore {productname} when the Quay Operator does not manage the database.
+
+This procedure is tested within the same {productname} minor version, regardless of the z-stream version. There should be no changes in the database schema between z-stream releases.
+
+.Prerequisites
+
+* {productname} is deployed on OpenShift Container Platform using the Quay Operator.
+
+==== Back up Red Hat Quay when the Operator does not manage the database procedure
+
+.Prerequisites
+
+* To create a PostgreSQL database, you must be a superuser or have the `CREATEDB` privilege.
+
+.Procedure
+
+. Create a new database in the database engine:
++
+----
+$ CREATE DATABASE <name>
+----
++
+For a list of available parameters, see link:https://www.postgresql.org/docs/11/sql-createdatabase.html[Creating a PostgreSQL database].
+
+. Create the `pg_trgm` extension on the newly-created database:
++
+----
+$ CREATE EXTENSION pg_trgm
+----
+
+. Restore the Quay database from backup with psql.
+.. Generate a file with the SQL commands that will recreate the database in the same state as it was at the time of the dump:
++
+----
+$ pg_dump dbname > dumpfile
+----
+
+. Restore the dump.
+.. Files created by `pg_dump` are intended to be read by the psql program. To restore a dump, use the following command:
++
+----
+$ psql dbname < dumpfile <1>
+----
++
+<1> The database `dbname` will not be created by this command. You must create it yourself from `template0` before executing psql. For example, `createdb -T template0 dbname`. Additionally, your dumpfile is the file output by the `pg_dump` command.
+
+.. By default, the `psql` script will continue executing after an SQL error is encountered. Running `psql` with the `ON_ERROR_STOP` variable set has `psql exit` with an exist status of 3 if an SQL error occurs:
++
+----
+$ psql --set ON_ERROR_STOP=on dbname < dumpfile
+----
+
+.. Using `pg_dump` and `psql` to write or read from pipes makes it possible to dump a database from one server to another. For example:
++
+----
+pg_dump -h host1 dbname | psql -h host2 dbname
+----
++
+[IMPORTANT]
+====
+The dumps produced by pg_dump are relative to template0. This means that any languages, procedures, etc. added via template1 will also be dumped by pg_dump. As a result, when restoring, if you are using a customized template1, you must create the empty database from template0, as in the example above.
+
+After restoring a backup, we suggesting running link:https://www.postgresql.org/docs/11/sql-analyze.html[ANALYZE] on each database so that thequeryoptimizer has useful statistics; see link:https://www.postgresql.org/docs/11/routine-vacuuming.html#VACUUM-FOR-STATISTICS[Section 24.1.3] and link:https://www.postgresql.org/docs/11/routine-vacuuming.html#AUTOVACUUM[Section 24.1.6] for more information. For more advice on how to load large amounts of data into PostgreSQL efficiently, see link:https://www.postgresql.org/docs/11/populate.html[section 14.4].
+====
+
+. Create a new blob storage bucket and copy all blobs to the bucket from backup with the appropriate tool, such as s3cmd, awscli, or Azure. The following example uses s3cmd:
++
+----
+$ aws s3 sync s3://DOC-EXAMPLE-BUCKET-SOURCE s3://DOC-EXAMPLE-BUCKET-TARGET
+----
+
+. Edit the custom config bundle and modify the `DB_URI` and storage parameters if needed. Create the custom config bundle secret with the same name as before.
+
+. Install the Quay Operator and apply the same QuayRegistry CR as before. It should reference the created custom config bundle. The Operator should reconcile everything and create necessary secrets and start Quay:
