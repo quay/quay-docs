@@ -56,9 +56,9 @@ pg_dump -h host1 dbname | psql -h host2 dbname
 +
 [IMPORTANT]
 ====
-The dumps produced by `pg_dump` are relative to template0. This means that any languages, procedures, etc. added via template1 will also be dumped by `pg_dump`. As a result, when restoring, if you are using a customized template1, you must create the empty database from template0, as in the example above.
+The dumps produced by pg_dump are relative to template0. This means that any languages, procedures, etc. added via template1 will also be dumped by pg_dump. As a result, when restoring, if you are using a customized template1, you must create the empty database from template0, as in the example above.
 
-After restoring a backup, we suggesting running link:https://www.postgresql.org/docs/11/sql-analyze.html[ANALYZE] on each database so that the query optimizer has useful statistics; see link:https://www.postgresql.org/docs/11/routine-vacuuming.html#VACUUM-FOR-STATISTICS[Section 24.1.3] and link:https://www.postgresql.org/docs/11/routine-vacuuming.html#AUTOVACUUM[Section 24.1.6] for more information. For more advice on how to load large amounts of data into PostgreSQL efficiently, see link:https://www.postgresql.org/docs/11/populate.html[section 14.4].
+After restoring a backup, we suggesting running link:https://www.postgresql.org/docs/11/sql-analyze.html[ANALYZE] on each database so that thequeryoptimizer has useful statistics; see link:https://www.postgresql.org/docs/11/routine-vacuuming.html#VACUUM-FOR-STATISTICS[Section 24.1.3] and link:https://www.postgresql.org/docs/11/routine-vacuuming.html#AUTOVACUUM[Section 24.1.6] for more information. For more advice on how to load large amounts of data into PostgreSQL efficiently, see link:https://www.postgresql.org/docs/11/populate.html[section 14.4].
 ====
 
 . Create a new blob storage bucket and copy all blobs to the bucket from backup with the appropriate tool, such as s3cmd, awscli, or Azure. The following example uses s3cmd:
@@ -66,3 +66,44 @@ After restoring a backup, we suggesting running link:https://www.postgresql.org/
 ----
 $ aws s3 sync s3://DOC-EXAMPLE-BUCKET-SOURCE s3://DOC-EXAMPLE-BUCKET-TARGET
 ----
+
+. Restore the config bundle directory from storage:
++
+----
+
+----
+
+. Edit the DB_URI inside the config.yaml file so that it references the new database if needed:
++
+----
+
+----
+
+. Edit the storage parameters (new bucket name, new host, and new credentials) if needed:
++
+----
+
+----
+
+. Start the same version of {productname} that was running prior to restoration against the restored config bundle:
++
+----
+
+----
+
+
+. If Quay restarts normally, scale up the Quay Operator, Quay App, and Quay Mirror Deployments:
++
+----
+$ oc scale deployment quay-operator.{productminv} --replicas=1 -n openshift-operators
+$ oc scale deployment instance-quay-app --replicas=1
+$ oc scale deployment instance-quay-mirror --replicas=1
+----
+. Verify that Quay is up and running
+
+. Verify that the installation is functional:
+.. Pull an image from an existing repository
+.. Push an image into an existing repository
+.. Create a new repository
+.. Create a new organization
+.. Sync a mirror repository
