@@ -1,11 +1,12 @@
-== Back up Red Hat Quay procedure 
+== Back up Red Hat Quay procedure
 
-.Procedure 
+.Procedure
 
-. Scale down the Quay operator, Quay App, and Quay Mirror deployments: 
+. Scale down the Quay operator, Quay App, and Quay Mirror deployments:
 +
+[subs="verbatim,attributes"]
 ----
-$ oc scale deployment quay-operator.v3.5.7 --replicas=0 -n openshift-operators
+$ oc scale deployment quay-operator.{productminv} --replicas=0 -n openshift-operators
 $ oc scale deployment instance-quay-app --replicas=0
 $ oc scale deployment instance-quay-mirror --replicas=0
 ----
@@ -16,25 +17,25 @@ $ oc scale deployment instance-quay-mirror --replicas=0
 $ watch oc get pods -n quay-registry
 ----
 
-. Back up your Quay Secrets: 
-.. Back up the config bundle secret: 
+. Back up your Quay Secrets:
+.. Back up the config bundle secret:
 +
 ----
 $ QUAY_NAMESPACE="quay-registry"
-$ QUAY_CURR_CONFIG_BUNDLE=$( oc get quayregistries.quay.redhat.com -o jsonpath="{.items[0].spec.configBundleSecret}{'\n'}" ) 
+$ QUAY_CURR_CONFIG_BUNDLE=$( oc get quayregistries.quay.redhat.com -o jsonpath="{.items[0].spec.configBundleSecret}{'\n'}" )
 $ QUAY_BACKUP_DIR="/var/tmp/quay-backup"
 $ mkdir -pv "$QUAY_BACKUP_DIR/config"
 $ oc extract secret/"$QUAY_CURR_CONFIG_BUNDLE" -n "$QUAY_NAMESPACE" --to="${QUAY_BACKUP_DIR}/config/"
 ----
 
-. Back up `managed-secret-keys` secret: 
+. Back up `managed-secret-keys` secret:
 +
 ----
 $ oc get secrets -o json | jq '.items[] | .metadata | {name} | select(.name | contains("managed-secret-keys"))'
 $ oc get secret <registry_name>-<namespace>-managed-secret-keys-xxxxxxxxxx -o yaml > "${QUAY_BACKUP_DIR}/managed-secret-keys.yaml"
 ----
 
-. Back up Quay's database: 
+. Back up Quay's database:
 +
 ----
 $ QUAY_BACKUP_DIR="/var/tmp/quay-backup"
@@ -54,17 +55,17 @@ $ oc exec "$DB_POD" -- pg_dump -U "$PSQL_USER" -h localhost "$PSQL_DB" > "$QUAY_
 ====
 s3 credentials and URL are required in order to backup the s3 bucket. If Quay is using an unmanaged s3 object store such details are defined under the DISTRIBUTED_STORAGE_CONFIG section of quay.config.
 ====
-+ 
++
 The following steps explain how to extract the data from NooBaa:
 
-.. Get the NooBaa secrets: 
+.. Get the NooBaa secrets:
 +
 ----
 $ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_ACCESS_KEY_ID | base64decode }}" ; echo
 $ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_SECRET_ACCESS_KEY | base64decode }}" ; echo
 ----
 
-.. Get the s3 route: 
+.. Get the s3 route:
 +
 ----
 $ oc get route s3 -n openshift-storage -o yaml -o jsonpath="{.spec.host}{'\n'}"
@@ -77,22 +78,23 @@ $ pip install s3cmd
 $ s3cmd --configure
 ----
 +
-.. Edit `$HOME/.s3cfg` as follows: 
+.. Edit `$HOME/.s3cfg` as follows:
 +
 ----
 check_ssl_certificate = False
 host_bucket =
 ----
-.. Back up your data: 
+.. Back up your data:
 +
 ----
 $ mkdir "${QUAY_BACKUP_DIR}/data"
 $ s3cmd sync --delete-removed s3://instance00-obc-[...]/ "${QUAY_BACKUP_DIR}/data"
 ----
-. Scale up the Quay Operator, Quay App, and Quay Mirror deployments: 
+. Scale up the Quay Operator, Quay App, and Quay Mirror deployments:
 +
+[subs="verbatim,attributes"]
 ----
-$ oc scale deployment quay-operator.v3.5.7 --replicas=1 -n openshift-operators
+$ oc scale deployment quay-operator.{productminv} --replicas=1 -n openshift-operators
 $ oc scale deployment instance-quay-app --replicas=1
 $ oc scale deployment instance-quay-mirror --replicas=1
 ----
