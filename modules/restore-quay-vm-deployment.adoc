@@ -74,19 +74,32 @@ $ aws s3 sync s3://DOC-EXAMPLE-BUCKET-SOURCE s3://DOC-EXAMPLE-BUCKET-TARGET
 . Edit the DB_URI inside the config.yaml file so that it references the new database if needed:
 +
 ----
-
+DB_URI: postgresql://quay360-quay-database:0vrsIUYdhCnF8r-jwz7zR6gck6kcLLQhJ11u0dx1lz8YBk185P5NnqIBwtY22JArYLi3opdKJH2-w4aM@quay360-quay-database:5432/quay360-quay-database
 ----
 
 . Edit the storage parameters (new bucket name, new host, and new credentials) if needed:
 +
 ----
-
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+  - S3Storage
+  - host: s3.us-east-2.amazonaws.com
+    s3_access_key: ******
+    s3_bucket: quay360
+    s3_secret_key: *****
+    storage_path: /quay360
 ----
 
 . Start the same version of {productname} that was running prior to restoration against the restored config bundle:
 +
+[subs="verbatim,attributes"]
 ----
-
+# sudo podman run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   --privileged=true \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d registry.redhat.io/quay/quay-rhel8:{productminv}
 ----
 
 
