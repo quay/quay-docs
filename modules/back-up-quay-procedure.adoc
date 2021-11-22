@@ -1,100 +1,171 @@
-== Back up Red Hat Quay procedure
+== Backing up Red Hat Quay
+
+This procedure is exclusively for OpenShift Container Platform and NooBaa deployments.
 
 .Procedure
 
-. Scale down the Quay operator, Quay App, and Quay Mirror deployments:
-+
-[subs="verbatim,attributes"]
-----
-$ oc scale deployment quay-operator.{productminv} --replicas=0 -n openshift-operators
-$ oc scale deployment instance-quay-app --replicas=0
-$ oc scale deployment instance-quay-mirror --replicas=0
-----
-
-. Wait until the Quay App and Quay Mirror pods are terminated:
-+
-----
-$ watch oc get pods -n quay-registry
-----
-
-. Back up your Quay Secrets.
-.. Back up the config bundle secret:
-+
-----
-$ QUAY_NAMESPACE="quay-registry"
-$ QUAY_CURR_CONFIG_BUNDLE=$( oc get quayregistries.quay.redhat.com -o jsonpath="{.items[0].spec.configBundleSecret}{'\n'}" )
-$ QUAY_BACKUP_DIR="/var/tmp/quay-backup"
-$ mkdir -pv "$QUAY_BACKUP_DIR/config"
-$ oc extract secret/"$QUAY_CURR_CONFIG_BUNDLE" -n "$QUAY_NAMESPACE" --to="${QUAY_BACKUP_DIR}/config/"
-----
-
-. Back up `managed-secret-keys` secret:
-+
-----
-$ oc get secrets -o json | jq '.items[] | .metadata | {name} | select(.name | contains("managed-secret-keys"))'
-$ oc get secret <registry_name>-<namespace>-managed-secret-keys-xxxxxxxxxx -o yaml > "${QUAY_BACKUP_DIR}/managed-secret-keys.yaml"
-----
-
-. Back up Quay's database:
-+
-----
-$ QUAY_BACKUP_DIR="/var/tmp/quay-backup"
-$ mkdir -pv $QUAY_BACKUP_DIR/db
-$ DB_DEPLOYMENT="$(oc get deployment | awk '/quay-database/ { print $1 }')"
-$ DB_SECRET=$(oc get deployment/$DB_DEPLOYMENT -o jsonpath="{.spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name}{'\n'}")
-$ PSQL_USER="$(oc get secret/"$DB_SECRET" -o template='{{ index .data "database-username" | base64decode }}')"
-$ PSQL_DB="$(oc get secret/"$DB_SECRET" -o template='{{ index .data "database-name" | base64decode }}')"
-$ DB_POD="$(oc get pods | awk '/quay-database/ { print $1 }')"
-$ QUAY_BACKUP_FILE="${QUAY_BACKUP_DIR}/db/${PSQL_DB}.sql"
-$ oc exec "$DB_POD" -- pg_dump -U "$PSQL_USER" -h localhost "$PSQL_DB" > "$QUAY_BACKUP_FILE"
-----
-
-. Back up the s3 bucket:
-+
 [NOTE]
 ====
-s3 credentials and URL are required in order to backup the s3 bucket. If Quay is using an unmanaged s3 object store such details are defined under the DISTRIBUTED_STORAGE_CONFIG section of quay.config.
+The procedure in this documents uses the following namespace: `quay-enterprise`.
 ====
-+
-The following steps explain how to extract the data from a NooBaa resource. 
 
-.. Get the NooBaa secrets:
+. Obtain a list of your deployed pods in your Quay namespace:
 +
 ----
-$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_ACCESS_KEY_ID | base64decode }}" ; echo
-$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_SECRET_ACCESS_KEY | base64decode }}" ; echo
+$ oc get pods -n quay-enterprise
+----
++
+Example output:
++
+----
+NAME                                                   READY   STATUS      RESTARTS   AGE
+example-registry-clair-app-7dccddc6fd-fwckp            1/1     Running     0          69m
+example-registry-clair-postgres-558d7cc9c-xgk2m        1/1     Running     0          68m
+example-registry-quay-app-5677cb59b7-fpxcg             1/1     Running     0          69m
+example-registry-quay-app-upgrade-zstr4                0/1     Completed   0          69m
+example-registry-quay-config-editor-67c769f669-dp5gf   1/1     Running     0          69m
+example-registry-quay-database-6d58c4c545-99s2g        1/1     Running     0          69m
+example-registry-quay-mirror-d4bc9c99c-rmk4f           1/1     Running     0          68m
+example-registry-quay-postgres-init-rwbsq              0/1     Completed   0          69m
+example-registry-quay-redis-577776d494-k48zv           1/1     Running     0          69m
+quay-operator.{productminv}-798d5c8b69-q6x88                  1/1     Running     0          79m
 ----
 
-.. Get the s3 route:
+. Obtain the configuration secret of your Quay application deployment:
 +
 ----
-$ oc get route s3 -n openshift-storage -o yaml -o jsonpath="{.spec.host}{'\n'}"
+$ oc get deployment -n quay-enterprise example-registry-quay-app -o json | jq '.spec.template.spec.containers[].env[]'
+----
++
+Example output:
++
+[source,terminal]
+----
+{
+  "name": "QE_K8S_CONFIG_SECRET",
+  "value": "example-registry-quay-config-secret-m25mf4dg78"
+}
+{
+  "name": "QE_K8S_NAMESPACE",
+  "valueFrom": {
+    "fieldRef": {
+      "apiVersion": "v1",
+      "fieldPath": "metadata.namespace"
+    }
+  }
+}
+{
+  "name": "DEBUGLOG",
+  "value": "false"
+}
+{
+  "name": "WORKER_COUNT_WEB",
+  "value": "4"
+}
+{
+  "name": "WORKER_COUNT_SECSCAN",
+  "value": "2"
+}
+{
+  "name": "WORKER_COUNT_REGISTRY",
+  "value": "8"
+}
 ----
 
-.. Set up `s3cmd` with the s3 credentials, URL, and required details:
+. Back up the Quay configuration secret in a specified yaml file:
 +
 ----
-$ pip install s3cmd
-$ s3cmd --configure
+$ oc get secret -n quay-enterprise example-registry-quay-config-secret-m25mf4dg78 -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d -w0 > quay-config-yaml-backup.yaml
 ----
-+
-.. Edit `$HOME/.s3cfg` as follows:
-+
-----
-check_ssl_certificate = False
-host_bucket =
-----
-.. Back up your data:
+
+. Reveal the name of your Quay database from the generated yaml file in Step 3:
 +
 ----
-$ mkdir "${QUAY_BACKUP_DIR}/data"
-$ s3cmd sync --delete-removed s3://instance00-obc-[...]/ "${QUAY_BACKUP_DIR}/data"
+$ cat quay-config-yaml-backup.yaml | grep -i DB_URI | cut -d ':' -f3 | sed 's/^..//g'
 ----
-. Scale up the Quay Operator, Quay App, and Quay Mirror deployments:
 +
-[subs="verbatim,attributes"]
+Example output:
++
 ----
-$ oc scale deployment quay-operator.{productminv} --replicas=1 -n openshift-operators
-$ oc scale deployment instance-quay-app --replicas=1
-$ oc scale deployment instance-quay-mirror --replicas=1
+example-registry-quay-database
+----
+
+. Back up your Quay database locally:
++
+----
+$ oc exec -it -n quay-enterprise example-registry-quay-database-5675f6c575-dn7vd -- pg_dump -h localhost -d new-quay-quay-database -O > quay-database-backup.sql
+----
+
+. Ensure that your database has been backed up by running the following command:
++
+----
+$ ls -lah
+----
++
+Example output:
++
+----
+total 248K
+drwxr-xr-x  2 root root   74 Jan 28 15:00 .
+drwx------ 12 root root  298 Jan 28 14:42 ..
+-rw-r--r--  1 root root 1.9K Jan 28 14:56 quay-config-yaml-backup.yaml
+-rw-r--r--  1 root root 243K Jan 28 15:00 quay-database-backup.sql
+----
+
+. Obtain the secret of your Quay configuration from the backup yaml file:
++
+----
+$ cat quay-config-yaml-backup.yaml
+----
++
+Example output:
++
+----
+...
+local_us:
+ - RHOCSStorage
+ - access_key: EX6TtZQ6yCgDn8PqITzO
+   bucket_name: quay-datastore-776165c1-f2a1-43bd-96c5-65c35b458201
+   hostname: s3.openshift-storage.svc.cluster.local
+   is_secure: true
+   port: 443
+   secret_key: Y+Es2psOqsYoHNHRnM541PwgEtNt23qOzQwlppaO
+   storage_path: /datastorage/registry
+...
+----
+
+. Create a directory for your bucket backup:
++
+----
+$ mkdir bucket-backup
+----
+
+. Export the AWS Access Key ID revealed in Step 7:
++
+----
+$ export AWS_ACCESS_KEY_ID=EX6TtZQ6yCgDn8PqITzO
+----
+
+. Export the AWS Secret Access Key revealed in Step 7:
++
+----
+$ export AWS_SECRET_ACCESS_KEY=Y+Es2psOqsYoHNHRnM541PwgEtNt23qOzQwlppaO
+----
+
+. Obtain the s3 route of your Quay namespace:
++
+----
+$ oc get route s3 -n quay-enterprise -o yaml -o jsonpath="{.spec.host}{'\n'}"
+----
++
+Example output:
++
+----
+s3-openshift-storage.apps.ci-ln-3wbqlxt-76ef8.origin-ci-int-aws.dev.rhcloud.com
+----
+
+. Set your AWS s3 storage route as the s3 route of your Quay namespace:
++
+----
+$ aws s3 sync --no-verify-ssl --endpoint-url s3-openshift-storage.apps.ci-ln-3wbqlxt-76ef8.origin-ci-int-aws.dev.rhcloud.com s3://quay-datastore-776165c1-f2a1-43bd-96c5-65c35b458201
 ----
