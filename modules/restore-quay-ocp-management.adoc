@@ -1,94 +1,611 @@
-== Restore Red Hat Quay when the Operator manages the database procedure
+== Restoring Red Hat Quay when the Operator manages the database
 
-This procedure is used to restore {productname} when the Quay Operator manages the database.
+This procedure is used to restore {productname} when the Quay Operator manages the database. It should be performed after a backup of your Quay registry has been performed.
 
 This procedure is tested within the same {productname} minor version, regardless of the z-stream version. There should be no changes in the database schema between z-stream releases.
 
 .Prerequisites
 
 * {productname} is deployed on OpenShift Container Platform using the Quay Operator.
+* Your {productname} database has been backed up.
+* A new {productname} registry has been created.
+
+[NOTE]
+====
+The procedure in this document uses `quay-enterprise-restore` for the namespace, and `restore-registry` for the name of the registry.
+====
 
 .Procedure
 
-. Install the Quay Operator and redeploy the Quay Registry instance.
-
-. Restore the Quay config bundle secret.
-.. Create a new secret from the back up config bundle:
+. Obtain the .yaml file of your Quay namespace:
 +
 ----
-$ oc create secret generic SECRET_NAME --from-file="${QUAY_BACKUP_DIR}/config/"
+$ oc get quayregistries.quay.redhat.com -n quay-enterprise-restore -o yaml
 ----
-
-.. Patch the QuayRegistry CRD:
++
+Example output:
 +
 ----
-$ oc patch quayregistries.quay.redhat.com REGISTRY_NAME --type='merge' -p '{"spec":{"configBundleSecret":"SECRET_NAME"}}'
+apiVersion: v1
+items:
+- apiVersion: quay.redhat.com/v1
+  kind: QuayRegistry
+  metadata:
+    creationTimestamp: "2021-11-29T20:40:41Z"
+    finalizers:
+    - quay-operator/finalizer
+    generation: 3
+    managedFields:
+    - apiVersion: quay.redhat.com/v1
+..
+      time: "2021-11-29T20:41:25Z"
+    name: restore-registry
+    namespace: quay-enterprise-restore
+    resourceVersion: "2592864"
+    selfLink: /apis/quay.redhat.com/v1/namespaces/quay-enterprise-restore/quayregistries/restore-registry
+    uid: cdc3702d-f305-4221-9d6d-8d075ce486db
+  spec:
+    components:
+    - kind: postgres
+      managed: true
+    - kind: objectstorage
+      managed: true
+    - kind: redis
+      managed: true
+    - kind: horizontalpodautoscaler
+      managed: true
+    - kind: route
+      managed: true
+    - kind: mirror
+      managed: true
+    - kind: monitoring
+      managed: true
+    - kind: tls
+      managed: true
+    - kind: clair
+      managed: true
+    configBundleSecret: restore-registry-config-bundle-hr49q
+  status:
+    conditions:
+...
 ----
 
-.. Vertify that Quay is running with the desired configurations.
-
-. Scale down the Quay Operator, Quay App, and Quay Mirror deployments:
-+
-[subs="verbatim,attributes"]
-----
-$ oc scale deployment quay-operator.{productminv} --replicas=0 -n openshift-operators
-$ oc scale deployment instance-quay-app --replicas=0
-$ oc scale deployment instance-quay-mirror --replicas=0
-----
-
-. Patch the new secret `<registry_name>-<namespace>-managed-secret-keys-xxxxxxxxx` to insert the old `SECRET_KEY` and `DATABASE_SECRET_KEY` values from the backup.
-
-. Restore the s3 bucket.
-.. Configure `s3cmd` with the new NooBaa bucket credentials.
-... Obtain the NooBaa credentials:
+. Restore your config bundle secret to your new Quay namespace:
 +
 ----
-$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_ACCESS_KEY_ID | base64decode }}" ; echo
-$ oc get secret/instance00-quay-datastore -o template="{{ .data.AWS_SECRET_ACCESS_KEY | base64decode }}" ; echo
+$ oc create secret generic restored-bundle -n quay-enterprise-restore --from-file="${QUAY_BACKUP_DIR}/config/"
 ----
-... Edit the `$HOME/.s3cfg` file to insert the above credentials.
-.. Restore the data:
++
+Example output:
 +
 ----
-$ s3cmd sync /var/tmp/quay-backup/data/ s3://instance00-obc-[...]/
-----
-. Restore the back up database.
-..  Copy the following dump on the database pod:
-+
-----
-$ oc cp /path/to/quay/backup.sql <REGISTRY_NAME>-quay-database-xxxxxxxxxx-xxxxx:/tmp
+secret/restored-bundle created
 ----
 
-.. Run a remote shell on the database pod:
+. Ensure that your config bundle secret restored properly:
 +
 ----
-$ oc rsh REGISTRY_NAME-quay-database-xxxxxxxxxx-xxxxx
+$ mkdir /var/tmp/restored
+----
++
+----
+$ oc extract secret/restored-bundle -n quay-enterprise-restore --to=/var/tmp/restored/
+----
++
+Example output:
++
+----
+/var/tmp/restored/config.yaml
+/var/tmp/restored/extra_ca_cert_service-ca.crt
+/var/tmp/restored/ocp-cluster-wildcard.cert
+----
+
+. Obtain the credentials of your restored secret:
++
+----
+$ oc get secret/restored-bundle -n quay-enterprise-restore -o yaml
+----
++
+Example output:
++
+----
+apiVersion: v1
+data:
+  config.yaml: QUxMT1dfUFVMTFNfV0lUSE9VVF9TVFJJQ1RfTE9HR0lORzogZmFsc2UKQVVUSEVOVElDQVRJT05fVFlQRTogRGF0YWJhc2UKQVZBVxxxx
+  ...
+  extra_ca_cert_service-ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVVENDQWptZ0F3SUJBZ0lJWCszQTNtWkV5MFF3RFFZSktvWklodmNOQVFFTxxxx
+  ...
+kind: Secret
+metadata:
+  creationTimestamp: "2021-11-29T21:05:59Z"
+  managedFields:
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:data:
+        .: {}
+        f:config.yaml: {}
+        f:extra_ca_cert_service-ca.crt: {}
+        f:ocp-cluster-wildcard.cert: {}
+        f:type: {}
+    manager: kubectl-create
+    operation: Update
+    time: "2021-11-29T21:05:59Z"
+  name: restored-bundle
+  namespace: quay-enterprise-restore
+  resourceVersion: "2596103"
+  selfLink: /api/v1/namespaces/quay-enterprise-restore/secrets/restored-bundle
+  uid: ee6672c1-9670-43e7-abc6-4e603a441099
+type: Opaque
+----
+
+. Patch the Quay Registry with the newly restored config bundle secret:
++
+----
+$ oc patch quayregistry restore-registry -n quay-enterprise-restore --type='merge' -p '{"spec":{"configBundleSecret":"restored-bundle"}}'
+----
++
+After patching, check that the registry title has changed to `Quay1` in your config tool. Additionally, ensure that your superuser exists, and that user creation is still disabled.
++
+[NOTE]
+====
+Because your database has not been restored yet, you will not be able to log in.
+====
+
+. Scale down your Quay deployment:
++
+----
+$ oc scale deployment  restore-registry-quay-app --replicas=0 -n quay-enterprise-restore
+$ oc get deployment -n quay-enterprise-restore
+$ oc get pods -n quay-enterprise-restore
+$ oc scale deployment restore-registry-quay-mirror --replicas=0 -n quay-enterprise-restore
+$ oc get deployment -n quay-enterprise-restore
+$ oc get pods -n quay-enterprise-restore
+----
+
+. Obtain the full secret for the new registry:
++
+----
+$ oc get deployment -n quay-enterprise-restore restore-registry-quay-app -o json | jq '.spec.template.spec.containers[].env[]'
+----
++
+Example output:
++
+----
+{
+  "name": "QE_K8S_CONFIG_SECRET",
+  "value": "restore-registry-quay-config-secret-d8chf86tb6"
+}
+{
+  "name": "QE_K8S_NAMESPACE",
+  "valueFrom": {
+    "fieldRef": {
+      "apiVersion": "v1",
+      "fieldPath": "metadata.namespace"
+    }
+  }
+}
+{
+  "name": "DEBUGLOG",
+  "value": "false"
+}
+{
+  "name": "WORKER_COUNT_WEB",
+  "value": "4"
+}
+{
+  "name": "WORKER_COUNT_SECSCAN",
+  "value": "2"
+}
+{
+  "name": "WORKER_COUNT_REGISTRY",
+  "value": "8"
+}
+----
+
+. Extract the full secret for the new registry. Note that you will need the new database, storage, Redis, etc. config to allow you to back up your saved content:
++
+----
+$ oc extract secret/restore-registry-quay-config-secret-d8chf86tb6 -n quay-enterprise-restore --keys=config.yaml --to=-
+----
++
+Example output:
++
+[source,yaml]
+----
+ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
+AUTHENTICATION_TYPE: Database
+AVATAR_KIND: local
+BUILDLOGS_REDIS:
+  host: restore-registry-quay-redis
+  port: 6379
+DATABASE_SECRET_KEY: l0YkKJNXw494VeL6qxwJrN6HoecFDiylAR8-zgjbK1LvUInVatGYZINWSgAMX5vkIJLYCQGh7OckBuf0
+DB_CONNECTION_ARGS:
+  autorollback: true
+  threadlocals: true
+DB_URI: postgresql://restore-registry-quay-database:zLTm315muk6rz7mL4aFuLQ2Q8rAk-dB4kPHQ2WMvdyqhaZywf20503wCZfv2Ml1f15LUsDN2-0m71gnI@restore-registry-quay-database:5432/restore-registry-quay-database
+DEFAULT_TAG_EXPIRATION: 2w
+DISTRIBUTED_STORAGE_CONFIG:
+  local_us:
+  - RHOCSStorage
+  - access_key: VvoFhVFp8BqcOgQ9LczE
+    bucket_name: quay-datastore-96d2c0fa-555a-4613-a484-5b2d6d155bcf
+    hostname: s3.openshift-storage.svc.cluster.local
+    is_secure: true
+    port: 443
+    secret_key: XyThQKm6lMWh4O7dKdmRwMUHB9ktxPPVSRIePOY2
+    storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+- local_us
+DISTRIBUTED_STORAGE_PREFERENCE:
+- local_us
+ENTERPRISE_LOGO_URL: /static/img/quay-horizontal-color.svg
+EXTERNAL_TLS_TERMINATION: true
+FEATURE_ACTION_LOG_ROTATION: false
+...
+USER_EVENTS_REDIS:
+  host: restore-registry-quay-redis
+  port: 6379
+USER_RECOVERY_TOKEN_LIFETIME: 30m
+----
+
+. Obtain the s3 route for your OpenShift storage namespace. Note that this is the same location as specified in Step 26 of "Backing up Red Hat Quay":
++
+----
+$ oc get route s3 -n openshift-storage -o yaml -o jsonpath="{.spec.host}{'\n'}"
+----
++
+Example output:
++
+----
+s3-openshift-storage.apps.docs2.quayteam.org
+----
+
+. Set up your access to match the information of the full secret obtained in Step 8:
++
+----
+$ AWS_ACCESS_KEY_ID=VvoFhVFp8BqcOgQ9LczE
+----
++
+----
+$ AWS_SECRET_ACCESS_KEY=XyThQKm6lMWh4O7dKdmRwMUHB9ktxPPVSRIePOY2
+----
+
+. Test access by placing an object in your bucket:
++
+----
+$ aws s3api list-objects --no-verify-ssl --endpoint-url=https://s3-openshift-storage.apps.docs2.quayteam.org --bucket quay-datastore-96d2c0fa-555a-4613-a484-5b2d6d155bcf
+----
++
+----
+$ aws s3api put-object --no-verify-ssl --endpoint-url=https://s3-openshift-storage.apps.docs2.quayteam.org --bucket quay-datastore-96d2c0fa-555a-4613-a484-5b2d6d155bcf --key test --body ~/subs.txt
+----
++
+Example output:
++
+----
+{
+    "ETag": "\"056bf02807611917c88ed7a4257901cf\""
+}
+----
++
+----
+$ aws s3api list-objects --no-verify-ssl --endpoint-url=https://s3-openshift-storage.apps.docs2.quayteam.org --bucket quay-datastore-96d2c0fa-555a-4613-a484-5b2d6d155bcf
+----
++
+Example output:
++
+----
+{
+    "Contents": [
+        {
+            "Key": "test",
+            "LastModified": "2021-11-30T15:59:55+00:00",
+            "ETag": "\"056bf02807611917c88ed7a4257901cf\"",
+            "Size": 217341,
+            "StorageClass": "STANDARD",
+            "Owner": {
+                "DisplayName": "NooBaa",
+                "ID": "123"
+            }
+        }
+    ]
+}
+----
+
+. Sync from your backup directory to your bucket:
++
+----
+$ aws s3 sync  --no-verify-ssl --endpoint-url=https://s3-openshift-storage.apps.docs2.quayteam.org "${QUAY_BACKUP_DIR}/data/" s3://quay-datastore-96d2c0fa-555a-4613-a484-5b2d6d155bcf
+----
++
+Example output:
++
+----
+upload: ../../../var/tmp/quay-backup/data/datastorage/registry/sha256/71/7138284460ffa3bb6ee087344f5b051468b3f8697e2d1427bac1a20c8d168b14 to s3://quay-    bucket_name: quay-datastore-96d2c0fa-555a-4613-a484-5b2d6d155bcf/datastorage/registry/sha256/71/7138284460ffa3bb6ee087344f5b051468b3f8697e2d1427bac1a20c8d168b14
+...
+----
+
+. Back up your database my first locating the database pod:
++
+----
+$ DB_POD="$(oc get pods -n quay-enterprise-restore | awk '/quay-database/ { print $1 }')"
+----
++
+----
+$ echo $DB_POD
+restore-registry-quay-database-cdf789cc6-rlncr
+----
+
+. Retrieve the location of the backup file generated in Step 9 of "Backing up Red Hat Quay":
++
+----
+$ echo $QUAY_BACKUP_FILE
+----
++
+Example output:
++
+----
+/var/tmp/quay-backup/db/example-registry-quay-database.sql
+----
+
+. Copy your backup file to the database pod:
++
+----
+$  oc cp "$QUAY_BACKUP_FILE" "$DB_POD":/tmp -n quay-enterprise-restore
+----
++
+You can check the status of the pod by running the following commands:
++
+----
+$  oc exec -it "$DB_POD" -n quay-enterprise-restore -- /bin/bash
+----
++
+----
+bash-4.4$ pwd
+----
++
+Example output:
++
+----
+/opt/app-root/src
+----
++
+----
+bash-4.4$ ls /tmp
+----
++
+Example output:
++
+----
+example-registry-quay-database.sql  ks-script-65fu0u1c    ks-script-xffv2u26
+----
++
+----
+bash-4.4$ exit
+----
+
+. Set your database deployment location:
++
+----
+$ DB_DEPLOYMENT="$(oc get deployment -n quay-enterprise-restore | awk '/quay-database/ { print $1 }')"
+----
+
+. Set your database secret:
++
+----
+$ DB_SECRET=$(oc get deployment/$DB_DEPLOYMENT -n quay-enterprise-restore -o jsonpath="{.spec.template.spec.containers[0].env[0].valueFrom.secretKeyRef.name}{'\n'}")
+----
+
+. Set your PostgreSQL database:
++
+----
+$ PSQL_DB="$(oc get secret/"$DB_SECRET" -n quay-enterprise-restore -o template='{{ index .data "database-name" | base64decode }}')"
+----
+
+. Set your PostgreSQL username:
++
+----
+$ PSQL_USER="$(oc get secret/"$DB_SECRET" -n quay-enterprise-restore -o template='{{ index .data "database-username" | base64decode }}')"
+----
+
+. Drop and recreate the database:
++
+----
+$ oc rsh -n quay-enterprise-restore "$DB_POD"
+----
++
+----
 sh-4.4$ psql
-postgres=# DROP DATABASE "database-name";
-postgres=# CREATE DATABASE "database-name" OWNER "database-username";
-sh-4.4$ psql database-name < /tmp/backup.sql
 ----
-
-. Enable debug by setting `DEBUGLOG=true`:
++
+Example output:
 +
 ----
-$ oc edit deployment instance-quay-app
+psql (10.17)
 ----
-. Scale up the Quay Operator, Quay App, and Quay Mirror Deployments:
 +
-[subs="verbatim,attributes"]
 ----
-$ oc scale deployment quay-operator.{productminv} --replicas=1 -n openshift-operators
-$ oc scale deployment instance-quay-app --replicas=1
-$ oc scale deployment instance-quay-mirror --replicas=1
+postgres=# DROP DATABASE "restore-registry-quay-database";
 ----
-. Verify that Quay is up and running.
++
+----
+postgres=# CREATE DATABASE "restore-registry-quay-database" OWNER "restore-registry-quay-database";
+----
++
+----
+postgres=# \q
+----
 
-. Verify that the installation is functional.
-.. Pull an image from an existing repository.
-.. Push an image into an existing repository.
-.. Create a new repository.
-.. Create a new organization.
-.. Sync a mirror repository.
+. While still in the database pod, restore the database:
++
+----
+sh-4.4$ psql restore-registry-quay-database < /tmp/example-registry-quay-database.sql
+----
++
+Example output:
++
+----
+SET
+SET
+SET
+SET
+SET
+ set_config
+------------
+(1 row)
 
-. Disable debug by setting `DEBUGLOG=false`.
+
+SET
+SET
+SET
+SET
+CREATE EXTENSION
+COMMENT
+CREATE EXTENSION
+COMMENT
+SET
+SET
+CREATE TABLE
+ERROR:  role "example-registry-quay-database" does not exist
+CREATE SEQUENCE
+ERROR:  role "example-registry-quay-database" does not exist
+ALTER SEQUENCE
+CREATE TABLE
+ERROR:  role "example-registry-quay-database" does not exist
+CREATE SEQUENCE
+ERROR:  role "example-registry-quay-database" does not exist
+ALTER SEQUENCE
+...
+----
+
+. Optional: You can turn on `DEBUGLOG` by setting the `DEBUGLOG` variable to `true`. To set the `DEBUGLOG` variable, run the following command:
++
+----
+$ oc edit deployment restore-registry-quay-app -n quay-enterprise-restore
+----
+
+. Scale up  your Quay operator deployment:
++
+----
+$ oc scale deployment quay-operator.v3.6.1 --replicas=1 -n openshift-operators
+----
++
+Example output:
++
+----
+deployment.apps/quay-operator.v3.6.1 scaled
+----
+
+. You can check the status of your deployment by running the following command:
++
+----
+$  oc get deployments -n openshift-operators
+----
++
+----
+NAME                   READY   UP-TO-DATE   AVAILABLE   AGE
+quay-operator.v3.6.1   1/1     1            1           6d17h
+----
+
+. You can check the status of the pods in your deployment by running the following command:
++
+----
+$ oc get pods -n openshift-operators
+----
++
+Example output:
++
+----
+NAME                                    READY   STATUS    RESTARTS   AGE
+quay-operator.v3.6.1-7487c65b77-dpqdb   1/1     Running   0          21s
+----
+
+. Restore your Quay App deployment:
++
+----
+$ oc scale deployment restore-registry-quay-app --replicas=1 -n quay-enterprise-restore
+----
++
+Example output:
++
+----
+deployment.apps/restore-registry-quay-app scaled
+----
+
+. You can ensure your Clair App, Quay App, Quay database, and other deployments have been restored by running the following command:
++
+----
+$  oc get deployment -n quay-enterprise-restore
+----
++
+Example output:
++
+----
+NAME                                  READY   UP-TO-DATE   AVAILABLE   AGE
+restore-registry-clair-app            2/2     2            2           38h
+restore-registry-clair-postgres       1/1     1            1           38h
+restore-registry-quay-app             1/2     2            1           38h
+restore-registry-quay-config-editor   1/1     1            1           38h
+restore-registry-quay-database        1/1     1            1           38h
+restore-registry-quay-mirror          2/2     2            2           38h
+restore-registry-quay-redis           1/1     1            1           38h
+----
+
+. Ensure that the pods of your Quay namespace are deployed:
++
+----
+$  oc get pods -n quay-enterprise-restore
+----
++
+----
+NAME                                                   READY   STATUS      RESTARTS   AGE
+restore-registry-clair-app-57588549df-frrg8            1/1     Running     0          3h5m
+restore-registry-clair-app-57588549df-x7hf6            1/1     Running     0          3h5m
+restore-registry-clair-postgres-55bf4dc9f5-mwkcl       1/1     Running     0          23h
+restore-registry-quay-app-76f589c9d6-djnkh             1/1     Running     0          3h4m
+restore-registry-quay-app-76f589c9d6-dz24r             1/1     Running     0          3h5m
+restore-registry-quay-app-upgrade-w9jgt                0/1     Completed   0          3h6m
+restore-registry-quay-config-editor-5594cf5996-8rnp5   1/1     Running     0          3h5m
+restore-registry-quay-database-cdf789cc6-rlncr         1/1     Running     0          41h
+restore-registry-quay-mirror-74fc47fcc7-cctxz          1/1     Running     0          3h5m
+restore-registry-quay-mirror-74fc47fcc7-fgf6n          1/1     Running     0          3h5m
+restore-registry-quay-postgres-init-z8njn              0/1     Completed   0          3h6m
+restore-registry-quay-redis-58f4669d5f-b7cz6           1/1     Running     0          23h
+----
+
+. Using your superuser account, log into the registry. If following this procedure, ensure that user creation is disabled, the name of the registry is `Quay1`, `test1` and `test2` users are present, and that your `testorg` repository has the `busybox` image.
+
+. Log into the registry:
++
+----
+$ sudo podman login --tls-verify=false  https://example-registry-quay-quay-enterprise.apps.docs2.quayteam.org
+----
+
+. Delete the local `busybox` image:
++
+----
+$ sudo podman rmi example-registry-quay-quay-enterprise.apps.docs2.quayteam.org/testorg/busybox:test
+----
+
+. Pull the `busybox` image from your example registry:
++
+----
+$ sudo podman pull --tls-verify=false example-registry-quay-quay-enterprise.apps.docs2.quayteam.org/testorg/busybox:test
+----
+
+. Pull a new image, for example, `nginx`:
++
+----
+$  sudo podman pull nginx
+----
+
+. Tag and push your new image to your example registry:
++
+----
+$ sudo podman tag docker.io/library/nginx:latest example-registry-quay-quay-enterprise.apps.docs2.quayteam.org/testorg/nginx
+----
++
+----
+$ sudo podman push --tls-verify=false example-registry-quay-quay-
+----
