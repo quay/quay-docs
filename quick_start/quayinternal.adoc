@@ -1,0 +1,6719 @@
+[[_overview]]
+= Overview
+This API allows you to perform many of the operations required to work with Quay repositories, users, and organizations. You can find out more at <a href="https://quay.io">Quay</a>.
+
+
+== Version information
+[%hardbreaks]
+__Version__ : v1
+
+
+== Contact information
+[%hardbreaks]
+__Contact Email__ : support@quay.io
+
+
+== License information
+[%hardbreaks]
+__Terms of service__ : https://quay.io/tos
+
+
+== URI scheme
+[%hardbreaks]
+__Host__ : example-registry-quay-quay-enterprise.apps.docs2.quayteam.org
+__BasePath__ : /
+__Schemes__ : HTTPS
+
+
+== Tags
+
+* appspecifictokens : Manages app specific tokens for the current user.
+* build : Create, list, cancel and get status/logs of repository builds.
+* discovery : API discovery information.
+* error : Error details API.
+* globalmessages : Messages API.
+* image : List and lookup repository images.
+* logs : Access usage logs for organizations or repositories.
+* manifest : Manage the manifests of a repository.
+* mirror
+* organization : Manage organizations, members and OAuth applications.
+* permission : Manage repository permissions.
+* prototype : Manage default permissions added to repositories.
+* repository : List, create and manage repositories.
+* repositorynotification : List, create and manage repository events/notifications.
+* repotoken : Manage repository access tokens (DEPRECATED).
+* robot : Manage user and organization robot accounts.
+* search : Conduct searches against all registry context.
+* secscan : List and manage repository vulnerabilities and other security information.
+* suconfig : Superuser Config API.
+* superuser : Superuser API.
+* tag : Manage the tags of a repository.
+* team : Create, list and manage an organization's teams.
+* trigger : Create, list and manage build triggers.
+* user : Manage the current user.
+* userfiles
+
+
+
+
+[[_paths]]
+= Resources
+
+[[_appspecifictokens_resource]]
+== Appspecifictokens
+Manages app specific tokens for the current user.
+
+
+[[_createapptoken]]
+=== POST /api/v1/user/apptoken
+
+==== Description
+Create a new app specific token for user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_newtoken,NewToken>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_listapptokens]]
+=== GET /api/v1/user/apptoken
+
+==== Description
+Lists the app specific tokens for the user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**expiring** +
+__optional__|If true, only returns those tokens expiring soon|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_getapptoken]]
+=== GET /api/v1/user/apptoken/{token_uuid}
+
+==== Description
+Returns a specific app token for the user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**token_uuid** +
+__required__|The uuid of the app specific token|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_revokeapptoken]]
+=== DELETE /api/v1/user/apptoken/{token_uuid}
+
+==== Description
+Revokes a specific app token for the user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**token_uuid** +
+__required__|The uuid of the app specific token|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_build_resource]]
+== Build
+Create, list, cancel and get status/logs of repository builds.
+
+
+[[_getfiledropurl]]
+=== POST /api/v1/filedrop/
+
+==== Description
+Request a URL to which a file may be uploaded.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_filedroprequest,FileDropRequest>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_requestrepobuild]]
+=== POST /api/v1/repository/{repository}/build/
+
+==== Description
+Request that a repository be built and pushed from the specified input.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_repositorybuildrequest,RepositoryBuildRequest>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:write
+|===
+
+
+[[_getrepobuilds]]
+=== GET /api/v1/repository/{repository}/build/
+
+==== Description
+Get the list of repository builds.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Query**|**limit** +
+__optional__|The maximum number of builds to return|integer
+|**Query**|**since** +
+__optional__|Returns all builds since the given unix timecode|integer
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_getrepobuild]]
+=== GET /api/v1/repository/{repository}/build/{build_uuid}
+
+==== Description
+Returns information about a build.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**build_uuid** +
+__required__|The UUID of the build|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_cancelrepobuild]]
+=== DELETE /api/v1/repository/{repository}/build/{build_uuid}
+
+==== Description
+Cancels a repository build.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**build_uuid** +
+__required__|The UUID of the build|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_getrepobuildlogs]]
+=== GET /api/v1/repository/{repository}/build/{build_uuid}/logs
+
+==== Description
+Return the build logs for the build specified by the build uuid.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**build_uuid** +
+__required__|The UUID of the build|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_getrepobuildstatus]]
+=== GET /api/v1/repository/{repository}/build/{build_uuid}/status
+
+==== Description
+Return the status for the builds specified by the build uuids.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**build_uuid** +
+__required__|The UUID of the build|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_discovery_resource]]
+== Discovery
+API discovery information.
+
+
+[[_discovery]]
+=== GET /api/v1/discovery
+
+==== Description
+List all of the API endpoints available in the swagger API format.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**internal** +
+__optional__|Whether to include internal APIs.|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_error_resource]]
+== Error
+Error details API.
+
+
+[[_geterrordescription]]
+=== GET /api/v1/error/{error_type}
+
+==== Description
+Get a detailed description of the error.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**error_type** +
+__required__|The error code identifying the type of error.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|<<_apierrordescription,ApiErrorDescription>>
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_globalmessages_resource]]
+== Globalmessages
+Messages API.
+
+
+[[_deleteglobalmessage]]
+=== DELETE /api/v1/message/{uuid}
+
+==== Description
+Delete a message.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^4a"]
+|===
+|Type|Name|Schema
+|**Path**|**uuid** +
+__required__|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_createglobalmessage]]
+=== POST /api/v1/messages
+
+==== Description
+Create a message.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_createmessage,CreateMessage>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_getglobalmessages]]
+=== GET /api/v1/messages
+
+==== Description
+Return a super users messages.
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_image_resource]]
+== Image
+List and lookup repository images.
+
+
+[[_listrepositoryimages]]
+=== GET /api/v1/repository/{repository}/image/
+
+==== Description
+List the images for the specified repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_getimage]]
+=== GET /api/v1/repository/{repository}/image/{image_id}
+
+==== Description
+Get the information available for the specified image.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**image_id** +
+__required__|The Docker image ID|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_logs_resource]]
+== Logs
+Access usage logs for organizations or repositories.
+
+
+[[_getaggregateorglogs]]
+=== GET /api/v1/organization/{orgname}/aggregatelogs
+
+==== Description
+Gets the aggregated logs for the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Query**|**endtime** +
+__optional__|Latest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Query**|**performer** +
+__optional__|Username for which to filter logs.|string
+|**Query**|**starttime** +
+__optional__|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_exportorglogs]]
+=== POST /api/v1/organization/{orgname}/exportlogs
+
+==== Description
+Exports the logs for the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Query**|**endtime** +
+__optional__|Latest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Query**|**starttime** +
+__optional__|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_exportlogs,ExportLogs>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_listorglogs]]
+=== GET /api/v1/organization/{orgname}/logs
+
+==== Description
+List the logs for the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Query**|**endtime** +
+__optional__|Latest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Query**|**next_page** +
+__optional__|The page token for the next page|string
+|**Query**|**performer** +
+__optional__|Username for which to filter logs.|string
+|**Query**|**starttime** +
+__optional__|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getaggregaterepologs]]
+=== GET /api/v1/repository/{repository}/aggregatelogs
+
+==== Description
+Returns the aggregated logs for the specified repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Query**|**endtime** +
+__optional__|Latest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Query**|**starttime** +
+__optional__|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_exportrepologs]]
+=== POST /api/v1/repository/{repository}/exportlogs
+
+==== Description
+Queues an export of the logs for the specified repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Query**|**endtime** +
+__optional__|Latest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Query**|**starttime** +
+__optional__|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_exportlogs,ExportLogs>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_listrepologs]]
+=== GET /api/v1/repository/{repository}/logs
+
+==== Description
+List the logs for the specified repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Query**|**endtime** +
+__optional__|Latest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Query**|**next_page** +
+__optional__|The page token for the next page|string
+|**Query**|**starttime** +
+__optional__|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_getaggregateuserlogs]]
+=== GET /api/v1/user/aggregatelogs
+
+==== Description
+Returns the aggregated logs for the current user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**endtime** +
+__optional__|Latest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Query**|**performer** +
+__optional__|Username for which to filter logs.|string
+|**Query**|**starttime** +
+__optional__|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_exportuserlogs]]
+=== POST /api/v1/user/exportlogs
+
+==== Description
+Returns the aggregated logs for the current user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**endtime** +
+__optional__|Latest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Query**|**starttime** +
+__optional__|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_exportlogs,ExportLogs>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_listuserlogs]]
+=== GET /api/v1/user/logs
+
+==== Description
+List the logs for the current user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**endtime** +
+__optional__|Latest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|**Query**|**next_page** +
+__optional__|The page token for the next page|string
+|**Query**|**performer** +
+__optional__|Username for which to filter logs.|string
+|**Query**|**starttime** +
+__optional__|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_manifest_resource]]
+== Manifest
+Manage the manifests of a repository.
+
+
+[[_getrepomanifest]]
+=== GET /api/v1/repository/{repository}/manifest/{manifestref}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**manifestref** +
+__required__|The digest of the manifest|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_addmanifestlabel]]
+=== POST /api/v1/repository/{repository}/manifest/{manifestref}/labels
+
+==== Description
+Adds a new label into the tag manifest.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**manifestref** +
+__required__|The digest of the manifest|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_addlabel,AddLabel>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:write
+|===
+
+
+[[_listmanifestlabels]]
+=== GET /api/v1/repository/{repository}/manifest/{manifestref}/labels
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**manifestref** +
+__required__|The digest of the manifest|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Query**|**filter** +
+__optional__|If specified, only labels matching the given prefix will be returned|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_getmanifestlabel]]
+=== GET /api/v1/repository/{repository}/manifest/{manifestref}/labels/{labelid}
+
+==== Description
+Retrieves the label with the specific ID under the manifest.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**labelid** +
+__required__|The ID of the label|string
+|**Path**|**manifestref** +
+__required__|The digest of the manifest|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_deletemanifestlabel]]
+=== DELETE /api/v1/repository/{repository}/manifest/{manifestref}/labels/{labelid}
+
+==== Description
+Deletes an existing label from a manifest.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**labelid** +
+__required__|The ID of the label|string
+|**Path**|**manifestref** +
+__required__|The digest of the manifest|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:write
+|===
+
+
+[[_mirror_resource]]
+== Mirror
+
+[[_createrepomirrorconfig]]
+=== POST /api/v1/repository/{repository}/mirror
+
+==== Description
+Create a RepoMirrorConfig for a given Repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_createmirrorconfig,CreateMirrorConfig>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_getrepomirrorconfig]]
+=== GET /api/v1/repository/{repository}/mirror
+
+==== Description
+Return the Mirror configuration for a given Repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|<<_viewmirrorconfig,ViewMirrorConfig>>
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_changerepomirrorconfig]]
+=== PUT /api/v1/repository/{repository}/mirror
+
+==== Description
+Allow users to modifying the repository's mirroring configuration.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_updatemirrorconfig,UpdateMirrorConfig>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_synccancel]]
+=== POST /api/v1/repository/{repository}/mirror/sync-cancel
+
+==== Description
+Update the sync_status for a given Repository's mirroring configuration.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_syncnow]]
+=== POST /api/v1/repository/{repository}/mirror/sync-now
+
+==== Description
+Update the sync_status for a given Repository's mirroring configuration.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_organization_resource]]
+== Organization
+Manage organizations, members and OAuth applications.
+
+
+[[_getapplicationinformation]]
+=== GET /api/v1/app/{client_id}
+
+==== Description
+Get information on the specified application.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**client_id** +
+__required__|The OAuth client ID|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_createorganization]]
+=== POST /api/v1/organization/
+
+==== Description
+Create a new organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_neworg,NewOrg>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_getorganization]]
+=== GET /api/v1/organization/{orgname}
+
+==== Description
+Get the details for the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_changeorganizationdetails]]
+=== PUT /api/v1/organization/{orgname}
+
+==== Description
+Change the details for the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_updateorg,UpdateOrg>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_deleteadminedorganization]]
+=== DELETE /api/v1/organization/{orgname}
+
+==== Description
+Deletes the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_createorganizationapplication]]
+=== POST /api/v1/organization/{orgname}/applications
+
+==== Description
+Creates a new application under this organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_newapp,NewApp>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getorganizationapplications]]
+=== GET /api/v1/organization/{orgname}/applications
+
+==== Description
+List the applications for the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getorganizationapplication]]
+=== GET /api/v1/organization/{orgname}/applications/{client_id}
+
+==== Description
+Retrieves the application with the specified client_id under the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**client_id** +
+__required__|The OAuth client ID|string
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_updateorganizationapplication]]
+=== PUT /api/v1/organization/{orgname}/applications/{client_id}
+
+==== Description
+Updates an application under this organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**client_id** +
+__required__|The OAuth client ID|string
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_updateapp,UpdateApp>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_deleteorganizationapplication]]
+=== DELETE /api/v1/organization/{orgname}/applications/{client_id}
+
+==== Description
+Deletes the application under this organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**client_id** +
+__required__|The OAuth client ID|string
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_resetorganizationapplicationclientsecret]]
+=== POST /api/v1/organization/{orgname}/applications/{client_id}/resetclientsecret
+
+==== Description
+Resets the client secret of the application.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**client_id** +
+__required__|The OAuth client ID|string
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_getorganizationcollaborators]]
+=== GET /api/v1/organization/{orgname}/collaborators
+
+==== Description
+List outside collaborators of the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getorganizationmembers]]
+=== GET /api/v1/organization/{orgname}/members
+
+==== Description
+List the human members of the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getorganizationmember]]
+=== GET /api/v1/organization/{orgname}/members/{membername}
+
+==== Description
+Retrieves the details of a member of the organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**membername** +
+__required__|The username of the organization member|string
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_removeorganizationmember]]
+=== DELETE /api/v1/organization/{orgname}/members/{membername}
+
+==== Description
+Removes a member from an organization, revoking all its repository priviledges and removing
+ it from all teams in the organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**membername** +
+__required__|The username of the organization member|string
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_permission_resource]]
+== Permission
+Manage repository permissions.
+
+
+[[_listrepoteampermissions]]
+=== GET /api/v1/repository/{repository}/permissions/team/
+
+==== Description
+List all team permission.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_getteampermissions]]
+=== GET /api/v1/repository/{repository}/permissions/team/{teamname}
+
+==== Description
+Fetch the permission for the specified team.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**teamname** +
+__required__|The name of the team to which the permission applies|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_changeteampermissions]]
+=== PUT /api/v1/repository/{repository}/permissions/team/{teamname}
+
+==== Description
+Update the existing team permission.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**teamname** +
+__required__|The name of the team to which the permission applies|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_teampermission,TeamPermission>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_deleteteampermissions]]
+=== DELETE /api/v1/repository/{repository}/permissions/team/{teamname}
+
+==== Description
+Delete the permission for the specified team.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**teamname** +
+__required__|The name of the team to which the permission applies|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_listrepouserpermissions]]
+=== GET /api/v1/repository/{repository}/permissions/user/
+
+==== Description
+List all user permissions.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_getuserpermissions]]
+=== GET /api/v1/repository/{repository}/permissions/user/{username}
+
+==== Description
+Get the permission for the specified user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**username** +
+__required__|The username of the user to which the permission applies|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_changeuserpermissions]]
+=== PUT /api/v1/repository/{repository}/permissions/user/{username}
+
+==== Description
+Update the perimssions for an existing repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**username** +
+__required__|The username of the user to which the permission applies|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_userpermission,UserPermission>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_deleteuserpermissions]]
+=== DELETE /api/v1/repository/{repository}/permissions/user/{username}
+
+==== Description
+Delete the permission for the user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**username** +
+__required__|The username of the user to which the permission applies|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_getusertransitivepermission]]
+=== GET /api/v1/repository/{repository}/permissions/user/{username}/transitive
+
+==== Description
+Get the fetch the permission for the specified user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**username** +
+__required__|The username of the user to which the permissions apply|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_prototype_resource]]
+== Prototype
+Manage default permissions added to repositories.
+
+
+[[_createorganizationprototypepermission]]
+=== POST /api/v1/organization/{orgname}/prototypes
+
+==== Description
+Create a new permission prototype.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_newprototype,NewPrototype>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getorganizationprototypepermissions]]
+=== GET /api/v1/organization/{orgname}/prototypes
+
+==== Description
+List the existing prototypes for this organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_updateorganizationprototypepermission]]
+=== PUT /api/v1/organization/{orgname}/prototypes/{prototypeid}
+
+==== Description
+Update the role of an existing permission prototype.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**prototypeid** +
+__required__|The ID of the prototype|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_prototypeupdate,PrototypeUpdate>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_deleteorganizationprototypepermission]]
+=== DELETE /api/v1/organization/{orgname}/prototypes/{prototypeid}
+
+==== Description
+Delete an existing permission prototype.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**prototypeid** +
+__required__|The ID of the prototype|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_repository_resource]]
+== Repository
+List, create and manage repositories.
+
+
+[[_createrepo]]
+=== POST /api/v1/repository
+
+==== Description
+Create a new repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_newrepo,NewRepo>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:create
+|===
+
+
+[[_listrepos]]
+=== GET /api/v1/repository
+
+==== Description
+Fetch the list of repositories visible to the current user under a variety of situations.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**last_modified** +
+__optional__|Whether to include when the repository was last modified.|boolean
+|**Query**|**namespace** +
+__optional__|Filters the repositories returned to this namespace|string
+|**Query**|**next_page** +
+__optional__|The page token for the next page|string
+|**Query**|**popularity** +
+__optional__|Whether to include the repository's popularity metric.|boolean
+|**Query**|**public** +
+__optional__|Adds any repositories visible to the user by virtue of being public|boolean
+|**Query**|**repo_kind** +
+__optional__|The kind of repositories to return|string
+|**Query**|**starred** +
+__optional__|Filters the repositories returned to those starred by the user|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_getrepo]]
+=== GET /api/v1/repository/{repository}
+
+==== Description
+Fetch the specified repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Query**|**includeStats** +
+__optional__|Whether to include action statistics|boolean
+|**Query**|**includeTags** +
+__optional__|Whether to include repository tags|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_updaterepo]]
+=== PUT /api/v1/repository/{repository}
+
+==== Description
+Update the description in the specified repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_repoupdate,RepoUpdate>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:write
+|===
+
+
+[[_deleterepository]]
+=== DELETE /api/v1/repository/{repository}
+
+==== Description
+Delete a repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_changerepostate]]
+=== PUT /api/v1/repository/{repository}/changestate
+
+==== Description
+Change the state of a repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_changerepostate,ChangeRepoState>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_changerepovisibility]]
+=== POST /api/v1/repository/{repository}/changevisibility
+
+==== Description
+Change the visibility of a repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_changevisibility,ChangeVisibility>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_repositorynotification_resource]]
+== Repositorynotification
+List, create and manage repository events/notifications.
+
+
+[[_createreponotification]]
+=== POST /api/v1/repository/{repository}/notification/
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_notificationcreaterequest,NotificationCreateRequest>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_listreponotifications]]
+=== GET /api/v1/repository/{repository}/notification/
+
+==== Description
+List the notifications for the specified repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_resetrepositorynotificationfailures]]
+=== POST /api/v1/repository/{repository}/notification/{uuid}
+
+==== Description
+Resets repository notification to 0 failures.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**uuid** +
+__required__|The UUID of the notification|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_getreponotification]]
+=== GET /api/v1/repository/{repository}/notification/{uuid}
+
+==== Description
+Get information for the specified notification.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**uuid** +
+__required__|The UUID of the notification|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_deletereponotification]]
+=== DELETE /api/v1/repository/{repository}/notification/{uuid}
+
+==== Description
+Deletes the specified notification.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**uuid** +
+__required__|The UUID of the notification|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_testreponotification]]
+=== POST /api/v1/repository/{repository}/notification/{uuid}/test
+
+==== Description
+Queues a test notification for this repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**uuid** +
+__required__|The UUID of the notification|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_repotoken_resource]]
+== Repotoken
+Manage repository access tokens (DEPRECATED).
+
+
+[[_createtoken]]
+=== POST /api/v1/repository/{repository}/tokens/
+
+==== Description
+Create a new repository token.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_newtoken,NewToken>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_listrepotokens]]
+=== GET /api/v1/repository/{repository}/tokens/
+
+==== Description
+List the tokens for the specified repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_gettokens]]
+=== GET /api/v1/repository/{repository}/tokens/{code}
+
+==== Description
+Fetch the specified repository token information.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**code** +
+__required__|The token code|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_changetoken]]
+=== PUT /api/v1/repository/{repository}/tokens/{code}
+
+==== Description
+Update the permissions for the specified repository token.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**code** +
+__required__|The token code|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_tokenpermission,TokenPermission>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_deletetoken]]
+=== DELETE /api/v1/repository/{repository}/tokens/{code}
+
+==== Description
+Delete the repository token.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**code** +
+__required__|The token code|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_robot_resource]]
+== Robot
+Manage user and organization robot accounts.
+
+
+[[_getorgrobots]]
+=== GET /api/v1/organization/{orgname}/robots
+
+==== Description
+List the organization's robots.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Query**|**limit** +
+__optional__|If specified, the number of robots to return.|integer
+|**Query**|**permissions** +
+__optional__|Whether to include repostories and teams in which the robots have permission.|boolean
+|**Query**|**token** +
+__optional__|If false, the robot's token is not returned.|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getorgrobot]]
+=== GET /api/v1/organization/{orgname}/robots/{robot_shortname}
+
+==== Description
+Returns the organization's robot with the specified name.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_createorgrobot]]
+=== PUT /api/v1/organization/{orgname}/robots/{robot_shortname}
+
+==== Description
+Create a new robot in the organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_createrobot,CreateRobot>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_deleteorgrobot]]
+=== DELETE /api/v1/organization/{orgname}/robots/{robot_shortname}
+
+==== Description
+Delete an existing organization robot.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getorgrobotpermissions]]
+=== GET /api/v1/organization/{orgname}/robots/{robot_shortname}/permissions
+
+==== Description
+Returns the list of repository permissions for the org's robot.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_regenerateorgrobottoken]]
+=== POST /api/v1/organization/{orgname}/robots/{robot_shortname}/regenerate
+
+==== Description
+Regenerates the token for an organization robot.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getuserrobots]]
+=== GET /api/v1/user/robots
+
+==== Description
+List the available robots for the user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**limit** +
+__optional__|If specified, the number of robots to return.|integer
+|**Query**|**permissions** +
+__optional__|Whether to include repositories and teams in which the robots have permission.|boolean
+|**Query**|**token** +
+__optional__|If false, the robot's token is not returned.|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_getuserrobot]]
+=== GET /api/v1/user/robots/{robot_shortname}
+
+==== Description
+Returns the user's robot with the specified name.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_createuserrobot]]
+=== PUT /api/v1/user/robots/{robot_shortname}
+
+==== Description
+Create a new user robot with the specified name.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_createrobot,CreateRobot>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_deleteuserrobot]]
+=== DELETE /api/v1/user/robots/{robot_shortname}
+
+==== Description
+Delete an existing robot.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_getuserrobotpermissions]]
+=== GET /api/v1/user/robots/{robot_shortname}/permissions
+
+==== Description
+Returns the list of repository permissions for the user's robot.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_regenerateuserrobottoken]]
+=== POST /api/v1/user/robots/{robot_shortname}/regenerate
+
+==== Description
+Regenerates the token for a user's robot.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**robot_shortname** +
+__required__|The short name for the robot, without any user or organization prefix|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_search_resource]]
+== Search
+Conduct searches against all registry context.
+
+
+[[_linkexternaluser]]
+=== POST /api/v1/entities/link/{username}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^4a"]
+|===
+|Type|Name|Schema
+|**Path**|**username** +
+__required__|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_getmatchingentities]]
+=== GET /api/v1/entities/{prefix}
+
+==== Description
+Get a list of entities that match the specified prefix.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**prefix** +
+__required__||string
+|**Query**|**includeOrgs** +
+__optional__|Whether to include orgs names.|boolean
+|**Query**|**includeTeams** +
+__optional__|Whether to include team names.|boolean
+|**Query**|**namespace** +
+__optional__|Namespace to use when querying for org entities.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_conductsearch]]
+=== GET /api/v1/find/all
+
+==== Description
+Get a list of entities and resources that match the specified query.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**query** +
+__optional__|The search query.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_conductreposearch]]
+=== GET /api/v1/find/repositories
+
+==== Description
+Get a list of apps and repositories that match the specified query.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**includeUsage** +
+__optional__|Whether to include usage metadata|boolean
+|**Query**|**page** +
+__optional__|The page.|integer
+|**Query**|**query** +
+__optional__|The search query.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_secscan_resource]]
+== Secscan
+List and manage repository vulnerabilities and other security information.
+
+
+[[_getrepoimagesecurity]]
+=== GET /api/v1/repository/{repository}/image/{imageid}/security
+
+==== Description
+Fetches the features and vulnerabilities (if any) for a repository image.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**imageid** +
+__required__|The image ID|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Query**|**vulnerabilities** +
+__optional__|Include vulnerabilities information|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_getrepomanifestsecurity]]
+=== GET /api/v1/repository/{repository}/manifest/{manifestref}/security
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**manifestref** +
+__required__|The digest of the manifest|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Query**|**vulnerabilities** +
+__optional__|Include vulnerabilities informations|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_suconfig_resource]]
+== Suconfig
+Superuser Config API.
+
+
+[[_scregistrystatus]]
+=== GET /api/v1/superuser/registrystatus
+
+==== Description
+Returns the status of the registry.
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_scshutdowncontainer]]
+=== POST /api/v1/superuser/shutdown
+
+==== Description
+Sends a signal to the phusion init system to shut down the container.
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_superuser_resource]]
+== Superuser
+Superuser API.
+
+
+[[_listallaggregatelogs]]
+=== GET /api/v1/superuser/aggregatelogs
+
+==== Description
+Returns the aggregated logs for the current system.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**endtime** +
+__optional__|Latest time to which to get logs. (%m/%d/%Y %Z)|string
+|**Query**|**starttime** +
+__optional__|Earliest time from which to get logs. (%m/%d/%Y %Z)|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_approveservicekey]]
+=== POST /api/v1/superuser/approvedkeys/{kid}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**kid** +
+__required__|The unique identifier for a service key|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_approveservicekey,ApproveServiceKey>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_getchangelog]]
+=== GET /api/v1/superuser/changelog/
+
+==== Description
+Returns the change log for this installation.
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_createservicekey]]
+=== POST /api/v1/superuser/keys
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_createservicekey,CreateServiceKey>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_listservicekeys]]
+=== GET /api/v1/superuser/keys
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_getservicekey]]
+=== GET /api/v1/superuser/keys/{kid}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**kid** +
+__required__|The unique identifier for a service key|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_updateservicekey]]
+=== PUT /api/v1/superuser/keys/{kid}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**kid** +
+__required__|The unique identifier for a service key|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_putservicekey,PutServiceKey>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_deleteservicekey]]
+=== DELETE /api/v1/superuser/keys/{kid}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**kid** +
+__required__|The unique identifier for a service key|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_listalllogs]]
+=== GET /api/v1/superuser/logs
+
+==== Description
+List the usage logs for the current system.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**endtime** +
+__optional__|Latest time to which to get logs (%m/%d/%Y %Z)|string
+|**Query**|**next_page** +
+__optional__|The page token for the next page|string
+|**Query**|**page** +
+__optional__|The page number for the logs|integer
+|**Query**|**starttime** +
+__optional__|Earliest time from which to get logs (%m/%d/%Y %Z)|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_listallorganizations]]
+=== GET /api/v1/superuser/organizations/
+
+==== Description
+Returns a list of all organizations in the system.
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_changeorganization]]
+=== PUT /api/v1/superuser/organizations/{name}
+
+==== Description
+Updates information about the specified user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**name** +
+__required__|The name of the organizaton being managed|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_updateorg,UpdateOrg>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_deleteorganization]]
+=== DELETE /api/v1/superuser/organizations/{name}
+
+==== Description
+Deletes the specified organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**name** +
+__required__|The name of the organizaton being managed|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_takeownership]]
+=== POST /api/v1/superuser/takeownership/{namespace}
+
+==== Description
+Takes ownership of the specified organization or user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**namespace** +
+__required__|The namespace of the user or organization being managed|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_createinstalluser]]
+=== POST /api/v1/superuser/users/
+
+==== Description
+Creates a new user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_createinstalluser,CreateInstallUser>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_listallusers]]
+=== GET /api/v1/superuser/users/
+
+==== Description
+Returns a list of all users in the system.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**disabled** +
+__optional__|If false, only enabled users will be returned.|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_getinstalluser]]
+=== GET /api/v1/superuser/users/{username}
+
+==== Description
+Returns information about the specified user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**username** +
+__required__|The username of the user being managed|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_changeinstalluser]]
+=== PUT /api/v1/superuser/users/{username}
+
+==== Description
+Updates information about the specified user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**username** +
+__required__|The username of the user being managed|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_updateuser,UpdateUser>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_deleteinstalluser]]
+=== DELETE /api/v1/superuser/users/{username}
+
+==== Description
+Deletes the specified user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**username** +
+__required__|The username of the user being managed|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_getrepobuildsuperuser]]
+=== GET /api/v1/superuser/{build_uuid}/build
+
+==== Description
+Returns information about a build.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**build_uuid** +
+__required__|The UUID of the build|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_getrepobuildlogssuperuser]]
+=== GET /api/v1/superuser/{build_uuid}/logs
+
+==== Description
+Return the build logs for the build specified by the build uuid.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**build_uuid** +
+__required__|The UUID of the build|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_getrepobuildstatussuperuser]]
+=== GET /api/v1/superuser/{build_uuid}/status
+
+==== Description
+Return the status for the builds specified by the build uuids.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**build_uuid** +
+__required__|The UUID of the build|string
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|super:user
+|===
+
+
+[[_tag_resource]]
+== Tag
+Manage the tags of a repository.
+
+
+[[_listrepotags]]
+=== GET /api/v1/repository/{repository}/tag/
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Query**|**limit** +
+__optional__|Limit to the number of results to return per page. Max 100.|integer
+|**Query**|**onlyActiveTags** +
+__optional__|Filter to only active tags.|boolean
+|**Query**|**page** +
+__optional__|Page index for the results. Default 1.|integer
+|**Query**|**specificTag** +
+__optional__|Filters the tags to the specific tag.|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_changetag]]
+=== PUT /api/v1/repository/{repository}/tag/{tag}
+
+==== Description
+Change which image a tag points to or create a new tag.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**tag** +
+__required__|The name of the tag|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_changetag,ChangeTag>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:write
+|===
+
+
+[[_deletefulltag]]
+=== DELETE /api/v1/repository/{repository}/tag/{tag}
+
+==== Description
+Delete the specified repository tag.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**tag** +
+__required__|The name of the tag|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:write
+|===
+
+
+[[_listtagimages]]
+=== GET /api/v1/repository/{repository}/tag/{tag}/images
+
+==== Description
+List the images for the specified repository tag.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**tag** +
+__required__|The name of the tag|string
+|**Query**|**owned** +
+__optional__|If specified, only images wholely owned by this tag are returned.|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_restoretag]]
+=== POST /api/v1/repository/{repository}/tag/{tag}/restore
+
+==== Description
+Restores a repository tag back to a previous image in the repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**tag** +
+__required__|The name of the tag|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_restoretag,RestoreTag>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:write
+|===
+
+
+[[_team_resource]]
+== Team
+Create, list and manage an organization's teams.
+
+
+[[_updateorganizationteam]]
+=== PUT /api/v1/organization/{orgname}/team/{teamname}
+
+==== Description
+Update the org-wide permission for the specified team.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**teamname** +
+__required__|The name of the team|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_teamdescription,TeamDescription>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_deleteorganizationteam]]
+=== DELETE /api/v1/organization/{orgname}/team/{teamname}
+
+==== Description
+Delete the specified team.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**teamname** +
+__required__|The name of the team|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getorganizationteammembers]]
+=== GET /api/v1/organization/{orgname}/team/{teamname}/members
+
+==== Description
+Retrieve the list of members for the specified team.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**teamname** +
+__required__|The name of the team|string
+|**Query**|**includePending** +
+__optional__|Whether to include pending members|boolean
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_updateorganizationteammember]]
+=== PUT /api/v1/organization/{orgname}/team/{teamname}/members/{membername}
+
+==== Description
+Adds or invites a member to an existing team.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**membername** +
+__required__|The username of the team member|string
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**teamname** +
+__required__|The name of the team|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_deleteorganizationteammember]]
+=== DELETE /api/v1/organization/{orgname}/team/{teamname}/members/{membername}
+
+==== Description
+Delete a member of a team.
+
+----
+    If the user is merely invited to join the team, then the invite is removed instead.
+----
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**membername** +
+__required__|The username of the team member|string
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**teamname** +
+__required__|The name of the team|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|org:admin
+|===
+
+
+[[_getorganizationteampermissions]]
+=== GET /api/v1/organization/{orgname}/team/{teamname}/permissions
+
+==== Description
+Returns the list of repository permissions for the org's team.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**orgname** +
+__required__|The name of the organization|string
+|**Path**|**teamname** +
+__required__|The name of the team|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_trigger_resource]]
+== Trigger
+Create, list and manage build triggers.
+
+
+[[_listbuildtriggers]]
+=== GET /api/v1/repository/{repository}/trigger/
+
+==== Description
+List the triggers for the specified repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_getbuildtrigger]]
+=== GET /api/v1/repository/{repository}/trigger/{trigger_uuid}
+
+==== Description
+Get information for the specified build trigger.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_updatebuildtrigger]]
+=== PUT /api/v1/repository/{repository}/trigger/{trigger_uuid}
+
+==== Description
+Updates the specified build trigger.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_updatetrigger,UpdateTrigger>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_deletebuildtrigger]]
+=== DELETE /api/v1/repository/{repository}/trigger/{trigger_uuid}
+
+==== Description
+Delete the specified build trigger.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_activatebuildtrigger]]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/activate
+
+==== Description
+Activate the specified build trigger.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_buildtriggeractivaterequest,BuildTriggerActivateRequest>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_analyzebuildtrigger]]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/analyze
+
+==== Description
+Analyze the specified build trigger configuration.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_buildtriggeranalyzerequest,BuildTriggerAnalyzeRequest>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_listtriggerrecentbuilds]]
+=== GET /api/v1/repository/{repository}/trigger/{trigger_uuid}/builds
+
+==== Description
+List the builds started by the specified trigger.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|**Query**|**limit** +
+__optional__|The maximum number of builds to return|integer
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_listtriggerfieldvalues]]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/fields/{field_name}
+
+==== Description
+List the field values for a custom run field.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^4a"]
+|===
+|Type|Name|Schema
+|**Path**|**field_name** +
+__required__|string
+|**Path**|**repository** +
+__required__|string
+|**Path**|**trigger_uuid** +
+__required__|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_listtriggerbuildsourcenamespaces]]
+=== GET /api/v1/repository/{repository}/trigger/{trigger_uuid}/namespaces
+
+==== Description
+List the build sources for the trigger configuration thus far.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_listtriggerbuildsources]]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/sources
+
+==== Description
+List the build sources for the trigger configuration thus far.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_buildtriggersourcesrequest,BuildTriggerSourcesRequest>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_manuallystartbuildtrigger]]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/start
+
+==== Description
+Manually start a build from the specified trigger.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_runparameters,RunParameters>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_listbuildtriggersubdirs]]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/subdir
+
+==== Description
+List the subdirectories available for the specified build trigger and source.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|**Path**|**trigger_uuid** +
+__required__|The UUID of the build trigger|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_buildtriggersubdirrequest,BuildTriggerSubdirRequest>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:admin
+|===
+
+
+[[_user_resource]]
+== User
+Manage the current user.
+
+
+[[_detachexternallogin]]
+=== POST /api/v1/detachexternal/{service_id}
+
+==== Description
+Request that the current user be detached from the external login service.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^4a"]
+|===
+|Type|Name|Schema
+|**Path**|**service_id** +
+__required__|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_retrieveexternalloginauthorizationurl]]
+=== POST /api/v1/externallogin/{service_id}
+
+==== Description
+Generates the auth URL and CSRF token explicitly for OIDC/OAuth-associated login.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**service_id** +
+__required__||string
+|**Body**|**body** +
+__required__|Request body contents.|<<_getlogin,GetLogin>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_signinuser]]
+=== POST /api/v1/signin
+
+==== Description
+Sign in the user with the specified credentials.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_signinuser,SigninUser>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_verifyuser]]
+=== POST /api/v1/signin/verify
+
+==== Description
+Verifies the signed in the user with the specified credentials.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_verifyuser,VerifyUser>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_logout]]
+=== POST /api/v1/signout
+
+==== Description
+Request that the current user be signed out.
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_createnewuser]]
+=== POST /api/v1/user/
+
+==== Description
+Create a new user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_newuser,NewUser>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_getloggedinuser]]
+=== GET /api/v1/user/
+
+==== Description
+Get user information for the authenticated user.
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|<<_userview,UserView>>
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:read
+|===
+
+
+[[_changeuserdetails]]
+=== PUT /api/v1/user/
+
+==== Description
+Update a users details such as password or email.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_updateuser,UpdateUser>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_deletecurrentuser]]
+=== DELETE /api/v1/user/
+
+==== Description
+Deletes the current user.
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_listuserauthorizations]]
+=== GET /api/v1/user/authorizations
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_getuserauthorization]]
+=== GET /api/v1/user/authorizations/{access_token_uuid}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**access_token_uuid** +
+__required__|The uuid of the access token|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_deleteuserauthorization]]
+=== DELETE /api/v1/user/authorizations/{access_token_uuid}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**access_token_uuid** +
+__required__|The uuid of the access token|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_generateuserclientkey]]
+=== POST /api/v1/user/clientkey
+
+==== Description
+Return's the user's private client key.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_generateclientkey,GenerateClientKey>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_convertusertoorganization]]
+=== POST /api/v1/user/convert
+
+==== Description
+Convert the user to an organization.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_convertuser,ConvertUser>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_listusernotifications]]
+=== GET /api/v1/user/notifications
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**limit** +
+__optional__|Limit on the number of results (int)|integer
+|**Query**|**page** +
+__optional__|Offset page number. (int)|integer
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_getusernotification]]
+=== GET /api/v1/user/notifications/{uuid}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**uuid** +
+__required__|The uuid of the user notification|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_updateusernotification]]
+=== PUT /api/v1/user/notifications/{uuid}
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**uuid** +
+__required__|The uuid of the user notification|string
+|**Body**|**body** +
+__required__|Request body contents.|<<_updatenotification,UpdateNotification>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_createstar]]
+=== POST /api/v1/user/starred
+
+==== Description
+Star a repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Body**|**body** +
+__required__|Request body contents.|<<_newstarredrepository,NewStarredRepository>>
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**201**|Successful creation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|repo:read
+|===
+
+
+[[_liststarredrepos]]
+=== GET /api/v1/user/starred
+
+==== Description
+List all starred repositories.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Query**|**next_page** +
+__optional__|The page token for the next page|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_deletestar]]
+=== DELETE /api/v1/user/starred/{repository}
+
+==== Description
+Removes a star from a repository.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|**Path**|**repository** +
+__required__|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**204**|Deleted|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+==== Security
+
+[options="header", cols=".^3a,.^4a,.^13a"]
+|===
+|Type|Name|Scopes
+|**oauth2**|**<<_oauth2_implicit,oauth2_implicit>>**|user:admin
+|===
+
+
+[[_getuserinformation]]
+=== GET /api/v1/users/{username}
+
+==== Description
+Get user information for the specified user.
+
+
+==== Parameters
+
+[options="header", cols=".^2a,.^3a,.^4a"]
+|===
+|Type|Name|Schema
+|**Path**|**username** +
+__required__|string
+|===
+
+
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|**200**|Successful invocation|No Content
+|**400**|Bad Request|<<_apierror,ApiError>>
+|**401**|Session required|<<_apierror,ApiError>>
+|**403**|Unauthorized access|<<_apierror,ApiError>>
+|**404**|Not found|<<_apierror,ApiError>>
+|===
+
+
+[[_userfiles_resource]]
+== Userfiles
+
+
