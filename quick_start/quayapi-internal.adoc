@@ -106,41 +106,6 @@ _optional_|Friendly name to help identify the token|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== revokeAppToken
-Revokes a specific app token for the user.
-
-[discrete]
-=== DELETE /api/v1/user/apptoken/{token_uuid}
-
-
-
-**Authorizations: **oauth2_implicit (**user:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**token_uuid** + 
-_required_|The uuid of the app specific token|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === getAppToken
 Returns a specific app token for the user.
 
@@ -176,10 +141,81 @@ _required_|The uuid of the app specific token|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== revokeAppToken
+Revokes a specific app token for the user.
+
+[discrete]
+=== DELETE /api/v1/user/apptoken/{token_uuid}
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**token_uuid** + 
+_required_|The uuid of the app specific token|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 == build
 
 Create, list, cancel and get status/logs of repository builds.
 
+
+=== getFiledropUrl
+Request a URL to which a file may be uploaded.
+
+[discrete]
+=== POST /api/v1/filedrop/
+
+
+
+**Authorizations: **
+
+[discrete]
+==== Request body schema (application/json)
+
+Description of the file that the user wishes to upload.
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**mimeType** + 
+_optional_|Type of the file which is about to be uploaded|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
 
 === getRepoBuildStatus
 Return the status for the builds specified by the build uuids.
@@ -255,43 +291,6 @@ _required_|The UUID of the build|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== cancelRepoBuild
-Cancels a repository build.
-
-[discrete]
-=== DELETE /api/v1/repository/{repository}/build/{build_uuid}
-
-
-
-**Authorizations: **oauth2_implicit (**repo:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**repository** + 
-_required_|The full path of the repository. e.g. namespace/name|string
-|path|**build_uuid** + 
-_required_|The UUID of the build|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === getRepoBuild
 Returns information about a build.
 
@@ -323,6 +322,43 @@ _required_|The UUID of the build|string
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== cancelRepoBuild
+Cancels a repository build.
+
+[discrete]
+=== DELETE /api/v1/repository/{repository}/build/{build_uuid}
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**build_uuid** + 
+_required_|The UUID of the build|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -1164,45 +1200,6 @@ _optional_|Earliest time for logs. Format: "%m/%d/%Y" in UTC.|string
 Manage the manifests of a repository.
 
 
-=== deleteManifestLabel
-Deletes an existing label from a manifest.
-
-[discrete]
-=== DELETE /api/v1/repository/{repository}/manifest/{manifestref}/labels/{labelid}
-
-
-
-**Authorizations: **oauth2_implicit (**repo:write**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**labelid** + 
-_required_|The ID of the label|string
-|path|**repository** + 
-_required_|The full path of the repository. e.g. namespace/name|string
-|path|**manifestref** + 
-_required_|The digest of the manifest|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === getManifestLabel
 Retrieves the label with the specific ID under the manifest.
 
@@ -1220,12 +1217,12 @@ Retrieves the label with the specific ID under the manifest.
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**labelid** + 
-_required_|The ID of the label|string
 |path|**repository** + 
 _required_|The full path of the repository. e.g. namespace/name|string
 |path|**manifestref** + 
 _required_|The digest of the manifest|string
+|path|**labelid** + 
+_required_|The ID of the label|string
 |===
 
 
@@ -1236,6 +1233,45 @@ _required_|The digest of the manifest|string
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteManifestLabel
+Deletes an existing label from a manifest.
+
+[discrete]
+=== DELETE /api/v1/repository/{repository}/manifest/{manifestref}/labels/{labelid}
+
+
+
+**Authorizations: **oauth2_implicit (**repo:write**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**manifestref** + 
+_required_|The digest of the manifest|string
+|path|**labelid** + 
+_required_|The ID of the label|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -1666,6 +1702,41 @@ _optional_|The (may be disabled) recaptcha response code for verification|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== resetOrganizationApplicationClientSecret
+Resets the client secret of the application.
+
+[discrete]
+=== POST /api/v1/organization/{orgname}/applications/{client_id}/resetclientsecret
+
+
+
+**Authorizations: **
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**client_id** + 
+_required_|The OAuth client ID|string
+|path|**orgname** + 
+_required_|The name of the organization|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === getOrganizationCollaborators
 List outside collaborators of the specified organization.
 
@@ -1695,43 +1766,6 @@ _required_|The name of the organization|string
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
-=== deleteOrganizationApplication
-Deletes the application under this organization.
-
-[discrete]
-=== DELETE /api/v1/organization/{orgname}/applications/{client_id}
-
-
-
-**Authorizations: **oauth2_implicit (**org:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**client_id** + 
-_required_|The OAuth client ID|string
-|path|**orgname** + 
-_required_|The name of the organization|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -1833,6 +1867,43 @@ _optional_|The e-mail address of the avatar to use for the application|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== deleteOrganizationApplication
+Deletes the application under this organization.
+
+[discrete]
+=== DELETE /api/v1/organization/{orgname}/applications/{client_id}
+
+
+
+**Authorizations: **oauth2_implicit (**org:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**client_id** + 
+_required_|The OAuth client ID|string
+|path|**orgname** + 
+_required_|The name of the organization|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === getOrganizationApplications
 List the applications for the specified organization.
 
@@ -1924,6 +1995,43 @@ _optional_|The e-mail address of the avatar to use for the application|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== getOrganizationMember
+Retrieves the details of a member of the organization.
+
+[discrete]
+=== GET /api/v1/organization/{orgname}/members/{membername}
+
+
+
+**Authorizations: **oauth2_implicit (**org:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**membername** + 
+_required_|The username of the organization member|string
+|path|**orgname** + 
+_required_|The name of the organization|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === removeOrganizationMember
 Removes a member from an organization, revoking all its repository priviledges and removing
         it from all teams in the organization.
@@ -1962,43 +2070,6 @@ _required_|The name of the organization|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== getOrganizationMember
-Retrieves the details of a member of the organization.
-
-[discrete]
-=== GET /api/v1/organization/{orgname}/members/{membername}
-
-
-
-**Authorizations: **oauth2_implicit (**org:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**membername** + 
-_required_|The username of the organization member|string
-|path|**orgname** + 
-_required_|The name of the organization|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|200|Successful invocation|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === getOrganizationMembers
 List the human members of the specified organization.
 
@@ -2028,41 +2099,6 @@ _required_|The name of the organization|string
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
-=== deleteAdminedOrganization
-Deletes the specified organization.
-
-[discrete]
-=== DELETE /api/v1/organization/{orgname}
-
-
-
-**Authorizations: **oauth2_implicit (**org:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**orgname** + 
-_required_|The name of the organization|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -2156,6 +2192,41 @@ _optional_|The number of seconds for tag expiration|integer
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== deleteAdminedOrganization
+Deletes the specified organization.
+
+[discrete]
+=== DELETE /api/v1/organization/{orgname}
+
+
+
+**Authorizations: **oauth2_implicit (**org:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**orgname** + 
+_required_|The name of the organization|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === getApplicationInformation
 Get information on the specified application.
 
@@ -2225,43 +2296,6 @@ _required_|The username of the user to which the permissions apply|string
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
-=== deleteUserPermissions
-Delete the permission for the user.
-
-[discrete]
-=== DELETE /api/v1/repository/{repository}/permissions/user/{username}
-
-
-
-**Authorizations: **oauth2_implicit (**repo:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**repository** + 
-_required_|The full path of the repository. e.g. namespace/name|string
-|path|**username** + 
-_required_|The username of the user to which the permission applies|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -2355,11 +2389,11 @@ _optional_|Role to use for the user|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== deleteTeamPermissions
-Delete the permission for the specified team.
+=== deleteUserPermissions
+Delete the permission for the user.
 
 [discrete]
-=== DELETE /api/v1/repository/{repository}/permissions/team/{teamname}
+=== DELETE /api/v1/repository/{repository}/permissions/user/{username}
 
 
 
@@ -2372,10 +2406,10 @@ Delete the permission for the specified team.
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**teamname** + 
-_required_|The name of the team to which the permission applies|string
 |path|**repository** + 
 _required_|The full path of the repository. e.g. namespace/name|string
+|path|**username** + 
+_required_|The username of the user to which the permission applies|string
 |===
 
 
@@ -2409,10 +2443,10 @@ Fetch the permission for the specified team.
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**teamname** + 
-_required_|The name of the team to which the permission applies|string
 |path|**repository** + 
 _required_|The full path of the repository. e.g. namespace/name|string
+|path|**teamname** + 
+_required_|The name of the team to which the permission applies|string
 |===
 
 
@@ -2446,10 +2480,10 @@ Update the existing team permission.
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**teamname** + 
-_required_|The name of the team to which the permission applies|string
 |path|**repository** + 
 _required_|The full path of the repository. e.g. namespace/name|string
+|path|**teamname** + 
+_required_|The name of the team to which the permission applies|string
 |===
 
 
@@ -2473,6 +2507,43 @@ _optional_|Role to use for the team|string
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteTeamPermissions
+Delete the permission for the specified team.
+
+[discrete]
+=== DELETE /api/v1/repository/{repository}/permissions/team/{teamname}
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**teamname** + 
+_required_|The name of the team to which the permission applies|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -2554,6 +2625,43 @@ _required_|The full path of the repository. e.g. namespace/name|string
 Manage default permissions added to repositories.
 
 
+=== deleteOrganizationPrototypePermission
+Delete an existing permission prototype.
+
+[discrete]
+=== DELETE /api/v1/organization/{orgname}/prototypes/{prototypeid}
+
+
+
+**Authorizations: **oauth2_implicit (**org:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**prototypeid** + 
+_required_|The ID of the prototype|string
+|path|**orgname** + 
+_required_|The name of the organization|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === updateOrganizationPrototypePermission
 Update the role of an existing permission prototype.
 
@@ -2598,43 +2706,6 @@ _optional_|Role that should be applied to the permission|string
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
-=== deleteOrganizationPrototypePermission
-Delete an existing permission prototype.
-
-[discrete]
-=== DELETE /api/v1/organization/{orgname}/prototypes/{prototypeid}
-
-
-
-**Authorizations: **oauth2_implicit (**org:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**prototypeid** + 
-_required_|The ID of the prototype|string
-|path|**orgname** + 
-_required_|The name of the organization|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -2923,41 +2994,6 @@ _optional_|Determines whether pushes are allowed.|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== deleteRepository
-Delete a repository.
-
-[discrete]
-=== DELETE /api/v1/repository/{repository}
-
-
-
-**Authorizations: **oauth2_implicit (**repo:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**repository** + 
-_required_|The full path of the repository. e.g. namespace/name|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === getRepo
 Fetch the specified repository.
 
@@ -3054,6 +3090,41 @@ _optional_|Markdown encoded description for the repository|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== deleteRepository
+Delete a repository.
+
+[discrete]
+=== DELETE /api/v1/repository/{repository}
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 == repositorynotification
 
 List, create and manage repository events/notifications.
@@ -3090,43 +3161,6 @@ _required_|The UUID of the notification|string
 |===
 |HTTP Code|Description|Schema
 |201|Successful creation|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
-=== deleteRepoNotification
-Deletes the specified notification.
-
-[discrete]
-=== DELETE /api/v1/repository/{repository}/notification/{uuid}
-
-
-
-**Authorizations: **oauth2_implicit (**repo:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**repository** + 
-_required_|The full path of the repository. e.g. namespace/name|string
-|path|**uuid** + 
-_required_|The UUID of the notification|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -3201,6 +3235,43 @@ _required_|The UUID of the notification|string
 |===
 |HTTP Code|Description|Schema
 |201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteRepoNotification
+Deletes the specified notification.
+
+[discrete]
+=== DELETE /api/v1/repository/{repository}/notification/{uuid}
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**uuid** + 
+_required_|The UUID of the notification|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -3303,43 +3374,6 @@ _optional_|The human-readable title of the notification|string
 Manage repository access tokens (DEPRECATED).
 
 
-=== deleteToken
-Delete the repository token.
-
-[discrete]
-=== DELETE /api/v1/repository/{repository}/tokens/{code}
-
-
-
-**Authorizations: **oauth2_implicit (**repo:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**repository** + 
-_required_|The full path of the repository. e.g. namespace/name|string
-|path|**code** + 
-_required_|The token code|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === getTokens
 Fetch the specified repository token information.
 
@@ -3421,6 +3455,43 @@ _optional_|Role to use for the token|string
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteToken
+Delete the repository token.
+
+[discrete]
+=== DELETE /api/v1/repository/{repository}/tokens/{code}
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**code** + 
+_required_|The token code|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -3699,43 +3770,6 @@ _required_|The short name for the robot, without any user or organization prefix
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== deleteOrgRobot
-Delete an existing organization robot.
-
-[discrete]
-=== DELETE /api/v1/organization/{orgname}/robots/{robot_shortname}
-
-
-
-**Authorizations: **oauth2_implicit (**org:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**robot_shortname** + 
-_required_|The short name for the robot, without any user or organization prefix|string
-|path|**orgname** + 
-_required_|The name of the organization|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === getOrgRobot
 Returns the organization's robot with the specified name.
 
@@ -3825,6 +3859,43 @@ _optional_|Optional unstructured metadata for the robot|object
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== deleteOrgRobot
+Delete an existing organization robot.
+
+[discrete]
+=== DELETE /api/v1/organization/{orgname}/robots/{robot_shortname}
+
+
+
+**Authorizations: **oauth2_implicit (**org:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**robot_shortname** + 
+_required_|The short name for the robot, without any user or organization prefix|string
+|path|**orgname** + 
+_required_|The name of the organization|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === getOrgRobots
 List the organization's robots.
 
@@ -3869,41 +3940,6 @@ _optional_|Whether to include repostories and teams in which the robots have per
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
-=== deleteUserRobot
-Delete an existing robot.
-
-[discrete]
-=== DELETE /api/v1/user/robots/{robot_shortname}
-
-
-
-**Authorizations: **oauth2_implicit (**user:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**robot_shortname** + 
-_required_|The short name for the robot, without any user or organization prefix|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -3995,6 +4031,41 @@ _optional_|Optional unstructured metadata for the robot|object
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== deleteUserRobot
+Delete an existing robot.
+
+[discrete]
+=== DELETE /api/v1/user/robots/{robot_shortname}
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**robot_shortname** + 
+_required_|The short name for the robot, without any user or organization prefix|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 == search
 
 Conduct searches against all registry context.
@@ -4068,6 +4139,39 @@ _optional_|The search query.|string
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== linkExternalUser
+
+
+[discrete]
+=== POST /api/v1/entities/link/{username}
+
+
+
+**Authorizations: **
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**username** + 
+_required_||string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -4223,10 +4327,147 @@ _optional_|Include vulnerabilities information|boolean
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+== suconfig
+
+Superuser Config API.
+
+
+=== scRegistryStatus
+Returns the status of the registry.
+
+[discrete]
+=== GET /api/v1/superuser/registrystatus
+
+
+
+**Authorizations: **
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== scShutdownContainer
+Sends a signal to the phusion init system to shut down the container.
+
+[discrete]
+=== POST /api/v1/superuser/shutdown
+
+
+
+**Authorizations: **
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 == superuser
 
 Superuser API.
 
+
+=== listAllAggregateLogs
+Returns the aggregated logs for the current system.
+
+[discrete]
+=== GET /api/v1/superuser/aggregatelogs
+
+
+
+**Authorizations: **
+
+[discrete]
+==== Query parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|query|**endtime** + 
+_optional_|Latest time to which to get logs. (%m/%d/%Y %Z)|string
+|query|**starttime** + 
+_optional_|Earliest time from which to get logs. (%m/%d/%Y %Z)|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== listAllOrganizations
+Returns a list of all organizations in the system.
+
+[discrete]
+=== GET /api/v1/superuser/organizations/
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== getChangeLog
+Returns the change log for this installation.
+
+[discrete]
+=== GET /api/v1/superuser/changelog/
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
 
 === listAllUsers
 Returns a list of all users in the system.
@@ -4304,6 +4545,48 @@ _optional_|The email address of the user being created|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== listAllLogs
+List the usage logs for the current system.
+
+[discrete]
+=== GET /api/v1/superuser/logs
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+
+[discrete]
+==== Query parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|query|**next_page** + 
+_optional_|The page token for the next page|string
+|query|**page** + 
+_optional_|The page number for the logs|integer
+|query|**endtime** + 
+_optional_|Latest time to which to get logs (%m/%d/%Y %Z)|string
+|query|**starttime** + 
+_optional_|Earliest time from which to get logs (%m/%d/%Y %Z)|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === listServiceKeys
 
 
@@ -4375,6 +4658,76 @@ _optional_|The expiration date as a unix timestamp|
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== takeOwnership
+Takes ownership of the specified organization or user.
+
+[discrete]
+=== POST /api/v1/superuser/takeownership/{namespace}
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**namespace** + 
+_required_|The namespace of the user or organization being managed|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteOrganization
+Deletes the specified organization.
+
+[discrete]
+=== DELETE /api/v1/superuser/organizations/{name}
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**name** + 
+_required_|The name of the organizaton being managed|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === changeOrganization
 Updates information about the specified user.
 
@@ -4429,41 +4782,6 @@ _optional_|The number of seconds for tag expiration|integer
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== deleteOrganization
-Deletes the specified organization.
-
-[discrete]
-=== DELETE /api/v1/superuser/organizations/{name}
-
-
-
-**Authorizations: **oauth2_implicit (**super:user**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**name** + 
-_required_|The name of the organizaton being managed|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === approveServiceKey
 
 
@@ -4512,11 +4830,11 @@ _optional_|Optional approval notes|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== deleteServiceKey
-
+=== getInstallUser
+Returns information about the specified user.
 
 [discrete]
-=== DELETE /api/v1/superuser/keys/{kid}
+=== GET /api/v1/superuser/users/{username}
 
 
 
@@ -4529,8 +4847,95 @@ _optional_|Optional approval notes|string
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**kid** + 
-_required_|The unique identifier for a service key|string
+|path|**username** + 
+_required_|The username of the user being managed|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== changeInstallUser
+Updates information about the specified user.
+
+[discrete]
+=== PUT /api/v1/superuser/users/{username}
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**username** + 
+_required_|The username of the user being managed|string
+|===
+
+
+[discrete]
+==== Request body schema (application/json)
+
+Description of updates for a user
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**password** + 
+_optional_|The new password for the user|string
+|**email** + 
+_optional_|The new e-mail address for the user|string
+|**enabled** + 
+_optional_|Whether the user is enabled|boolean
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteInstallUser
+Deletes the specified user.
+
+[discrete]
+=== DELETE /api/v1/superuser/users/{username}
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**username** + 
+_required_|The username of the user being managed|string
 |===
 
 
@@ -4628,6 +5033,41 @@ _optional_|The expiration date as a unix timestamp|
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteServiceKey
+
+
+[discrete]
+=== DELETE /api/v1/superuser/keys/{kid}
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**kid** + 
+_required_|The unique identifier for a service key|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -4761,10 +5201,10 @@ Restores a repository tag back to a previous image in the repository.
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**tag** + 
-_required_|The name of the tag|string
 |path|**repository** + 
 _required_|The full path of the repository. e.g. namespace/name|string
+|path|**tag** + 
+_required_|The name of the tag|string
 |===
 
 
@@ -4813,10 +5253,10 @@ List the images for the specified repository tag.
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**tag** + 
-_required_|The name of the tag|string
 |path|**repository** + 
 _required_|The full path of the repository. e.g. namespace/name|string
+|path|**tag** + 
+_required_|The name of the tag|string
 |===
 
 
@@ -4828,60 +5268,6 @@ _required_|The full path of the repository. e.g. namespace/name|string
 |Type|Name|Description|Schema
 |query|**owned** + 
 _optional_|If specified, only images wholely owned by this tag are returned.|boolean
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|200|Successful invocation|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
-=== changeTag
-Change which image a tag points to or create a new tag.
-
-[discrete]
-=== PUT /api/v1/repository/{repository}/tag/{tag}
-
-
-
-**Authorizations: **oauth2_implicit (**repo:write**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**tag** + 
-_required_|The name of the tag|string
-|path|**repository** + 
-_required_|The full path of the repository. e.g. namespace/name|string
-|===
-
-
-[discrete]
-==== Request body schema (application/json)
-
-Makes changes to a specific tag
-
-[options="header", cols=".^3a,.^9a,.^4a"]
-|===
-|Name|Description|Schema
-|**image** + 
-_optional_|(Deprecated: Use `manifest_digest`) Image to which the tag should point.|
-|**manifest_digest** + 
-_optional_|(If specified) The manifest digest to which the tag should point|
-|**expiration** + 
-_optional_|(If specified) The expiration for the image|
 |===
 
 
@@ -4915,10 +5301,10 @@ Delete the specified repository tag.
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**tag** + 
-_required_|The name of the tag|string
 |path|**repository** + 
 _required_|The full path of the repository. e.g. namespace/name|string
+|path|**tag** + 
+_required_|The name of the tag|string
 |===
 
 
@@ -4929,6 +5315,60 @@ _required_|The full path of the repository. e.g. namespace/name|string
 |===
 |HTTP Code|Description|Schema
 |204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== changeTag
+Change which image a tag points to or create a new tag.
+
+[discrete]
+=== PUT /api/v1/repository/{repository}/tag/{tag}
+
+
+
+**Authorizations: **oauth2_implicit (**repo:write**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**tag** + 
+_required_|The name of the tag|string
+|===
+
+
+[discrete]
+==== Request body schema (application/json)
+
+Makes changes to a specific tag
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**image** + 
+_optional_|(Deprecated: Use `manifest_digest`) Image to which the tag should point.|
+|**manifest_digest** + 
+_optional_|(If specified) The manifest digest to which the tag should point|
+|**expiration** + 
+_optional_|(If specified) The expiration for the image|
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -5027,45 +5467,6 @@ _required_|The name of the organization|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== updateOrganizationTeamMember
-Adds or invites a member to an existing team.
-
-[discrete]
-=== PUT /api/v1/organization/{orgname}/team/{teamname}/members/{membername}
-
-
-
-**Authorizations: **oauth2_implicit (**org:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**teamname** + 
-_required_|The name of the team|string
-|path|**membername** + 
-_required_|The username of the team member|string
-|path|**orgname** + 
-_required_|The name of the organization|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|200|Successful invocation|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === deleteOrganizationTeamMember
 Delete a member of a team.
 
@@ -5085,10 +5486,10 @@ Delete a member of a team.
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**teamname** + 
-_required_|The name of the team|string
 |path|**membername** + 
 _required_|The username of the team member|string
+|path|**teamname** + 
+_required_|The name of the team|string
 |path|**orgname** + 
 _required_|The name of the organization|string
 |===
@@ -5101,6 +5502,45 @@ _required_|The name of the organization|string
 |===
 |HTTP Code|Description|Schema
 |204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== updateOrganizationTeamMember
+Adds or invites a member to an existing team.
+
+[discrete]
+=== PUT /api/v1/organization/{orgname}/team/{teamname}/members/{membername}
+
+
+
+**Authorizations: **oauth2_implicit (**org:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**membername** + 
+_required_|The username of the team member|string
+|path|**teamname** + 
+_required_|The name of the team|string
+|path|**orgname** + 
+_required_|The name of the organization|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -5149,6 +5589,43 @@ _optional_|Whether to include pending members|boolean
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteOrganizationTeam
+Delete the specified team.
+
+[discrete]
+=== DELETE /api/v1/organization/{orgname}/team/{teamname}
+
+
+
+**Authorizations: **oauth2_implicit (**org:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**teamname** + 
+_required_|The name of the team|string
+|path|**orgname** + 
+_required_|The name of the organization|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -5207,15 +5684,20 @@ _optional_|Markdown description for the team|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== deleteOrganizationTeam
-Delete the specified team.
+== trigger
+
+Create, list and manage build triggers.
+
+
+=== listTriggerBuildSourceNamespaces
+List the build sources for the trigger configuration thus far.
 
 [discrete]
-=== DELETE /api/v1/organization/{orgname}/team/{teamname}
+=== GET /api/v1/repository/{repository}/trigger/{trigger_uuid}/namespaces
 
 
 
-**Authorizations: **oauth2_implicit (**org:admin**)
+**Authorizations: **oauth2_implicit (**repo:admin**)
 
 
 [discrete]
@@ -5224,10 +5706,10 @@ Delete the specified team.
 [options="header", cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**teamname** + 
-_required_|The name of the team|string
-|path|**orgname** + 
-_required_|The name of the organization|string
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**trigger_uuid** + 
+_required_|The UUID of the build trigger|string
 |===
 
 
@@ -5237,17 +5719,12 @@ _required_|The name of the organization|string
 [options="header", cols=".^2a,.^14a,.^4a"]
 |===
 |HTTP Code|Description|Schema
-|204|Deleted|
+|200|Successful invocation|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
-
-== trigger
-
-Create, list and manage build triggers.
-
 
 === activateBuildTrigger
 Activate the specified build trigger.
@@ -5285,6 +5762,193 @@ _required_|The UUID of the build trigger|string
 _optional_|Arbitrary json.|object
 |**pull_robot** + 
 _optional_|The name of the robot that will be used to pull images.|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== analyzeBuildTrigger
+Analyze the specified build trigger configuration.
+
+[discrete]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/analyze
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**trigger_uuid** + 
+_required_|The UUID of the build trigger|string
+|===
+
+
+[discrete]
+==== Request body schema (application/json)
+
+
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**config** + 
+_optional_|Arbitrary json.|object
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== listTriggerBuildSources
+List the build sources for the trigger configuration thus far.
+
+[discrete]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/sources
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**trigger_uuid** + 
+_required_|The UUID of the build trigger|string
+|===
+
+
+[discrete]
+==== Request body schema (application/json)
+
+Specifies the namespace under which to fetch sources
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**namespace** + 
+_optional_|The namespace for which to fetch sources|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== listTriggerFieldValues
+List the field values for a custom run field.
+
+[discrete]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/fields/{field_name}
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_||string
+|path|**field_name** + 
+_required_||string
+|path|**trigger_uuid** + 
+_required_||string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== listBuildTriggerSubdirs
+List the subdirectories available for the specified build trigger and source.
+
+[discrete]
+=== POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/subdir
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**trigger_uuid** + 
+_required_|The UUID of the build trigger|string
+|===
+
+
+[discrete]
+==== Request body schema (application/json)
+
+Arbitrary json.
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
 |===
 
 
@@ -5403,43 +6067,6 @@ _optional_|(SCM Only) If specified, the ref to build.|
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-=== deleteBuildTrigger
-Delete the specified build trigger.
-
-[discrete]
-=== DELETE /api/v1/repository/{repository}/trigger/{trigger_uuid}
-
-
-
-**Authorizations: **oauth2_implicit (**repo:admin**)
-
-
-[discrete]
-==== Path parameters
-
-[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
-|===
-|Type|Name|Description|Schema
-|path|**repository** + 
-_required_|The full path of the repository. e.g. namespace/name|string
-|path|**trigger_uuid** + 
-_required_|The UUID of the build trigger|string
-|===
-
-
-[discrete]
-==== Responses
-
-[options="header", cols=".^2a,.^14a,.^4a"]
-|===
-|HTTP Code|Description|Schema
-|204|Deleted|
-|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
-|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
-|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
-|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
-|===
-
 === getBuildTrigger
 Get information for the specified build trigger.
 
@@ -5527,6 +6154,43 @@ _optional_|Whether the build trigger is enabled|boolean
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== deleteBuildTrigger
+Delete the specified build trigger.
+
+[discrete]
+=== DELETE /api/v1/repository/{repository}/trigger/{trigger_uuid}
+
+
+
+**Authorizations: **oauth2_implicit (**repo:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**trigger_uuid** + 
+_required_|The UUID of the build trigger|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === listBuildTriggers
 List the triggers for the specified repository.
 
@@ -5566,6 +6230,187 @@ _required_|The full path of the repository. e.g. namespace/name|string
 
 Manage the current user.
 
+
+=== verifyUser
+Verifies the signed in the user with the specified credentials.
+
+[discrete]
+=== POST /api/v1/signin/verify
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+
+[discrete]
+==== Request body schema (application/json)
+
+Information required to verify the signed in user.
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**password** + 
+_optional_|The user's password|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== listUserAuthorizations
+
+
+[discrete]
+=== GET /api/v1/user/authorizations
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== listUserNotifications
+
+
+[discrete]
+=== GET /api/v1/user/notifications
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+
+[discrete]
+==== Query parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|query|**limit** + 
+_optional_|Limit on the number of results (int)|integer
+|query|**page** + 
+_optional_|Offset page number. (int)|integer
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== generateUserClientKey
+Return's the user's private client key.
+
+[discrete]
+=== POST /api/v1/user/clientkey
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+
+[discrete]
+==== Request body schema (application/json)
+
+
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**password** + 
+_optional_|The user's password|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== convertUserToOrganization
+Convert the user to an organization.
+
+[discrete]
+=== POST /api/v1/user/convert
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+
+[discrete]
+==== Request body schema (application/json)
+
+Information required to convert a user to an organization.
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**adminUser** + 
+_optional_|The user who will become an org admin's username|string
+|**adminPassword** + 
+_optional_|The user who will become an org admin's password|string
+|**plan** + 
+_optional_|The plan to which the organization should be subscribed|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
 
 === listStarredRepos
 List all starred repositories.
@@ -5643,6 +6488,69 @@ _optional_|Repository name|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+=== logout
+Request that the current user be signed out.
+
+[discrete]
+=== POST /api/v1/signout
+
+
+
+**Authorizations: **
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== signinUser
+Sign in the user with the specified credentials.
+
+[discrete]
+=== POST /api/v1/signin
+
+
+
+**Authorizations: **
+
+[discrete]
+==== Request body schema (application/json)
+
+Information required to sign in a user.
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**username** + 
+_optional_|The user's username|string
+|**password** + 
+_optional_|The user's password|string
+|**invite_code** + 
+_optional_|The optional invite code|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
 === getLoggedInUser
 Get user information for the authenticated user.
 
@@ -5662,6 +6570,270 @@ Get user information for the authenticated user.
 |===
 |HTTP Code|Description|Schema
 |200|Successful invocation|&lt;&lt;_userview,UserView&gt;&gt;
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== createNewUser
+Create a new user.
+
+[discrete]
+=== POST /api/v1/user/
+
+
+
+**Authorizations: **
+
+[discrete]
+==== Request body schema (application/json)
+
+Fields which must be specified for a new user.
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**username** + 
+_optional_|The user's username|string
+|**password** + 
+_optional_|The user's password|string
+|**email** + 
+_optional_|The user's email address|string
+|**invite_code** + 
+_optional_|The optional invite code|string
+|**recaptcha_response** + 
+_optional_|The (may be disabled) recaptcha response code for verification|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== changeUserDetails
+Update a users details such as password or email.
+
+[discrete]
+=== PUT /api/v1/user/
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+
+[discrete]
+==== Request body schema (application/json)
+
+Description of updates for a user
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**password** + 
+_optional_|The new password for the user|string
+|**email** + 
+_optional_|The new e-mail address for the user|string
+|**enabled** + 
+_optional_|Whether the user is enabled|boolean
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteCurrentUser
+Deletes the current user.
+
+[discrete]
+=== DELETE /api/v1/user/
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== getUserAuthorization
+
+
+[discrete]
+=== GET /api/v1/user/authorizations/{access_token_uuid}
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**access_token_uuid** + 
+_required_|The uuid of the access token|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== deleteUserAuthorization
+
+
+[discrete]
+=== DELETE /api/v1/user/authorizations/{access_token_uuid}
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**access_token_uuid** + 
+_required_|The uuid of the access token|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== getUserNotification
+
+
+[discrete]
+=== GET /api/v1/user/notifications/{uuid}
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**uuid** + 
+_required_|The uuid of the user notification|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== updateUserNotification
+
+
+[discrete]
+=== PUT /api/v1/user/notifications/{uuid}
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**uuid** + 
+_required_|The uuid of the user notification|string
+|===
+
+
+[discrete]
+==== Request body schema (application/json)
+
+Information for updating a notification
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**dismissed** + 
+_optional_|Whether the notification is dismissed by the user|boolean
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
@@ -5697,6 +6869,87 @@ _required_|The full path of the repository. e.g. namespace/name|string
 |===
 |HTTP Code|Description|Schema
 |204|Deleted|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== detachExternalLogin
+Request that the current user be detached from the external login service.
+
+[discrete]
+=== POST /api/v1/detachexternal/{service_id}
+
+
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**service_id** + 
+_required_||string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+=== retrieveExternalLoginAuthorizationUrl
+Generates the auth URL and CSRF token explicitly for OIDC/OAuth-associated login.
+
+[discrete]
+=== POST /api/v1/externallogin/{service_id}
+
+
+
+**Authorizations: **
+[discrete]
+==== Path parameters
+
+[options="header", cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**service_id** + 
+_required_||string
+|===
+
+
+[discrete]
+==== Request body schema (application/json)
+
+Information required to an retrieve external login URL.
+
+[options="header", cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**kind** + 
+_optional_|The kind of URL|string
+|===
+
+
+[discrete]
+==== Responses
+
+[options="header", cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
