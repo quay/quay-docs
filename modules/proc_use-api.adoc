@@ -16,7 +16,7 @@ by enabling the Swagger UI
 
 The following text describes how to access the {productname} API and
 use it to view and modify setting in your {productname} cluster.
-Appendix A lists and describes API endpoints.
+The next section lists and describes API endpoints.
 
 == Accessing the Quay API from Quay.io
 If you don't have your own {productname} cluster running yet,
@@ -208,6 +208,181 @@ $ curl -X GET -H "Authorization: Bearer mFCdgS7SAIoMcnTsHCGx23vcNsTgziAa4CmmHIsg
   ]
 }
 ----
+
+
+=== List usage logs
+
+An intrnal API, `/api/v1/superuser/logs`, is available to list the usage logs for the current system. The results are paginated, so in the following example, more than 20 repos were created to show how to use multiple invocations to access the entire result set.
+
+==== Example for pagination
+
+.First invocation
+[source,terminal]
+----
+$ curl -X GET -k -H "Authorization: Bearer qz9NZ2Np1f55CSZ3RVOvxjeUdkzYuCp0pKggABCD" https://example-registry-quay-quay-enterprise.apps.example.com/api/v1/superuser/logs | jq
+----
+
+.Initial output
+[source,json]
+----
+{
+  "start_time": "Sun, 12 Dec 2021 11:41:55 -0000",
+  "end_time": "Tue, 14 Dec 2021 11:41:55 -0000",
+  "logs": [
+    {
+      "kind": "create_repo",
+      "metadata": {
+        "repo": "t21",
+        "namespace": "namespace1"
+      },
+      "ip": "10.131.0.13",
+      "datetime": "Mon, 13 Dec 2021 11:41:16 -0000",
+      "performer": {
+        "kind": "user",
+        "name": "user1",
+        "is_robot": false,
+        "avatar": {
+          "name": "user1",
+          "hash": "5d40b245471708144de9760f2f18113d75aa2488ec82e12435b9de34a6565f73",
+          "color": "#ad494a",
+          "kind": "user"
+        }
+      },
+      "namespace": {
+        "kind": "org",
+        "name": "namespace1",
+        "avatar": {
+          "name": "namespace1",
+          "hash": "6cf18b5c19217bfc6df0e7d788746ff7e8201a68cba333fca0437e42379b984f",
+          "color": "#e377c2",
+          "kind": "org"
+        }
+      }
+    },
+    {
+      "kind": "create_repo",
+      "metadata": {
+        "repo": "t20",
+        "namespace": "namespace1"
+      },
+      "ip": "10.131.0.13",
+      "datetime": "Mon, 13 Dec 2021 11:41:05 -0000",
+      "performer": {
+        "kind": "user",
+        "name": "user1",
+        "is_robot": false,
+        "avatar": {
+          "name": "user1",
+          "hash": "5d40b245471708144de9760f2f18113d75aa2488ec82e12435b9de34a6565f73",
+          "color": "#ad494a",
+          "kind": "user"
+        }
+      },
+      "namespace": {
+        "kind": "org",
+        "name": "namespace1",
+        "avatar": {
+          "name": "namespace1",
+          "hash": "6cf18b5c19217bfc6df0e7d788746ff7e8201a68cba333fca0437e42379b984f",
+          "color": "#e377c2",
+          "kind": "org"
+        }
+      }
+    },
+...
+
+   {
+      "kind": "create_repo",
+      "metadata": {
+        "repo": "t2",
+        "namespace": "namespace1"
+      },
+      "ip": "10.131.0.13",
+      "datetime": "Mon, 13 Dec 2021 11:25:17 -0000",
+      "performer": {
+        "kind": "user",
+        "name": "user1",
+        "is_robot": false,
+        "avatar": {
+          "name": "user1",
+          "hash": "5d40b245471708144de9760f2f18113d75aa2488ec82e12435b9de34a6565f73",
+          "color": "#ad494a",
+          "kind": "user"
+        }
+      },
+      "namespace": {
+        "kind": "org",
+        "name": "namespace1",
+        "avatar": {
+          "name": "namespace1",
+          "hash": "6cf18b5c19217bfc6df0e7d788746ff7e8201a68cba333fca0437e42379b984f",
+          "color": "#e377c2",
+          "kind": "org"
+        }
+      }
+    }
+  ],
+  "next_page": "gAAAAABhtzGDsH38x7pjWhD8MJq1_2FAgqUw2X9S2LoCLNPH65QJqB4XAU2qAxYb6QqtlcWj9eI6DUiMN_q3e3I0agCvB2VPQ8rY75WeaiUzM3rQlMc4i6ElR78t8oUxVfNp1RMPIRQYYZyXP9h6E8LZZhqTMs0S-SedaQJ3kVFtkxZqJwHVjgt23Ts2DonVoYwtKgI3bCC5"
+}
+
+----
+
+
+
+.Second invocation using next_page
+[source,terminal]
+----
+$ curl -X GET -k -H "Authorization: Bearer qz9NZ2Np1f55CSZ3RVOvxjeUdkzYuCp0pKggABCD" https://example-registry-quay-quay-enterprise.apps.example.com/api/v1/superuser/logs?next_page=gAAAAABhtzGDsH38x7pjWhD8MJq1_2FAgqUw2X9S2LoCLNPH65QJqB4XAU2qAxYb6QqtlcWj9eI6DUiMN_q3e3I0agCvB2VPQ8rY75WeaiUzM3rQlMc4i6ElR78t8oUxVfNp1RMPIRQYYZyXP9h6E8LZZhqTMs0S-SedaQJ3kVFtkxZqJwHVjgt23Ts2DonVoYwtKgI3bCC5 | jq
+----
+
+.Output from second invocation
+[source,json]
+----
+{
+  "start_time": "Sun, 12 Dec 2021 11:42:46 -0000",
+  "end_time": "Tue, 14 Dec 2021 11:42:46 -0000",
+  "logs": [
+    {
+      "kind": "create_repo",
+      "metadata": {
+        "repo": "t1",
+        "namespace": "namespace1"
+      },
+      "ip": "10.131.0.13",
+      "datetime": "Mon, 13 Dec 2021 11:25:07 -0000",
+      "performer": {
+        "kind": "user",
+        "name": "user1",
+        "is_robot": false,
+        "avatar": {
+          "name": "user1",
+          "hash": "5d40b245471708144de9760f2f18113d75aa2488ec82e12435b9de34a6565f73",
+          "color": "#ad494a",
+          "kind": "user"
+        }
+      },
+      "namespace": {
+        "kind": "org",
+        "name": "namespace1",
+        "avatar": {
+          "name": "namespace1",
+          "hash": "6cf18b5c19217bfc6df0e7d788746ff7e8201a68cba333fca0437e42379b984f",
+          "color": "#e377c2",
+          "kind": "org"
+        }
+      }
+    },
+    ...
+  ]
+}
+----
+
+
+
+
+
+
+
 
 === Directory synchronization
 
