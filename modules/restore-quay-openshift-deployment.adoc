@@ -1,0 +1,306 @@
+== Restoring Red Hat Quay when the Operator manages the database
+
+This procedure is used to restore {productname} when the Red Hat Quay Operator manages the database. It should be performed after a backup of your Quay registry has been performed.
+
+This procedure is tested within the same {productname} minor version, regardless of the z-stream version. There should be no changes in the database schema between z-stream releases.
+
+.Prerequisites
+
+* {productname} is deployed on OpenShift Container Platform using the Quay Operator.
+* Your {productname} database has been backed up.
+* A new {productname} registry has been created.
+
+[NOTE]
+====
+The procedure in this document uses `quay-enterprise-restore` for the namespace, and `example-restore-registry` for the name of the registry.
+====
+
+.Procedure
+
+. Obtain a list of the deployed pods in your new Quay namespace:
++
+----
+$ oc get pods -n quay-enterprise-restore
+----
++
+Example output:
++
+----
+NAME                                                           READY   STATUS      RESTARTS   AGE
+example-registry-restore-clair-app-86bcc78fc4-tgxnh            1/1     Running     0          28m
+example-registry-restore-clair-postgres-d5d68599f-7ddfk        1/1     Running     0          28m
+example-registry-restore-quay-app-6d59c5d8b5-w6lrm             1/1     Running     1          28m
+example-registry-restore-quay-app-upgrade-clrml                0/1     Pending     0          28m
+example-registry-restore-quay-config-editor-5d89c6db4f-zxbn2   1/1     Running     0          28m
+example-registry-restore-quay-database-85d455b6cc-rrgt4        1/1     Running     0          28m
+example-registry-restore-quay-mirror-6d8f9d7bc8-fd7ks          1/1     Running     0          28m
+example-registry-restore-quay-postgres-init-t7rrf              0/1     Completed   0          28m
+example-registry-restore-quay-redis-588f6dbc8f-jdn9b           1/1     Running     0          28m
+----
+
+. Scale down your Quay application:
++
+----
+$ oc scale deployment example-registry-restore-quay-app --replicas=1 -n openshift-operators
+----
++
+Example output:
++
+----
+deployment.apps/quay-operator.v3.5.7 scaled
+----
+
+. Scale down the Quay registry application and the Quay mirror registry:
++
+----
+$ oc scale deployment example-registry-restore-quay-app --replicas=0 -n quay-enterprise-restore
+----
++
+----
+$ oc scale deployment example-registry-restore-quay-mirror --replicas=0 -n quay-enterprise-restore
+----
++
+Example output:
++
+----
+deployment.apps/example-registry-restore-quay-mirror scaled
+----
+
+. Copy the Quay database backup .sql file to a local file space, for example `/var/lib/pgsql/data/userdata`.
++
+----
+$ oc cp quay-database-backup.sql -n quay-enterprise-restore \
+example-registry-restore-quay-database-85d455b6cc-rrgt4:/var/lib/pgsql/data/userdata
+----
+
+. Obtain secret of the Quay registry in JSON that you will be restoring to:
++
+----
+$ oc get secret -n quay-enterprise-restore \
+example-restore-registry-quay-config-secret-8b7d982t79 -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d -w0 | grep -i DB_URI
+----
++
+Example output:
++
+----
+DB_URI: postgresql://example-restore-registry-quay-database:onHl1LDsspZh4hoOL5wW1Of7GV0Kmtp2@example-restore-registry-quay-database:5432/example-restore-registry-quay-database
+----
+
+. Enter bin/bash mode of your Quay registry database:
++
+----
+$ oc exec -it -n quay-enterprise-restore \
+example-restore-registry-quay-database-85d455b6cc-rrgt4 -- /bin/bash
+----
+
+. Enter psql:
++
+----
+bash-4.4$ psql
+----
+
+. Drop the database:
++
+----
+postgres=# DROP DATABASE "example-restore-registry-quay-database";
+----
++
+Example output:
++
+----
+DROP DATABASE
+----
+
+. Create a new database and set the owner as the same name:
++
+----
+postgres=# CREATE DATABASE "example-restore-registry-quay-database" OWNER "example-restore-registry-quay-database";
+----
++
+Example output:
++
+----
+CREATE DATABASE
+----
+
+. Connect to the database:
++
+----
+postgres=# \c "example-restore-registry-quay-database";
+----
++
+Example output:
++
+----
+You are now connected to database "example-restore-registry-quay-database" as user "postgres".
+----
+
+. Create a `pg_trmg` extension of your Quay database:
++
+----
+example-restore-registry-quay-database=# create extension pg_trgm ;
+----
++
+----
+CREATE EXTENSION
+----
+
+. Exit the postgres CLI to re-enter bash-4.4:
++
+----
+\q
+----
+
+. Set the hostname, username, and password for your PostgreSQL deployment:
++
+----
+psql -h localhost -d "example-restore-registry-quay-database" -U example-restore-registry-quay-database -W < /var/lib/pgsql/data/userdata/quay-database-backup.sql
+Password for user example-restore-registry-quay-database:
+----
++
+Example output:
++
+----
+SET
+SET
+SET
+SET
+SET
+...
+----
+
+. Exit bash mode:
++
+----
+bash-4.4$ exit
+----
+
+. Reveal the Quay configuration database secret key:
++
+----
+$ cat quay-config-yaml-backup.yaml | grep SECRET_KEY
+----
++
+Example output:
++
+----
+DATABASE_SECRET_KEY: 0ufEzdS-JV8G5z-I62wLXasa5FbsfDnLTX1k3L9VHdZ0PoZkYXWGNUBA0A7cWhsq9Y3v8Pda6Uj1v23q
+SECRET_KEY: Skrn1dQ5CDtXb0EnqEAHkc3dKo67OJAv2KZ3crBROmTQBuC3GwaKtY8zPQO1FlvvPVrQMS1-9t3iNzXV
+----
+
+. Set the database secret key in a specified encryption yaml file, for example `encryption_keys.yaml`:
++
+----
+$ cat quay-config-yaml-backup.yaml | grep SECRET_KEY > encryption_keys.yaml
+----
+
+. Create a new configuration bundle secret from your encrypted yaml file:
++
+----
+$ oc create secret generic new-custom-config-bundle --from-file=config.yaml=encryption_keys.yaml
+----
++
+Exampe output:
++
+----
+secret/new-custom-config-bundle created
+----
+
+. Patch the registry using the configuration bundle secret:
++
+----
+$  oc patch quayregistry example-restore-registry -n quay-enterprise-restore \
+--type=merge -p '{"spec":{"configBundleSecret":"new-custom-config-bundle"}}' quayregistry.quay.redhat.com/example-restore-registry patched
+----
++
+Example output:
++
+----
+quayregistry.quay.redhat.com/example-restore-registry patched
+----
+
+. Obtain the secret of your Quay registry application:
++
+----
+$ oc get deployment -n quay-enterprise-restore \
+example-restore-registry-quay-app -o json | jq '.spec.template.spec.volumes[].projected.sources' | grep -i config-secret
+----
++
+Example output:
++
+----
+"name": "example-restore-registry-quay-config-secret-2gk5859gfb"
+----
+
+. Obtain the OpenShift Container Storage credentials of your Quay configuration secret:
++
+----
+$ oc get secret -n quay-enterprise-restore \
+example-restore-registry-quay-config-secret-2gk5859gfb -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d -w0; echo
+----
++
+Example output:
++
+----
+...
+  - RHOCSStorage
+  - access_key: yqdstmJtFxVRgnYyliNd
+    bucket_name: quay-datastore-8466fff4-256c-4dea-801f-24fcbfdee101
+    hostname: s3.openshift-storage.svc.cluster.local
+    is_secure: true
+    port: 443
+    secret_key: zsk/j4zEOkQq+W0BQJdSufP+IackV8WICXB5zvdF
+    storage_path: /datastorage/registry
+...
+----
+
+. Export the new AWS access key:
++
+----
+$ export AWS_ACCESS_KEY_ID=xxx
+----
+
+. Export the new AWS secret access key:
++
+----
+$ export AWS_SECRET_ACCESS_KEY= xxxx
+----
+
+. Sync the backup directory with both the OpenShift Container Storage bucket name and obtained in Step X, and the bucket name of the OpenShift Container Storage generated in Step X of "Backing up Red Hat Quay":
++
+----
+$ aws s3 sync bucket-backup/ s3://quay-datastore-8466fff4-256c-4dea-801f-24fcbfdee101 --no-verify-ssl --endpoint-url=https://s3-openshift-storage.apps.ci-ln-3wbqlxt-76ef8.origin-ci-int-aws.dev.rhcloud.com
+----
++
+Example output:
++
+----
+urllib3/connectionpool.py:1013: InsecureRequestWarning: Unverified HTTPS request is being made to host 's3-openshift-storage.apps.ci-ln-mfty3gt-76ef8.origin-ci-int-aws.dev.rhcloud.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/1.26.x/advanced-usage.html#ssl-warnings
+urllib3/connectionpool.py:1013: InsecureRequestWarning: Unverified HTTPS request is being made to host 's3-openshift-storage.apps.ci-ln-mfty3gt-76ef8.origin-ci-int-aws.dev.rhcloud.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/1.26.x/advanced-usage.html#ssl-warnings
+urllib3/connectionpool.py:1013: InsecureRequestWarning: Unverified HTTPS request is being made to host 's3-openshift-storage.apps.ci-ln-mfty3gt-76ef8.origin-ci-int-aws.dev.rhcloud.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/1.26.x/advanced-usage.html#ssl-warnings
+urllib3/connectionpool.py:1013: InsecureRequestWarning: Unverified HTTPS request is being made to host 's3-openshift-storage.apps.ci-ln-mfty3gt-76ef8.origin-ci-int-aws.dev.rhcloud.com'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/1.26.x/advanced-usage.html#ssl-warnings
+upload: bucket-backup/datastorage/registry/sha256/a3/a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4 to s3://quay-datastore-8466fff4-256c-4dea-801f-24fcbfdee101/datastorage/registry/sha256/a3/a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4
+upload: bucket-backup/datastorage/registry/sha256/be/beae173ccac6ad749f76713cf4440fe3d21d1043fe616dfbe30775815d1d0f6a to s3://quay-datastore-8466fff4-256c-4dea-801f-24fcbfdee101/datastorage/registry/sha256/be/beae173ccac6ad749f76713cf4440fe3d21d1043fe616dfbe30775815d1d0f6a
+upload: bucket-backup/datastorage/registry/sha256/90/900aaabb02f1b145b67b03589a936df812154094d5d9d5d4046057ad3f199a41 to s3://quay-datastore-8466fff4-256c-4dea-801f-24fcbfdee101/datastorage/registry/sha256/90/900aaabb02f1b145b67b03589a936df812154094d5d9d5d4046057ad3f199a41
+----
+
+
+. Scale up Quay application:
++
+----
+$ oc scale deployment example-registry-restore-quay-app --replicas=1 -n openshift-operators
+----
++
+----
+deployment.apps/example-registry-restore-quay-app scaled
+----
+
+. Scale up the Quay registry application and the Quay mirror registry:
++
+----
+$ oc scale deployment example-registry-restore-quay-app --replicas=0 -n quay-enterprise-restore
+----
++
+----
+$ oc scale deployment example-registry-restore-quay-mirror --replicas=0 -n quay-enterprise-restore
+----
