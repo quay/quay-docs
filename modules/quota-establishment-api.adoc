@@ -1,0 +1,213 @@
+[[quota-establishment-api]]
+= Establishing quota with the  {productname} API
+
+
+== Setting the quota
+
+.Sample command
+[source,terminal]
+----
+$ curl -k -X POST -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGxf5f" -H 'Content-Type: application/json' -d '{"limit_bytes": 10485760}'  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/namespacequota/testorg/quota | jq
+----
+
+.Sample output
+[source,terminal]
+----
+"Created"
+----
+
+== Viewing the quota
+
+.Sample command
+[source,terminal]
+----
+$ curl -k -X GET -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGxf5f" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/namespacequota/testorg/quota  | jq
+----
+
+.Sample output
+[source,json]
+----
+{
+  "orgname": "testorg",
+  "limit_bytes": 10485760,
+  "quota_limit_types": [
+    {
+      "quota_type_id": 1,
+      "name": "Warning"
+    },
+    {
+      "quota_type_id": 2,
+      "name": "Reject"
+    }
+  ]
+}
+----
+
+
+== Modifying the quota
+
+Use the PUT command to change the existing quota, in this instance, from 10MB to 100MB:
+
+.Sample command
+[source,terminal]
+----
+$ curl -k -X PUT -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGxf5f" -H 'Content-Type: application/json' -d '{"limit_bytes": 104857600}'  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/namespacequota/testorg/quota | jq
+----
+
+.Sample output
+[source,terminal]
+----
+"Updated"
+----
+
+== Pushing images
+
+=== Pushing ubuntu:18.04
+
+.Sample commands
+[source,terminal]
+----
+$ podman pull ubuntu:18.04
+
+$ podman tag docker.io/library/ubuntu:18.04 example-registry-quay-quay-enterprise.apps.docs.quayteam.org/testorg/ubuntu:18.04
+
+$ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.quayteam.org/testorg/ubuntu:18.04
+----
+
+=== Using the API to see quota usage
+
+.Sample command
+[source,terminal]
+----
+$ curl -k -X GET -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGxf5f" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/namespacequota/testorg/quotareport  | jq
+----
+
+.Sample output
+[source,json]
+----
+{
+  "response": "[{\"repository_name\": \"ubuntu\", \"repository_id\": 22, \"repository_size\": \"27958715\"}]"
+}
+----
+
+=== Pushing another image
+
+. Pull, tag and push the `nginx` image:
++
+.Sample commands
+[source,terminal]
+----
+$ podman pull nginx
+
+$ podman tag docker.io/library/nginx example-registry-quay-quay-enterprise.apps.docs.quayteam.org/testorg/nginx
+
+$ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.quayteam.org/testorg/nginx
+----
+
+. View the quota report
++
+.Sample command
+[source,terminal]
+----
+$ curl -k -X GET -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGxf5f" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/namespacequota/testorg/quotareport  | jq
+----
++
+.Sample output
+[source,json]
+----
+{
+  "response": "[{\"repository_name\": \"nginx\", \"repository_id\": 23, \"repository_size\": \"59232587\"}, {\"repository_name\": \"ubuntu\", \"repository_id\": 22, \"repository_size\": \"27958715\"}]"
+}
+----
+
+
+
+== Rejecting pushes using quota limits
+
+
+=== Setting reject and warning limits
+
+.Sample reject limit command
+[source,terminal]
+----
+$ curl -k -X POST -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGxf5f" -H 'Content-Type: application/json' -d ' {  "quota_type_id": 2, "percent_of_limit": 80}'  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/namespacequota/testorg/quotalimits | jq
+----
+
+
+.Sample warning limit command
+[source,terminal]
+----
+$ curl -k -X POST -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGxf5f" -H 'Content-Type: application/json' -d ' {  "quota_type_id": 1, "percent_of_limit": 70}'  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/namespacequota/testorg/quotalimits | jq
+----
+
+.View quota limits
+[source,terminal]
+----
+$  curl -k -X GET -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGxf5f" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/namespacequota/testorg/quotalimits  | jq
+----
+
+
+.Sample output for quota limits
+[source,json]
+----
+{
+  "quota_limits": [
+    {
+      "percent_of_limit": 80,
+      "limit_type": {
+        "name": "Reject",
+        "quota_limit_id": 8,
+        "quota_type_id": 2
+      }
+    },
+    {
+      "percent_of_limit": 70,
+      "limit_type": {
+        "name": "Warning",
+        "quota_limit_id": 9,
+        "quota_type_id": 1
+      }
+    }
+  ]
+}
+----
+
+=== Pushing image when reject limit is exceeded
+
+In this example, the reject limit (80%) has been set to below the current repository size (~83%), so the next push should automatically be rejected.
+
+.Sample image push
+[source,terminal]
+----
+$ podman pull ubuntu:20.04
+
+$ podman tag docker.io/library/ubuntu:20.04 example-registry-quay-quay-enterprise.apps.docs.quayteam.org/testorg/ubuntu:20.04
+
+$ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.quayteam.org/testorg/ubuntu:20.04
+----
+
+
+.Sample output when quota exceeded
+[source,terminal]
+----
+Getting image source signatures
+Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
+Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
+Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
+WARN[0004] failed, retrying in 1s ... (1/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.quayteam.org: denied: Quota has been exceeded on namespace 
+Getting image source signatures
+Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
+Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
+Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
+WARN[0009] failed, retrying in 1s ... (2/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.quayteam.org: denied: Quota has been exceeded on namespace 
+Getting image source signatures
+Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
+Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
+Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
+WARN[0014] failed, retrying in 1s ... (3/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.quayteam.org: denied: Quota has been exceeded on namespace 
+Getting image source signatures
+Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
+Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
+Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
+Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.quayteam.org: denied: Quota has been exceeded on namespace
+----
