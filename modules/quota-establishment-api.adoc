@@ -1,6 +1,10 @@
 [[quota-establishment-api]]
 = Establishing quota with the  {productname} API
 
+When an organization is first create, it does not have a quota applied. 
+
+.No initial quota
+image:quota-no-quota.png[No quota]
 
 == Setting the quota
 
@@ -44,6 +48,9 @@ $ curl -k -X GET -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGx
 ----
 
 
+.Organization quota of 10MB
+image:quota-10MB-empty.png[10MB quota]
+
 == Modifying the quota
 
 Use the PUT command to change the existing quota, in this instance, from 10MB to 100MB:
@@ -60,6 +67,14 @@ $ curl -k -X PUT -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGx
 "Updated"
 ----
 
+.Organization quota of 100MB
+image:quota-100MB-empty.png[100MB quota]
+
+The quota settings are also visible in the organization settings UI:
+
+.Organization settings UI
+image:quota-100MB-settings-ui.png[Organization settings UI]
+
 == Pushing images
 
 === Pushing ubuntu:18.04
@@ -73,6 +88,14 @@ $ podman tag docker.io/library/ubuntu:18.04 example-registry-quay-quay-enterpris
 
 $ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.quayteam.org/testorg/ubuntu:18.04
 ----
+
+The UI shows the total proportion of the quota used up by this first Ubuntu image:
+
+.Total Quota Consumed for first image
+image:quota-first-image.png[Total Quota Consumed for first image]
+
+
+
 
 === Using the API to see quota usage
 
@@ -120,7 +143,8 @@ $ curl -k -X GET -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EGx
 }
 ----
 
-
+.Total Quota Consumed for two images
+image:quota-second-image.png[Total Quota Consumed for two images]
 
 == Rejecting pushes using quota limits
 
@@ -172,6 +196,10 @@ $  curl -k -X GET -H "Authorization: Bearer haK4lv6Zgf7ohmWQS37qzzJj34hZ0U3D37EG
 }
 ----
 
+.Quota limits in Organization Settings
+image:quota-limits.png[Quota limits in Organization Settings]
+
+
 === Pushing image when reject limit is exceeded
 
 In this example, the reject limit (80%) has been set to below the current repository size (~83%), so the next push should automatically be rejected.
@@ -211,3 +239,12 @@ Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
 Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
 Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.quayteam.org: denied: Quota has been exceeded on namespace
 ----
+
+
+=== Notifications for limits exceeded
+
+When limits are exceeded, a notification appears:
+
+.Quota notifications
+image:quota-notifications.png[Quota notifications]
+
