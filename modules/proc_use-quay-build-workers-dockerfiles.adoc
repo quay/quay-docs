@@ -2,7 +2,7 @@
 = Automatically building Dockerfiles with Build workers
 
 {productname} supports building Dockerfiles using a set of worker nodes on OpenShift or Kubernetes. Build triggers, such as GitHub webhooks can be configured to automatically build new versions of your repositories when new code is committed. This document will walk you through enabling builds with your {productname} installation and setting up one or more OpenShift/K8s clusters to accept builds from {productname}.
-With {productname} 3.4, the underlying Build Manager has been completely re-written as part of {productname}'s migration from Python 2 to Python 3.  As a result, builder nodes are now dynamically created as Kubernetes Jobs versus builder nodes that ran continuously in {productname} 3.3 and earlier.  This greatly simplifies how {productname} manages builds and provides the same mechanism quay.io utilizes to handle thousands of container image builds daily.  Customers who are currently running static (“Enterprise” builders under {productname} 3.3) will be required to migrate to a Kubernetes-based build mechanism. 
+With {productname} 3.4, the underlying Build Manager has been completely re-written as part of {productname}'s migration from Python 2 to Python 3.  As a result, builder nodes are now dynamically created as Kubernetes Jobs versus builder nodes that ran continuously in {productname} 3.3 and earlier.  This greatly simplifies how {productname} manages builds and provides the same mechanism quay.io utilizes to handle thousands of container image builds daily.  Customers who are currently running static (“Enterprise” builders under {productname} 3.3) will be required to migrate to a Kubernetes-based build mechanism.
 
 [[architecture-overview]]
 == Architecture Overview
@@ -41,11 +41,11 @@ The {productname} builds need access to a Redis instance to track build status i
 
 === OpenShift TLS component
 
-The {productname} 3.6 Operator has introduced the `tls` component which allows you to control TLS configuration. 
+The {productname} 3.6 Operator has introduced the `tls` component which allows you to control TLS configuration.
 
 [NOTE]
 ====
-{productname} 3.6 does not support builders when the TLS component is managed by the Operator. 
+{productname} 3.6 does not support builders when the TLS component is managed by the Operator.
 ====
 
 If you set `tls` to `unmanaged`, you supply your own `ssl.cert` and `ssl.key` files. In this instance, if you want your cluster to support builders, you must add both the Quay route and the builder route name to the SAN list in the cert, or alternatively use a wildcard.  To add the builder route, use the following format:
@@ -193,7 +193,7 @@ BUILD_MANAGER:
     QUAY_USERNAME: quay-username
     QUAY_PASSWORD: quay-password
     WORKER_IMAGE: <registry>/quay-quay-builder
-    WORKER_TAG: some_tag 
+    WORKER_TAG: some_tag
     BUILDER_VM_CONTAINER_IMAGE: <registry>/quay-quay-builder-qemu-rhcos:v3.4.0
     SETUP_TIME: 180
     MINIMUM_RETRY_THRESHOLD: 0
@@ -226,7 +226,7 @@ endif::upstream[]
 ifdef::downstream[]
 Customers should provide a Red Hat Service Account credential as defined in the section "Creating Registry Service Accounts" against registry.redhat.io in the article at https://access.redhat.com/RegistryAuthentication.
 endif::downstream[]
-WORKER_IMAGE:: Image reference for the {productname} builder image. 
+WORKER_IMAGE:: Image reference for the {productname} builder image.
 ifdef::upstream[]
 quay.io/quay/quay-builder
 endif::upstream[]
@@ -312,6 +312,7 @@ $ kubectl get -n <namespace> route <quayregistry-name>-quay-builder -o jsonpath=
 +
 [source,yaml]
 ----
+BUILDMAN_HOSTNAME: <build-manager-hostname>
 BUILD_MANAGER:
 - ephemeral
 - ALLOWED_WORKER_COUNT: 1
@@ -324,7 +325,6 @@ BUILD_MANAGER:
   EXECUTORS:
   - EXECUTOR: kubernetes
     BUILDER_NAMESPACE: builder
-    BUILDMAN_HOSTNAME: <build-manager-hostname>
     ...
 ----
 
