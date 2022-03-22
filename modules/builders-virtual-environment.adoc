@@ -1,0 +1,351 @@
+[[setting-up-builders]]
+= Creating a {productname} builders environment with OpenShift
+
+== OpenShift TLS component
+
+The {productname} 3.6 Operator has introduced the `tls` component which allows you to control TLS configuration.
+
+[NOTE]
+====
+{productname} 3.6 does not support builders when the TLS component is managed by the Operator.
+====
+
+If you set `tls` to `unmanaged`, you supply your own `ssl.cert` and `ssl.key` files. In this instance, if you want your cluster to support builders, you must add both the Quay route and the builder route name to the SAN list in the cert, or alternatively use a wildcard.  To add the builder route, use the following format:
+
+[source,bash]
+----
+[quayregistry-cr-name]-quay-builder-[ocp-namespace].[ocp-domain-name]:443
+----
+
+[[red-hat-quay-quota-builders-establishment]]
+== Using OpenShift Container Platform for {productname} builders
+
+The following procedure describes how you can implement the builders feature in {productname}.
+
+.Prerequisites
+
+* Builders require SSL certificates. For more information, see link:https://dxp-docs.ext.us-west.aws.prod.paas.redhat.com/documentation/en-us/red_hat_quay/3.6/html-single/deploy_red_hat_quay_for_proof-of-concept_non-production_purposes/index#advanced_red_hat_quay_deployment[Advanced Red Hat Quay deployment].
+
+* Prior to running builders, you must modify your AWS S3 storage bucket in the AWS console. See "Modifying your AWS S3 storage bucket" in the following section for the required parameters.
+
+.Procedure
+
+[NOTE]
+====
+* This procedure assumes you already have a cluster provisioned and a Quay Operator running.
+* This procedure is for setting up a virtual namespace on OpenShift Container Platform.
+====
+
+[[red-hat-quay-s3-bucket-modify]]
+=== Modifying your AWS S3 storage bucket
+
+. Log in to your AWS console at link:https://s3.console.aws.amazon.com[s3.console.aws.com].
+
+. In the search bar, search for `S3` and then click *S3*.
+
+. Click the name of your bucket, for example, `myawsbucket`.
+
+. Click the *Permissions* tab.
+
+. Under *Cross-origin resource sharing (CORS)*, include the following parameters:
++
+[source,yaml]
+----
+  [
+      {
+          "AllowedHeaders": [
+              "Authorization"
+          ],
+          "AllowedMethods": [
+              "GET"
+          ],
+          "AllowedOrigins": [
+              "*"
+          ],
+          "ExposeHeaders": [],
+          "MaxAgeSeconds": 3000
+      },
+      {
+          "AllowedHeaders": [
+              "Content-Type",
+              "x-amz-acl",
+              "origin"
+          ],
+          "AllowedMethods": [
+              "PUT"
+          ],
+          "AllowedOrigins": [
+              "*"
+          ],
+          "ExposeHeaders": [],
+          "MaxAgeSeconds": 3000
+      }
+  ]
+----
+
+[[red-hat-quay-setting-up-builders]]
+=== Preparing OpenShift Container Platform for builders
+
+. Log in to your {productname} cluster using your specified username and password:
++
+----
+$ oc login -u $KUBE_USER -p $KUBE_PASSWORD $KUBE_API
+----
+
+. Create a new project where your virtual builders will be run (e.g., `virtual-builders`).
++
+----
+$ oc new-project virtual-builders
+----
+
+. Create a `ServiceAccount` in this `Project` that will be used to run builds.
++
+----
+$ oc create sa -n virtual-builders quay-builder
+----
+
+. Provide the created service account with editing permissions so that it can run the build:
++
+----
+$ oc adm policy -n virtual-builders add-role-to-user edit system:serviceaccount:virtual-builders:quay-builder
+----
+
+. Grant the Quay builder `anyuid scc` permissions:
++
+----
+$ oc adm policy -n virtual-builders add-scc-to-user anyuid -z quay-builder
+----
++
+[NOTE]
+====
+This action requires cluster admin privileges and is required because for unprivileged or rootless builds to work, they must run as the Podman user.
+====
+
+. Obtain the token for the Quay builder service account:
+
++
+----
+$ oc sa get-token -n virtual-builders quay-builder
+
+----
+
+. Update your config.yaml to include the Quay builder service account:
++
+[source,yaml]
+----
+  DB_URI: <sample_postgres_hostname>
+  FEATURE_USER_INITIALIZE: true
+  FEATURE_REPO_MIRROR: true
+  REPO_MIRROR_INTERVAL: 20
+  REPO_MIRROR_TLS_VERIFY: false
+  FEATURE_USER_INITIALIZE: true
+  SUPER_USERS:
+    - quay
+    - admin
+  DISTRIBUTED_STORAGE_CONFIG:
+    default:
+      - LocalStorage
+      - storage_path: /datastorage/registry
+  DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+  DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+
+  FEATURE_BUILD_SUPPORT: True
+  BUILDMAN_HOSTNAME: <sample_build_route>.org <1>
+  BUILD_MANAGER:
+    - ephemeral
+    - ALLOWED_WORKER_COUNT: 1
+      ORCHESTRATOR_PREFIX: buildman/production/
+      JOB_REGISTRATION_TIMEOUT: <sample_time> <2>
+      ORCHESTRATOR:
+        REDIS_HOST: <sample_redis_hostname> <3>
+        REDIS_PASSWORD: ""
+        REDIS_SSL: false
+        REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+      EXECUTORS:
+        - EXECUTOR: kubernetesPodman
+          NAME: openshift
+          BUILDER_NAMESPACE: <sample_builder_namespace> <4>
+          SETUP_TIME: 180
+          MINIMUM_RETRY_THRESHOLD: 1
+          BUILDER_CONTAINER_IMAGE: <sample_builder_container_image> <5>
+          # Kubernetes resource options
+          K8S_API_SERVER: <sample_k8s_api_server> <6>
+          K8S_API_TLS_CA: /conf/stack/<sample_crt_file>.crt <7>
+          VOLUME_SIZE: 8G
+          KUBERNETES_DISTRIBUTION: openshift
+          CONTAINER_MEMORY_LIMITS: 300Mi
+          CONTAINER_CPU_LIMITS: 1G <8>
+          CONTAINER_MEMORY_REQUEST: 300Mi
+          CONTAINER_CPU_REQUEST: 1G
+          NODE_SELECTOR_LABEL_KEY: ""
+          NODE_SELECTOR_LABEL_VALUE: ""
+          SERVICE_ACCOUNT_NAME: <sample_service_account_name>
+          SERVICE_ACCOUNT_TOKEN: <sample_account_token> <9>
+----
++
+<1> The build route is obtained by running `oc get route -n` with the name of your OpenShift Operators namespace. A port must be provided at the end of the route, for example, and it should follow the following format: `[quayregistry-cr-name]-quay-builder-[ocp-namespace].[ocp-domain-name]:443`.
+<2> If the `JOB_REGISTRATION_TIMEOUT` parameter is set too low, you might receive the following error: `failed to register job to build manager: rpc error: code = Unauthenticated desc = Invalid build token: Signature has expired`. It is suggested that this parameter be set to at least 240.
+<3> If your Redis host has a password or SSL certificates, you must update accordingly.
+<4> Set to match the name of your virtual builders namespace, for example, `virtual-builders`.
+<5> For early access, the `BUILDER_CONTAINER_IMAGE` is currently `quay.io/projectquay/quay-builder:3.7.0-rc.2`. Note that this might change during the early access window. In the event this happens, customers will be alerted.
+<6> Obtained by running `oc cluster-info`.
+<7> You must manually create and add your custom .crt TLS. For more information, see link:
+<8> For virtual builds, you must ensure that there are enough resources in your cluster.
+<9> Obtained when running `oc create sa` in Step 3 of this procedure.
+
+[[red-hat-quay-manual-ssl-for-builders]]
+=== Manually adding SSL certificates.
+
+[IMPORTANT]
+====
+* Due to a known issue with the configuration tool, you must manually add your custom SSL certificates to properly run builders. Use the following procedure to manually add custom SSL certificates. For more information creating SSL certificates, see link:https://dxp-docs.ext.us-west.aws.prod.paas.redhat.com/documentation/en-us/red_hat_quay/3.6/html-single/deploy_red_hat_quay_for_proof-of-concept_non-production_purposes/index#advanced_red_hat_quay_deployment[Advanced Red Hat Quay deployment].
+* In the following steps, your SSL certificates and keys must match the name of your `K8S_API_TLS_CA` file name in the config.yaml in the previous procedure. This can be cross-checked by comparing name of your `K8S_API_TLS_CA` file name, e.g., `<sample_crt_file>.crt` with the same name that appears under the *Data* information of the `example-registry-config-bundle` *Details* page.
+====
+
+. In your Quay Registry yaml, set `kind: tls` to `managed: false`:
++
+[source,yaml]
+----
+  - kind: tls
+    managed: false
+----
+
+. Generate a self-signed SSL certificate with the .crt extension:
++
+----
+$ SECRET=$(oc get sa openshift-apiserver-sa --namespace=openshift-apiserver -o json | jq -r '.secrets[] | select(.name | contains("openshift-apiserver-sa-token"))'.name)\
+oc get secret $SECRET -n openshift-apiserver -o json | jq  '.data."ca.crt"' -r | base64 -d > <sample_crt_file>.crt
+----
+
+. Create a `domain.conf` certificate authority. For more information, see link:https://dxp-docs.ext.us-west.aws.prod.paas.redhat.com/documentation/en-us/red_hat_quay/3.6/html-single/deploy_red_hat_quay_for_proof-of-concept_non-production_purposes/index#create-a-ca-and-sign-a-certificate[Create a Certificate Authority and sign a certificate].
++
+[NOTE]
+====
+* Your `DNS.1` alt_name must match the `BUILDMAN_HOSTNAME` of your config.yaml.
+* Your `DNS.2` alt_name must match the URL of your Quay registry.
+====
+
+. Generate an ssl.cert and an ssl.key:
++
+----
+$ openssl req -newkey rsa:4096 -x509  -sha256  -days 3650  -nodes  -out ssl.cert  -keyout ssl.key -config domain.conf
+----
+
+. Create a new .crt secret in your default namespace:
++
+----
+$ oc create secret generic temp-crt --from-file <sample_crt_file>.crt
+----
+
+. Create a new ssl.key and ssl.cert in your default namespace:
++
+----
+$ oc create secret generic quay-config-ssl --from-file ssl.cert --from-file ssl.key
+----
+
+. Manually add the newly-generated .crt file to your Quay configuration using the UI by first going to *Workloads* -> *Secrets* on the OpenShift Container Platform UI.
+
+. Search for the name of your temporary secret created above, for example, `temp-crt`.
+
+. Click the name of your temporary secret, then click the *YAML* tab.
+
+. Under the `data` parameter of the `temp-crt` yaml, copy the name of your newly-created .crt file and thumbprint, for example:
++
+[source,yaml]
+----
+  data:
+    <sample_crt_file>.crt: >-
+      xxxxx
+----
+
+. Manually add the newly-generated .crt file to your Quay Registry configuration bundle by returning to the *Secrets* page on the OpenShift Container Platform UI and searching for the `example-registry-config-bundle`.
+
+. Under the `data` parameter of the `example-registry-config-bundle` yaml, copy the name of your .crt file and thumbprint, for example:
++
+[source,yaml]
+----
+  data:
+    <sample_crt_file>.crt: >-
+      xxxxx
+----
+
+. Manually add the ssl.key and ssl.cert to your namespace's (e.g., `virtual-builders`) Quay config SSL by returning to the *Secrets* page on the OpenShift Container Platform UI and searching for `quay-config-ssl`.
+
+. Under the `data` parameter of the `quay-config-ssl` yaml, copy the name of your ssl.key, ssl.cert and their respective thumbprints, for example:
++
+[source,yaml]
+----
+  data:
+    ssl.cert: >-
+      xxxxx
+    ssl.key: >-
+      xxxxx
+----
+
+. Manually add the ssl.key and ssl.cert file to your Quay Registry configuration bundle by returning to the *Secrets* page on the OpenShift Container Platform UI and searching for the `example-registry-config-bundle`.
+
+. Under the `data` parameter of the `example-registry-config-bundle` yaml, copy the the ssl.cert and ssl.key and their thumbprints, for example:
++
+[source,yaml]
+----
+  data:
+    ssl.cert: >-
+      xxxxx
+    ssl.key: >-
+      xxxxx
+----
+
+. Click *Save*.
+
+. After reconfiguring your Quay registry, check the status of your pods by running the following command:
++
+----
+$ oc get pods
+----
+
+[[red-hat-quay-builders-ui]]
+=== Using the UI to create a build trigger
+
+. Obtain the route to your Quay registry:
++
+----
+$ oc get route
+----
++
+Example output:
++
+----
+reg-quay-quay.apps.ci-ln-he73nk-82jg7.origin-ci-int-aws.dev.rhcloud.com
+----
+
+. Log in to your Quay repository.
+
+. Click *Create New Repository* and create a new registry, for example, `test`.
+
+. On the *Repositories* page, click *Builds* on the left hand pane, and then *Create Build Trigger*.
+
+. Enter the HTTPS or SSH style URL used to clone your Git repository, then click *Continue*.
+
+. Check *Tag manifest with the branch or tag name* and then click *Continue*.
+
+. Enter the location of the Dockerfile to build when the trigger is invoked, for example, `/Dockerfile` and click *Continue*.
+
+. Enter the location of the context for the Docker build, for example, `/`, and click *Continue*.
+
+. If warranted, create a Robot Account. Otherwise, click *Continue*.
+
+. Click *Continue* to verify the parameters.
+
+. On the *Builds* page, click *Options* of your Trigger Name, and then click *Run Trigger Now*.
+
+. Enter the commit of the Git repository you are cloning and click *Run Build*.
+
+. You can check the status of your build by clicking the commit in the *Build History* page, or by running `oc get pods -n virtual-builders`.
+
+. When the build is finished, you can check the status of the tag under *Tags* on the left hand pane.
++
+[NOTE]
+====
+With early access, full build logs and timestamps of builds are currently unavailable.
+====
