@@ -1,0 +1,90 @@
+[[clair-unmanaged]]
+= Unmanaged Clair database
+
+With {productname} 3.7, users can provide a custom Clair configuration for an unmanaged Clair database on the {productname} OpenShift Container Platform Operator. An unmanaged Clair database allows the {productname} Operator to work in a geo-replicated environment, where multiple instances of the Operator must communicate with the same database. An unmanaged Clair database can also be used when a user requires a highly-available (HA) Clair database that exists outside of a cluster.
+
+== Configuring an unmanaged Clair database
+
+The {productname} Operator for OpenShift Container Platform allows users to provide their own Clair configuration by editing the `configBundleSecret` parameter.
+
+. In the Quay Operator, set the `clairpostgres` component of the QuayRegistry custom resource to `unmanaged`:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: quay370
+spec:
+  configBundleSecret: config-bundle-secret
+  components:
+    - kind: objectstorage
+      managed: false
+    - kind: route
+      managed: true
+    - kind: tls
+      managed: false
+    - kind: clairpostgres
+      managed: false
+----
+
+. Create a `clair-config.yaml` bundle secret:
++
+[source,terminal]
+----
+oc create secret generic --from-file config.yaml=./config.yaml --from-file extra_ca_cert_rds-ca-2019-root.pem=./rds-ca-2019-root.pem --from-file clair-config.yaml=./clair-config-aws-rds-postgres_ca_cert.yaml --from-file ssl.cert=./ssl.cert --from-file ssl.key=./ssl.key config-bundle-secret
+----
++
+Example `clair-config.yaml` configuration:
++
+[source,yaml]
+----
+auth:
+    psk:
+       iss:
+          - quay
+          - clairctl
+       key: <example_key>
+http_listen_addr: :8080
+indexer:
+    connstring: host=quay-server.example.com port=5432 dbname=quay user=clairuser password=clairpass sslrootcert=/run/certs/rds-ca-2019-root.pem sslmode=verify-ca
+    migrations: true
+log_level: debug
+matcher:
+    connstring: host=quay-server.example.com port=5432 dbname=quay user=clairuser password=clairpass sslrootcert=/run/certs/rds-ca-2019-root.pem sslmode=verify-ca
+    migrations: true
+metrics:
+    name: prometheus
+notifier:
+    connstring: host=quay-server.example.com port=5432 dbname=quay user=clairuser password=clairpass sslrootcert=/run/certs/rds-ca-2019-root.pem sslmode=verify-ca
+    migrations: true
+----
++
+[NOTE]
+====
+An example `clair-config.yaml` can be found at link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/quay_operator_features#clair-openshift-config[Clair on OpenShift config].
+====
+
+. Add the `clair-config.yaml` bundle secret to your `configBundleSecret`. For example:
++
+[source,yaml]
+----
+apiVersion: v1
+kind: Secret
+metadata:
+  name: config-bundle-secret
+  namespace: quay-enterprise
+data:
+  config.yaml: <base64 encoded Quay config>
+  clair-config.yaml: <base64 encoded Clair config>
+  extra_ca_cert_<name>: <base64 encoded ca cert>
+  clair-ssl.crt: >-
+  clair-ssl.key: >-
+----
++
+[NOTE]
+====
+When updated, the provided `clair-config.yaml` is mounted into the Clair pod. Any fields not provided are automatically populated with defaults using the Clair configuration module.
+====
+
+After proper configuration, the Clair application pod should return to a `Ready` state.
