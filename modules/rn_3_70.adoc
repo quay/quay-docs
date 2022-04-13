@@ -1,97 +1,69 @@
 [[rn-3-700]]
 == Version 3.7.0
 
-// PROJQUAY-302
-=== Quota
-
-* link:https://issues.redhat.com/browse/PROJQUAY-302[PROJQUAY-302]. Quota Management and Enforcements
-
-
-==== Details
-
-* link:https://issues.redhat.com/browse/PROJQUAY-2936[ROJQUAY-2936]. Reporting API and Schema
-
-* link:https://issues.redhat.com/browse/PROJQUAY-2937[PROJQUAY-2937]. Repository Soft/Hard Limit Implementation
-
-
-// PROJQUAY-465 
-=== Proxy
-
-* link:https://issues.redhat.com/browse/PROJQUAY-465[PROJQUAY-465]. Quay as a cache proxy / pull-through cache for other registries
- 
-==== Design 
-
-* link:https://issues.redhat.com/browse/PROJQUAY-2888[PROJQUAY-2888]. Quay as a cache proxy - Design: Proxy org creation and configuration
-
-* link:https://issues.redhat.com/browse/PROJQUAY-2889[PROJQUAY-2889]. Quay as a cache proxy - Design: Upstream image pull flow
-
-* link:https://issues.redhat.com/browse/PROJQUAY-2890[PROJQUAY-2890]. Quay as a cache proxy - Design: Local storage of upstream image layers and manifests
-
-* link:https://issues.redhat.com/browse/PROJQUAY-2891[PROJQUAY-2891]. Quay as a cache proxy - Design: Quota Management in Cache Proxy org	Spike
-
-==== User stories
-
-* link:https://issues.redhat.com/browse/PROJQUAY-3029[PROJQUAY-3029]. As a Quay user, I want to create and configure pull-through proxy orgs via UI
-
-* link:https://issues.redhat.com/browse/PROJQUAY-3030[PROJQUAY-3030]. As a Quay user I want to be able to proxy images through Quay orgs
-
-* link:https://issues.redhat.com/browse/PROJQUAY-3033[PROJQUAY-3033]. As a Quay user I want proxied images to be stored in Quay so that my pulls are faster
-
-
-
-
-=== Geo-replication
-
-* link:https://issues.redhat.com/browse/PROJQUAY-2504[PROJQUAY-2504]. Quay Operator supports geo-replication
-
-
-==== Details
-
-* link:https://issues.redhat.com/browse/PROJQUAY-3055[PROJQUAY-3055]. Environment variables override
-* link:https://issues.redhat.com/browse/PROJQUAY-3056[PROJQUAY-3056]. Scale down quay, clair and mirror
-* link:https://issues.redhat.com/browse/PROJQUAY-1723[PROJQUAY-1723]. Multi-cluster deployment of Quay on OpenShift along with all components
-
-////
-
 === quay / clair / quay-builder
 
 Added/Changed:
 
+* With {productname} 3.7, users have the ability to report storage consumption and to contain registry growth by establishing configured storage quota limits. With this feature, organizations can easily avoid exceeding storage limitations by rejecting pulls at a specified limit. (link:https://issues.redhat.com/browse/PROJQUAY-302[PROJQUAY-302], link:https://issues.redhat.com/browse/PROJQUAY-253[PROJQUAY-253])
 
+* The bare-metal constraint required to run builds has been removed by adding an additional build option which does not contain the virtual machine layer. As a result, builds can be run on virtualized platforms. Backwards compatibility to run previous build configurations are also available. (link:https://issues.redhat.com/browse/PROJQUAY-295[PROJQUAY-295])
+
+* {productname} can now act as a proxy cache to mitigate pull-rate limitations from upstream registries. This feature also accelerates pull performance, because images are pulled from the cache rather than upstream dependencies. Cached images are only updated when the upstream image digest differs from the cached image, reducing rate limitations and potential throttling. (link:https://issues.redhat.com/browse/PROJQUAY-465[PROJQUAY-465])
+
+* Support for Microsoft Azure Government (MAG) has been added. This optional feature allows government agencies and public sector customers to select and specify a MAG endpoint. (link:https://issues.redhat.com/browse/PROJQUAY-891[PROJQUAY-891])
+
+Known issues:
+
+* link:https://issues.redhat.com/browse/PROJQUAY-3590[PROJQUAY-3590]. Quay 3.7.0 pull from cache should return quota exceeded error rather than general 403 error code.
 
 Fixed:
-
-
-
-=== quay-operator
-
-Added/Changed:
-
-
-Fixed:
-
-
 
 === {productname} feature tracker
 
 New features have been added to {productname}, some of which are currently in Technology Preview. Technology Preview features are experimental features and are not intended for production use.
 
-Some features available in previously releases have been deprecated or remove. Deprecated functionality is still included in {productname}, but is planned for removal in a future release and is not recommended for new deployments. For the most recent list of major functionality deprecated and remove with {productname} 3.7, refer to the table below. Additional details for more fine-grained functionality that has been deprecated and removed are listed after the table.
+Some features available in previous releases have been deprecated or removed. Deprecated functionality is still included in {productname}, but is planned for removal in a future release and is not recommended for new deployments. For the most recent list of major functionality deprecated and remove with {productname} 3.7, refer to the table below. Additional details for more fine-grained functionality that has been deprecated and removed are listed after the table.
 
-//This will eventually expand to cover the latest three releases. Since this is the first TP tracker, it will include only 3.6.
+=== quay-operator
 
-.Technology Preview tracker
-[cols="2a,2a",options="header"]
-|===
-|Feature |Quay 3.7
+Added/Changed:
+
+* Advanced Clair configuration is now available for {productname} 3.7. The following features are now available to Quay administrators on the Quay Operator:
+
+** Configuration of Clair's updater set through the Quay Operator.
+** Configuration of the database connection string through the Quay Operator.
+** Configuration of custom certificates into the Clair deployment, which allows support of internal HTTPS proxies.
+** Override, or re-size, the size and storage class of the Postgres Database PVC.
+** Support for alternative fully qualified domain names (FQDN) for Clair that can leverage a global load balancing mechanism fronting different clusters running Clair.
++
+For more information, see link:https://issues.redhat.com/browse/PROJQUAY-2110[PROJQUAY-2210].
+
+* With advanced Clair configuration, users can also provide a custom Clair configuration for an unmanaged Clair database on the {productname} Operator. An unmanaged Clair database allows the {productname} Operator to work in a Geo-Replicated environment, where multiple instances of the Operator must communicate with the same database. An unmanaged Clair database can also be used when a user requires a highly-available (HA) Clair database that exists outside of a cluster. (link:https://issues.redhat.com/browse/PROJQUAY-1696[PROJQUAY-1969])
+
+* Geo-replication is now available with the Red Hat Quay Operator. This feature allows multiple, geographically distributed Quay deployments to work as a single registry from the perspective of a client or user. It significantly improves push and pull performance in a globally-distributed Quay setup. Image data is asynchronously replicated in the background with transparent failover / redirect for clients. (link:https://issues.redhat.com/browse/PROJQUAY-2504[PROJQUAY-2504])
 
 
-|===
-
-==== Deprecated features
 
 
 
-==== Technology preview features
 
-////
+Known issues:
+
+Fixed:
+
+=== quay-container-security-operator
+
+Added/Changed:
+
+Known issues:
+
+Fixed:
+
+=== quay-openshift-bridge-operators
+
+Added/Changed:
+
+Known issues:
+
+Fixed:
