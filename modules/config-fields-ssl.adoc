@@ -5,29 +5,31 @@
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
-| **PREFERRED_URL_SCHEME** | String | One of `http`, `https` + 
- + 
+| **PREFERRED_URL_SCHEME** | String | One of `http` or `https`. Note that users only set their `PREFERRED_URL_SCHEME` to `http` when there is no TLS encryption in the communication path from the client to Quay.
++
+Users must set their `PREFERRED_URL_SCHEME`to `https` when using a TLS-terminating load balancer, a reverse proxy (for example, Nginx), or when using Quay with custom SSL certificates directly. In most cases, the `PREFERRED_URL_SCHEME` should be `https`.
+ +
  **Default:** `http`
  | **SERVER_HOSTNAME**  +
 (Required) | String | The URL at which {productname} is accessible, without the scheme + 
- + 
-**Example:** + 
+ +
+**Example:** +
 `quay-server.example.com`
 
-| **SSL_CIPHERS** | Array of String | If specified, the nginx-defined list of SSL ciphers to enabled and disabled + 
- + 
-**Example:** + 
+| **SSL_CIPHERS** | Array of String | If specified, the nginx-defined list of SSL ciphers to enabled and disabled +
+ +
+**Example:** +
 [`CAMELLIA`, `!3DES`]
-| **SSL_PROTOCOLS** | Array of String |  If specified, nginx is configured to enabled a list of SSL protocols defined in the list. Removing an SSL protocol from the list disables the protocol during {productname} startup. + 
- + 
-**Example:** + 
+| **SSL_PROTOCOLS** | Array of String |  If specified, nginx is configured to enabled a list of SSL protocols defined in the list. Removing an SSL protocol from the list disables the protocol during {productname} startup. +
+ +
+**Example:** +
 `['TLSv1','TLSv1.1','TLSv1.2']`
 | **SESSION_COOKIE_SECURE** | Boolean | Whether the `secure` property should be set on session cookies +
- + 
-**Default:** + 
+ +
+**Default:** +
 False +
- +  
-**Recommendation:** + 
+ +
+**Recommendation:** +
 Set to True for all installations using SSL
 |===
 
@@ -38,7 +40,7 @@ Set to True for all installations using SSL
  . Copy the certificate file and primary key file to your configuration directory, ensuring they are named `ssl.cert` and `ssl.key` respectively:
 +
 ```
-$ cp ~/ssl.cert $QUAY/config 
+$ cp ~/ssl.cert $QUAY/config
 $ cp ~/ssl.key $QUAY/config
 $ cd $QUAY/config
 ```
@@ -55,7 +57,3 @@ PREFERRED_URL_SCHEME: https
 ...
 ----
 . Stop the `Quay` container and restart the registry
-
-
-
-
