@@ -1,13 +1,23 @@
 [[quota-establishment-api]]
-= Establishing quota with the  {productname} API
+= Establishing quota with the {productname} API
 
-When an organization is first created, it does not have a quota applied. 
+When an organization is first created, it does not have a quota applied. Use the */api/v1/organization/{organization}/quota* endpoint:
 
-.No initial quota
-image:quota-no-quota.png[No quota]
+.Sample command
+[source,terminal]
+----
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota  | jq
+----
+
+.Sample output
+[source,terminal]
+----
+[]
+----
 
 == Setting the quota
 
+To set a quota for an organization, POST data to the */api/v1/organization/{orgname}/quota* endpoint:
 .Sample command
 [source,terminal]
 ----
@@ -22,10 +32,12 @@ $ curl -k -X POST -H "Authorization: Bearer <token>" -H 'Content-Type: applicati
 
 == Viewing the quota
 
+To see the applied quota, GET data from the  */api/v1/organization/{orgname}/quota* endpoint:
+
 .Sample command
 [source,terminal]
 ----
-$ curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLwwIL" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota  | jq
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota  | jq
 ----
 
 .Sample output
@@ -42,18 +54,14 @@ $ curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLw
 ]
 ----
 
-
-.Organization quota of 10MB
-image:quota-10MB-empty.png[10MB quota]
-
 == Modifying the quota
 
-Use the PUT command to change the existing quota, in this instance, from 10MB to 100MB:
+To change the existing quota, in this instance from 10MB to 100MB, PUT data to the */api/v1/organization/{orgname}/quota/{quota_id}* endpoint:
 
 .Sample command
 [source,terminal]
 ----
-$ curl -k -X PUT -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLwwIL" -H 'Content-Type: application/json' -d '{"limit_bytes": 104857600}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1 | jq
+$ curl -k -X PUT -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{"limit_bytes": 104857600}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1 | jq
 ----
 
 .Sample output
@@ -68,15 +76,9 @@ $ curl -k -X PUT -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLw
 }
 ----
 
-.Organization quota of 100MB
-image:quota-100MB-empty.png[100MB quota]
-
-The quota settings are also visible in the organization settings UI:
-
-.Organization settings UI
-image:quota-100MB-settings-ui.png[Organization settings UI]
-
 == Pushing images
+
+To see the storage consumed, push various images to the organization.
 
 === Pushing ubuntu:18.04
 
@@ -90,20 +92,15 @@ $ podman tag docker.io/library/ubuntu:18.04 example-registry-quay-quay-enterpris
 $ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:18.04
 ----
 
-The UI shows the total proportion of the quota used up by this first Ubuntu image:
 
-.Total Quota Consumed for first image
-image:quota-first-image.png[Total Quota Consumed for first image]
+=== Using the API to view quota usage
 
-
-
-
-=== Using the API to see quota usage
+To view the storage consumed, GET data from the */api/v1/repository* endpoint:
 
 .Sample command
 [source,terminal]
 ----
-$ curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLwwIL" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/repository?last_modified=true&namespace=testorg&popularity=true&public=true&quota=true' | jq
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/repository?last_modified=true&namespace=testorg&popularity=true&public=true&quota=true' | jq
 ----
 
 .Sample output
@@ -132,7 +129,7 @@ $ curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLw
 
 === Pushing another image
 
-. Pull, tag and push the `nginx` image:
+. Pull, tag, and push the `nginx` image:
 +
 .Sample commands
 [source,terminal]
@@ -144,12 +141,12 @@ $ podman tag docker.io/library/nginx example-registry-quay-quay-enterprise.apps.
 $ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/nginx
 ----
 
-. View the quota report
+. To view the quota report for the repositories in the organization, use the */api/v1/repository* endpoint:
 +
 .Sample command
 [source,terminal]
 ----
-$ curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLwwIL" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/repository?last_modified=true&namespace=testorg&popularity=true&public=true&quota=true'
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/repository?last_modified=true&namespace=testorg&popularity=true&public=true&quota=true'
 ----
 +
 .Sample output
@@ -190,12 +187,13 @@ $ curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLw
   ]
 }
 ----
-. View the organization details
+
+. To view the quota information in the organization details, use the */api/v1/organization/{orgname}* endpoint:
 +
 .Sample command
 [source,terminal]
 ----
-$ curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLwwIL" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg' | jq
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg' | jq
 ----
 +
 .Sample output
@@ -218,33 +216,37 @@ $ curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLw
 }
 ----
 
-
-
-.Total Quota Consumed for two images
-image:quota-second-image.png[Total Quota Consumed for two images]
-
 == Rejecting pushes using quota limits
 
+If an image push exceeds defined quota limitations, a soft or hard check occurs:
+
+* For a soft check, or _warning_, users are notified.
+* For a hard check, or _reject_, the push is terminated.
 
 === Setting reject and warning limits
+
+To set _reject_ and _warning_ limits, POST data to the */api/v1/organization/{orgname}/quota/{quota_id}/limit* endpoint:
 
 .Sample reject limit command
 [source,terminal]
 ----
-$ curl -k -X POST -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLwwIL" -H 'Content-Type: application/json' -d '{"type":"Reject","threshold_percent":80}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1/limit
+$ curl -k -X POST -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{"type":"Reject","threshold_percent":80}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1/limit
 ----
-
 
 .Sample warning limit command
 [source,terminal]
 ----
-$ curl -k -X POST -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLwwIL" -H 'Content-Type: application/json' -d '{"type":"Warning","threshold_percent":50}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1/limit 
+$ curl -k -X POST -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{"type":"Warning","threshold_percent":50}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1/limit
 ----
+
+=== Viewing reject and warning limits
+
+To view the _reject_ and _warning_ limits, use the */api/v1/organization/{orgname}/quota* endpoint:
 
 .View quota limits
 [source,terminal]
 ----
-$  curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnLwwIL" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota | jq
+$  curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota | jq
 ----
 
 
@@ -273,11 +275,7 @@ $  curl -k -X GET -H "Authorization: Bearer NspeNNVPobaRjOBSb3WbfZdVtu7ZGSvKoHnL
 ]
 ----
 
-.Quota limits in Organization Settings
-image:quota-limits.png[Quota limits in Organization Settings]
-
-
-=== Pushing image when reject limit is exceeded
+=== Pushing an image when the reject limit is exceeded
 
 In this example, the reject limit (80%) has been set to below the current repository size (~83%), so the next push should automatically be rejected.
 
@@ -299,17 +297,17 @@ Getting image source signatures
 Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
 Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
 Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-WARN[0002] failed, retrying in 1s ... (1/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace 
+WARN[0002] failed, retrying in 1s ... (1/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
 Getting image source signatures
 Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
 Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
 Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-WARN[0005] failed, retrying in 1s ... (2/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace 
+WARN[0005] failed, retrying in 1s ... (2/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
 Getting image source signatures
 Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
 Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
 Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-WARN[0009] failed, retrying in 1s ... (3/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace 
+WARN[0009] failed, retrying in 1s ... (3/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
 Getting image source signatures
 Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
 Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
