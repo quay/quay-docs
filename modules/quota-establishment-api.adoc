@@ -18,6 +18,7 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 == Setting the quota
 
 To set a quota for an organization, POST data to the */api/v1/organization/{orgname}/quota* endpoint:
+
 .Sample command
 [source,terminal]
 ----
@@ -32,7 +33,7 @@ $ curl -k -X POST -H "Authorization: Bearer <token>" -H 'Content-Type: applicati
 
 == Viewing the quota
 
-To see the applied quota, GET data from the  */api/v1/organization/{orgname}/quota* endpoint:
+To see the applied quota, `GET` data from the  */api/v1/organization/{orgname}/quota* endpoint:
 
 .Sample command
 [source,terminal]
@@ -56,7 +57,7 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 
 == Modifying the quota
 
-To change the existing quota, in this instance from 10MB to 100MB, PUT data to the */api/v1/organization/{orgname}/quota/{quota_id}* endpoint:
+To change the existing quota, in this instance from 10 MB to 100 MB, `PUT` data to the */api/v1/organization/{orgname}/quota/{quota_id}* endpoint:
 
 .Sample command
 [source,terminal]
@@ -80,7 +81,14 @@ $ curl -k -X PUT -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 
 To see the storage consumed, push various images to the organization.
 
-=== Pushing ubuntu:18.04
+.Prerequisites
+
+* A {productname} registry.
+* A superuser account.
+
+.Procedure
+
+. Push ubuntu:18.04 to the organization from the command line:
 
 .Sample commands
 [source,terminal]
@@ -92,10 +100,7 @@ $ podman tag docker.io/library/ubuntu:18.04 example-registry-quay-quay-enterpris
 $ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:18.04
 ----
 
-
-=== Using the API to view quota usage
-
-To view the storage consumed, GET data from the */api/v1/repository* endpoint:
+. View the storage consumed with `GET` data from the */api/v1/repository* endpoint:
 
 .Sample command
 [source,terminal]
@@ -127,9 +132,7 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 }
 ----
 
-=== Pushing another image
-
-. Pull, tag, and push the `nginx` image:
+. Pull, tag, and push a second image, for example, `nginx`:
 +
 .Sample commands
 [source,terminal]
@@ -141,7 +144,7 @@ $ podman tag docker.io/library/nginx example-registry-quay-quay-enterprise.apps.
 $ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/nginx
 ----
 
-. To view the quota report for the repositories in the organization, use the */api/v1/repository* endpoint:
+. Use the */api/v1/repository* endpoint to view the quota report for the repositories in the organization:
 +
 .Sample command
 [source,terminal]
@@ -188,7 +191,7 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 }
 ----
 
-. To view the quota information in the organization details, use the */api/v1/organization/{orgname}* endpoint:
+. Use the */api/v1/organization/{orgname}* endpoint to view the quota information in the organization details:
 +
 .Sample command
 [source,terminal]
@@ -216,16 +219,21 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 }
 ----
 
-== Rejecting pushes using quota limits
+== Setting _reject_ and _warning_ limits
 
 If an image push exceeds defined quota limitations, a soft or hard check occurs:
 
 * For a soft check, or _warning_, users are notified.
 * For a hard check, or _reject_, the push is terminated.
 
-=== Setting reject and warning limits
+.Prerequisites
 
-To set _reject_ and _warning_ limits, POST data to the */api/v1/organization/{orgname}/quota/{quota_id}/limit* endpoint:
+* A {productname} registry.
+* A superuser account.
+
+.Procedure
+
+. `POST` data to the */api/v1/organization/{orgname}/quota/{quota_id}/limit* endpoint to set _reject_ and _warning_ limits:
 
 .Sample reject limit command
 [source,terminal]
@@ -239,9 +247,7 @@ $ curl -k -X POST -H "Authorization: Bearer <token>" -H 'Content-Type: applicati
 $ curl -k -X POST -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{"type":"Warning","threshold_percent":50}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1/limit
 ----
 
-=== Viewing reject and warning limits
-
-To view the _reject_ and _warning_ limits, use the */api/v1/organization/{orgname}/quota* endpoint:
+. Use the */api/v1/organization/{orgname}/quota* endpoint to view the _reject_ and _warning_ limits:
 
 .View quota limits
 [source,terminal]
@@ -279,6 +285,16 @@ $  curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicati
 
 In this example, the reject limit (80%) has been set to below the current repository size (~83%), so the next push should automatically be rejected.
 
+.Prerequisites
+
+* A {productname} registry.
+* A superuser account.
+* Defined reject limits.
+
+.Procedure
+
+. Push a sample image to the organization from the command line:
+
 .Sample image push
 [source,terminal]
 ----
@@ -288,7 +304,6 @@ $ podman tag docker.io/library/ubuntu:20.04 example-registry-quay-quay-enterpris
 
 $ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:20.04
 ----
-
 
 .Sample output when quota exceeded
 [source,terminal]
@@ -315,11 +330,7 @@ Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8Mi
 Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
 ----
 
-
-=== Notifications for limits exceeded
-
 When limits are exceeded, a notification appears:
 
 .Quota notifications
 image:quota-notifications.png[Quota notifications]
-
