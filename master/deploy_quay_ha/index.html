@@ -1,0 +1,585 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" class="chrometwo"><head><title>Deploy Red Hat Quay - High Availability</title><link rel="stylesheet" type="text/css" href="Common_Content/css/default.css"/><meta name="generator" content="publican v4.3.4"/><meta name="description" content="Deploy Red Hat Quay in a HA environment"/><link rel="next" href="#idm45186622186992" title="Preface"/><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><script type="text/javascript" src="Common_Content/scripts/jquery-1.7.1.min.js"> </script><script type="text/javascript" src="Common_Content/scripts/utils.js"> </script><script type="text/javascript" src="Common_Content/scripts/highlight.js/highlight.pack.js"> </script></head><body><div id="chrometwo"><div id="main"><div xml:lang="en-US" class="book" id="idm45186623036928"><div class="titlepage"><div><div class="producttitle"><span class="productname">Red Hat Quay</span> <span class="productnumber">3.7</span></div><div><h1 class="title">Deploy Red Hat Quay - High Availability</h1></div><div><h2 class="subtitle">Deploy Red Hat Quay HA</h2></div><div><div xml:lang="en-US" class="authorgroup"><span class="orgname">Red Hat OpenShift Documentation Team</span></div></div><div><a href="#idm45186598506304">Legal Notice</a></div><div><div class="abstract"><p class="title"><strong>Abstract</strong></p><div class="para">
+				Deploy Red Hat Quay in a HA environment
+			</div></div></div></div><hr/></div><div class="toc"><ul class="toc"><li><span class="preface"><a href="#idm45186622186992">Preface</a></span></li><li><span class="chapter"><a href="#overview">1. Overview</a></span><ul><li><span class="section"><a href="#architecture">1.1. Architecture</a></span><ul><li><span class="section"><a href="#internal_components">1.1.1. Internal components</a></span></li><li><span class="section"><a href="#external_components">1.1.2. External components</a></span></li></ul></li></ul></li><li><span class="chapter"><a href="#preparing_for_red_hat_quay_high_availability">2. Preparing for Red Hat Quay (high availability)</a></span><ul><li><span class="section"><a href="#prerequisites">2.1. Prerequisites</a></span></li><li><span class="section"><a href="#using-podman">2.2. Using podman</a></span></li><li><span class="section"><a href="#set_up_load_balancer_and_database">2.3. Set up Load Balancer and Database</a></span></li><li><span class="section"><a href="#set_up_ceph">2.4. Set Up Ceph</a></span><ul><li><span class="section"><a href="#install_each_ceph_node">2.4.1. Install each Ceph node</a></span></li><li><span class="section"><a href="#configure_the_ceph_ansible_node_ceph05">2.4.2. Configure the Ceph Ansible node (ceph05)</a></span></li><li><span class="section"><a href="#install_the_ceph_object_gateway">2.4.3. Install the Ceph Object Gateway</a></span></li></ul></li><li><span class="section"><a href="#set_up_redis">2.5. Set up Redis</a></span></li></ul></li><li><span class="chapter"><a href="#configuring_red_hat_quay">3. Configuring Red Hat Quay</a></span></li><li><span class="chapter"><a href="#deploying_red_hat_quay">4. Deploying Red Hat Quay</a></span><ul><li><span class="section"><a href="#add_clair_image_scanning_to_red_hat_quay">4.1. Add Clair image scanning to Red Hat Quay</a></span></li><li><span class="section"><a href="#add-repo-mirroring">4.2. Add repository mirroring Red Hat Quay</a></span></li></ul></li><li><span class="chapter"><a href="#starting_to_use_red_hat_quay">5. Starting to use Red Hat Quay</a></span></li></ul></div><section class="preface" id="idm45186622186992"><div class="titlepage"><div><div><h1 class="title">Preface</h1></div></div></div><p>
+			Red Hat Quay is an enterprise-quality container registry. Use Quay to build and store containers, then deploy them to the servers across your enterprise.
+		</p><p>
+			This procedure describes how to deploy a high availability, enterprise-quality Red Hat Quay setup.
+		</p></section><section class="chapter" id="overview"><div class="titlepage"><div><div><h1 class="title">Chapter 1. Overview</h1></div></div></div><p>
+			Features of Red Hat Quay include:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					High availability
+				</li><li class="listitem">
+					Geo-replication
+				</li><li class="listitem">
+					Repository mirroring
+				</li><li class="listitem">
+					Docker v2, schema 2 (multiarch) support
+				</li><li class="listitem">
+					Continuous integration
+				</li><li class="listitem">
+					Security scanning with Clair
+				</li><li class="listitem">
+					Custom log rotation
+				</li><li class="listitem">
+					Zero downtime garbage collection
+				</li><li class="listitem">
+					24/7 support
+				</li></ul></div><p>
+			Red Hat Quay provides support for:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					Multiple authentication and access methods
+				</li><li class="listitem">
+					Multiple storage backends
+				</li><li class="listitem">
+					Custom certificates for Quay, Clair, and storage backends
+				</li><li class="listitem">
+					Application registries
+				</li><li class="listitem">
+					Different container image types
+				</li></ul></div><section class="section" id="architecture"><div class="titlepage"><div><div><h2 class="title">1.1. Architecture</h2></div></div></div><p>
+				Red Hat Quay consists of a number of core components, both internal and external.
+			</p><section class="section" id="internal_components"><div class="titlepage"><div><div><h3 class="title">1.1.1. Internal components</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+							<span class="strong strong"><strong>Quay (container registry)</strong></span>: Runs the <code class="literal">Quay</code> container as a service, consisting of several components in the pod.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Clair</strong></span>: Scans container images for vulnerabilities and suggests fixes.
+						</li></ul></div></section><section class="section" id="external_components"><div class="titlepage"><div><div><h3 class="title">1.1.2. External components</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+							<span class="strong strong"><strong>Database</strong></span>: Used by Red Hat Quay as its primary metadata storage. Note that this is not for image storage.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Redis (key-value store)</strong></span>: Stores live builder logs and the Red Hat Quay tutorial.
+						</li><li class="listitem"><p class="simpara">
+							<span class="strong strong"><strong>Cloud storage</strong></span>:For supported deployments, you need to use one of the following types of storage:
+						</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
+									<span class="strong strong"><strong>Public cloud storage</strong></span>: In public cloud environments, you should use the cloud provider’s object storage, such as Amazon Web Services’s Amazon S3 or Google Cloud’s Google Cloud Storage.
+								</li><li class="listitem">
+									<span class="strong strong"><strong>Private cloud storage</strong></span>: In private clouds, an S3 or Swift compliant Object Store is needed, such as Ceph RADOS, or OpenStack Swift.
+								</li></ul></div></li></ul></div><div class="admonition warning"><div class="admonition_header">Warning</div><div><p>
+						Do not use "Locally mounted directory" Storage Engine for any production configurations. Mounted NFS volumes are not supported. Local storage is meant for Red Hat Quay test-only installations.
+					</p></div></div></section></section></section><section class="chapter" id="preparing_for_red_hat_quay_high_availability"><div class="titlepage"><div><div><h1 class="title">Chapter 2. Preparing for Red Hat Quay (high availability)</h1></div></div></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+				This procedure presents guidance on how to set up a highly available, production-quality deployment of Red Hat Quay.
+			</p></div></div><section class="section" id="prerequisites"><div class="titlepage"><div><div><h2 class="title">2.1. Prerequisites</h2></div></div></div><p>
+				Here are a few things you need to know before you begin the Red Hat Quay high availability deployment:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p class="simpara">
+						Either Postgres or MySQL can be used to provide the database service. Postgres was chosen here as the database because it includes the features needed to support Clair security scanning. Other options include:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
+								Crunchy Data PostgreSQL Operator: Although not supported directly by Red Hat, the <a class="link" href="https://access.crunchydata.com/documentation/postgres-operator/latest/">CrunchDB Operator</a> is available from <a class="link" href="https://www.crunchydata.com/">Crunchy Data</a> for use with Red Hat Quay. If you take this route, you should have a support contract with Crunchy Data and work directly with them for usage guidance or issues relating to the operator and their database.
+							</li><li class="listitem">
+								If your organization already has a high-availability (HA) database, you can use that database with Red Hat Quay. See the <a class="link" href="https://access.redhat.com/support/policy/updates/rhquay/policies">Red Hat Quay Support Policy</a> for details on support for third-party databases and other components.
+							</li></ul></div></li><li class="listitem"><p class="simpara">
+						Ceph Object Gateway (also called RADOS Gateway) is one example of a product that can provide the object storage needed by Red Hat Quay. If you want your Red Hat Quay setup to do geo-replication, Ceph Object Gateway or other supported object storage is required. For cloud installations, you can use any of the following cloud object storage:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
+								Amazon S3 (see <a class="link" href="https://access.redhat.com/solutions/3680151">S3 IAM Bucket Policy</a> for details on configuring an S3 bucket policy for Quay)
+							</li><li class="listitem">
+								Azure Blob Storage
+							</li><li class="listitem">
+								Google Cloud Storage
+							</li><li class="listitem">
+								Ceph Object Gateway
+							</li><li class="listitem">
+								OpenStack Swift
+							</li><li class="listitem">
+								CloudFront + S3
+							</li><li class="listitem">
+								NooBaa S3 Storage
+							</li></ul></div></li><li class="listitem">
+						The haproxy server is used in this example, although you can use any proxy service that works for your environment.
+					</li><li class="listitem"><p class="simpara">
+						Number of systems: This procedure uses seven systems (physical or virtual) that are assigned with the following tasks:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
+								<span class="strong strong"><strong>A: db01: Load balancer and database</strong></span>: Runs the haproxy load balancer and a Postgres database. Note that these components are not themselves highly available, but are used to indicate how you might set up your own load balancer or production database.
+							</li><li class="listitem">
+								<span class="strong strong"><strong>B: quay01, quay02, quay03: Quay and Redis</strong></span>: Three (or more) systems are assigned to run the Quay and Redis services.
+							</li><li class="listitem">
+								<span class="strong strong"><strong>C: ceph01, ceph02, ceph03, ceph04, ceph05: Ceph</strong></span>: Three (or more) systems provide the Ceph service, for storage. If you are deploying to a cloud, you can use the cloud storage features described earlier. This procedure employs an additional system for Ansible (ceph05) and one for a Ceph Object Gateway (ceph04).
+							</li></ul></div></li></ul></div><p>
+				Each system should have the following attributes:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Red Hat Enterprise Linux (RHEL)</strong></span>: Obtain the latest Red Hat Enterprise Linux 8 server media from the <a class="link" href="https://access.redhat.com/downloads/content/479/ver=/rhel---8/8.3/x86_64/product-software">Downloads page</a> and follow the installation instructions available in the <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/">Product Documentation for Red Hat Enterprise Linux 8</a>.
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
+								<span class="strong strong"><strong>Valid Red Hat Subscription</strong></span>: Configure a valid Red Hat Enterprise Linux 8 server subscription.
+							</li><li class="listitem">
+								<span class="strong strong"><strong>CPUs</strong></span>: Two or more virtual CPUs
+							</li><li class="listitem">
+								<span class="strong strong"><strong>RAM</strong></span>: 4GB for each A and B system; 8GB for each C system
+							</li><li class="listitem">
+								<span class="strong strong"><strong>Disk space</strong></span>: About 20GB of disk space for each A and B system (10GB for the operating system and 10GB for docker storage). At least 30GB of disk space for C systems (or more depending on required container storage).
+							</li></ul></div></li></ul></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					Red Hat Enterprise Linux (RHEL) 8 is strongly recommended for highly available, production quality deployments of Red Hat Quay 3.6. RHEL 7 has not been tested with Red Hat Quay 3.6, and will be deprecated in a future release.
+				</p></div></div></section><section class="section" id="using-podman"><div class="titlepage"><div><div><h2 class="title">2.2. Using podman</h2></div></div></div><p>
+				This document uses podman for creating and deploying containers. If you do not have podman available on your system, you should be able to use the equivalent docker commands. For more information on podman and related technologies, see <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index">Building, running, and managing Linux containers on Red Hat Enterprise Linux 8</a>.
+			</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					Podman is strongly recommended for highly available, production quality deployments of Red Hat Quay 3.6. Docker has not been tested with Red Hat Quay 3.6, and will be deprecated in a future release.
+				</p></div></div></section><section class="section" id="set_up_load_balancer_and_database"><div class="titlepage"><div><div><h2 class="title">2.3. Set up Load Balancer and Database</h2></div></div></div><p>
+				On the first two systems (q01 and q02), install the haproxy load balancer and postgresql database. Haproxy will be configured as the access point and load balancer for the following services running on other systems:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Red Hat Quay (ports 80 and 443 on B systems)
+					</li><li class="listitem">
+						Redis (port 6379 on B systems)
+					</li><li class="listitem">
+						RADOS (port 7480 on C systems)
+					</li></ul></div><p>
+				Because the services on the two systems run as containers, you will use <code class="literal">podman</code>, if it is installed. Alternatively, you could use the equivalent <code class="literal">docker</code> commands.
+			</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					For more information on using <code class="literal">podman</code> and restarting containers, see the section "Using podman" earlier in this document.
+				</p></div></div><p>
+				Here is how to set up the A systems:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Open ports for haproxy service</strong></span>: Open all haproxy ports in SELinux and selected haproxy ports in the firewall:
+					</p><pre class="screen"># setsebool -P haproxy_connect_any=on
+# firewall-cmd --permanent --zone=public --add-port=6379/tcp --add-port=7480/tcp
+success
+# firewall-cmd --reload
+success</pre></li><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Set up haproxy service</strong></span>: Configure the <code class="literal">/etc/haproxy/haproxy.cfg</code> to point to the systems and ports providing the Red Hat Quay, Redis, and Ceph RADOS services. Here are examples of defaults and added frontend and backend settings:
+					</p><pre class="screen">#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    tcp
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+#---------------------------------------------------------------------
+# main frontend which proxys to the backends
+#---------------------------------------------------------------------
+
+frontend  fe_http *:80
+    default_backend             be_http
+frontend  fe_https *:443
+    default_backend             be_https
+frontend fe_redis *:6379
+   default_backend              be_redis
+frontend  fe_rdgw *:7480
+    default_backend             be_rdgw
+backend be_http
+    balance     roundrobin
+    server quay01 quay01:80 check
+    server quay02 quay02:80 check
+    server quay03 quay03:80 check
+backend be_https
+    balance     roundrobin
+    server quay01 quay01:443 check
+    server quay02 quay02:443 check
+    server quay03 quay03:443 check
+backend be_rdgw
+    balance     roundrobin
+    server ceph01 ceph01:7480 check
+    server ceph02 ceph02:7480 check
+    server ceph03 ceph03:7480 check
+backend be_redis
+server quay01 quay01:6380 check inter 1s
+server quay02 quay02:6380 check inter 1s
+server quay03 quay03:6380 check inter 1s</pre><p class="simpara">
+						Once the new haproxy.cfg file is in place, restart the haproxy service.
+					</p><pre class="screen"># systemctl restart haproxy</pre></li><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Install / Deploy a Database</strong></span>: Install, enable and start the <a class="link" href="https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhel8/postgresql-10)">PostgreSQL</a> database container. The following commands will:
+					</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+								Start the PostgreSQL database with the user, password and database all set. Data from the container will be stored on the host system in the <code class="literal">/var/lib/pgsql/data</code> directory.
+							</li><li class="listitem">
+								List available extensions.
+							</li><li class="listitem">
+								Create the pg_trgm extension.
+							</li><li class="listitem"><p class="simpara">
+								Confirm the extension is installed
+							</p><pre class="screen">$ mkdir -p /var/lib/pgsql/data
+$ chmod 777 /var/lib/pgsql/data
+$ sudo podman run -d --name postgresql_database \
+    -v /var/lib/pgsql/data:/var/lib/pgsql/data:Z  \
+    -e POSTGRESQL_USER=quayuser -e POSTGRESQL_PASSWORD=quaypass \
+    -e POSTGRESQL_DATABASE=quaydb -p 5432:5432 \
+    registry.redhat.io/rhel8/postgresql-10:1
+
+$ sudo podman exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_available_extensions" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+   name    | default_version | installed_version |           comment
+-----------+-----------------+-------------------+----------------------------------------
+ adminpack | 1.0             |                   | administrative functions for PostgreSQL
+...
+
+$ sudo podman exec -it postgresql_database /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm;" | /opt/rh/rh-postgresql96/root/usr/bin/psql -d quaydb'
+
+$ sudo podman exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_extension" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+ extname | extowner | extnamespace | extrelocatable | extversion | extconfig | extcondition
+---------+----------+--------------+----------------+------------+-----------+--------------
+ plpgsql |       10 |           11 | f              | 1.0        |           |
+ pg_trgm |       10 |         2200 | t              | 1.3        |           |
+(2 rows)
+
+$ sudo podman exec -it postgresql_database /bin/bash -c 'echo "ALTER USER quayuser WITH SUPERUSER;" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+ALTER ROLE</pre></li></ul></div></li><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Open the firewall</strong></span>: If you have a firewalld service active on your system, run the following commands to make the PostgreSQL port available through the firewall:
+					</p><pre class="screen"># firewall-cmd --permanent --zone=trusted --add-port=5432/tcp
+success
+# firewall-cmd --reload
+success</pre></li><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Test PostgreSQL Connectivity</strong></span>: Use the <code class="literal">psql</code> command to test connectivity to the PostgreSQL database. Try this on a remote system as well, to make sure you can access the service remotely:
+					</p><pre class="screen"># yum install postgresql -y
+
+# psql -h localhost quaydb quayuser
+Password for user test:
+psql (9.2.23, server 9.6.5)
+WARNING: psql version 9.2, server version 9.6.
+         Some psql features might not work.
+Type "help" for help.
+
+test=&gt; \q</pre></li></ol></div></section><section class="section" id="set_up_ceph"><div class="titlepage"><div><div><h2 class="title">2.4. Set Up Ceph</h2></div></div></div><p>
+				For this Red Hat Quay configuration, we create a three-node Ceph cluster, with several other supporting nodes, as follows:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						ceph01, ceph02, and ceph03 - Ceph Monitor, Ceph Manager and Ceph OSD nodes
+					</li><li class="listitem">
+						ceph04 - Ceph RGW node
+					</li><li class="listitem">
+						ceph05 - Ceph Ansible administration node
+					</li></ul></div><p>
+				For details on installing Ceph nodes, see <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux">Installing Red Hat Ceph Storage on Red Hat Enterprise Linux</a>.
+			</p><p>
+				Once you have set up the Ceph storage cluster, create a Ceph Object Gateway (also referred to as a RADOS gateway). See <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html/installation_guide_for_red_hat_enterprise_linux/deploying-red-hat-ceph-storage#installing-the-ceph-object-gateway">Installing the Ceph Object Gateway</a> for details.
+			</p><section class="section" id="install_each_ceph_node"><div class="titlepage"><div><div><h3 class="title">2.4.1. Install each Ceph node</h3></div></div></div><p>
+					On ceph01, ceph02, ceph03, ceph04, and ceph05, do the following:
+				</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+							Review prerequisites for setting up Ceph nodes in <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#requirements-for-installing-rhcs">Requirements for Installing Red Hat Ceph Storage</a>. In particular:
+						</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+									Decide if you want to use <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#considerations-for-using-a-raid-controller-with-osd-nodes">RAID controllers on OSD nodes</a>.
+								</li><li class="listitem">
+									Decide if you want a separate cluster network for your <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#verifying-the-network-configuration-for-red-hat-ceph-storage">Ceph Network Configuration</a>.
+								</li></ul></div></li><li class="listitem">
+							Prepare OSD storage (ceph01, ceph02, and ceph03 only). Set up the OSD storage on the three OSD nodes (ceph01, ceph02, and ceph03). See OSD Ansible Settings in <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#installing-a-red-hat-ceph-storage-cluster">Table 3.2</a> for details on supported storage types that you will enter into your Ansible configuration later. For this example, a single, unformatted block device (<code class="literal">/dev/sdb</code>), that is separate from the operating system, is configured on each of the OSD nodes. If you are installing on metal, you might want to add an extra hard drive to the machine for this purpose.
+						</li><li class="listitem">
+							Install Red Hat Enterprise Linux Server edition, as described in the <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/installation_guide/">RHEL 7 Installation Guide</a>.
+						</li><li class="listitem"><p class="simpara">
+							Register and subscribe each Ceph node as described in the <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/#registering-red-hat-ceph-storage-nodes-to-cdn-and-attaching-subscriptions">Registering Red Hat Ceph Storage Nodes</a>. Here is how to subscribe to the necessary repos:
+						</p><pre class="screen"># subscription-manager repos --disable=*
+# subscription-manager repos --enable=rhel-7-server-rpms
+# subscription-manager repos --enable=rhel-7-server-extras-rpms
+# subscription-manager repos --enable=rhel-7-server-rhceph-3-mon-rpms
+# subscription-manager repos --enable=rhel-7-server-rhceph-3-osd-rpms
+# subscription-manager repos --enable=rhel-7-server-rhceph-3-tools-rpms</pre></li><li class="listitem"><p class="simpara">
+							Create an ansible user with root privilege on each node. Choose any name you like. For example:
+						</p><pre class="screen"># USER_NAME=ansibleadmin
+# useradd $USER_NAME -c "Ansible administrator"
+# passwd $USER_NAME
+New password: *********
+Retype new password: *********
+# cat &lt;&lt; EOF &gt;/etc/sudoers.d/admin
+admin ALL = (root) NOPASSWD:ALL
+EOF
+# chmod 0440 /etc/sudoers.d/$USER_NAME</pre></li></ol></div></section><section class="section" id="configure_the_ceph_ansible_node_ceph05"><div class="titlepage"><div><div><h3 class="title">2.4.2. Configure the Ceph Ansible node (ceph05)</h3></div></div></div><p>
+					Log into the Ceph Ansible node (ceph05) and configure it as follows. You will need the ceph01, ceph02, and ceph03 nodes to be running to complete these steps.
+				</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+							In the Ansible user’s home directory create a directory to store temporary values created from the ceph-ansible playbook
+						</p><pre class="screen"># USER_NAME=ansibleadmin
+# sudo su - $USER_NAME
+[ansibleadmin@ceph05 ~]$ mkdir ~/ceph-ansible-keys</pre></li><li class="listitem"><p class="simpara">
+							Enable password-less ssh for the ansible user. Run ssh-keygen on ceph05 (leave passphrase empty), then run and repeat ssh-copy-id to copy the public key to the Ansible user on ceph01, ceph02, and ceph03 systems:
+						</p><pre class="screen"># USER_NAME=ansibleadmin
+# sudo su - $USER_NAME
+[ansibleadmin@ceph05 ~]$ ssh-keygen
+[ansibleadmin@ceph05 ~]$ ssh-copy-id $USER_NAME@ceph01
+[ansibleadmin@ceph05 ~]$ ssh-copy-id $USER_NAME@ceph02
+[ansibleadmin@ceph05 ~]$ ssh-copy-id $USER_NAME@ceph03
+[ansibleadmin@ceph05 ~]$ exit
+#</pre></li><li class="listitem"><p class="simpara">
+							Install the ceph-ansible package:
+						</p><pre class="screen"># yum install ceph-ansible</pre></li><li class="listitem"><p class="simpara">
+							Create a symbolic between these two directories:
+						</p><pre class="screen"># ln -s /usr/share/ceph-ansible/group_vars \
+    /etc/ansible/group_vars</pre></li><li class="listitem"><p class="simpara">
+							Create copies of Ceph sample yml files to modify:
+						</p><pre class="screen"># cd /usr/share/ceph-ansible
+# cp group_vars/all.yml.sample group_vars/all.yml
+# cp group_vars/osds.yml.sample group_vars/osds.yml
+# cp site.yml.sample site.yml</pre></li><li class="listitem"><p class="simpara">
+							Edit the copied group_vars/all.yml file. See General Ansible Settings in <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#installing-a-red-hat-ceph-storage-cluster">Table 3.1</a> for details. For example:
+						</p><pre class="screen">ceph_origin: repository
+ceph_repository: rhcs
+ceph_repository_type: cdn
+ceph_rhcs_version: 3
+monitor_interface: eth0
+public_network: 192.168.122.0/24</pre><p class="simpara">
+							Note that your network device and address range may differ.
+						</p></li><li class="listitem"><p class="simpara">
+							Edit the copied <code class="literal">group_vars/osds.yml</code> file. See the OSD Ansible Settings in <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#installing-a-red-hat-ceph-storage-cluster">Table 3.2</a> for details. In this example, the second disk device (<code class="literal">/dev/sdb</code>) on each OSD node is used for both data and journal storage:
+						</p><pre class="screen">osd_scenario: collocated
+devices:
+  - /dev/sdb
+dmcrypt: true
+osd_auto_discovery: false</pre></li><li class="listitem"><p class="simpara">
+							Edit the <code class="literal">/etc/ansible/hosts</code> inventory file to identify the Ceph nodes as Ceph monitor, OSD and manager nodes. In this example, the storage devices are identified on each node as well:
+						</p><pre class="screen">[mons]
+ceph01
+ceph02
+ceph03
+
+[osds]
+ceph01 devices="[ '/dev/sdb' ]"
+ceph02 devices="[ '/dev/sdb' ]"
+ceph03 devices="[ '/dev/sdb' ]"
+
+[mgrs]
+ceph01 devices="[ '/dev/sdb' ]"
+ceph02 devices="[ '/dev/sdb' ]"
+ceph03 devices="[ '/dev/sdb' ]"</pre></li><li class="listitem"><p class="simpara">
+							Add this line to the <code class="literal">/etc/ansible/ansible.cfg</code> file, to save the output from each Ansible playbook run into your Ansible user’s home directory:
+						</p><pre class="screen">retry_files_save_path = ~/</pre></li><li class="listitem"><p class="simpara">
+							Check that Ansible can reach all the Ceph nodes you configured as your Ansible user:
+						</p><pre class="screen"># USER_NAME=ansibleadmin
+# sudo su - $USER_NAME
+[ansibleadmin@ceph05 ~]$ ansible all -m ping
+ceph01 | SUCCESS =&gt; {
+    "changed": false,
+    "ping": "pong"
+}
+ceph02 | SUCCESS =&gt; {
+    "changed": false,
+    "ping": "pong"
+}
+ceph03 | SUCCESS =&gt; {
+    "changed": false,
+    "ping": "pong"
+}
+[ansibleadmin@ceph05 ~]$</pre></li><li class="listitem"><p class="simpara">
+							Run the ceph-ansible playbook (as your Ansible user):
+						</p><pre class="screen">[ansibleadmin@ceph05 ~]$ cd /usr/share/ceph-ansible/
+[ansibleadmin@ceph05 ~]$ ansible-playbook site.yml</pre><p class="simpara">
+							At this point, the Ansible playbook will check your Ceph nodes and configure them for the services you requested. If anything fails, make needed corrections and rerun the command.
+						</p></li><li class="listitem"><p class="simpara">
+							Log into one of the three Ceph nodes (ceph01, ceph02, or ceph03) and check the health of the Ceph cluster:
+						</p><pre class="screen"># ceph health
+HEALTH_OK</pre></li><li class="listitem"><p class="simpara">
+							On the same node, verify that monitoring is working using rados:
+						</p><pre class="screen"># ceph osd pool create test 8
+# echo 'Hello World!' &gt; hello-world.txt
+# rados --pool test put hello-world hello-world.txt
+# rados --pool test get hello-world fetch.txt
+# cat fetch.txt
+Hello World!</pre></li></ol></div></section><section class="section" id="install_the_ceph_object_gateway"><div class="titlepage"><div><div><h3 class="title">2.4.3. Install the Ceph Object Gateway</h3></div></div></div><p>
+					On the Ansible system (ceph05), configure a Ceph Object Gateway to your Ceph Storage cluster (which will ultimately run on ceph04). See <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html/installation_guide_for_red_hat_enterprise_linux/deploying-red-hat-ceph-storage#installing-the-ceph-object-gateway">Installing the Ceph Object Gateway</a> for details.
+				</p></section></section><section class="section" id="set_up_redis"><div class="titlepage"><div><div><h2 class="title">2.5. Set up Redis</h2></div></div></div><p>
+				With Red Hat Enterprise Linux 8 server installed on each of the three Red Hat Quay systems (quay01, quay02, and quay03), install and start the Redis service as follows:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Install / Deploy <a class="link" href="https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhel8/redis-5)">Redis</a></strong></span>: Run Redis as a container on each of the three quay0* systems:
+					</p><pre class="literallayout"># mkdir -p /var/lib/redis
+# chmod 777 /var/lib/redis
+# sudo podman run -d -p 6379:6379 \
+    -v /var/lib/redis:/var/lib/redis/data:Z \
+    registry.redhat.io/rhel8/redis-5</pre></li><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Check redis connectivity</strong></span>: You can use the <code class="literal">telnet</code> command to test connectivity to the redis service. Type MONITOR (to begin monitoring the service) and QUIT to exit:
+					</p><pre class="literallayout"># yum install telnet -y
+# telnet 192.168.122.99 6379
+Trying 192.168.122.99...
+Connected to 192.168.122.99.
+Escape character is '^]'.
+MONITOR
++OK
++1525703165.754099 [0 172.17.0.1:43848] "PING"
+QUIT
++OK
+Connection closed by foreign host.</pre></li></ol></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					For more information on using <code class="literal">podman</code> and restarting containers, see the section "Using podman" earlier in this document.
+				</p></div></div></section></section><section class="chapter" id="configuring_red_hat_quay"><div class="titlepage"><div><div><h1 class="title">Chapter 3. Configuring Red Hat Quay</h1></div></div></div><p>
+			Before running the Red Hat Quay service as a container, you need to use that same <code class="literal">Quay</code> container to create the configuration file (<code class="literal">config.yaml</code>) needed to deploy Red Hat Quay. To do that, you pass a <code class="literal">config</code> argument and a password (replace my-secret-password here) to the <code class="literal">Quay</code> container. Later, you use that password to log into the configuration tool as the user <code class="literal">quayconfig</code>.
+		</p><p>
+			Here’s an example of how to do that:
+		</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+					<span class="strong strong"><strong>Start quay in setup mode</strong></span>: On the first quay node, run the following:
+				</p><pre class="literallayout"># sudo podman run --rm -it --name quay_config -p 8080:8080 registry.redhat.io/quay/quay-rhel8:v3.7.0 config my-secret-password</pre></li><li class="listitem">
+					<span class="strong strong"><strong>Open browser</strong></span>: When the quay configuration tool starts up, open a browser to the URL and port 8080 of the system you are running the configuration tool on (for example <a class="link" href="http://myquay.example.com:8080">http://myquay.example.com:8080</a>). You are prompted for a username and password.
+				</li><li class="listitem">
+					<span class="strong strong"><strong>Log in as quayconfig</strong></span>: When prompted, enter the <code class="literal">quayconfig</code> username and password (the one from the <code class="literal">podman run</code> command line).
+				</li><li class="listitem">
+					<span class="strong strong"><strong>Fill in the required fields</strong></span>: When you start the config tool without mounting an existing configuration bundle, you will be booted into an initial setup session. In a setup session, default values will be filled automatically. The following steps will walk through how to fill out the remaining required fields.
+				</li><li class="listitem"><p class="simpara">
+					<span class="strong strong"><strong>Identify the database</strong></span>: For the initial setup, you must include the following information about the type and location of the database to be used by Red Hat Quay:
+				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+							<span class="strong strong"><strong>Database Type</strong></span>: Choose MySQL or PostgreSQL. MySQL will be used in the basic example; PostgreSQL is used with the high availability Red Hat Quay on OpenShift examples.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Database Server</strong></span>: Identify the IP address or hostname of the database, along with the port number if it is different from 3306.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Username</strong></span>: Identify a user with full access to the database.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Password</strong></span>: Enter the password you assigned to the selected user.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Database Name</strong></span>: Enter the database name you assigned when you started the database server.
+						</li><li class="listitem"><p class="simpara">
+							<span class="strong strong"><strong>SSL Certificate</strong></span>: For production environments, you should provide an SSL certificate to connect to the database.
+						</p><p class="simpara">
+							The following figure shows an example of the screen for identifying the database used by Red Hat Quay:
+						</p><p class="simpara">
+							<span class="inlinemediaobject"><img src="images/Figure01.png" alt="Identifying the database Red Hat Quay will use"/></span>
+						</p></li></ul></div></li><li class="listitem"><p class="simpara">
+					<span class="strong strong"><strong>Identify the Redis hostname, Server Configuration and add other desired settings</strong></span>: Other setting you can add to complete the setup are as follows. More settings for high availability Red Hat Quay deployment that for the basic deployment:
+				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+							For the basic, test configuration, identifying the Redis Hostname should be all you need to do. However, you can add other features, such as Clair Scanning and Repository Mirroring, as described at the end of this procedure.
+						</li><li class="listitem"><p class="simpara">
+							For the high availability and OpenShift configurations, more settings are needed (as noted below) to allow for shared storage, secure communications between systems, and other features.
+						</p><p class="simpara">
+							<span class="strong strong"><strong>Here are the settings you need to consider:</strong></span>
+						</p></li><li class="listitem"><p class="simpara">
+							<span class="strong strong"><strong>Custom SSL Certificates</strong></span>: Upload custom or self-signed SSL certificates for use by Red Hat Quay. See <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/manage_red_hat_quay/index#using-ssl-to-protect-quay">Using SSL to protect connections to Red Hat Quay</a> for details. Recommended for high availability.
+						</p><div class="admonition important"><div class="admonition_header">Important</div><div><p>
+								Using SSL certificates is recommended for both basic and high availability deployments. If you decide to not use SSL, you must configure your container clients to use your new Red Hat Quay setup as an insecure registry as described in <a class="link" href="https://docs.docker.com/registry/insecure/">Test an Insecure Registry</a>.
+							</p></div></div></li><li class="listitem">
+							<span class="strong strong"><strong>Basic Configuration</strong></span>: Upload a company logo to rebrand your Red Hat Quay registry.
+						</li><li class="listitem"><p class="simpara">
+							<span class="strong strong"><strong>Server Configuration</strong></span>: Hostname or IP address to reach the Red Hat Quay service, along with TLS indication (recommended for production installations). The Server Hostname is required for all Red Hat Quay deployments. TLS termination can be done in two different ways:
+						</p><div class="itemizedlist"><ul class="itemizedlist" type="circle"><li class="listitem">
+									On the instance itself, with all TLS traffic governed by the nginx server in the <code class="literal">Quay</code> container (recommended).
+								</li><li class="listitem">
+									On the load balancer. This is not recommended. Access to Red Hat Quay could be lost if the TLS setup is not done correctly on the load balancer.
+								</li></ul></div></li><li class="listitem">
+							<span class="strong strong"><strong>Data Consistency Settings</strong></span>: Select to relax logging consistency guarantees to improve performance and availability.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Time Machine</strong></span>: Allow older image tags to remain in the repository for set periods of time and allow users to select their own tag expiration times.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>redis</strong></span>: Identify the hostname or IP address (and optional password) to connect to the redis service used by Red Hat Quay.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Repository Mirroring</strong></span>: Choose the checkbox to Enable Repository Mirroring. With this enabled, you can create repositories in your Red Hat Quay cluster that mirror selected repositories from remote registries. Before you can enable repository mirroring, start the repository mirroring worker as described later in this procedure.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Registry Storage</strong></span>: Identify the location of storage. A variety of cloud and local storage options are available. Remote storage is required for high availability. Identify the Ceph storage location if you are following the example for Red Hat Quay high availability storage. On OpenShift, the example uses Amazon S3 storage.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Action Log Storage Configuration</strong></span>: Action logs are stored in the Red Hat Quay database by default. If you have a large amount of action logs, you can have those logs directed to Elasticsearch for later search and analysis. To do this, change the value of Action Logs Storage to Elasticsearch and configure related settings as described in <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/manage_red_hat_quay/index#configure-action-log-storage">Configure action log storage</a>.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Action Log Rotation and Archiving</strong></span>: Select to enable log rotation, which moves logs older than 30 days into storage, then indicate storage area.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Security Scanner</strong></span>: Enable security scanning by selecting a security scanner endpoint and authentication key. To setup Clair to do image scanning, refer to <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/manage_red_hat_quay/#clair-initial-setup">Clair Setup</a> and <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/manage_red_hat_quay/#configuring-clair-for-tls">Configuring Clair</a>. Recommended for high availability.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Application Registry</strong></span>: Enable an additional application registry that includes things like Kubernetes manifests or Helm charts (see the <a class="link" href="https://github.com/app-registry">App Registry specification</a>).
+						</li><li class="listitem">
+							<span class="strong strong"><strong>rkt Conversion</strong></span>: Allow <code class="literal">rkt fetch</code> to be used to fetch images from Red Hat Quay registry. Public and private GPG2 keys are needed. This field is deprecated.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>E-mail</strong></span>: Enable e-mail to use for notifications and user password resets.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Internal Authentication</strong></span>: Change default authentication for the registry from Local Database to LDAP, Keystone (OpenStack), JWT Custom Authentication, or External Application Token.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>External Authorization (OAuth)</strong></span>: Enable to allow GitHub or GitHub Enterprise to authenticate to the registry.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Google Authentication</strong></span>: Enable to allow Google to authenticate to the registry.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Access Settings</strong></span>: Basic username/password authentication is enabled by default. Other authentication types that can be enabled include: external application tokens (user-generated tokens used with docker or rkt commands), anonymous access (enable for public access to anyone who can get to the registry), user creation (let users create their own accounts), encrypted client password (require command-line user access to include encrypted passwords), and prefix username autocompletion (disable to require exact username matches on autocompletion).
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Registry Protocol Settings</strong></span>: Leave the <code class="literal">Restrict V1 Push Support</code> checkbox enabled to restrict access to Docker V1 protocol pushes. Although Red Hat recommends against enabling Docker V1 push protocol, if you do allow it, you must explicitly whitelist the namespaces for which it is enabled.
+						</li><li class="listitem">
+							<span class="strong strong"><strong>Dockerfile Build Support</strong></span>: Enable to allow users to submit Dockerfiles to be built and pushed to Red Hat Quay. This is not recommended for multitenant environments.
+						</li></ul></div></li><li class="listitem"><p class="simpara">
+					<span class="strong strong"><strong>Validate the changes</strong></span>: Select <code class="literal">Validate Configuration Changes</code>. If validation is successful, you will be presented with the following Download Configuration modal:
+				</p><p class="simpara">
+					<span class="inlinemediaobject"><img src="images/Figure05.png" alt="Download the Red Hat Quay configuration tarball to the local system"/></span>
+				</p></li><li class="listitem">
+					<span class="strong strong"><strong>Download configuration</strong></span>: Select the <code class="literal">Download Configuration</code> button and save the tarball (<code class="literal">quay-config.tar.gz</code>) to a local directory to use later to start Red Hat Quay.
+				</li></ol></div><p>
+			At this point, you can shutdown the Red Hat Quay configuration tool and close your browser. Next, copy the tarball file to the system on which you want to install your first Red Hat Quay node. For a basic install, you might just be running Red Hat Quay on the same system.
+		</p></section><section class="chapter" id="deploying_red_hat_quay"><div class="titlepage"><div><div><h1 class="title">Chapter 4. Deploying Red Hat Quay</h1></div></div></div><p>
+			To deploy the Red Hat Quay service on the nodes in your cluster, you use the same <code class="literal">Quay</code> container you used to create the configuration file. The differences here are that you:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					Identify directories where the configuration files and data are stored
+				</li><li class="listitem">
+					Run the command with <code class="literal">--sysctl net.core.somaxconn=4096</code>
+				</li><li class="listitem">
+					Don’t use the <code class="literal">config</code> option or password
+				</li></ul></div><p>
+			For a basic setup, you can deploy on a single node; for high availability you probably want three or more nodes (for example, quay01, quay02, and quay03).
+		</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+				The resulting Red Hat Quay service will listen on regular port 8080 and SSL port 8443. This is different from previous releases of Red Hat Quay, which listened on standard ports 80 and 443, respectively. In this document, we map 8080 and 8443 to standard ports 80 and 443 on the host, respectively. Througout the rest of this document, we assume you have mapped the ports in this way.
+			</p></div></div><p>
+			Here is what you do:
+		</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+					<span class="strong strong"><strong>Create directories</strong></span>: Create two directories to store configuration information and data on the host. For example:
+				</p><pre class="literallayout"># mkdir -p /mnt/quay/config
+# #optional: if you don't choose to install an Object Store
+# mkdir -p /mnt/quay/storage</pre></li><li class="listitem"><p class="simpara">
+					<span class="strong strong"><strong>Copy config files</strong></span>: Copy the tarball (<code class="literal">quay-config.tar.gz</code>) to the configuration directory and unpack it. For example:
+				</p><pre class="literallayout"># cp quay-config.tar.gz /mnt/quay/config/
+# tar xvf quay-config.tar.gz
+config.yaml ssl.cert ssl.key</pre></li><li class="listitem"><p class="simpara">
+					<span class="strong strong"><strong>Deploy Red Hat Quay</strong></span>: Having already authenticated to Quay.io (see <a class="link" href="https://access.redhat.com/solutions/3533201">Accessing Red Hat Quay</a>) run Red Hat Quay as a container, as follows:
+				</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+						Add <code class="literal">-e DEBUGLOG=true</code> to the <code class="literal">podman run</code> command line for the <code class="literal">Quay</code> container to enable debug level logging. Add <code class="literal">-e IGNORE_VALIDATION=true</code> to bypass validation during the startup process.
+					</p></div></div><pre class="screen"># sudo podman run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   --privileged=true \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d registry.redhat.io/quay/quay-rhel8:v3.7.0</pre></li><li class="listitem">
+					<span class="strong strong"><strong>Open browser to UI</strong></span>: Once the <code class="literal">Quay</code> container has started, go to your web browser and open the URL, to the node running the <code class="literal">Quay</code> container.
+				</li><li class="listitem">
+					<span class="strong strong"><strong>Log into Red Hat Quay</strong></span>: Using the superuser account you created during configuration, log in and make sure Red Hat Quay is working properly.
+				</li><li class="listitem">
+					<span class="strong strong"><strong>Add more Red Hat Quay nodes</strong></span>: At this point, you have the option of adding more nodes to this Red Hat Quay cluster by simply going to each node, then adding the tarball and starting the <code class="literal">Quay</code> container as just shown.
+				</li><li class="listitem">
+					<span class="strong strong"><strong>Add optional features</strong></span>: To add more features to your Red Hat Quay cluster, such as Clair images scanning and Repository Mirroring, continue on to the next section.
+				</li></ol></div><section class="section" id="add_clair_image_scanning_to_red_hat_quay"><div class="titlepage"><div><div><h2 class="title">4.1. Add Clair image scanning to Red Hat Quay</h2></div></div></div><p>
+				Setting up and deploying Clair image scanning for your Red Hat Quay deployment is described in <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/manage_red_hat_quay/index#clair-v4">Clair Security Scanning</a>
+			</p></section><section class="section" id="add-repo-mirroring"><div class="titlepage"><div><div><h2 class="title">4.2. Add repository mirroring Red Hat Quay</h2></div></div></div><p>
+				Enabling repository mirroring allows you to create container image repositories on your Red Hat Quay cluster that exactly match the content of a selected external registry, then sync the contents of those repositories on a regular schedule and on demand.
+			</p><p>
+				To add the repository mirroring feature to your Red Hat Quay cluster:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Run the repository mirroring worker. To do this, you start a quay pod with the <code class="literal">repomirror</code> option.
+					</li><li class="listitem">
+						Select "Enable Repository Mirroring in the Red Hat Quay Setup tool.
+					</li><li class="listitem">
+						Log into your Red Hat Quay Web UI and begin creating mirrored repositories as described in <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/manage_red_hat_quay/index">Repository Mirroring in Red Hat Quay</a>.
+					</li></ul></div><p>
+				The following procedure assumes you already have a running Red Hat Quay cluster on an OpenShift platform, with the Red Hat Quay Setup container running in your browser:
+			</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p class="simpara">
+						<span class="strong strong"><strong>Start the repo mirroring worker</strong></span>: Start the <code class="literal">Quay</code> container in <code class="literal">repomirror</code> mode. This example assumes you have configured TLS communications using a certificate that is currently stored in <code class="literal">/root/ca.crt</code>. If not, then remove the line that adds <code class="literal">/root/ca.crt</code> to the container:
+					</p><pre class="screen">$ sudo podman run -d --name mirroring-worker \
+  -v /mnt/quay/config:/conf/stack:Z \
+  -v /root/ca.crt:/etc/pki/ca-trust/source/anchors/ca.crt \
+  registry.redhat.io/quay/quay-rhel8:v3.7.0 repomirror</pre></li><li class="listitem">
+						<span class="strong strong"><strong>Log into config tool</strong></span>: Log into the Red Hat Quay Setup Web UI (config tool).
+					</li><li class="listitem">
+						<span class="strong strong"><strong>Enable repository mirroring</strong></span>: Scroll down the Repository Mirroring section and select the Enable Repository Mirroring check box, as shown here:
+					</li><li class="listitem">
+						<span class="strong strong"><strong>Select HTTPS and cert verification</strong></span>: If you want to require HTTPS communications and verify certificates during mirroring, select this check box. 
+						<span class="inlinemediaobject"><img src="images/repo_mirror_config.png" alt="Enable mirroring and require HTTPS and verified certificates"/></span>
+					</li><li class="listitem">
+						<span class="strong strong"><strong>Save configuration</strong></span>: Select the Save Configuration Changes button. Repository mirroring should now be enabled on your Red Hat Quay cluster. Refer to <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/manage_red_hat_quay/index">Repository Mirroring in Red Hat Quay</a> for details on setting up your own mirrored container image repositories.
+					</li></ol></div></section></section><section class="chapter" id="starting_to_use_red_hat_quay"><div class="titlepage"><div><div><h1 class="title">Chapter 5. Starting to use Red Hat Quay</h1></div></div></div><p>
+			With Red Hat Quay now running, you can:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					Select Tutorial from the Quay home page to try the 15-minute tutorial. In the tutorial, you learn to log into Quay, start a container, create images, push repositories, view repositories, and change repository permissions with Quay.
+				</li><li class="listitem">
+					Refer to the <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/use_red_hat_quay/">Use Red Hat Quay</a> for information on working with Red Hat Quay repositories.
+				</li></ul></div><h2 id="additional_resources">Additional resources</h2></section><div><div xml:lang="en-US" class="legalnotice" id="idm45186598506304"><h1 class="legalnotice">Legal Notice</h1><div class="para">
+		Copyright <span class="trademark"/>© 2022 Red Hat, Inc.
+	</div><div class="para">
+		The text of and illustrations in this document are licensed by Red Hat under a Creative Commons Attribution–Share Alike 3.0 Unported license ("CC-BY-SA"). An explanation of CC-BY-SA is available at <a class="uri" href="http://creativecommons.org/licenses/by-sa/3.0/">http://creativecommons.org/licenses/by-sa/3.0/</a>. In accordance with CC-BY-SA, if you distribute this document or an adaptation of it, you must provide the URL for the original version.
+	</div><div class="para">
+		Red Hat, as the licensor of this document, waives the right to enforce, and agrees not to assert, Section 4d of CC-BY-SA to the fullest extent permitted by applicable law.
+	</div><div class="para">
+		Red Hat, Red Hat Enterprise Linux, the Shadowman logo, the Red Hat logo, JBoss, OpenShift, Fedora, the Infinity logo, and RHCE are trademarks of Red Hat, Inc., registered in the United States and other countries.
+	</div><div class="para">
+		<span class="trademark">Linux</span>® is the registered trademark of Linus Torvalds in the United States and other countries.
+	</div><div class="para">
+		<span class="trademark">Java</span>® is a registered trademark of Oracle and/or its affiliates.
+	</div><div class="para">
+		<span class="trademark">XFS</span>® is a trademark of Silicon Graphics International Corp. or its subsidiaries in the United States and/or other countries.
+	</div><div class="para">
+		<span class="trademark">MySQL</span>® is a registered trademark of MySQL AB in the United States, the European Union and other countries.
+	</div><div class="para">
+		<span class="trademark">Node.js</span>® is an official trademark of Joyent. Red Hat is not formally related to or endorsed by the official Joyent Node.js open source or commercial project.
+	</div><div class="para">
+		The <span class="trademark">OpenStack</span>® Word Mark and OpenStack logo are either registered trademarks/service marks or trademarks/service marks of the OpenStack Foundation, in the United States and other countries and are used with the OpenStack Foundation's permission. We are not affiliated with, endorsed or sponsored by the OpenStack Foundation, or the OpenStack community.
+	</div><div class="para">
+		All other trademarks are the property of their respective owners.
+	</div></div></div></div></div></div><script type="text/javascript">
+                        jQuery(document).ready(function() {
+                            initSwitchery();
+                            jQuery('pre[class*="language-"]').each(function(i, block){hljs.highlightBlock(block);});
+                        });
+                    </script></body></html>
