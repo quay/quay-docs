@@ -1,5 +1,5 @@
 [[operator-upgrade]]
-= Upgrading the Quay Operator Overview 
+= Upgrading the Quay Operator Overview
 
 The Quay Operator follows a _synchronized versioning_ scheme, which means that each version of the Operator is tied to the version of Quay and the components that it manages. There is no field on the `QuayRegistry` custom resource which sets the version of Quay to deploy; the Operator only knows how to deploy a single version of all components. This scheme was chosen to ensure that all components work well together and to reduce the complexity of the Operator needing to know how to manage the lifecycles of many different versions of Quay on Kubernetes.
 
@@ -17,20 +17,28 @@ When the Quay Operator is installed via Operator Lifecycle Manager, it may be co
 
 The standard approach for upgrading installed Operators on OpenShift is documented at link:https://docs.openshift.com/container-platform/4.7/operators/admin/olm-upgrading-operators.html[Upgrading installed Operators].
 
-[NOTE]
-====
-In general, {productname} only supports upgrading from one minor version to the next, for example, 3.4 -> 3.5. However, for 3.6, multiple upgrade paths are supported:
+In general, {productname} supports upgrades from a prior (N-1) minor version only.  For example, upgrading directly from {productname} 3.0.5 to the latest version of 3.5 is not supported. Instead, users would have to upgrade as follows:
 
-* 3.3.z -> 3.6
-* 3.4.z -> 3.6
-* 3.5.z -> 3.6
-====
+. 3.0.5 -> 3.1.3
+. 3.1.3 -> 3.2.2
+. 3.2.2 -> 3.3.4
+. 3.3.4 -> 3.4.z
+. 3.4.z -> 3.5.z
 
-For users on standalone deployments of Quay wanting to upgrade to 3.6, see the link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#standalone_upgrade[Standalone upgrade] guide. 
+This is required to ensure that any necessary database migrations are done correctly and in the right order during the upgrade.
+
+In some cases, {productname} supports direct, single-step upgrades from prior (N-2, N-3) minor versions. This exception to the normal, prior minor version-only, upgrade simplifies the upgrade procedure for customers on older releases. The following upgrade paths are supported:
+
+. 3.3.z -> 3.6.z
+. 3.4.z -> 3.6.z
+. 3.4.z -> 3.7.z
+. 3.5.z -> 3.7.z
+
+For users on standalone deployments of Quay wanting to upgrade to 3.6, see the link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#standalone_upgrade[Standalone upgrade] guide.
 
 
-=== Upgrading Quay 
-To update Quay from one minor version to the next, for example, 3.4 -> 3.5, you need to change the update channel for the Quay Operator. 
+=== Upgrading Quay
+To update Quay from one minor version to the next, for example, 3.4 -> 3.5, you need to change the update channel for the Quay Operator.
 
 For `z` stream upgrades, for example, 3.4.2 -> 3.4.3, updates are released in the major-minor channel that the user initially selected during install. The procedure to perform a `z` stream upgrade depends on the `approvalStrategy` as outlined above. If the approval strategy is set to `Automatic`, the Quay Operator will upgrade automatically to the newest `z` stream. This results in automatic, rolling Quay updates to newer `z` streams with little to no downtime. Otherwise, the update must be manually approved before installation can begin.
 
@@ -41,7 +49,7 @@ For `z` stream upgrades, for example, 3.4.2 -> 3.4.3, updates are released in th
 
 * Previously, when running a 3.3.z version of {productname} with edge routing enabled, users were unable to upgrade to 3.4.z versions of {productname}. This has been resolved with the release of {productname} 3.6.
 
-* When upgrading from 3.3.z to 3.6, if `tls.termination` is set to `none` in your {productname} 3.3.z deployment, it will change to HTTPS with TLS edge termination and use the default cluster wildcard certificate. For example: 
+* When upgrading from 3.3.z to 3.6, if `tls.termination` is set to `none` in your {productname} 3.3.z deployment, it will change to HTTPS with TLS edge termination and use the default cluster wildcard certificate. For example:
 +
 [source,yaml]
 ----
@@ -75,8 +83,8 @@ If possible, you should regenerate your TLS certificates with the correct hostna
 
 The `GODEBUG=x509ignoreCN=0` flag enables the legacy behavior of treating the CommonName field on X.509 certificates as a host name when no SANs are present. However, this workaround is not recommended, as it will not persist across a redeployment.
 
-==== Configuring Clair v4 when upgrading from 3.3.z or 3.4.z to 3.6 using the Quay Operator 
-To set up Clair v4 on a new {productname} deployment on OpenShift, it is highly recommended to use the Quay Operator. By default, the Quay Operator will install or upgrade a Clair deployment along with your {productname} deployment and configure Clair security scanning automatically. 
+==== Configuring Clair v4 when upgrading from 3.3.z or 3.4.z to 3.6 using the Quay Operator
+To set up Clair v4 on a new {productname} deployment on OpenShift, it is highly recommended to use the Quay Operator. By default, the Quay Operator will install or upgrade a Clair deployment along with your {productname} deployment and configure Clair security scanning automatically.
 
 For instructions on setting up Clair v4 on OpenShift, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#clair-openshift[Setting Up Clair on a Red Hat Quay OpenShift deployment].
 
@@ -105,11 +113,49 @@ When the Quay Operator starts, it immediately looks for any `QuayRegistries` it 
 * If `status.currentVersion` equals the Operator version, reconcile as normal.
 * If `status.currentVersion` does not equal the Operator version, check if it can be upgraded. If it can, perform upgrade tasks and set the `status.currentVersion` to the Operator's version once complete. If it cannot be upgraded, return an error and leave the `QuayRegistry` and its deployed Kubernetes objects alone.
 
+== Enabling features in Quay 3.7
+
+=== Quota management configuration
+
+Quota management is now supported under the `FEATURE_QUOTA_MANAGEMENT` property and is turned off by default. To enable quota management, set the feature flag in your `config.yaml` to `true`:
+
+[source,yaml]
+----
+FEATURE_QUOTA_MANAGEMENT: true
+----
+
+=== Using Red Hat Quay to proxy a remote organization configuration
+
+Using Red Hat Quay to proxy a remote organization is now supported under the `FEATURE_PROXY_CACHE` property. To enable proxy cache, set the feature flag in your `confg.yaml` to `true`:
+
+[source,yaml]
+----
+FEATURE_PROXY_CACHE: true
+----
+
+=== {productname} build enhancements
+
+Builds can be run on virtualized platforms. Backwards compatibility to run previous build configurations are also available. To enable virtual builds, set the feature flag in your `config.yaml` to `true`:
+
+[source,yaml]
+----
+FEATURE_BUILD_SUPPORT: true
+----
+
+=== Geo-replication using the {productname} Operator
+
+Deployments of {productname} with geo-replication is now supported by Operator deployments. To enable geo-replication, set the feature flag in your `config.yaml` to `true`:
+
+[source,yaml]
+----
+FEATURE_STORAGE_REPLICATION: true
+----
+
 == Enabling features in Quay 3.6
 
 === Console monitoring and alerting
 
-The support for monitoring Quay 3.6 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and reinstall it for all namespaces once the upgrade has taken place. 
+The support for monitoring Quay 3.6 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and reinstall it for all namespaces once the upgrade has taken place.
 
 === OCI and Helm support
 
