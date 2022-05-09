@@ -21,7 +21,19 @@ While you cannot create a user until after deployment, it is convenient to ensur
 
 Once you have configured a super user, you can restrict the ability to create new users to the super user group. Set the `FEATURE_USER_CREATION`  to `false` to restrict user creation.
 
+== Enabling new functionality
 
+If you want to take advantage of the new functionality in {productname} 3.7, enable some or all of the following features:
+
+[source,yaml]
+----
+...
+FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_BUILD_SUPPORT: true
+FEATURE_PROXY_CACHE: true
+FEATURE_STORAGE_REPLICATION: true
+...
+----
 
 == Suggested configuration for automation
 
@@ -45,7 +57,7 @@ FEATURE_USER_CREATION: false
 . Create a Secret using the configuration file
 +
 ----
-$ oc create secret generic --from-file config.yaml=./config.yaml init-config-bundle-secret
+$ oc create secret generic -n quay-enterprise --from-file config.yaml=./config.yaml init-config-bundle-secret
 ----
 . Create a QuayRegistry YAML file `quayregistry.yaml`, identifying the unmanaged components and also referencing the created Secret, for example:
 +
@@ -63,6 +75,6 @@ spec:
 . Deploy the registry:
 +
 ----
-$ oc create -f quayregistry.yaml
+$ oc create -n quay-enterprise -f quayregistry.yaml
 ----
 . Create the first user, `quayadmin`, using the API
