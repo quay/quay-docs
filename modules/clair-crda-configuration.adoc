@@ -1,0 +1,43 @@
+[[clair-crda-configuration]]
+= Clair CRDA configuration
+
+== Enabling Clair CRDA
+
+With {productname} 3.7, Java scanning no longer includes a default CRDA shared key, and is no longer enabled by default. Use the following procedure to fetch the Quay-specific CRDA remote matcher, which supports higher RPS, and to manually enable CRDA for Java scanning. 
+
+.Prerequisites
+
+* {productname} 3.7
+
+.Procedure
+
+. To fetch the Quay-specific CRDA remote matcher, `GET` the data from `https://gw.api.openshift.io/api/v2/get-token?user_key=207c527cfc2a6b8dcf4fa43ad7a976da`:
++
+[source,terminal]
+----
+$ curl --location --request GET 'https://gw.api.openshift.io/api/v2/get-token?user_key=207c527cfc2a6b8dcf4fa43ad7a976da'
+----
++
+Example output:
++
+[source,yaml]
+----
+  "key": "4dd88e3aa638b4ef52eec15d68530124",
+  "url": "https://gw.api.openshift.io/api/v2"
+----
+
+. Set the CRDA configuration in your `clair-config.yaml` file:
++
+[source,terminal]
+----
+```
+matchers:
+    names:
+    - crda
+    config:
+       crda:
+         url: https://f8a-analytics-2445582058137.production.gw.apicast.io/api/v2/
+         source: quay.io
+         key: 9e7da76708fe374d8c10fa752e72989f
+```
+----
