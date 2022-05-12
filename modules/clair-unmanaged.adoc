@@ -38,24 +38,17 @@ The {productname} Operator for OpenShift Container Platform allows users to prov
 
 .Procedure
 
-. Create a `clair-config.yaml` bundle secret:
+. Create a Quay config bundle secret that includes the `clair-config.yaml`:
 +
 [source,terminal]
 ----
-$ oc create secret generic --from-file config.yaml=./config.yaml --from-file extra_ca_cert_rds-ca-2019-root.pem=./rds-ca-2019-root.pem --from-file clair-config.yaml=./clair-config-aws-rds-postgres_ca_cert.yaml --from-file ssl.cert=./ssl.cert --from-file ssl.key=./ssl.key config-bundle-secret
+$ oc create secret generic --from-file config.yaml=./config.yaml --from-file extra_ca_cert_rds-ca-2019-root.pem=./rds-ca-2019-root.pem --from-file clair-config.yaml=./clair-config.yaml --from-file ssl.cert=./ssl.cert --from-file ssl.key=./ssl.key config-bundle-secret
 ----
 +
 Example `clair-config.yaml` configuration:
 +
 [source,yaml]
 ----
-auth:
-    psk:
-       iss:
-          - quay
-          - clairctl
-       key: <example_key>
-http_listen_addr: :8080
 indexer:
     connstring: host=quay-server.example.com port=5432 dbname=quay user=clairuser password=clairpass sslrootcert=/run/certs/rds-ca-2019-root.pem sslmode=verify-ca
     migrations: true
@@ -76,7 +69,7 @@ notifier:
 * An example `clair-config.yaml` can be found at link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/quay_operator_features#clair-openshift-config[Clair on OpenShift config].
 ====
 
-. Add the `clair-config.yaml` bundle secret to your `configBundleSecret`. For example:
+. Add the `clair-config.yaml` to your bundle secret, named `configBundleSecret`:
 +
 [source,yaml]
 ----
