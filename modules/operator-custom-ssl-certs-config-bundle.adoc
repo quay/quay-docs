@@ -1,9 +1,35 @@
 [[operator-custom-ssl-certs-config-bundle]]
 = Using the config bundle to configure custom SSL certs
 
+You can configure custom SSL certs either before initial deployment or after {productname} is deployed on OpenShift, by creating or updating the config bundle secret. If you are adding the cert(s) to an existing deployment, you must include the existing `config.yaml` in the new config bundle secret, even if you are not making any configuration changes.
 
-You can configure custom SSL certs either before initial deployment or after {productname} is deployed on OpenShift, by creating a new config bundle secret. If you are adding the cert(s) to an existing deployment, you must include the complete existing `config.yaml` in the new config bundle secret, even if you are not making any configuration changes.
+== Set TLS to unmanaged
 
+In your Quay Registry yaml, set `kind: tls` to `managed: false`:
+
+[source,yaml]
+----
+  - kind: tls
+    managed: false
+----
+
+In the events, you should see that the change is blocked until you set up the appropriate config:
+
+[source,yaml]
+----
+    - lastTransitionTime: '2022-03-28T12:56:49Z'
+      lastUpdateTime: '2022-03-28T12:56:49Z'
+      message: >-
+        required component `tls` marked as unmanaged, but `configBundleSecret`
+        is missing necessary fields
+      reason: ConfigInvalid
+      status: 'True'
+
+----
+
+== Add certs to config bundle
+
+.Procedure
 . Create the secret using embedded data or using files: 
 .. Embed the configuration details directly in the Secret resource YAML file, for example:
 +
@@ -17,9 +43,15 @@ metadata:
   namespace: quay-enterprise
 data:
   config.yaml: |
-    ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
-    AUTHENTICATION_TYPE: Database
-    ...
+    FEATURE_USER_INITIALIZE: true
+    BROWSER_API_CALLS_XHR_ONLY: false
+    SUPER_USERS:
+    - quayadmin
+    FEATURE_USER_CREATION: false
+    FEATURE_QUOTA_MANAGEMENT: true
+    FEATURE_PROXY_CACHE: true
+    FEATURE_BUILD_SUPPORT: true
+    DEFAULT_SYSTEM_REJECT_QUOTA_BYTES: 102400000
   extra_ca_cert_my-custom-ssl.crt: |
     -----BEGIN CERTIFICATE-----
     MIIDsDCCApigAwIBAgIUCqlzkHjF5i5TXLFy+sepFrZr/UswDQYJKoZIhvcNAQEL
@@ -42,7 +74,7 @@ $ oc create secret generic custom-ssl-config-bundle-secret \
 ----
 
 
-. Create  or update the QuayRegistry YAML file `quayregistry.yaml`, referencing the created Secret, for example:
+. Create or update the QuayRegistry YAML file `quayregistry.yaml`, referencing the created Secret, for example:
 +
 .quayregistry.yaml
 [source,yaml]
