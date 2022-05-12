@@ -3,7 +3,7 @@
 
 There are a number of methods for accessing the current configuration: 
 
-. Using the config editor endpoint, specifying the username  and password for the config editor:
+. Using the config editor endpoint, specifying the username and password for the config editor:
 +
 [source,bash]
 ----
@@ -29,36 +29,33 @@ $ curl -k -u quayconfig:JFpBEJMCtkPTfjxt https://example-registry-quay-config-ed
 +
 [source,bash]
 ----
-$ oc get secret -n quay-enterprise example-registry-quay-config-bundle-jkfhs -o jsonpath='{.data}'
+$ oc get secret -n quay-enterprise init-config-bundle-secret -o jsonpath='{.data}'
 ----
 +
+.Sample output
 [source,yaml]
 ----
 {
-    "config.yaml": "QUxMT1dfUFVMTFNfV0lUSE9VVF9TVFJJQ1RfTE9HR0lORzogZmFsc2UKQVVUSEVOVElDQVRJT05fVFlQRTogRGF0YWJhc2UKQVZBVEFSX0tJTkQ6IGxvY2FsCkRBVEFCQVNFX1NFQ1JFVF9LRVk6IHhlOEc1VDBNbkllaGxNQzNkTjd3MWR5WWxwVmo0a0R2enlxZ3l6Ulp5ZjFpODBmWWU3VDUxU1FPZ3hXelpocFlqYlVxNzRKaDllVVVEVWpyCkRFR
-...
-OgotIDJ3ClRFQU1fUkVTWU5DX1NUQUxFX1RJTUU6IDYwbQpURVNUSU5HOiBmYWxzZQpVU0VSX1JFQ09WRVJZX1RPS0VOX0xJRkVUSU1FOiAzMG0K",
-    "extra_ca_cert_service-ca.crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVVENDQWptZ0F3SUJBZ0lJRE9kWFhuUXFjMUF3RFFZSktvWklodmNOQVFFTEJRQXdOakUwTURJR0ExVUUKQXd3cmIzQmxibk5vYVdaMExYTmxjblpwWTJVdGMyVnlkbWx1WnkxemFXZHVaWEpBTVRZek1UYzNPREV3TXpBZQpGdzB5TVRBNU1UWXdOelF4TkRKYUZ3MHl
-...
-XSW1jaApkQXZTWGpFUnZOZEZzN3pHK1VzTmZwN0ZIQkJVWkY4L2RZNWJCR2MwWTVaY0J6bFNjQT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K"
+    "config.yaml": "RkVBVFVSRV9VU0 ... MDAwMAo="
 }
 ----
 .. Decode the data:
 +
 [source,bash]
 ----
-$ echo 'QUxMT1dfUFVMTFN...U1FOiAzMG0K' | base64 --decode
+$ echo 'RkVBVFVSRV9VU0 ... MDAwMAo=' | base64 --decode
 ----
 +
 [source,yaml]
 ----
-ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
-AUTHENTICATION_TYPE: Database
-...
-TAG_EXPIRATION_OPTIONS:
-- 2w
-TEAM_RESYNC_STALE_TIME: 60m
-TESTING: false
-USER_RECOVERY_TOKEN_LIFETIME: 30m
+FEATURE_USER_INITIALIZE: true
+BROWSER_API_CALLS_XHR_ONLY: false
+SUPER_USERS:
+- quayadmin
+FEATURE_USER_CREATION: false
+FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_PROXY_CACHE: true
+FEATURE_BUILD_SUPPORT: true
+DEFAULT_SYSTEM_REJECT_QUOTA_BYTES: 102400000
 ----
 
