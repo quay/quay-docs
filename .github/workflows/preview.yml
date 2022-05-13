@@ -1,0 +1,102 @@
+# This is a basic workflow to help you get started with Actions
+
+name: ccutil-workflow
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  get:
+    # The type of runner that the job will run on
+    runs-on:  ubuntu-latest
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: master
+        path: source
+
+    - uses: actions/checkout@v2
+      with:
+        ref: gh-pages 
+        path: dest
+        
+    - name: whereami
+      run: |  
+        cd source
+        pwd
+        ls
+        ls ${{ github.workspace }}/
+        cd ${{ github.workspace }}/
+        pwd
+        ls
+        
+
+        
+    - uses: addnab/docker-run-action@v3
+      with:
+        image: quay.io/rhn_support_gmcgoldr/levccutil
+        options: -v ${{ github.workspace }}:/work 
+        shell: bash
+        run: |
+          cd /work/source/release_notes
+          ccutil compile --lang en_US --type asciidoc --main-file master.adoc
+          cp -Rf /work/source/release_notes/build/tmp/en-US/html-single/* /work/dest/master/release_notes/        
+          cd /work/source/deploy_quay
+          ccutil compile --lang en_US --type asciidoc --main-file master.adoc
+          cp -Rf /work/source/deploy_quay/build/tmp/en-US/html-single/* /work/dest/master/deploy_quay/
+          cd /work/source/deploy_quay_on_openshift_op_tng
+          ccutil compile --lang en_US --type asciidoc --main-file master.adoc
+          cp -Rf /work/source/deploy_quay_on_openshift_op_tng/build/tmp/en-US/html-single/* /work/dest/master/deploy_quay_on_openshift_op_tng/                    
+          cd /work/source/deploy_quay_ha
+          ccutil compile --lang en_US --type asciidoc --main-file master.adoc
+          cp -Rf /work/source/deploy_quay_ha/build/tmp/en-US/html-single/* /work/dest/master/deploy_quay_ha/
+          cd /work/source/config_quay
+          ccutil compile --lang en_US --type asciidoc --main-file master.adoc
+          cp -Rf /work/source/config_quay/build/tmp/en-US/html-single/* /work/dest/master/config_quay/          
+          cd /work/source/manage_quay
+          ccutil compile --lang en_US --type asciidoc --main-file master.adoc
+          cp -Rf /work/source/manage_quay/build/tmp/en-US/html-single/* /work/dest/master/manage_quay/          
+          cd /work/source/upgrade_quay
+          ccutil compile --lang en_US --type asciidoc --main-file master.adoc
+          cp -Rf /work/source/upgrade_quay/build/tmp/en-US/html-single/* /work/dest/master/upgrade_quay/                    
+          cd /work/source/use_quay
+          ccutil compile --lang en_US --type asciidoc --main-file master.adoc
+          cp -Rf /work/source/use_quay/build/tmp/en-US/html-single/* /work/dest/master/use_quay/             
+          cd /work/source/api
+          ccutil compile --lang en_US --type asciidoc --main-file master.adoc
+          cp -Rf /work/source/api/build/tmp/en-US/html-single/* /work/dest/master/api/                        
+          
+    - name: commit
+      run: |  
+          cd dest
+          git status
+          git config --local user.email "action@github.com"        
+          git config --local user.name "GitHub Action"
+          #git diff
+          #git diff-index --quiet HEAD || (git commit -a -m 'DOCS Auto-update' --allow-empty && git push -f)
+          git add .
+          git commit -m "update docs"
+
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: gh-pages
+        directory: dest
+          
+          
+      # Runs a single command using the runners shell
+      # docker run -ti --rm --privileged -v source:/source quay.io/rhn_support_gmcgoldr/levccutil  "/bin/bash cd /source/deploy_quay; ls; ccutil compile --lang en_US --type asciidoc --main-file master.adoc; ls -al "
+
