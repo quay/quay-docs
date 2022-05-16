@@ -132,42 +132,46 @@ BUILD_MANAGER:
   - ephemeral
   - ALLOWED_WORKER_COUNT: 1
     ORCHESTRATOR_PREFIX: buildman/production/
+    JOB_REGISTRATION_TIMEOUT: 3600 <2>
     ORCHESTRATOR:
-      REDIS_HOST: <sample_redis_hostname> <2>
+      REDIS_HOST: <sample_redis_hostname> <3>
       REDIS_PASSWORD: ""
       REDIS_SSL: false
       REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
     EXECUTORS:
       - EXECUTOR: kubernetesPodman
         NAME: openshift
-        BUILDER_NAMESPACE: <sample_builder_namespace> <3>
+        BUILDER_NAMESPACE: <sample_builder_namespace> <4>
         SETUP_TIME: 180
         MINIMUM_RETRY_THRESHOLD:
-        BUILDER_CONTAINER_IMAGE: <sample_builder_container_image> <4>
+        BUILDER_CONTAINER_IMAGE: <sample_builder_container_image> <5>
         # Kubernetes resource options
-        K8S_API_SERVER: <sample_k8s_api_server> <5>
-        K8S_API_TLS_CA: <sample_crt_file> <6>
+        K8S_API_SERVER: <sample_k8s_api_server> <6>
+        K8S_API_TLS_CA: <sample_crt_file> <7>
         VOLUME_SIZE: 8G
         KUBERNETES_DISTRIBUTION: openshift
-        CONTAINER_MEMORY_LIMITS: 300Mi
-        CONTAINER_CPU_LIMITS: 1G <7>
-        CONTAINER_MEMORY_REQUEST: 300Mi
-        CONTAINER_CPU_REQUEST: 1G
+        CONTAINER_MEMORY_LIMITS: 300m <8>
+        CONTAINER_CPU_LIMITS: 1G <9>
+        CONTAINER_MEMORY_REQUEST: 300m <10>
+        CONTAINER_CPU_REQUEST: 1G <11>
         NODE_SELECTOR_LABEL_KEY: ""
         NODE_SELECTOR_LABEL_VALUE: ""
         SERVICE_ACCOUNT_NAME: <sample_service_account_name>
-        SERVICE_ACCOUNT_TOKEN: <sample_account_token> <8>
+        SERVICE_ACCOUNT_TOKEN: <sample_account_token> <12>
 ----
 +
 <1> The build route is obtained by running `oc get route -n` with the name of your OpenShift Operators namespace. A port must be provided at the end of the route, for example, and it should follow the following format: `[quayregistry-cr-name]-quay-builder-[ocp-namespace].[ocp-domain-name]:443`.
-//<> If the `JOB_REGISTRATION_TIMEOUT` parameter is set too low, you might receive the following error: `failed to register job to build manager: rpc error: code = Unauthenticated desc = Invalid build token: Signature has expired`. It is suggested that this parameter be set to at least 240.
-<2> If your Redis host has a password or SSL certificates, you must update accordingly.
-<3> Set to match the name of your virtual builders namespace, for example, `virtual-builders`.
-<4> For early access, the `BUILDER_CONTAINER_IMAGE` is currently `quay.io/projectquay/quay-builder:3.7.0-rc.2`. Note that this might change during the early access window. In the event this happens, customers will be alerted.
-<5> Obtained by running `oc cluster-info`.
-<6> You must manually create and add your custom CA cert, for example,  `K8S_API_TLS_CA: extra_ca_cert_build_cluster.crt`
-<7> For virtual builds, you must ensure that there are enough resources in your cluster.
-<8> Obtained when running `oc create sa`.
+<2> If the `JOB_REGISTRATION_TIMEOUT` parameter is set too low, you might receive the following error: `failed to register job to build manager: rpc error: code = Unauthenticated desc = Invalid build token: Signature has expired`. It is suggested that this parameter be set to at least 240.
+<3> If your Redis host has a password or SSL certificates, you must update accordingly.
+<4> Set to match the name of your virtual builders namespace, for example, `virtual-builders`.
+<5> For early access, the `BUILDER_CONTAINER_IMAGE` is currently `quay.io/projectquay/quay-builder:3.7.0-rc.2`. Note that this might change during the early access window. In the event this happens, customers will be alerted.
+<6> Obtained by running `oc cluster-info`.
+<7> You must manually create and add your custom CA cert, for example,  `K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build_cluster.crt`.
+<8> Defaults to 5120Mi if left unspecified.
+<9> For virtual builds, you must ensure that there are enough resources in your cluster. Defaults to 1000m if left unspecified.
+<10> Defaults to 3968Mi if left unspecified.
+<11> Defaults to 500m if left unspecified.
+<12> Obtained when running `oc create sa`.
 +
 .Sample config
 [source,yaml]
@@ -184,6 +188,7 @@ BUILD_MANAGER:
   - ephemeral
   - ALLOWED_WORKER_COUNT: 1
     ORCHESTRATOR_PREFIX: buildman/production/
+    JOB_REGISTRATION_TIMEOUT: 3600
     ORCHESTRATOR:
       REDIS_HOST: example-registry-quay-redis
       REDIS_PASSWORD: ""
@@ -201,9 +206,9 @@ BUILD_MANAGER:
         K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build_cluster.crt
         VOLUME_SIZE: 8G
         KUBERNETES_DISTRIBUTION: openshift
-        CONTAINER_MEMORY_LIMITS: 1Gi
+        CONTAINER_MEMORY_LIMITS: 1G
         CONTAINER_CPU_LIMITS: 1080m
-        CONTAINER_MEMORY_REQUEST: 1Gi
+        CONTAINER_MEMORY_REQUEST: 1G
         CONTAINER_CPU_REQUEST: 580m
         NODE_SELECTOR_LABEL_KEY: ""
         NODE_SELECTOR_LABEL_VALUE: ""
