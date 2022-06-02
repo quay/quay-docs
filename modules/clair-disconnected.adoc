@@ -29,3 +29,28 @@ Note that you need to explicitly reference the Clair configuration.  This will c
 $ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v /path/to/output/directory:/updaters:Z --entrypoint /bin/clairctl {productrepo}/{clairimage}:{productminv} --config /cfg/config.yaml import-updaters /updaters/updaters.gz
 ```
 
+
+
+== Mapping repositories to Common Product Enumeration (CPE) information
+
+Clair's RHEL scanner relies on a Common Product Enumeration (CPE) file to properly map RPM packages to the corresponding security data, in order to produce matching results. This file must be present, or access to the file must be allowed, for the scanner to properly process RPMs. If the file is not present, RPMs installed in the container images will not be scanned.
+
+Red Hat publishes the JSON mapping file at link:https://www.redhat.com/security/data/metrics/repository-to-cpe.json[].
+
+In addition to uploading CVE information to the database for disconnected Clair, you must also make the mapping file available locally:
+
+- For standalone Quay and Clair deployments, the mapping file must be loaded into the Clair pod.
+- For Operator-based deployments, you must set the Clair component to `unmanaged`. Then deploy Clair manually, setting the configuration to load a local copy of the mapping file.
+
+Use the `repo2cpe_mapping_file` field in the Clair configuration to specify the file:
+
+[source,yaml]
+----
+indexer:
+  scanner:
+    repo:
+      rhel-repository-scanner:
+        repo2cpe_mapping_file: /path/to/repository-to-cpe.json
+----
+
+Further information is available from Red Hat at link:https://www.redhat.com/en/blog/how-accurately-match-oval-security-data-installed-rpms[How to accurately match OVAL security data to installed RPMs].
