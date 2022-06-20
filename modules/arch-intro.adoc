@@ -1,19 +1,74 @@
 [[arch-intro]]
-= {productname} features
+= {productname} overview
 
-
-{productname} is a trusted, open source container registry platform that runs everywhere, but runs best on Red Hat OpenShift. It scales without limits, from a developer laptop to a container host or Kubernetes, and can be deployed on-premise or on public cloud. It provides global governance and security controls, with features including image vulnerability scanning, access controls, geo-replication and repository mirroring.
-
+{productname} is a trusted, open source container registry platform that runs everywhere, but runs best on Red Hat OpenShift. It scales without limits, from a developer laptop to a container host or Kubernetes, and can be deployed on-prem or on public cloud. {productname} provides global governance and security controls, with features including image vulnerability scanning, access controls, geo-replication and repository mirroring.
 
 image:178_Quay_architecture_0821_features.png[Quay features]
 
 This guide provides an insight into architectural patterns to use when deploying {productname}. It contains sizing guidance and deployment prerequisites, along with best practices for ensuring high availability for your {productname} registry. 
 
 
-* xref:arch-core-intro[Core functionality]
-* xref:security-intro[Security]
-* xref:content-distrib-intro[Content distribution]
-* xref:access-control-intro[Access control]
-* xref:build-automation-intro[Build automation]
-* xref:scalability-intro[Scalability]
-* xref:integration-intro[Integration]
+
+== Scalability and high availability (HA)
+
+The code base for the private {productname} offering is substantially the same as that used for link:https::/quay.io[quay.io], the highly available container image registry hosted by Red Hat which provides a multi-tenant SaaS solution. As a result, you can be confident that {productname} can deliver at scale with high availability, whether you deploy on-prem or on public cloud.
+
+== Security
+
+{productname} is built for real enterprise use cases where content governance and security are two major focus areas. {productname} content governance and security includes built-in vulnerability scanning via Clair.
+
+== Content distribution 
+
+Content distribution features in {productname} include:
+
+Repository mirroring:: {productname} repository mirroring lets you mirror images from external container registries (or another local registry) into your {productname} cluster. Using repository mirroring, you can synchronize images to {productname} based on repository names and tags.
+
+Geo-replication:: {productname} geo-replication allows multiple, geographically distributed Quay deployments to work as a single registry from the perspective of a client or user. It significantly improves push and pull performance in a globally-distributed {productname} setup. Image data is asynchronously replicated in the background with transparent failover / redirect for clients.
+
+Deployment in disconnected or air-gapped environments:: {productname} can be deployed in a disconnected environment in two ways:
++
+* {productname} and Clair connected to the internet, with an air-gapped OpenShift cluster accessing the Quay registry through an explicit, white-listed hole in the firewall.
+* {productname} and Clair running inside the firewall, with image and CVE data transferred to the target system using offline media. The data is exported from a separate Quay and Clair deployment that is connected to the internet. 
+
+== Access control
+
+{productname} provides both role-based access control (RBAC) and fine-grained access control, and has team features that allow for limited access control of repositories, organizations, and user privileges. {productname} access control features also provide support for dispersed organizations.
+
+== Build automation
+
+{productname} supports building Dockerfiles using a set of worker nodes on OpenShift or Kubernetes. Build triggers, such as GitHub webhooks, can be configured to automatically build new versions of your repositories when new code is committed.
+
+Prior to {productname} 3.7, Quay ran podman commands in virtual machines launched by pods. Running builds on virtual platforms requires enabling nested virtualization, which is not featured in Red Hat Enterprise Linux or OpenShift Container Platform. As a result, builds had to run on bare-metal clusters, which is an inefficient use of resources.
+
+With {productname} 3.7, the bare-metal constraint required to run builds has been removed by adding an additional build option which does not contain the virtual machine layer. As a result, builds can be run on virtualized platforms. Backwards compatibility to run previous build configurations is also available.
+
+== Integration
+
+Integration with popular source code management and versioning systems like GitHub, GitLab or BitBucket allows {productname} to continuously build and serve your containerized software.
+
+== REST API
+
+{productname} provides a full OAuth 2, RESTful API that:
+
+* Is available from endpoints of each {productname} instance from the URL https://<yourquayhost>/api/v1
+* Lets you connect to endpoints, via a browser, to get, delete, post, and put {productname} settings by enabling the Swagger UI
+* Can be accessed by applications that make API calls and use OAuth tokens
+* Sends and receives data as JSON
+
+== Recently added features
+
+Storage Quota on Organizations:: Control and contain storage growth of your container registry with reporting and enforcement.
+
+Transparent pull-thru cache proxy (Tech preview):: Use {productname} as a transparent cache for other registry for improved performance and resiliency.
+
+Geo-replication with the Operator:: Deploy a geographically dispersed container registry across two or more OpenShift clusters.
+
+{productname} container builds on OpenShift:: Build your container images right inside Quay running on top of OpenShift.
+
+== Other features
+
+* Full standards / spec support (Docker v2-2)
+* Long-term protocol support
+* OCI compatibility through test suite compliance
+* Enterprise grade support
+* Regular updates 
