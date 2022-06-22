@@ -2,14 +2,25 @@
 = Geo-replication requirements and constraints
 
 * A single database, and therefore all metadata and Quay configuration, is shared across all regions.
+
 * A single Redis cache is shared across the entire Quay setup and needs to accessible by all Quay pods.
+
 * The exact same configuration should be used across all regions, with exception of the storage backend, which can be configured explicitly using the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environment variable.
+
 * Geo-Replication requires object storage in each region. It does not work with local storage or NFS.
+
 * Each region must be able to access every storage engine in each region (requires a network path).
+
 * Alternatively, the storage proxy option can be used.
+
 * The entire storage backend (all blobs) is replicated. This is in contrast to repository mirroring, which can be limited to an organization or repository or image.
+
 * All Quay instances must share the same entrypoint, typically via load balancer.
+
 * All Quay instances must have the same set of superusers, as they are defined inside the common configuration file.
-* Geo-Replication requires SSL/TSL certificates and keys. For more information, see link:https://dxp-docs.ext.us-west.aws.prod.paas.redhat.com/documentation/en-us/red_hat_quay/3.6/html-single/deploy_red_hat_quay_for_proof-of-concept_non-production_purposes/index#using_ssl_to_protect_connections_to_red_hat_quay[Using SSL to protect connections to Red Hat Quay]. 
+
+* Geo-replication requires your Clair configuration to be set to `unmanaged`. An unmanaged Clair database allows the {productname} Operator to work in a geo-replicated environment, where multiple instances of the Operator must communicate with the same database. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html/manage_red_hat_quay/clair-intro2#clair-unmanaged[Advanced Clair configuration].
+
+* Geo-Replication requires SSL/TSL certificates and keys. For more information, see link:https://dxp-docs.ext.us-west.aws.prod.paas.redhat.com/documentation/en-us/red_hat_quay/3.6/html-single/deploy_red_hat_quay_for_proof-of-concept_non-production_purposes/index#using_ssl_to_protect_connections_to_red_hat_quay[Using SSL to protect connections to Red Hat Quay].
 
 If the above requirements cannot be met, you should instead use two or more distinct Quay deployments and take advantage of repository mirroring functionality.
