@@ -6,13 +6,13 @@ This procedure is used to restore {productname} when the {productname} Quay Oper
 
 .Prerequisites
 
-* {productname} is deployed on OpenShift Container Platform using the {productname} operator.
-* A backup of the {productname} configuration managed by the {productname} operator has been created following the instructions in the xref:backing-up-red-hat-quay.adoc#backing-up-red-hat-quay[Backing up {productname}] section
+* {productname} is deployed on OpenShift Container Platform using the {productname} Operator.
+* A backup of the {productname} configuration managed by the {productname} Operator has been created following the instructions in the xref:backing-up-red-hat-quay.adoc#backing-up-red-hat-quay[Backing up {productname}] section
 * Your {productname} database has been backed up.
 * The object storage bucket used by {productname} has been backed up.
 * The components `quay`, `postgres` and `objectstorage` are set to `managed: true`
-* If the component `clair` is set to `managed: true` the component `clairpostgres` is also set to `managed: true` (starting if {productname} operator v3.7 or later)
-* there is no running {productname} deployment managed by the {productname} operator in the target namespace on your OpenShift Container Platform cluster
+* If the component `clair` is set to `managed: true` the component `clairpostgres` is also set to `managed: true` (starting if {productname} Operator v3.7 or later)
+* there is no running {productname} deployment managed by the {productname} Operator in the target namespace on your OpenShift Container Platform cluster
 
 [NOTE]
 ====
@@ -37,7 +37,7 @@ $ oc create -f ./managed-secret-keys.yaml
 +
 [IMPORTANT]
 ====
-If you receive the error `Error from server (AlreadyExists): error when creating "./config-bundle.yaml": secrets "config-bundle-secret" already exists`, you must delete your exist resource with `$ oc delete Secret config-bundle-secret -n <quay-namespace>` and recreate it with `$ oc create -f ./config-bundle.yaml`.
+If you receive the error `Error from server (AlreadyExists): error when creating "./config-bundle.yaml": secrets "config-bundle-secret" already exists`, you must delete your existing resource with `$ oc delete Secret config-bundle-secret -n <quay-namespace>` and recreate it with `$ oc create -f ./config-bundle.yaml`.
 ====
 
 . Restore the `QuayRegistry` custom resource:
@@ -56,7 +56,7 @@ $ oc wait quayregistry registry --for=condition=Available=true -n <quay-namespac
 
 === Scale down your {productname} deployment
 
-. *For operator version 3.7 and newer*: scale down the {productname} deployment by disabling auto scaling and overriding the replica count for Quay, Mirror workers and Clair (if managed). Your `QuayRegistry` resource should look similar to the following:
+. *For Operator version 3.7 and newer*: scale down the {productname} deployment by disabling auto scaling and overriding the replica count for Quay, Mirror workers and Clair (if managed). Your `QuayRegistry` resource should look similar to the following:
 +
 [source,yaml]
 ----
@@ -87,7 +87,7 @@ spec:
 <1> disable auto scaling of Quay, Clair and Mirroring workers
 <2> set the replica count to 0 for components accessing the database and objectstorage
 
-. *For operator version 3.6 and earlier*: scale down the {productname} deployment by scaling down the {productname} operator first and then the managed {productname} resources:
+. *For Operator version 3.6 and earlier*: scale down the {productname} deployment by scaling down the {productname} Operator first and then the managed {productname} resources:
 +
 [source,terminal]
 ----
@@ -98,7 +98,7 @@ $ oc scale --replicas=0 deployment $(oc get deployment -n <quay-namespace>|awk '
 $ oc scale --replicas=0 deployment $(oc get deployment -n <quay-namespace>|awk '/clair-app/ {print $1}') -n <quay-namespace>
 ----
 
-. Wait for the `registry-quay-app`, `registry-quay-mirror` and `registry-clair-app` pods (depending on which components you set to be managed by operator) to disappear. You can check their status by running the following command:
+. Wait for the `registry-quay-app`, `registry-quay-mirror` and `registry-clair-app` pods (depending on which components you set to be managed by Operator) to disappear. You can check their status by running the following command:
 +
 [source,terminal]
 ----
@@ -226,7 +226,7 @@ You can also use link:https://rclone.org/[rclone] or link:https://s3tools.org/s3
 
 === Scale up your {productname} deployment
 
-. *For operator version 3.7 and newer*: scale up the {productname} deployment by re-enabling auto scaling (if desired) and removing the replica overrides for Quay, Mirror workers and Clair as appliable. Your `QuayRegistry` resource should look similar to the following:
+. *For Operator version 3.7 and newer*: scale up the {productname} deployment by re-enabling auto scaling (if desired) and removing the replica overrides for Quay, Mirror workers and Clair as appliable. Your `QuayRegistry` resource should look similar to the following:
 +
 [source,yaml]
 ----
@@ -250,7 +250,7 @@ spec:
 <1> re-enables auto scaling of Quay, Clair and Mirroring workers again (if desired)
 <2> replica overrides are removed again to scale the Quay components back up
 
-. *For operator version 3.6 and earlier*: scale up the {productname} deployment by scaling up the {productname} operator again:
+. *For Operator version 3.6 and earlier*: scale up the {productname} deployment by scaling up the {productname} Operator again:
 +
 [source,terminal]
 ----
