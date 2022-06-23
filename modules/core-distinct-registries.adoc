@@ -1,40 +1,17 @@
 [[core-distinct-registries]]
 = Single versus multiple registries
 
-Many users consider running multiple, distinct registries whereas the preferred approach with {productname} is to have a single, shared registry. The following table addresses the reasons why a user might want to run multiple registries and how these requirements are addressed in {productname}:
+Many users consider running multiple, distinct registries. The preferred approach with {productname} is to have a single, shared registry: 
 
-[cols="2a,2a",options="header"]
-|===
+- If you want a clear separation between development and production images, or a clear separation by content origin, for example, keeping third-party images distinct from internal ones, you can use organizations and repositories {productname}, combined with role-based access control (RBAC) to achieve the desired separation.
 
-| Multiple registries | {productname} approach
-| Clear separation between development and production | Use organizations and repositories instead + RBAC
+- Given that the image registry is a critical component in an enterprise, you may be tempted to use distinct deployments to test upgrades of the registry software to newer versions. The {productname} Operator updates the registry for patch releases as well as minor or major updates. This means that any complicated procedures are automated and, as a result, there is no requirement for you to provision multiple instances of the registry to test the upgrade.
 
-| Clear separation by content origin + 
-(internal/external) 
-| Use organizations and repositories instead + RBAC
+- With {productname}, there is no need to have a separate registry for each cluster you deploy. {productname} is proven to work at scale at link:https://quay.io[quay.io], and can serve content to thousands of clusters.
 
-| Required to test registry upgrades given the criticality of the registry for running apps 
-| {productname} Operator automates updates, both patch releases as well as minor or major updates that require an ordered sequence of steps to complete
+- Even if you have deployments in multiple datacenters, you can still use a single {productname} instance to serve content to multiple physically-close datacenters, or use the HA functionality with load balancers to stretch across datacenters. Alternatively, you can use the {productname} geo-replication feature to stretch across physically distant datacenters. This requires the provisioning of a global load balancer or DNS-based geo-aware load balancing.
 
-| Separate registry in each datacenter (DC) 
-| {productname} can serve content to multiple physically close DCs + 
- + 
-HA can stretch across DCs (requires load balancers) + 
- + 
-{productname} Geo-replication can stretch across physically distant DCs (requires global load balancer or DNS-based geo-aware load-balancing)
 
-| Separate registry for each cluster 
-| {productname} can serve content to thousands of clusters 
+- One scenario where it may be appropriate to run multiple distinct registries, is when you want to specify different configuration for each registry. 
 
-| Scalability concerns over single registry 
-| {productname} scales nearly without limits +  
-(The underlying code base is proven to work at scale at Quay.io)
-
-| Distinct registry configurations 
-| In this scenario it might make sense to run two distinct registries
-
-|===
-
-**Recommendation:**
-
-Running a shared registry helps you to save storage, infrastructure and operational costs but a dedicated registry may be needed in very specific circumstances.
+In summary, running a shared registry helps you to save storage, infrastructure and operational costs but a dedicated registry may be needed in very specific circumstances.
