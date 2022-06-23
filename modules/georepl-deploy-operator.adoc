@@ -56,10 +56,12 @@ The `config.yaml` file is shared between clusters, and will contain the details 
 .config.yaml
 [source,yaml]
 ----
+FEATURE_STORAGE_REPLICATION: true
+SERVER_HOSTNAME: <georep.quayteam.org or any other name> <1>
 DB_CONNECTION_ARGS:
   autorollback: true
   threadlocals: true
-DB_URI: postgresql://postgres:password@10.19.0.1:5432/quay <1>
+DB_URI: postgresql://postgres:password@10.19.0.1:5432/quay <2>
 BUILDLOGS_REDIS:
   host: 10.19.0.2
   port: 6379
@@ -86,7 +88,8 @@ DISTRIBUTED_STORAGE_PREFERENCE:
   - usstorage
   - eustorage
 ----
-<1> To retrieve the configuration file for a Clair instance deployed using the OpenShift Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/quay_operator_features#clair-openshift-config[Retrieving the Clair config].
+<1> A proper `SERVER_HOSTNAME` must be used for the route and must match the hostname of the global load balancer.
+<2> To retrieve the configuration file for a Clair instance deployed using the OpenShift Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/quay_operator_features#clair-openshift-config[Retrieving the Clair config].
 
 Create the `configBundleSecret`:
 
@@ -112,6 +115,12 @@ metadata:
 spec:
   configBundleSecret: georep-config-bundle
   components:
+    - kind: objectstorage
+      managed: false
+    - kind: route
+      managed: true
+    - kind: tls
+      managed: false
     - kind: postgres
       managed: false
     - kind: clairpostgres
@@ -125,6 +134,11 @@ spec:
           - name: QUAY_DISTRIBUTED_STORAGE_PREFERENCE
             value: usstorage
 ----
++
+[NOTE]
+====
+Because TLS is unmanaged, and the route is managed, you must supply the certificates with either with the config tool or directly in the config bundle. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/operator-preconfigure#operator-preconfig-tls-routes[Configuring TLS and routes].
+====
 
 .European cluster
 ----
@@ -136,6 +150,12 @@ metadata:
 spec:
   configBundleSecret: georep-config-bundle
   components:
+    - kind: objectstorage
+      managed: false
+    - kind: route
+      managed: true
+    - kind: tls
+      managed: false
     - kind: postgres
       managed: false
     - kind: clairpostgres
@@ -149,3 +169,8 @@ spec:
           - name: QUAY_DISTRIBUTED_STORAGE_PREFERENCE
             value: eustorage
 ----
++
+[NOTE]
+====
+Because TLS is unmanaged, and the route is managed, you must supply the certificates with either with the config tool or directly in the config bundle. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/operator-preconfigure#operator-preconfig-tls-routes[Configuring TLS and routes].
+====
