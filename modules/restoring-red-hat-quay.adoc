@@ -1,5 +1,5 @@
 [[restoring-up-red-hat-quay]]
-== Restoring {productname}
+= Restoring {productname}
 
 This procedure is used to restore {productname} when the {productname} Operator manages the database. It should be performed after a backup of your {productname} registry has been performed. See xref:backing-up-red-hat-quay.adoc#backing-up-red-hat-quay[Backing up {productname}] for more information.
 
@@ -19,7 +19,7 @@ This procedure is used to restore {productname} when the {productname} Operator 
 If your deployment contains partially unmanaged database or storage components and you are using external services for Postgres or S3-compatible object storage to run your {productname} deployment, you must refer to the service provider or vendor documentation to restore their data from a backup prior to restore {productname}
 ====
 
-=== Restoring {productname} and its configuration from a backup
+== Restoring {productname} and its configuration from a backup
 
 [NOTE]
 ====
@@ -54,7 +54,7 @@ $ oc create -f ./quay-registry.yaml
 $ oc wait quayregistry registry --for=condition=Available=true -n <quay-namespace>
 ----
 
-=== Scale down your {productname} deployment
+== Scale down your {productname} deployment
 
 . *For Operator version 3.7 and newer:* Scale down the {productname} deployment by disabling auto scaling and overriding the replica count for Quay, mirror workers and Clair (if managed). Your `QuayRegistry` resource should look similar to the following:
 +
@@ -84,8 +84,8 @@ spec:
         replicas: 0
     …
 ----
-<1> disable auto scaling of Quay, Clair and Mirroring workers
-<2> set the replica count to 0 for components accessing the database and objectstorage
+<1> Disable auto scaling of Quay, Clair and Mirroring workers
+<2> Set the replica count to 0 for components accessing the database and objectstorage
 
 . *For Operator version 3.6 and earlier:* Scale down the {productname} deployment by scaling down the {productname} Operator first and then the managed {productname} resources:
 +
@@ -114,7 +114,7 @@ registry-quay-database-66969cd859-n2ssm        1/1     Running            0     
 registry-quay-redis-7cc5f6c977-956g8           1/1     Running            0          5d21h
 ----
 
-=== Restore your {productname} database
+== Restore your {productname} database
 
 . Identify your Quay database pod:
 +
@@ -196,7 +196,7 @@ sh-4.4$ psql < /tmp/backup.sql
 sh-4.4$ exit
 ----
 
-=== Restore your {productname} object storage data
+== Restore your {productname} object storage data
 
 . Export the `AWS_ACCESS_KEY_ID`:
 +
@@ -224,7 +224,7 @@ $ aws s3 sync --no-verify-ssl --endpoint https://$(oc get route s3 -n openshift-
 You can also use link:https://rclone.org/[rclone] or link:https://s3tools.org/s3cmd[sc3md] instead of the AWS command line utility.
 ====
 
-=== Scale up your {productname} deployment
+== Scale up your {productname} deployment
 
 . *For Operator version 3.7 and newer:* Scale up the {productname} deployment by re-enabling auto scaling, if desired, and removing the replica overrides for Quay, mirror workers and Clair as applicable. Your `QuayRegistry` resource should look similar to the following:
 +
@@ -240,7 +240,8 @@ spec:
     …
     - kind: horizontalpodautoscaler
       managed: true <1>
-      managed: true
+    - kind: quay <2>
+      managed: true 
     - kind: clair
       managed: true
     - kind: mirror

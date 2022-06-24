@@ -1,5 +1,5 @@
 [[backing-up-red-hat-quay]]
-== Backing up {productname}
+= Backing up {productname}
 
 This procedure describes how to create a backup of {productname} deployed on OpenShift Container Platform using the {productname} Operator
 
@@ -15,7 +15,7 @@ If your deployment contains partially unmanaged database or storage components a
 You can refer to the tools described in this guide as a starting point on how to backup your external Postgres database or object storage.
 ====
 
-=== {productname} configuration backup
+== {productname} configuration backup
 
 
 . Backup the `QuayRegistry` custom resource by exporting it:
@@ -76,7 +76,7 @@ All information under the `data` property should remain the same.
 $ oc get secret -n <quay-namespace>  $(oc get quayregistry <quay-registry-name> -n <quay-namespace>  -o jsonpath='{.spec.configBundleSecret}') -o yaml > config-bundle.yaml
 ----
 
-=== Scale down your {productname} deployment
+== Scale down your {productname} deployment
 
 [IMPORTANT]
 ====
@@ -145,7 +145,7 @@ quayregistry-quay-database-859d5445ff-cqthr        1/1     Running     0        
 quayregistry-quay-redis-84f888776f-hhgms           1/1     Running     0             12m
 ----
 
-=== {productname} managed database backup
+== {productname} managed database backup
 
 [NOTE]
 ====
@@ -159,7 +159,7 @@ If your {productname} deployment is configured with external (unmanged) Postgres
 $ oc get pod -l quay-component=postgres -n <quay-namespace> -o jsonpath='{.items[0].metadata.name}'
 ----
 +
-Exampe output:
+Example output:
 +
 [source,terminal]
 ----
@@ -221,7 +221,7 @@ $ aws s3 sync --no-verify-ssl --endpoint https://$(oc get route s3 -n openshift-
 You can also use link:https://rclone.org/[rclone] or link:https://s3tools.org/s3cmd[sc3md] instead of the AWS command line utility.
 ====
 
-=== Scale the {productname} deployment back up
+== Scale the {productname} deployment back up
 
 . *For Operator version 3.7 and newer:* Scale up the {productname} deployment by re-enabling auto scaling, if desired, and removing the replica overrides for Quay, mirror workers and Clair as applicable. Your `QuayRegistry` resource should look similar to the following:
 +
@@ -245,8 +245,8 @@ spec:
       managed: true
     …
 ----
-<1> re-enables auto scaling of Quay, Clair and Mirroring workers again (if desired)
-<2> replica overrides are removed again to scale the Quay components back up
+<1> Re-enables auto scaling of Quay, Clair and Mirroring workers again (if desired)
+<2> Replica overrides are removed again to scale the Quay components back up
 
 . *For Operator version 3.6 and earlier:* Scale up the {productname} deployment by scaling up the {productname} Operator again:
 +
