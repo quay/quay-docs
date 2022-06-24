@@ -1,14 +1,21 @@
 [[backing-up-red-hat-quay]]
-== Backing up Red Hat Quay
+== Backing up {productname}
 
-This procedure is exclusively for OpenShift Container Platform and NooBaa deployments.
+This procedure describes how to create a backup of {productname} deployed on OpenShift Container Platform using the {productname} Operator
 
 .Prerequisites
 
-* A {productname} deployment on OpenShift Container Platform.
+* A healthy {productname} deployment on OpenShift Container Platform using the {productname} Operator (status condition `Available` is set to `true`)
+* The components `quay`, `postgres` and `objectstorage` are set to `managed: true`
+* If the component `clair` is set to `managed: true` the component `clairpostgres` is also set to `managed: true` (starting with {productname} Operator v3.7 or later)
 
+[NOTE]
+====
+If your deployment contains partially unmanaged database or storage components and you are using external services for Postgres or S3-compatible object storage to run your {productname} deployment, you must refer to the service provider or vendor documentation to create a backup of the data.
+You can refer to the tools described in this guide as a starting point on how to backup your external Postgres database or object storage.
+====
 
-.Procedure
+=== {productname} configuration backup
 
 
 . Backup the `QuayRegistry` custom resource by exporting it:
@@ -33,7 +40,7 @@ $ oc get quayregistry <quay-registry-name> -n <quay-namespace> -o yaml > quay-re
 +
 [NOTE]
 ====
-If you are running a version older than Red Hat Quay 3.7.0, this step can be skipped. Some secrets are automatically generated while deploying Quay for the first time. These are stored in a secret called `<quay-registry-name>-quay-registry-managed-secret-keys` in the QuayRegistry namespace.
+If you are running a version older than {productname} 3.7.0, this step can be skipped. Some secrets are automatically generated while deploying Quay for the first time. These are stored in a secret called `<quay-registry-name>-quay-registry-managed-secret-keys` in the namespace of the `QuayRegistry` resource.
 ====
 +
 [source,terminal]
@@ -41,7 +48,7 @@ If you are running a version older than Red Hat Quay 3.7.0, this step can be ski
 $ oc get secret -n <quay-namespace> <quay-registry-name>-quay-registry-managed-secret-keys -o yaml > managed-secret-keys.yaml
 ----
 
-. Edit the the resulting `managed-secret-keys.yaml` file and remove all owner references. Your `managed-secret-keys.yaml` file should look similar to the following:
+. Edit the the resulting `managed-secret-keys.yaml` file and remove the entry `metadata.ownerReferences`. Your `managed-secret-keys.yaml` file should look similar to the following:
 +
 [source,yaml]
 ----
@@ -69,21 +76,55 @@ All information under the `data` property should remain the same.
 $ oc get secret -n <quay-namespace>  $(oc get quayregistry <quay-registry-name> -n <quay-namespace>  -o jsonpath='{.spec.configBundleSecret}') -o yaml > config-bundle.yaml
 ----
 
-. Scale down the Quay the Quay Operator:
+=== Scale down your {productname} deployment
+
+[IMPORTANT]
+====
+This step is needed to create a consistent backup of the state of your {productname} deployment. Do not omit this step, including in setups where Postgres databases and/or S3-compatible object storage are provided by external services (unmanaged by the Operator).
+====
+
+. *For Operator version 3.7 and newer:* Scale down the {productname} deployment by disabling auto scaling and overriding the replica count for {productname}, mirror workers, and Clair (if managed). Your `QuayRegistry` resource should look similar to the following:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: false <1>
+    - kind: quay
+      managed: true
+      overrides: <2>
+        replicas: 0
+    - kind: clair
+      managed: true
+      overrides:
+        replicas: 0
+    - kind: mirror
+      managed: true
+      overrides:
+        replicas: 0
+    …
+----
+<1> Disable auto scaling of Quay, Clair and Mirroring workers
+<2> Set the replica count to 0 for components accessing the database and objectstorage
+
+. *For Operator version 3.6 and earlier*: Scale down the {productname} deployment by scaling down the {productname} Operator first and then the managed {productname} resources:
 +
 [source,terminal]
 ----
-$  oc scale --replicas=0 deployment $(oc get deployment -n <quay-operator-namespace> |awk '/^quay-operator/ {print $1}') -n <quay-operator-namespace>
+$ oc scale --replicas=0 deployment $(oc get deployment -n <quay-operator-namespace>|awk '/^quay-operator/ {print $1}') -n <quay-operator-namespace>
+$ oc scale --replicas=0 deployment $(oc get deployment -n <quay-namespace>|awk '/quay-app/ {print $1}') -n <quay-namespace>
+$ oc scale --replicas=0 deployment $(oc get deployment -n <quay-namespace>|awk '/quay-mirror/ {print $1}') -n <quay-namespace>
+$ oc scale --replicas=0 deployment $(oc get deployment -n <quay-namespace>|awk '/clair-app/ {print $1}') -n <quay-namespace>
 ----
 
-. Scale down the Quay namespace:
-+
-[source,terminal]
-----
-$ oc scale --replicas=0 deployment $(oc get deployment -n <quay-namespace> -l quay-component=quay -o jsonpath='{.items[0].metadata.name}') -n <quay-namespace>
-----
-
-. Wait for the `registry-quay-app` pods to disappear. You can check their status by running the following command:
+. Wait for the `registry-quay-app`, `registry-quay-mirror` and `registry-clair-app` pods (depending on which components you set to be managed by the {productname} Operator) to disappear. You can check their status by running the following command:
 +
 [source,terminal]
 ----
@@ -94,12 +135,22 @@ Example output:
 +
 [source,terminal]
 ----
-registry-quay-config-editor-77847fc4f5-nsbbv   1/1     Running            0          9m1s
-registry-quay-database-66969cd859-n2ssm        1/1     Running            0          6d1h
-registry-quay-mirror-758fc68ff7-5wxlp          1/1     Running            0          8m29s
-registry-quay-mirror-758fc68ff7-lbl82          1/1     Running            0          8m29s
-registry-quay-redis-7cc5f6c977-956g8           1/1     Running            0          5d21h
+$ oc get pod 
+
+quay-operator.v3.7.1-6f9d859bd-p5ftc               1/1     Running     0             12m
+quayregistry-clair-postgres-7487f5bd86-xnxpr       1/1     Running     1 (12m ago)   12m
+quayregistry-quay-app-upgrade-xq2v6                0/1     Completed   0             12m
+quayregistry-quay-config-editor-6dfdcfc44f-hlvwm   1/1     Running     0             73s
+quayregistry-quay-database-859d5445ff-cqthr        1/1     Running     0             12m
+quayregistry-quay-redis-84f888776f-hhgms           1/1     Running     0             12m
 ----
+
+=== {productname} managed database backup
+
+[NOTE]
+====
+If your {productname} deployment is configured with external (unmanged) Postgres database(s), refer to your vendor's documentation on how to create a consistent backup of these databases.
+====
 
 . Identify the Quay PostgreSQL pod name:
 +
@@ -109,6 +160,7 @@ $ oc get pod -l quay-component=postgres -n <quay-namespace> -o jsonpath='{.items
 ----
 +
 Exampe output:
++
 [source,terminal]
 ----
 quayregistry-quay-database-59f54bb7-58xs7
@@ -129,6 +181,18 @@ quayregistry-quay-database
 $ oc exec quayregistry-quay-database-59f54bb7-58xs7 -- /usr/bin/pg_dump -C quayregistry-quay-database  > backup.sql
 ----
 
+=== {productname} managed object storage backup
+
+The instructions in this section apply to the following configurations:
+
+* Standalone, multi-cloud object gateway configurations
+* OpenShift Data Foundations storage requires that the {productname} Operator provisioned an S3 object storage bucket from, through the ObjectStorageBucketClaim API
+
+[NOTE]
+====
+If your {productname} deployment is configured with external (unmanged) object storage, refer to your vendor's documentation on how to create a copy of the content of Quay's storage bucket.
+====
+
 . Decode and export the `AWS_ACCESS_KEY_ID`:
 +
 [source,terminal]
@@ -148,39 +212,54 @@ $ export AWS_SECRET_ACCESS_KEY=$(oc get secret -l app=noobaa -n <quay-namespace>
 [source,terminal]
 ----
 $ mkdir blobs
-----
-+
-[source,terminal]
-+
-----
+
 $ aws s3 sync --no-verify-ssl --endpoint https://$(oc get route s3 -n openshift-storage  -o jsonpath='{.spec.host}')  s3://$(oc get cm -l app=noobaa -n <quay-namespace> -o jsonpath='{.items[0].data.BUCKET_NAME}') ./blobs
 ----
-
 
 [NOTE]
 ====
 You can also use link:https://rclone.org/[rclone] or link:https://s3tools.org/s3cmd[sc3md] instead of the AWS command line utility.
 ====
 
-. Scale up the Quay the Quay Operator:
+=== Scale the {productname} deployment back up
+
+. *For Operator version 3.7 and newer:* Scale up the {productname} deployment by re-enabling auto scaling, if desired, and removing the replica overrides for Quay, mirror workers and Clair as applicable. Your `QuayRegistry` resource should look similar to the following:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: true <1>
+    - kind: quay <2>
+      managed: true 
+    - kind: clair
+      managed: true
+    - kind: mirror
+      managed: true
+    …
+----
+<1> re-enables auto scaling of Quay, Clair and Mirroring workers again (if desired)
+<2> replica overrides are removed again to scale the Quay components back up
+
+. *For Operator version 3.6 and earlier:* Scale up the {productname} deployment by scaling up the {productname} Operator again:
 +
 [source,terminal]
 ----
-$  oc scale --replicas=1 deployment $(oc get deployment -n <quay-operator-namespace> |awk '/^quay-operator/ {print $1}') -n <quay-operator-namespace>
+$ oc scale --replicas=1 deployment $(oc get deployment -n <quay-operator-namespace> | awk '/^quay-operator/ {print $1}') -n <quay-operator-namespace>
 ----
 
-. Scale up the Quay namespace:
+. Check the status of the {productname} deployment:
 +
 [source,terminal]
 ----
-$ oc scale --replicas=1 deployment $(oc get deployment -n <quay-namespace> -l quay-component=quay -o jsonpath='{.items[0].metadata.name}') -n <quay-namespace>
-----
-
-. Check the status of the Operator:
-+
-[source,terminal]
-----
-$ oc get quayregistry <quay-registry-name> -n <quay-namespace> -o yaml
+$ oc wait quayregistry registry --for=condition=Available=true -n <quay-namespace>
 ----
 +
 Example output:
@@ -191,22 +270,16 @@ apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
   ...
-  name: example-registry
+  name: registry
   namespace: <quay-namespace>
   ...
 spec:
-  components:
-  - kind: quay
-    managed: true
   ...
-  - kind: clairpostgres
-    managed: true
-  configBundleSecret: init-config-bundle-secret
 status:
-  configEditorCredentialsSecret: example-registry-quay-config-editor-credentials-fg2gdgtm24
-  configEditorEndpoint: https://example-registry-quay-config-editor-quay-enterprise.apps.docs.gcp.quaydev.org
-  currentVersion: 3.7.0
-  lastUpdated: 2022-05-11 13:28:38.199476938 +0000 UTC
-  registryEndpoint: https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org
-     0          5d21h
+  - lastTransitionTime: '2022-06-20T05:31:17Z'
+    lastUpdateTime: '2022-06-20T17:31:13Z'
+    message: All components reporting as healthy
+    reason: HealthChecksPassing
+    status: 'True'
+    type: Available
 ----
