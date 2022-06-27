@@ -1,7 +1,7 @@
 [[helm-oci-quay]]
 = Using Helm charts with Quay
 
-Helm, as a graduated project of the Cloud Native Computing Foundation (CNCF), has become the de facto package manager for Kubernetes as it simplifies how applications are packaged and deployed. Helm uses a packaging format called Charts which contain the Kubernetes resources representing an application. Charts can be made available for general distribution and consumption in repositories. A Helm repository is an HTTP server that serves an index.yaml metadata file and optionally a set of packaged charts. Beginning with Helm version 3, support was made available for distributing charts in OCI registries as an alternative to a traditional repository. To demonstrate how Quay can be used as a registry for Helm charts, an existing chart from a Helm repository will be used to showcase the interaction with OCI registries for chart developers and users.
+Helm, as a graduated project of the Cloud Native Computing Foundation (CNCF), has become the de facto package manager for Kubernetes as it simplifies how applications are packaged and deployed. Helm uses a packaging format called Charts which contain the Kubernetes resources representing an application. Charts can be made available for general distribution and consumption in repositories. A Helm repository is an HTTP server that serves an `index.yaml` metadata file and optionally a set of packaged charts. Beginning with Helm version 3, support was made available for distributing charts in OCI registries as an alternative to a traditional repository. To demonstrate how Quay can be used as a registry for Helm charts, an existing chart from a Helm repository will be used to showcase the interaction with OCI registries for chart developers and users.
 
 
 In the following example, a sample etherpad chart is downloaded from from the Red Hat Community of Practice (CoP) repository and pushed to a local {productname} repository using the following steps:
@@ -10,13 +10,27 @@ In the following example, a sample etherpad chart is downloaded from from the Re
 * Update the repository with the latest metadata
 * Download and untar the chart to create a local directory called `etherpad`
 
-For example:
+.Procedure
 
+. Add a chart repository:
++
 ----
 $ helm repo add redhat-cop https://redhat-cop.github.io/helm-charts
+----
+
+. Update the information of available charts locally from the chart repository:
++
+----
 $ helm repo update
+----
+
+. Download a chart from a repository:
++
+----
 $ helm pull redhat-cop/etherpad --version=0.0.4 --untar
 ----
+
+
 
 Tagging the chart requires use of the `helm chart save` command - this corresponds to using `podman tag` for tagging images.
 
@@ -37,7 +51,7 @@ Use the `helm chart list` command to see the local instance of the chart:
 ----
 helm chart list
 
-REF                                                                               NAME     VERSION DIGEST SIZE   CREATED  
+REF                                                                               NAME     VERSION DIGEST SIZE   CREATED
 example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4 etherpad 0.0.4   ce0233f 3.5 KiB 23 seconds
 ----
 
