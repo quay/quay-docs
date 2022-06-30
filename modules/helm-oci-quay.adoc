@@ -1,97 +1,88 @@
 [[helm-oci-quay]]
-= Using Helm charts with Quay
+= Helm charts with {productname}
 
-Helm, as a graduated project of the Cloud Native Computing Foundation (CNCF), has become the de facto package manager for Kubernetes as it simplifies how applications are packaged and deployed. Helm uses a packaging format called Charts which contain the Kubernetes resources representing an application. Charts can be made available for general distribution and consumption in repositories. A Helm repository is an HTTP server that serves an index.yaml metadata file and optionally a set of packaged charts. Beginning with Helm version 3, support was made available for distributing charts in OCI registries as an alternative to a traditional repository. To demonstrate how Quay can be used as a registry for Helm charts, an existing chart from a Helm repository will be used to showcase the interaction with OCI registries for chart developers and users.
+Helm, as a graduated project of the Cloud Native Computing Foundation (CNCF), has become the de facto package manager for Kubernetes as it simplifies how applications are packaged and deployed. Helm uses a packaging format called Charts which contain the Kubernetes resources representing an application. Charts can be made available for general distribution and consumption in repositories. A Helm repository is an HTTP server that serves an `index.yaml` metadata file and optionally a set of packaged charts. Beginning with Helm version 3, support was made available for distributing charts in OCI registries as an alternative to a traditional repository.
 
+== Using Helm charts with {productname}
 
-In the following example, a sample etherpad chart is downloaded from from the Red Hat Community of Practice (CoP) repository and pushed to a local {productname} repository using the following steps:
+Use the following example to download and push an etherpad chart from the Red Hat Community of Practice (CoP) repository.
 
-* Add the appropriate repository
-* Update the repository with the latest metadata
-* Download and untar the chart to create a local directory called `etherpad`
+.Procedure
 
-For example:
-
+. Add a chart repository:
++
+[source,terminal]
 ----
 $ helm repo add redhat-cop https://redhat-cop.github.io/helm-charts
+----
+
+. Update the information of available charts locally from the chart repository:
++
+[source,terminal]
+----
 $ helm repo update
+----
+
+. Download a chart from a repository:
++
+[source,terminal]
+----
 $ helm pull redhat-cop/etherpad --version=0.0.4 --untar
 ----
 
-Tagging the chart requires use of the `helm chart save` command - this corresponds to using `podman tag` for tagging images.
-
+. Package the chart into a chart archive:
++
+[source,terminal]
 ----
-$ helm chart save ./etherpad example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
-
-ref:     example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
-digest:  6850d9b21dd4b87cf20ad49f2e2c7def9655c52ea573e1ddb9d1464eeb6a46a6
-size:    3.5 KiB
-name:    etherpad
-version: 0.0.4
-0.0.4: saved
+$ helm package ./etherpad
 ----
-
-
-Use the `helm chart list` command to see the local instance of the chart:
-
++
+Example output
++
+[source,terminal]
 ----
-helm chart list
-
-REF                                                                               NAME     VERSION DIGEST SIZE   CREATED  
-example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4 etherpad 0.0.4   ce0233f 3.5 KiB 23 seconds
+Successfully packaged chart and saved it to: /home/user/linux-amd64/etherpad-0.0.4.tgz
 ----
 
-
-Before pushing the chart, log in to the repository using the `helm registry login` command:
-
+. Log in to your Quay repository using `helm registry login`:
++
+[source,terminal]
 ----
-$ helm registry login example-registry-quay-quay-enterprise.apps.user1.example.com
-Username: quayadmin
-Password:
-Login succeeded
+$ helm registry login quay370.apps.quayperf370.perfscale.devcluster.openshift.com
 ----
 
-
-Push the chart to your local Quay repository using the `helm chart push` command:
+. Push the chart to your Quay repository using the `helm push` command:
++
+[source,terminal]
+----
+$ helm push etherpad-0.0.4.tgz oci://quay370.apps.quayperf370.perfscale.devcluster.openshift.com
+----
++
+Example output:
++
+[source,terminal]
+----
+Pushed: quay370.apps.quayperf370.perfscale.devcluster.openshift.com/etherpad:0.0.4
+Digest: sha256:a6667ff2a0e2bd7aa4813db9ac854b5124ff1c458d170b70c2d2375325f2451b
 
 ----
-$ helm chart push example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
 
-The push refers to repository [example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad]
-ref:     example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
-digest:  ce0233fd014992b8e27cc648cdabbebd4dd6850aca8fb8e50f7eef6f2f49833d
-size:    3.5 KiB
-name:    etherpad
-version: 0.0.4
-0.0.4: pushed to remote (1 layer, 3.5 KiB total)
+. Ensure that the push worked by deleting the local copy, and then pulling the chart from the repository:
++
+[source,terminal]
 ----
-
-To test that the push worked, delete the local copy and then pull the chart from the repository:
-
+$ rm -rf etherpad-0.0.4.tgz
 ----
-$ helm chart rm example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
-$ rm -rf etherpad
-$ helm chart pull example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
-
-0.0.4: Pulling from example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad
-ref:     example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
-digest:  6850d9b21dd4b87cf20ad49f2e2c7def9655c52ea573e1ddb9d1464eeb6a46a6
-size:    3.5 KiB
-name:    etherpad
-version: 0.0.4
-Status: Downloaded newer chart for example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
++
+[source,terminal]
 ----
-
-Use the `helm chart export` command to extract the chart files:
-
-
+$ helm pull oci://quay370.apps.quayperf370.perfscale.devcluster.openshift.com/etherpad --version 0.0.4
 ----
-$ helm chart export example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
-
-ref:     example-registry-quay-quay-enterprise.apps.user1.example.com/helm/etherpad:0.0.4
-digest:  ce0233fd014992b8e27cc648cdabbebd4dd6850aca8fb8e50f7eef6f2f49833d
-size:    3.5 KiB
-name:    etherpad
-version: 0.0.4
-Exported chart to etherpad/
++
+Example output:
++
+[source,terminal]
+----
+Pulled: quay370.apps.quayperf370.perfscale.devcluster.openshift.com/etherpad:0.0.4
+Digest: sha256:4f627399685880daf30cf77b6026dc129034d68c7676c7e07020b70cf7130902
 ----
