@@ -124,6 +124,27 @@ Users will also need to configure a completely new Clair v4 instance to replace 
 * **PostgreSQL:** registry.redhat.io/rhel8/postgresql-10:1
 * **Redis:** registry.redhat.io/rhel8/redis-5:1
 
+=== Swift configuration when upgrading from 3.3.z to 3.6
+
+When upgrading from {productname} 3.3.z to 3.6.z, some users might receive the following error: `Switch auth v3 requires tenant_id (string) in os_options`. As a workaround, you can manually update your `DISTRIBUTED_STORAGE_CONFIG` to add the `os_options` and `tenant_id` parameters:
+
+[source,yaml]
+----
+  DISTRIBUTED_STORAGE_CONFIG:
+    brscale:
+    - SwiftStorage
+    - auth_url: http://****/v3
+      auth_version: "3"
+      os_options:
+        tenant_id: ****
+        project_name: ocp-base
+        user_domain_name: Default
+      storage_path: /datastorage/registry
+      swift_container: ocp-svc-quay-ha
+      swift_password: *****
+      swift_user: *****
+----
+
 == Upgrade to 3.5.7 from 3.4.z
 
 === Target images
