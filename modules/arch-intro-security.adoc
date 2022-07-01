@@ -3,4 +3,28 @@
 
 {productname} is built for real enterprise use cases where content governance and security are two major focus areas. {productname} content governance and security includes built-in vulnerability scanning via Clair.
 
+
+== TLS / SSL configuration
+
+You can configure TLS for the {productname} registry in the configuration tool UI or in the config bundle. 
+SSL connections to the database, to image storage, and to Redis can also be specified through congfiguration. 
+Sensitive fields in the database and at run time are automatically encrypted. You can also require HTTPS and verify certificates for the {productname} registry during mirror operations.
+
+
+== Clair
+
 Clair is an open source tool developed by CoreOS for Quay that generates analyses of vulnerabilities in application containers, which currently includes Open Container Initiative (OCI) and Docker images. Clients that use the Clair API to index their container images can then match their images against known vulnerabilities. 
+
+== {productname} Operator security
+
+When {productname} is deployed using the Operator, the `tls` component is set to `managed` by default and the OpenShift Container Platform's Certificate Authority is used to create HTTPS endpoints and to rotate TLS certificates. 
+
+If you set the `tls` component to `unmanaged`, you can provide custom certificates to the pass-thru Routes, but you are then responsible for certificate rotation.
+
+== Builders
+
+{productname} now supports building Dockerfiles using both bare-metal and virtual builders.
+
+Using bare-metal worker nodes, each build is done in an ephemeral virtual machine to ensure complete isolation and security while the build is running. This provides the best protection against rogue payloads. 
+
+Running builds directly in a container does not have the same isolation as when using using virtual machines, but it still provides good protection.
