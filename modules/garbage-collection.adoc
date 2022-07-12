@@ -1,0 +1,117 @@
+:_content-type: CONCEPT
+= {productname} garbage collection
+[[garbage-collection]]
+
+== About {productname} garbage collection
+
+{productname} includes automatic and continuous image garbage collection. Garbage collection ensures efficient use of resources for active objects by removing objects that occupy sizeable amounts of disk space, such as dangling or untagged images, repositories, and blobs, including layers and manifests. Garbage collection performed by {productname} can reduce downtime in your organization's environment.
+
+== {productname} garbage collection in practice
+
+Currently, all garbage collection happens discreetly; there are no commands to manually run garbage collection. {productname} provides metrics that track the status of the different garbage collection workers.
+
+For namespace and repository garbage collection, the progress is tracked based on the size of their respective queues. Namespace and repository garbage collection workers require a global lock to work. As a result, and for performance reasons, only one worker runs at a time.
+
+Garbage collecting tagged images works differently than garbage collection on namespaces or repositories. Rather than having a queue of items to work with, the garbage collection workers for tagged images actively search for a repository with inactive or expired tags to clean up. Each instance of garbage collection workers will grab a repository lock, which results in one worker per repository.
+
+For each type of garbage collection, {productname} provides metrics for the number of rows per table deleted by each garbage collection worker. The following image shows an example of how {productname} monitors garbage collection with the same metrics:
+
+image:garbage-collection-metrics.png[Garbage collection metrics]
+
+=== Measuring storage reclamation
+
+{productname} does not have a way to track how much space is freed up by garbage collection. Currently, the best indicator of this is by checking how many blobs have been deleted in the provided metrics.
+
+[NOTE]
+====
+The `UploadedBlob` table in the {productname} metrics tracks the various blobs that are associated with a repository. When a blob is uploaded, it will not be garbage collected before the time designated by the `PUSH_TEMP_TAG_EXPIRATION_SEC` parameter. This is to avoid prematurely deleting blobs that are part of an ongoing push. For example, if garbage collection is set to run often, and a tag is deleted in the span of less than one hour, then it is possible that the associated blobs will not get cleaned up immediately. Instead, and assuming that the time designated by the `PUSH_TEMP_TAG_EXPIRATION_SEC` parameter has passed, the associated blobs will be removed the next time garbage collection runs on that same repository.
+====
+
+== Garbage collection configuration fields
+
+The following configuration fields are available to customize what is garbage collected, and the frequency at which garbage collection occurs:
+
+[cols="4a,2a,2a",options="header"]
+|===
+|Name |Description |Schema
+| **FEATURE_GARBAGE_COLLECTION** | Whether garbage collection is enabled for image tags. Defaults to `true`. |Boolean
+| **FEATURE_NAMESPACE_GARBAGE_COLLECTION** | Whether garbage collection is enabled for namespaces. Defaults to `true`. |Boolean
+| **FEATURE_REPOSITORY_GARBAGE_COLLECTION** | Whether garbage collection is enabled for repositories. Defaults to `true`. |Boolean
+| **GARBAGE_COLLECTION_FREQUENCY** | The frequency, in seconds, at which the garbage collection worker runs. Affects only garbage collection workers. Defaults to 30 seconds. |String
+| **PUSH_TEMP_TAG_EXPIRATION_SEC** | The number of seconds that blobs will not be garbage collected after being uploaded. This feature prevents garbage collection from cleaning up blobs that are not referenced yet, but still used as part of an ongoing push. |String
+| **TAG_EXPIRATION_OPTIONS** | List of valid tag expiration values. |String
+| **DEFAULT_TAG_EXPIRATION** | Tag expiration time for time machine. |String
+
+|===
+
+== Disabling garbage collection
+
+The garbage collection features for image tags, namespaces, and repositories are stored in the `config.yaml` file. These features default to `true`.
+
+In rare cases, you might want to disable garbage collection, for example, to control when garbage collection is performed. You can disable garbage collection by setting the `GARBAGE_COLLECTION` features to `false`. When disabled, dangling or untagged images, repositories, namespaces, layers, and manifests are not removed. This might increase the downtime of your environment.
+
+
+[NOTE]
+====
+There is no command to manually run garbage collection. Instead, you would disable, and then re-enable, the garbage collection feature.
+====
+
+== Garbage collection and quota management
+
+{productname} introduced quota management in 3.7. With quota management, users have the ability to report storage consumption and to contain registry growth by establishing configured storage quota limits.
+
+As of {productname} 3.7, garbage collection reclaims memory that was allocated to images, repositories, and blobs after deletion. Because the garbage collection feature reclaims memory after deletion, there is a discrepancy between what is stored in an environment's disk space and what quota management is reporting as the total consumption. There is currently no workaround for this issue.
+
+== {productname} garbage collection metrics
+
+The following metrics show how many resources have been removed by garbage collection. These metrics show how many times the garbage collection workers have run and how many namespaces, repositories, and blobs were removed.
+
+[options="header"]
+|===
+| Metric name | Description
+| quay_gc_iterations_total | Number of iterations by the GCWorker
+| quay_gc_namespaces_purged_total |  Number of namespaces purged by the NamespaceGCWorker
+| quay_gc_repos_purged_total | Number of repositories purged by the RepositoryGCWorker or NamespaceGCWorker
+| quay_gc_storage_blobs_deleted_total | Number of storage blobs deleted
+|===
+
+
+.Sample metrics output
+[source,terminal]
+----
+# TYPE quay_gc_iterations_created gauge
+quay_gc_iterations_created{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="208",process_name="secscan:application"} 1.6317823190189714e+09
+...
+
+# HELP quay_gc_iterations_total number of iterations by the GCWorker
+# TYPE quay_gc_iterations_total counter
+quay_gc_iterations_total{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="208",process_name="secscan:application"} 0
+...
+
+# TYPE quay_gc_namespaces_purged_created gauge
+quay_gc_namespaces_purged_created{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="208",process_name="secscan:application"} 1.6317823190189433e+09
+...
+
+# HELP quay_gc_namespaces_purged_total number of namespaces purged by the NamespaceGCWorker
+# TYPE quay_gc_namespaces_purged_total counter
+quay_gc_namespaces_purged_total{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="208",process_name="secscan:application"} 0
+....
+
+# TYPE quay_gc_repos_purged_created gauge
+quay_gc_repos_purged_created{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="208",process_name="secscan:application"} 1.631782319018925e+09
+...
+
+# HELP quay_gc_repos_purged_total number of repositories purged by the RepositoryGCWorker or NamespaceGCWorker
+# TYPE quay_gc_repos_purged_total counter
+quay_gc_repos_purged_total{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="208",process_name="secscan:application"} 0
+...
+
+# TYPE quay_gc_storage_blobs_deleted_created gauge
+quay_gc_storage_blobs_deleted_created{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="208",process_name="secscan:application"} 1.6317823190189059e+09
+...
+
+# HELP quay_gc_storage_blobs_deleted_total number of storage blobs deleted
+# TYPE quay_gc_storage_blobs_deleted_total counter
+quay_gc_storage_blobs_deleted_total{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="208",process_name="secscan:application"} 0
+...
+----
