@@ -2,3 +2,126 @@
 = Unmanaged storage
 
 Some configuration examples for unmanaged storage are provided in this section for convenience. See the {productname} configuration guide for full details for setting up object storage. 
+
+== AWS S3 storage
+
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  s3Storage:
+    - S3Storage
+    - host: s3.us-east-2.amazonaws.com
+      s3_access_key: ABCDEFGHIJKLMN
+      s3_secret_key: OL3ABCDEFGHIJKLMN
+      s3_bucket: quay_bucket
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - s3Storage
+----
+
+== Google Cloud storage
+
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+    googleCloudStorage:
+        - GoogleCloudStorage
+        - access_key: GOOGQIMFB3ABCDEFGHIJKLMN
+          bucket_name: quay-bucket
+          secret_key: FhDAYe2HeuAKfvZCAGyOioNaaRABCDEFGHIJKLMN
+          storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - googleCloudStorage
+----
+
+== Azure storage
+
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  azureStorage:
+    - AzureStorage
+      azure_container: azure_container_here
+      storage_path: /datastorage/registry
+    - azure_account_name: azure_account_name_here
+      azure_account_key: azure_account_key_here
+      sas_token: some/path/
+      endpoint_url: https://[account-name].blob.core.usgovcloudapi.net <1>
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - azureStorage
+----
+<1> The `endpoint_url` parameter for Azure storage is optional and can be used with Microsoft Azure Government (MAG) endpoints. If left blank, the `endpoint_url` will connect to the normal Azure region.
++
+As of {productname} 3.7, you must use the Primary endpoint of your MAG Blob service. Using the Secondary endpoint of your MAG Blob service will result in the following error: `AuthenticationErrorDetail:Cannot find the claimed account when trying to GetProperties for the account whusc8-secondary`.
+
+== Ceph / RadosGW Storage / Hitachi HCP storage 
+
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  radosGWStorage:
+    - RadosGWStorage
+    - access_key: access_key_here
+      secret_key: secret_key_here
+      bucket_name: bucket_name_here
+      hostname: hostname_here
+      is_secure: 'true'
+      port: '443'
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+----
+
+== Swift storage
+
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  swiftStorage:
+    - SwiftStorage
+    - swift_user: swift_user_here
+      swift_password: swift_password_here
+      swift_container: swift_container_here
+      auth_url: https://example.org/swift/v1/quay
+      auth_version: 1
+      ca_cert_path: /conf/stack/swift.cert"
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - swiftStorage
+----
+
+== NooBaa unmanaged storage
+
+Use the following procedure to deploy NooBaa as your unmanaged storage configuration. 
+
+.Procedure 
+
+. Create a NooBaa Object Bucket Claim in the {product-title} console by navigating to *Storage* -> *Object Bucket Claims*. 
+
+. Retrieve the Object Bucket Claim Data details, including the Access Key, Bucket Name, Endpoint (hostname), and Secret Key. 
+
+. Create a `config.yaml` configuration file using the information for the Object Bucket Claim:
++
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+    - RHOCSStorage
+    - access_key: WmrXtSGk8B3nABCDEFGH
+      bucket_name: my-noobaa-bucket-claim-8b844191-dc6c-444e-9ea4-87ece0abcdef
+      hostname: s3.openshift-storage.svc.cluster.local
+      is_secure: true
+      port: "443"
+      secret_key: X9P5SDGJtmSuHFCMSLMbdNCMfUABCDEFGH+C5QD
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+  - default
+----
+
+For more information about configuring an Object Bucket Claim, see link:https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.8/html-single/managing_hybrid_and_multicloud_resources/index#object-bucket-claim[Object Bucket Claim]. 
