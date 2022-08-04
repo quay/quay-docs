@@ -76,12 +76,20 @@ $ oc adm policy -n virtual-builders add-scc-to-user anyuid -z quay-builder
 This action requires cluster admin privileges. This is required because builders must run as the Podman user for unprivileged or rootless builds to work.
 ====
 
-. Obtain the token for the Quay builder service account:
+. Obtain the token for the Quay builder service account. 
 
+.. If using {ocp} 4.10 or an earlier version, enter the following command: 
 +
 [source,terminal]
 ----
-$ oc sa get-token -n virtual-builders quay-builder
+oc sa get-token -n virtual-builders quay-builder
+----
+
+.. If using {ocp} 4.11 or later, enter the following command: 
++
+[source,terminal]
+----
+$ oc create token quay-builder -n virtual-builders
 ----
 +
 .Sample output
@@ -109,11 +117,11 @@ example-registry-quay-builder         example-registry-quay-builder-quay-enterpr
 . Generate a self-signed SSL certificate with the .crt extension:
 +
 ----
-$ SECRET=$(oc get sa openshift-apiserver-sa --namespace=openshift-apiserver -o json | jq -r '.secrets[] | select(.name | contains("openshift-apiserver-sa-token"))'.name)
+$ oc extract cm/kube-root-ca.crt -n openshift-apiserver ca.crt
 ----
 +
 ----
-$ oc get secret $SECRET -n openshift-apiserver -o json | jq  '.data."ca.crt"' -r | base64 -d > extra_ca_cert_build_cluster.crt
+$ mv ca.crt extra_ca_cert_build_cluster.crt
 ----
 
 . Locate the secret for you config bundle in the Console, and choose Actions -> Edit Secret and add the appropriate builder configuration:
