@@ -1,22 +1,22 @@
-[[config-file-minimal]]
+:_content-type: CONCEPT
+[id="config-file-minimal"]
 = Minimal configuration
 
-For a standalone deployment, configuration options are required for the following features:
+The following configuration options are required for a standalone deployment of {productname}: 
 
 * Server hostname
 * HTTP or HTTPS
-* Authentication type, for example,  Database or LDAP
+* Authentication type, for example, Database or Lightweight Directory Access Protocol (LDAP)
 * Secret keys for encrypting data
 * Storage for images
 * Database for metadata
 * Redis for build logs and user events
 * Tag expiration options
 
-
+[id="sample-config-file-minimal"]
 == Sample minimal configuration file
 
-A sample minimal config file, using local storage for images, is shown below:
-
+The following example shows a sample minimal configuration file that uses local storage for images: 
 
 .$QUAY/config/config.yaml
 [source,yaml]
@@ -52,31 +52,31 @@ USER_EVENTS_REDIS:
     port: 6379
 ----
 
-
 [NOTE]
 ====
-The `SETUP_COMPLETE` field indicates that the configuration has been validated. You should use the config editor tool to validate your configuration before starting the registry.
+The `SETUP_COMPLETE` field indicates that the configuration has been validated. You should use the configuration editor tool to validate your configuration before starting the registry.
 ====
 
-
+[id="config-local-storage"]
 == Local storage
 
-Using local storage for images is only recommended when deploying a registry for proof of concept purposes. In this case, storage is specified on the command line when starting the registry, mapping a local directory `$QUAY/storage` to the `/datastorage` path in the container:
+Using local storage for images is only recommended when deploying a registry for proof of concept purposes. 
 
-[subs="verbatim,attributes"]
-....
+When configuring local storage, storage is specified on the command line when starting the registry. The following command maps a local directory, `$QUAY/storage` to the `datastorage` path in the container: 
+
+[source,terminal]
+----
 $ sudo podman run -d --rm -p 80:8080 -p 443:8443 \
    --name=quay \
    -v $QUAY/config:/conf/stack:Z \
    -v $QUAY/storage:/datastorage:Z \
    {productrepo}/{quayimage}:{productminv}
-....
+----
 
-
-
+[id="config-cloud-storage"]
 == Cloud storage
 
-Storage configuration is detailed in the section xref:config-fields-storage[Image storage]. It is useful to compare the difference when using cloud storage, for example, on Google Cloud Platform:
+Storage configuration is detailed in the xref:config-fields-storage[Image storage] section. For some users, it might be useful to compare the difference between Google Cloud Platform and local storage configurations. For example, the following YAML presents a Google Cloud Platform storage configuration: 
 
 .$QUAY/config/config.yaml
 [source,yaml]
@@ -93,15 +93,13 @@ DISTRIBUTED_STORAGE_PREFERENCE:
     - default
 ----
 
+When starting the registry using cloud storage, no configuration is required on the command line. For example:
 
-When starting the registry using cloud storage, no configuration is required on the command line:
-
-
-[subs="verbatim,attributes"]
-....
+[source,terminal]
+----
 $ sudo podman run -d --rm -p 80:8080 -p 443:8443 \
    --name=quay \
    -v $QUAY/config:/conf/stack:Z \
    {productrepo}/{quayimage}:{productminv}
-....
+----
 
