@@ -1,0 +1,220 @@
+[[testing-3-800]]
+== Testing 3.8.0 features 
+
+The following sections in this guide explicate how to enable new features and test that they are working. The expected results of each feature can be found in each section's introduction. 
+
+=== Enabling and testing the IPv6 and dual-stack protocol family on standalone {productname} deployments 
+
+Your {productname} deployment can now be served in locations that only support IPv6, such as Telco and Edge environments. Support is also offered for dual-stack networking so your {productname} deployment can listen on IPv4 and IPv6 simultaneously.
+
+==== Enabling and testing IPv6 
+
+Use the following procedure to enable IPv6 on your standalone {productname} deployment. 
+
+.Prerequisites 
+
+* You have updated {productname} to 3.8.
+* Your host and container software platform (Docker, Podman) must be configured to support IPv6. 
+
+.Procedure 
+
+. In your deployment's `config.yaml` file, add the `FEATURE_LISTEN_IP_VERSION` parameter and set it to `IPv6`, for example: 
++
+[source.yaml]
+----
+---
+FEATURE_GOOGLE_LOGIN: false
+FEATURE_INVITE_ONLY_USER_CREATION: false
+FEATURE_LISTEN_IP_VERSION: IPv6
+FEATURE_MAILING: false
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: false
+---
+----
+
+. Start, or restart, your {productname} deployment. 
+
+. Check that your deployment is listening to IPv6. 
++
+.. For a standalone deployment, enter the following command:
++
+[source,terminal]
+----
+$ curl <quay_endpoint>
+{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
+----
++
+.. For an Operator based eployment, enter the following command:
++
+[source,terminal]
+----
+$ curl <quay_endpoint>
+{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
+----
+
+===== Expected Results 
+
+After enabling IPv6 in your deployment's `config.yaml`, all {productname} features can be used as normal, so long as your environment is configured to use IPv6. 
+
+[WARNING]
+====
+If your environment is configured to IPv4, but the `FEATURE_LISTEN_IP_VERSION` configuration field is set to `IPv6`, {productname} will fail to deploy. 
+====
+
+You can use the following procedure to test that your {productname} deployment can push and pull images in an IPv6 environment. 
+
+.Procedure
+
+. Pull a sample image from an external registry: 
++
+[source,terminal]
+----
+$ podman pull busybox
+----
+
+. Tag the image: 
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay_url><qay_user>/busybox:test
+----
+
+. Push the image to your {productname} registry: 
++
+[source,terminal]
+----
+$ podman push --tls-verify=false <quay_url><qay_user>/busybox:test
+----
+
+. Test access to the image from the CLI by deleting your local copy of the image: 
++
+[source,terminal]
+----
+$ podman rmi <quay_url><qay_user>/busybox:test
+----
+
+. Pull the image from your {productname} registry:
++
+[source,terminal]
+----
+$ podman pull --tls-verify=false <quay_url><qay_user>/busybox:test
+----
+
+==== Enabling and testing dual-stack  
+
+.Prerequisites 
+
+* You have updated {productname} to 3.8.
+* Your host and container software platform (Docker, Podman) must be configured to support IPv6. 
+
+.Procedure
+
+. In your deployment's `config.yaml` file, add the `FEATURE_LISTEN_IP_VERSION` parameter and set it to `dual-stack`, for example: 
++
+[source.yaml]
+----
+---
+FEATURE_GOOGLE_LOGIN: false
+FEATURE_INVITE_ONLY_USER_CREATION: false
+FEATURE_LISTEN_IP_VERSION: dual-stack
+FEATURE_MAILING: false
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: false
+---
+----
+
+. Start, or restart, your {productname} deployment. 
+
+. Check that your deployment is listening to both channels by entering the following command:
+.. For IPv4, enter the following command:
++
+[source,terminal]
+----
+$ curl --ipv4 <quay_endpoint>
+{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
+----
+.. For IPv6, enter the following command:
++
+[source,terminal]
+----
+$ curl --ipv6 <quay_endpoint> 
+{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
+----
+
+===== Expected Results 
+
+After enabling dual-stack in your deployment's `config.yaml`, all {productname} features can be used as normal, so long as your environment is configured for dual-stack. 
+
+You can use the following procedure to test that your {productname} deployment can push and pull images in a dual-stack environment. 
+
+.Procedure
+
+. Pull a sample image from an external registry: 
++
+[source,terminal]
+----
+$ podman pull busybox
+----
+
+. Tag the image: 
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay_url><qay_user>/busybox:test
+----
+
+. Push the image to your {productname} registry: 
++
+[source,terminal]
+----
+$ podman push --tls-verify=false <quay_url><qay_user>/busybox:test
+----
+
+. Test access to the image from the CLI by deleting your local copy of the image: 
++
+[source,terminal]
+----
+$ podman rmi <quay_url><qay_user>/busybox:test
+----
+
+. Pull the image from your {productname} registry:
++
+[source,terminal]
+----
+$ podman pull --tls-verify=false <quay_url><qay_user>/busybox:test
+----
+
+
+
+
+
+
+=== Enabling LDAD super users for {productname} 
+
+The `LDAP_SUPERUSER_FILTER` configuration field is now available. With this field configured, {productname} administrators can configure Lightweight Directory Access Protocol (LDAP) users as super users when {productname} uses LDAP as its authentication provider. 
+
+Use the following procedure to enable LDAP super users on your {productname} deployment. 
+
+.Prerequisites 
+
+* Your {productname} deployment uses LDAP as its authentication provider. 
+* You have configured an LDAP user, for example, `alice` with the `LDAP_USER_FILTER` configuration field. 
+
+.Procedure 
+
+. In your deployment's `config.yaml` file, add the `LDAP_SUPERUSER_FILTER` parameter and all the user `alice`. For example: 
++
+[source,yaml]
+----
+LDAP_ALLOW_INSECURE_FALLBACK: false
+LDAP_EMAIL_ATTR: mail
+LDAP_UID_ATTR: uid
+LDAP_URI: ldap://117.17.8.101
+LDAP_USER_FILTER: 
+    - alice
+LDAP_SUPERUSER_FILTER:
+    - alice
+----
+
+. Start, or restart, your {productname} deployment. 
+
+
+
