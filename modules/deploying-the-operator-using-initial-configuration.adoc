@@ -1,0 +1,41 @@
+:_content-type: PROCEDURE
+[id="deploying-the-operator-using-initial-configuration"]
+== Deploying the {productname} Operator using the initial configuration
+
+Use the following procedure to deploy {productname} on {ocp} using the initial configuration. 
+
+.Prerequisites 
+
+* You have installed the `oc` CLI.
+
+.Procedure 
+
+. Create a secret using the configuration file: 
++
+----
+$ oc create secret generic -n quay-enterprise --from-file config.yaml=./config.yaml init-config-bundle-secret
+----
+
+. Create a `quayregistry.yaml` file. Identify the unmanaged components and reference the created secret, for example: 
++
+
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+  namespace: quay-enterprise
+spec:
+  configBundleSecret: init-config-bundle-secret
+----
+
+. Deploy the {productname} registry:
++
+----
+$ oc create -n quay-enterprise -f quayregistry.yaml
+----
+
+.Next Steps 
+
+* xref:using-the-api-to-create-first-user[Using the API to create the first user]

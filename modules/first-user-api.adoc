@@ -1,148 +1,50 @@
-[[first-user-api]]
-= Using the API to create the first user
+:_content-type: PROCEDURE
+[id="deploy-quay-api"]
+= Using the API to deploy {productname} 
 
-When using the API to create the first user, the following conditions must be met:
+This section introduces using the API to deploy {productname}. 
 
-* The config option `FEATURE_USER_INITIALIZE` must be set to `true`
-* No users can already exist in the database
+.Prerequisites 
 
-For more information on pre-configuring the deployment, see the section xref:config-preconfigure-automation[Pre-configuring Quay for automation]
+* The config option `FEATURE_USER_INITIALIZE` must be set to `true`.
+* No users can already exist in the database. 
 
+For more information on pre-configuring your {productname} deployment, see the section xref:config-preconfigure-automation[Pre-configuring {productname} for automation]
 
-== Invoking the API
+[id="using-the-api-to-create-first-user"]
+== Using the API to create the first user
 
-Using the `status.registryEndpoint` URL, invoke the `/api/v1/user/initialize` API, passing in the username, password and email address. You can also request an OAuth token by specifying `"access_token": true`.
+Use the following procedure to create the first user in your {productname} organization. 
 
-[source,bash]
+[NOTE]
+====
+This procedure requests an OAuth token by specifying `"access_token": true`. 
+====
+
+* Using the `status.registryEndpoint` URL, invoke the `/api/v1/user/initialize` API, passing in the username, password and email address by entering the following command:
++
+[source,terminal]
 ----
 $  curl -X POST -k  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayadmin", "password":"quaypass123", "email": "quayadmin@example.com", "access_token": true}'
 ----
-
++
+If successful, the command returns an object with the username, email and encrypted password. For example: 
++
 [source,yaml]
 ----
 {"access_token":"6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED", "email":"quayadmin@example.com","encrypted_password":"1nZMLH57RIE5UGdL/yYpDOHLqiNCgimb6W9kfF8MjZ1xrfDpRyRs9NUnUuNuAitW","username":"quayadmin"}
 ----
-
-If successful, the method returns an object with the username, email and encrypted password. If a user already exists in the database, an error is returned:
-
-[source,bash]
-----
-$  curl -X POST -k  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayuser2", "password":"quaypass123", "email": "quayuser2@example.com"}'
-----
-
-[source,yaml]
++
+If a user already exists in the database, an error is returned:
++
+[source,terminal]
 ----
 {"message":"Cannot initialize user in a non-empty database"}
 ----
-
-
-The password must be at least 8 characters and contain no whitespace:
-
-[source,bash]
-----
- $  curl -X POST -k  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayadmin", "password":"pass123", "email": "quayadmin@example.com"}'
-----
-
-[source,yaml]
++ 
+If your password is not at least eight characters or contains whitespace, an error is returned: 
++
+[source,terminal]
 ----
 {"message":"Failed to initialize user: Invalid password, password must be at least 8 characters and contain no whitespace."}
-----
-
-== Using the OAuth token
-
-You can now invoke the rest of the Quay API specifying the returned OAuth code. For example, to get a list of the current users:
-
-[source,bash]
-----
-$ curl -X GET -k -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/superuser/users/
-----
-
-[source,yaml]
-----
-{
-    "users": [
-        {
-            "kind": "user",
-            "name": "quayadmin",
-            "username": "quayadmin",
-            "email": "quayadmin@example.com",
-            "verified": true,
-            "avatar": {
-                "name": "quayadmin",
-                "hash": "3e82e9cbf62d25dec0ed1b4c66ca7c5d47ab9f1f271958298dea856fb26adc4c",
-                "color": "#e7ba52",
-                "kind": "user"
-            },
-            "super_user": true,
-            "enabled": true
-        }
-    ]
-}
-----
-
-In this instance, the details for the `quayadmin` user are returned as it is the  only user that has been created so far.
-
-=== Create organization
-
-To create an organization, use a POST call to `api/v1/organization/` endpoint:
-
-[source,bash]
-----
-$ curl -X POST -k --header 'Content-Type: application/json' -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/organization/ --data '{"name": "testorg", "email": "testorg@example.com"}'
-----
-
-[source,yaml]
-----
-"Created"
-----
-
-
-=== Get organization details
-
-To retrieve the details of the organization you created:
-
-
-[source,bash]
-----
-$ curl -X GET -k --header 'Content-Type: application/json' -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://min-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/organization/testorg
-----
-
-[source,yaml]
-----
-{
-    "name": "testorg",
-    "email": "testorg@example.com",
-    "avatar": {
-        "name": "testorg",
-        "hash": "5f113632ad532fc78215c9258a4fb60606d1fa386c91b141116a1317bf9c53c8",
-        "color": "#a55194",
-        "kind": "user"
-    },
-    "is_admin": true,
-    "is_member": true,
-    "teams": {
-        "owners": {
-            "name": "owners",
-            "description": "",
-            "role": "admin",
-            "avatar": {
-                "name": "owners",
-                "hash": "6f0e3a8c0eb46e8834b43b03374ece43a030621d92a7437beb48f871e90f8d90",
-                "color": "#c7c7c7",
-                "kind": "team"
-            },
-            "can_view": true,
-            "repo_count": 0,
-            "member_count": 1,
-            "is_synced": false
-        }
-    },
-    "ordered_teams": [
-        "owners"
-    ],
-    "invoice_email": false,
-    "invoice_email_address": null,
-    "tag_expiration_s": 1209600,
-    "is_free_account": true
-}
 ----
