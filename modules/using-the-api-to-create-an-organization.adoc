@@ -1,0 +1,75 @@
+:_content-type: PROCEDURE
+[id="using-the-api-to-create-an-organization"]
+== Using the API to create an organization 
+
+The following procedure details how to use the API to create a {productname} organization. 
+
+.Prerequisites 
+
+* You have invoked the `/api/v1/user/initialize` API, and passed in the username, password, and email address. 
+* You have called out the rest of the {productname} API by specifying the returned OAuth code. 
+
+.Procedure 
+
+. To create an organization, use a POST call to `api/v1/organization/` endpoint:
++
+[source,terminal]
+----
+$ curl -X POST -k --header 'Content-Type: application/json' -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/organization/ --data '{"name": "testorg", "email": "testorg@example.com"}'
+----
++
+Example output: 
++
+[source,yaml]
+----
+"Created"
+----
+
+. You can retrieve the details of the organization you created by entering the following command: 
++
+[source,terminal]
+----
+$ curl -X GET -k --header 'Content-Type: application/json' -H "Authorization: Bearer 6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED" https://min-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/organization/testorg
+----
++
+Example output: 
++
+[source,terminal]
+----
+{
+    "name": "testorg",
+    "email": "testorg@example.com",
+    "avatar": {
+        "name": "testorg",
+        "hash": "5f113632ad532fc78215c9258a4fb60606d1fa386c91b141116a1317bf9c53c8",
+        "color": "#a55194",
+        "kind": "user"
+    },
+    "is_admin": true,
+    "is_member": true,
+    "teams": {
+        "owners": {
+            "name": "owners",
+            "description": "",
+            "role": "admin",
+            "avatar": {
+                "name": "owners",
+                "hash": "6f0e3a8c0eb46e8834b43b03374ece43a030621d92a7437beb48f871e90f8d90",
+                "color": "#c7c7c7",
+                "kind": "team"
+            },
+            "can_view": true,
+            "repo_count": 0,
+            "member_count": 1,
+            "is_synced": false
+        }
+    },
+    "ordered_teams": [
+        "owners"
+    ],
+    "invoice_email": false,
+    "invoice_email_address": null,
+    "tag_expiration_s": 1209600,
+    "is_free_account": true
+}
+----
