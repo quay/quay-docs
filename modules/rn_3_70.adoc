@@ -1,3 +1,28 @@
+[[rn-3-707]]
+== RHBA-2022:6154 - {productname} 3.7.7 bug fix update
+
+Issued: 2022-08-29
+
+{productname} release 3.7.7 is now available. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2022:6154[RHBA-2022:6154] advisory.
+
+=== New features 
+
+* With this update, the `REPO_MIRROR_ROLLBACK` configuration field has been added. When this field is set to `true`, the repository rolls back after a failed mirror attempt. By default, this field is set to `false`. 
+
+=== Bug fixes
+
+* Previously, users could only mirror and replicate the entirety of their upstream repository. When complex expressions for tag discovery were used, a list of several tags to be mirrored was created. If the mirroring process failed for any tag failed at any point during the replication procedure, {productname} would revert the repository to its previous state. If the mirrored repository was empty, all tags that were correctly mirrored were deleted. For example, if you mirrored 10 tags, and 8 tags were mirrored successfully, but 2 failed, all of the successful tags would be deleted from the repository because of the 2 that failed.   
++
+With this update, if a mirroring operation fails, it will no longer roll back the state of the repository. Instead, it will log the images that failed to properly mirror. 
++
+For users who want their repository rolled back upon failure, the `REPO_MIRROR_ROLLBACK` feature has been added. When the feature is set to `true`, the repository rolls back after a failed mirror attempt. By default, the feature is set to `false`. 
++
+For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4296[PROJQUAY-4296] and link:https://issues.redhat.com/browse/PROJQUAY-4357[PROJQUAY-4357]. 
+
+* link:https://issues.redhat.com/browse/PROJQUAY-4322[PROJQUAY-4322]. The image mirrored unsuccessfully can be pulled successfully. 
+
+* link:https://issues.redhat.com/browse/PROJQUAY-3976[PROJQUAY-3976]. Pull-thru gives 500 when pulling certain images. 
+
 [[rn-3-706]]
 == RHBA-2022:5999 - {productname} 3.7.6 bug fix update
 
