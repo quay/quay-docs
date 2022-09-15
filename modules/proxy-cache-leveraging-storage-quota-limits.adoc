@@ -1,0 +1,51 @@
+:_content-type: CONCEPT
+[id="proxy-cache-leveraging-storage-quota-limits"]
+== Leveraging storage quota limits in proxy organizations 
+
+With {productname} 3.8, the proxy cache feature has been enhanced with an auto-pruning feature for tagged images. The auto-pruning of image tags is only available when a proxied namespace has quota limitations configured. Currently, if an image size is greater than quota for an organization, the image is skipped from being uploaded until an administrator creates the necessary space. Now, when an image is pushed that exceeds the allotted space, the auto-pruning enhancement marks the least recently used tags for deletion. As a result, the new image tag is stored, while the least used image tag is marked for deletion. 
+
+[IMPORTANT]
+====
+* As part of the auto-pruning feature, the tags that are marked for deletion are eventually garbage collected by the garbage collector (gc) worker process. As a result, the quota size restriction is not fully enforced during this period. 
+* Currently, the namespace quota size computation does not take into account the size for manifest child. This is a known issue and will be fixed in a future version of {productname}. 
+====
+
+=== Testing the storage quota limits feature in proxy organizations 
+
+Use the following procedure to test the auto-pruning feature of an organization with proxy cache and storage quota limitations enabled.
+
+.Prerequisites 
+
+* Your organization is configured to serve as a proxy organization. The following example proxies from quay.io. 
+
+* `FEATURE_PROXY_CACHE` is set to `true` in your `config.yaml` file. 
+
+* `FEATURE_QUOTA_MANAGEMENT` is set to `true` in your `config.yaml` file. 
+
+* Your organization is configured with a quota limit, for example, `150 MB`. 
+
+.Procedure 
+
+. Pull an image to your repository from your proxy organization, for example:
++
+----
+$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.7.9
+----
+
+. Depending on the space left in your repository, you might need to pull additional images from your proxy organization, for example:
++
+----
+$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.6.2
+----
+
+. In the {productname} registry UI, click the name of your repository.
+
+* Click *Tags* in the navigation pane and ensure that `quay:3.7.9` and `quay:3.6.2` are tagged. 
+
+. Pull the last image that will result in your repository exceeding the the allotted quota, for example:
++
+----
+$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.5.1
+----
+
+. Refresh the *Tags* page of your {productname} registry. The first image that you pushed, for example, `quay:3.7.9` should have been auto-pruned. The *Tags* page should now show `quay:3.6.2` and `quay:3.5.1`. 

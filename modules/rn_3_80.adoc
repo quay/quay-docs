@@ -19,30 +19,87 @@ The following updates have been made to {productname}, Clair, and Quay Builders:
 +
 For more information, see link:https://issues.redhat.com/browse/PROJQUAY-272[PROJQUAY-272]. 
 
-////
+* Previously, {productname} did not require self-signed certificates to use Subject Alternative Names (SANs). {productname} users could temporarily enable Common Name matching with `GODEBUG=x509ignoreCN=0` to bypass the required certificate. 
++
+With {productname} 3.8, {productname} has been upgraded to use Go version 1.17. As a result, setting `GODEBUG=x509ignoreCN=0` no longer works. Users must include self-signed certificates to use SAN. 
++
+For more information, see link:https://issues.redhat.com/browse/PROJQUAY-1605[PROJQUAY-1605]. 
+
+* Previously, if a superuser tried to obtain a list of repositories in a namespace that they were not a member of, the list would return nothing. For example:
++
+[source,terminal]
+----
+$ GET /api/v1/repository/{repository}
+----
++
+Example output:
++
+[source,terminal]
+----
+$ []
+----
++
+With this update, when `FEATURE_SUPERUSERS_FULL_ACCESS` is configured, `$ GET /api/vi/repository?namespace={enter_namespace}` returns the repository names:
++
+Example output:
++
+[source,terminal]
+----
+$ [{name:"repo1",...},{name:"repo2",...}]
+----
+
+* The following configuration fields have been added to enhance the {productname} registry: 
+
+** **FEATURE_LISTEN_IP_VERSION**: This configuration field allows users to set the protocol family to IPv4, IPv6, or dual-stack. This configuration field might be properly set, otherwise {productname} fails to start. 
++
+*Default*: `IPv4`
++
+*Additional configurations*: `IPv6`, `dual-stack`
++
+To test this feature, see xref:enabling-ipv6-dual-stack[IPv6 Support]. 
+
+
 * The following enhancements have been made to the {productname} proxy cache feature: 
 
-** Previously, the cache of a proxy organization with quota management enabled could reach full capacity. Consequently, pulls for new images could be prevented until an administrator cleaned up the cached images. 
+** Previously, the cache of a proxy organization with quota management enabled could reach full capacity. As a result, pulls for new images could be prevented until an administrator cleaned up the cached images. 
 +
-With this update, {productname} administrators can now leverage the storage quota of an organization to limit the cache size. This ensures that backend storage consumption remains predictable by discarding images from the cache according to the image's pull frequency or overall usage. As a result, the storage size allotted by quota management always within its limits. 
+With this update, {productname} administrators can now use the storage quota of an organization to limit the cache size. Limiting the cache size ensures that backend storage consumption remains predictable by discarding images from the cache according to the pull frequence or overall usage of an image. As a result, the storage size allotted by quota management always stays within its limits. 
 +
-For more information, see link:https://issues.redhat.com/browse/PROJQUAY-3042[PROJQUAY-3042] and link:https://issues.redhat.com/browse/PROJQUAY-3063[PROJQUAY-3063]. 
+For more information, see xref:leveraging-storage-quota-limits[Leveraging storage quote limits]. 
 
-////
+* The following configuration fields have been added to enhance the superuser role: 
 
-* The following configuration fields have been added to enhance the super user role: 
+** **FEATURE_SUPERUSERS_FULL_ACCESS**: This configuration field grants superusers the ability to read, write, and delete content from other repositories in namespaces that they do not own or have explicit permissions for. 
 
-** **LDAP_SUPERUSER_FILTER**: This configuration field is a subset of the `LDAP_USER_FILTER` configuration field. It allows {productname} administrators the ability to configure Lightweight Directory Access Protocol (LDAP) users as super users when {productname} uses LDAP as its authentication provider.
+* **GLOBAL_READONLY_SUPER_USERS**: This configuration field grants users of this list read access to all repositories, regardless of whether they are public repositories. 
+
+* The following enhancements have been made to Lightweight Directory Access Protocol (LDAP): 
+
+** **LDAP_SUPERUSER_FILTER**: This configuration field is a subset of the `LDAP_USER_FILTER` configuration field. It allows {productname} administrators the ability to configure Lightweight Directory Access Protocol (LDAP) users as superusers when {productname} uses LDAP as its authentication provider.
 +
-With this field, administrators can add or remove super users without having to update the {productname} configuration file and restart their deployment. 
+With this field, administrators can add or remove superusers without having to update the {productname} configuration file and restart their deployment. 
++
+To test this feature, see xref:enabling-ldap-super-users[Enabling LDAP superusers for {productname}].
 
-** **FEATURE_SUPERUSERS_FULL_ACCESS**: This configuration field grants super users the ability to read, write, and delete content from other repositories in namespaces that they do not own or have explicit permissions for. 
+* **LDAP_RESTRICTED_USER_FILTER**: This configuration field is a subset of the `LDAP_USER_FILTER` configuration field. When configured, allows {productname} administrators the ability to configure Lightweight Directory Access Protocol (LDAP) users as restricted users when {productname} uses LDAP as its authentication provider.
++
+To test this feature, see 
 
 * The following configuration fields have been added for user permissions: 
 
-** **FEATURE_RESTRICTED_USERS**: This configuration field restricts normal users from creating organizations and reading and writing content. 
+** **FEATURE_RESTRICTED_USERS**: When set, restricted users cannot create organizations or content in their own namespace. Normal permissions apply for an organization's membership, for example, a restricted user will still have normal permissions in organizations based on the teams that they are members of.
++
+*Default*: `false`
 
 ** **RESTRICTED_USERS_WHITELIST**: With this configuration field enabled, administrators can exclude users from the `FEATURE_RESTRICTED_USERS` setting. 
+
+* The following configuration field has been added to test {productname}'s new user interface:
+
+** **FEATURE_UI_V2**: With this configuration field, users can test the beta UI environment. 
++
+*Default*: `true`
++
+To test this feature, see xref:enabling-ui-v2[Enabling and testing FEATURE_UI_V2].
 
 
 ////
@@ -55,19 +112,36 @@ With this field, administrators can add or remove super users without having to 
 ** {productname} administrators can now limit normal users from creating organization in {productname} and assign this option to specific users. For more information, see link:https://issues.redhat.com/browse/PROJQUAY-402[PROJQUAY-402]. 
 ////
 
-
-Known issues:
+[[ipv6-limitations]]
+IPv6 limitations: 
 
 * Currently, attempting to configure your {productname} deployment with the common Azure Blob Storage configuration will not work on IPv6 single stack environments. Because the endpoint of Azure Blob Storage does not support IPv6, there is no workaround in place for this issue.
 +
 For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4433[PROJQUAY-4433]. 
 
+* Currently, attempting to configure your {productname} deployment with Amazon S3 CloudFront will not work on IPv6 single stack environments. Because the endpoint of Amazon S3 CloudFront does not support IPv6, there is no workaround in place for this issue. 
++
+For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4470[PROJQUAY-4470]. 
+
+* Currently, OpenShift Data Foundations (ODF) is unsupported when {productname} is deployed on IPv6 single stack environments. As a result, ODF cannot be used in IPv6 environments. This limitation is scheduled to be fixed in a future version of OpenShift Data Foundations. 
+
+* Currently, dual stack support does not work on {productname} {ocp} deployments. When {productname} 3.8 is deployed on {ocp} with dual-stack (IPv4 and IPv6) support enabled, the Quay Route generated by the {productname} Operator only generates an IPv4 address, and not an IPv6 address. As a result, clients with an IPv6 address cannot access the {productname} application on {ocp}. This limitation is scheduled to be fixed in a future version of {ocp}. 
+
+Known issues:
+
+* The `metadata_json` column in the `logentry3` table on MySQL deployments has a limited size of `TEXT`. Currently, the default size of the column set to be `TEXT` is 65535 bytes. 65535 bytes is not big enough for some mirror logs when debugging is turned `off`. When a statement containing `TEXT` larger than 65535 bytes is sent to MySQL, the data sent is truncated to fit into the 65535 boundary. Consequently, this creates issues when the `metadata_json` object is decoded, and the decode fails because the string is not terminated properly. As a result, {productname} returns a 500 error.
++
+There is currently no workaround for this issue, and it will be addressed in a future version of {productname}. For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4305[PROJQUAY-4305].
+
+
+* Currently, when using the `--sign-by-sigstore-private-key` flag with Podman v4.0.0 or greater, the following error is returned: `Error: writing signatures: writing sigstore attachments is disabled by configuration`. There is currently no workaround for this issue, and it will be addressed in a future version of Podman. 
+
+////
 
 === {productname} Operator 
 
 The following updates have been made to the {productname} Operator: 
-
-* IPv6 support is now available in {productname} {producty} Operator deployments. With this feature, the {productname} Operator can now be deployed in IPv4 and IPv6 dual-stack OpenShift Container Platform clusters where {productname} uses IPv6.  
+////
 
 
 === {productname} feature tracker
@@ -83,36 +157,41 @@ Some features available in previous releases have been deprecated or removed. De
 |===
 |Feature | Quay 3.8 | Quay 3.7 |Quay 3.6
 
-| IPv6 Support
+| xref:enabling-ui-v2[FEATURE_UI_V2]
+| Technology Preview
+| -
+| -
+
+| xref:enabling-ipv6-dual-stack[IPv6 Support]
 | General Availability 
 | -
 | -
 
-| LDAP_SUPERUSER_FILTER
+| xref:enabling-ldap-super-users[LDAP_SUPERUSER_FILTER]
 | General Availability 
 |-
 |- 
 
-| FEATURE_LISTEN_IP_VERSION
+| xref:enabling-ipv6-dual-stack[FEATURE_LISTEN_IP_VERSION]
 | General Availability
 |-
 |-
 
-| FEATURE_SUPERUSERS_FULL_ACCESS
+| xref:enabling-superusers-full-access[FEATURE_SUPERUSERS_FULL_ACCESS]
 | General Availability 
 |-
 |-
 
-| FEATURE_RESTRICTED_USERS
+| xref:enabling-feature-restricted-users[FEATURE_RESTRICTED_USERS]
 | General Availability 
 |-
 |-
 
-| RESTRICTED_USERS_WHITELIST
+| xref:enabling-restricted-users-whitelist[RESTRICTED_USERS_WHITELIST]
 | General Availability 
 |-
 |-
- 
+
 
 |link:https://access.redhat.com//documentation/en-us/red_hat_quay/3.7/html-single/use_red_hat_quay#red-hat-quay-quota-management-and-enforcement[Quota management and enforcement]
 |General Availability

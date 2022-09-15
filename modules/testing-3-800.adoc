@@ -1,12 +1,14 @@
 [[testing-3-800]]
 == Testing 3.8.0 features 
 
-The following sections in this guide explicate how to enable new features and test that they are working. The expected results of each feature can be found in each section's introduction. 
+The following sections in this guide explain how to enable new features and test that they are working. 
 
+[[enabling-ipv6-dual-stack]]
 === Enabling and testing the IPv6 and dual-stack protocol family on standalone {productname} deployments 
 
 Your {productname} deployment can now be served in locations that only support IPv6, such as Telco and Edge environments. Support is also offered for dual-stack networking so your {productname} deployment can listen on IPv4 and IPv6 simultaneously.
 
+[[enabling-ipv6]]
 ==== Enabling and testing IPv6 
 
 Use the following procedure to enable IPv6 on your standalone {productname} deployment. 
@@ -20,7 +22,7 @@ Use the following procedure to enable IPv6 on your standalone {productname} depl
 
 . In your deployment's `config.yaml` file, add the `FEATURE_LISTEN_IP_VERSION` parameter and set it to `IPv6`, for example: 
 +
-[source.yaml]
+[source,yaml]
 ----
 ---
 FEATURE_GOOGLE_LOGIN: false
@@ -39,21 +41,21 @@ FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: false
 +
 [source,terminal]
 ----
-$ curl <quay_endpoint>
+$ curl <quay_endpoint>/health/instance
 {"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
 ----
 +
-.. For an Operator based eployment, enter the following command:
+.. For an Operator based deployment, enter the following command:
 +
 [source,terminal]
 ----
-$ curl <quay_endpoint>
+$ curl <quay_endpoint>/health/instance
 {"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
 ----
 
 ===== Expected Results 
 
-After enabling IPv6 in your deployment's `config.yaml`, all {productname} features can be used as normal, so long as your environment is configured to use IPv6. 
+After enabling IPv6 in your deployment's `config.yaml`, all {productname} features can be used as normal, so long as your environment is configured to use IPv6 and is not hindered by the xref:ipv6-limitations[current limitations]. 
 
 [WARNING]
 ====
@@ -75,30 +77,31 @@ $ podman pull busybox
 +
 [source,terminal]
 ----
-$ podman tag docker.io/library/busybox <quay_url><qay_user>/busybox:test
+$ podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
 ----
 
 . Push the image to your {productname} registry: 
 +
 [source,terminal]
 ----
-$ podman push --tls-verify=false <quay_url><qay_user>/busybox:test
+$ podman push --tls-verify=false quay-server.example.com/quayadmin/busybox:test
 ----
 
 . Test access to the image from the CLI by deleting your local copy of the image: 
 +
 [source,terminal]
 ----
-$ podman rmi <quay_url><qay_user>/busybox:test
+$ podman rmi quay-server.example.com/quayadmin/busybox:test
 ----
 
 . Pull the image from your {productname} registry:
 +
 [source,terminal]
 ----
-$ podman pull --tls-verify=false <quay_url><qay_user>/busybox:test
+$ podman pull --tls-verify=false quay-server.example.com/quayadmin/busybox:test
 ----
 
+[[enabling-dual-stack]]
 ==== Enabling and testing dual-stack  
 
 .Prerequisites 
@@ -110,7 +113,7 @@ $ podman pull --tls-verify=false <quay_url><qay_user>/busybox:test
 
 . In your deployment's `config.yaml` file, add the `FEATURE_LISTEN_IP_VERSION` parameter and set it to `dual-stack`, for example: 
 +
-[source.yaml]
+[source,yaml]
 ----
 ---
 FEATURE_GOOGLE_LOGIN: false
@@ -158,63 +161,700 @@ $ podman pull busybox
 +
 [source,terminal]
 ----
-$ podman tag docker.io/library/busybox <quay_url><qay_user>/busybox:test
+$ podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
 ----
 
 . Push the image to your {productname} registry: 
 +
 [source,terminal]
 ----
-$ podman push --tls-verify=false <quay_url><qay_user>/busybox:test
+$ podman push --tls-verify=false quay-server.example.com/quayadmin/busybox:test
 ----
 
 . Test access to the image from the CLI by deleting your local copy of the image: 
 +
 [source,terminal]
 ----
-$ podman rmi <quay_url><qay_user>/busybox:test
+$ podman rmi quay-server.example.com/quayadmin/busybox:test
 ----
 
 . Pull the image from your {productname} registry:
 +
 [source,terminal]
 ----
-$ podman pull --tls-verify=false <quay_url><qay_user>/busybox:test
+$ podman pull --tls-verify=false quay-server.example.com/quayadmin/busybox:test
 ----
 
+[[enabling-ldap-super-users]]
+=== Enabling LDAD superusers for {productname} 
 
+The `LDAP_SUPERUSER_FILTER` configuration field is now available. With this field configured, {productname} administrators can configure Lightweight Directory Access Protocol (LDAP) users as superusers if {productname} uses LDAP as its authentication provider. 
 
-
-
-
-=== Enabling LDAD super users for {productname} 
-
-The `LDAP_SUPERUSER_FILTER` configuration field is now available. With this field configured, {productname} administrators can configure Lightweight Directory Access Protocol (LDAP) users as super users when {productname} uses LDAP as its authentication provider. 
-
-Use the following procedure to enable LDAP super users on your {productname} deployment. 
+Use the following procedure to enable LDAP superusers on your {productname} deployment. 
 
 .Prerequisites 
 
 * Your {productname} deployment uses LDAP as its authentication provider. 
-* You have configured an LDAP user, for example, `alice` with the `LDAP_USER_FILTER` configuration field. 
+* You have configured the `LDAP_USER_FILTER` field. 
 
 .Procedure 
 
-. In your deployment's `config.yaml` file, add the `LDAP_SUPERUSER_FILTER` parameter and all the user `alice`. For example: 
+. In your deployment's `config.yaml` file, add the `LDAP_SUPERUSER_FILTER` parameter and add the group of users you want configured as super users, for example, `root`: 
 +
 [source,yaml]
 ----
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
+LDAP_ADMIN_PASSWD: ABC123
 LDAP_ALLOW_INSECURE_FALLBACK: false
+LDAP_BASE_DN:
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
 LDAP_EMAIL_ATTR: mail
 LDAP_UID_ATTR: uid
-LDAP_URI: ldap://117.17.8.101
-LDAP_USER_FILTER: 
-    - alice
-LDAP_SUPERUSER_FILTER:
-    - alice
+LDAP_URI: ldap://<example_url>.com
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
+LDAP_SUPERUSER_FILTER: (memberOf=cn=root,ou=Admin,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
+LDAP_USER_RDN:
+    - ou=<example_organization_unit>
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
+----
+
+. Start, or restart, your {productname} deployment. 
+
+===== Expected Results 
+
+After enabling the `LDAP_SUPERUSER_FILTER` feature, your LDAP {productname} users have superuser privileges. The following options are available to superusers:
+
+* Manage users
+* Manage organizations
+* Manage service keys
+* View the change log
+* Query the usage logs
+* Create globally visible user messages 
+
+Use the following procedure to test that your {productname} LDAP users have been given superusers privileges.
+
+.Prerequisites 
+
+* You have configured the `LDAP_SUPERUSER_FILTER` field. 
+
+.Procedure
+
+. Log in to your {productname} registry as the configured LDAP superuser. 
+
+. Access the *Super User Admin Panel* by clicking on your user name or avatar in the top right-hand corner of the UI. If you have been properly configured as a superuser, an extra item is presented in the drop-down list called *Super User Admin Panel*. 
+
+. On the *{productname} Management* page, click *Globally visible user messages* on the navigation pane. 
+
+. Click *Create Message* to reveal a drop-down menu containing *Normal*, *Warning*, and *Error* message types. 
+
+. Enter a message by selecting *Click to set message*, then click *Create Message*. 
+
+Now, when users log in to the {productname} registry, they are presented with a global message. 
+
+
+[[enabling-ldap-restricted-users]]
+=== Enabling LDAD restricted users for {productname} 
+
+The `LPAP_RESTRICTED_USER_FILTER` is now available. This configuration field is a subset of the `LDAP_USER_FILTER` configuration field. When configured, allows {productname} administrators the ability to configure Lightweight Directory Access Protocol (LDAP) users as restricted users when {productname} uses LDAP as its authentication provider.
+
+[NOTE]
+====
+This configuration field only applies when your `AUTHENTICATION_TYPE` is set to `LDAP` in your `config.yaml` file. If your `AUTHENTICATION_TYPE` is set to `Database`, see xref:enabling-feature-restricted-users[Enabling restricted users]. 
+====
+
+Use the following procedure to enable LDAP restricted users on your {productname} deployment. 
+
+.Prerequisites 
+
+* Your {productname} deployment uses LDAP as its authentication provider. 
+* You have configured the `LDAP_USER_FILTER` field. 
+
+.Procedure 
+
+. In your deployment's `config.yaml` file, add the `LDAP_RESTRICTED_USER_FILTER` parameter and specify the group of restricted users, for example, `members`:  
++
+[source,yaml]
+----
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
+LDAP_ADMIN_PASSWD: ABC123
+LDAP_ALLOW_INSECURE_FALLBACK: false
+LDAP_BASE_DN:
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
+LDAP_EMAIL_ATTR: mail
+LDAP_UID_ATTR: uid
+LDAP_URI: ldap://<example_url>.com
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
+LDAP_RESTRICTED_USER_FILTER: (<filterField>=<value>)
+LDAP_USER_RDN:
+    - ou=<example_organization_unit>
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
 ----
 
 . Start, or restart, your {productname} deployment. 
 
 
+[[enabling-superusers-full-access]]
+=== Enabling and testing `FEATURE_SUPERUSERS_FULL_ACCESS`
 
+The `FEATURE_SUPERUSERS_FULL_ACCESS` feature is now available. This configuration field grants superusers the ability to read, write, and delete content from other repositories in namespaces that they do not own or have explicit permissions for. 
+
+[NOTE]
+====
+* This feature is only available on the beta of the new UI. When enabled, it shows all organizations that the super user has access to. To enable the beta of the new UI, see xref:enabling-ui-v2[FEATURE_UI_V2]
+* When this field is enabled, the superuser cannot view the image repository of every organization at once. This is a known limitation and will be fixed in a future version of {productname}. As a temporary workaround, the superuser can view image repositories by navigating to them from the *Organizations* page. 
+====
+
+
+Use the following procedure to test the `FEATURE_SUPERUSERS_FULL_ACCESS` feature. 
+
+.Prerequisites 
+
+* You have defined the `SUPER_USERS` configuration field in your `config.yaml` file. 
+
+.Procedure 
+
+. In your deployment's `config.yaml` file, add the `FEATURE_SUPERUSERS_FULL_ACCESS` parameter and set it to `true`, for example: 
++
+[source,yaml]
+----
+---
+SUPER_USERS:
+- quayadmin
+FEATURE_SUPERUSERS_FULL_ACCESS: True
+---
+----
+
+. Start, or restart, your {productname} deployment. 
+
+==== Expected results 
+
+With this feature enabled, your superusers should be able to read, write, and delete content from other repositories in namespaces that they do not own. To ensure that this feature is working as intended, use the following procedure. 
+
+.Prerequisites 
+
+* You have set the `FEATURE_SUPERUSERS_FULL_ACCESS` field to `true` in your `config.yaml` file. 
+
+.Procedure
+
+. Open your {productname} registry and click *Create new account*. 
+
+. Create a new user, for example, `user1`. 
+
+. Log in as `user`. 
+
+. Click *user1* under the *Users and Organizations*. 
+
+. Create a new repository but clicking *creating a new repository*. 
+
+. Enter a repository name, for example, `testrepo`, then click *Create private repository*. 
+
+. Use the CLI to log in to the registry as `user`:
++
+[source,terminal]
+----
+$ podman login --tls-verify=false quay-server.example.com
+----
++
+Example output:
++
+[source,terminal]
+----
+Username: user1
+Password: 
+Login Succeeded!
+----
+
+. Pull a sample image by entering the following command: 
++
+[source,terminal]
+----
+$ podman pull busybox
+----
+
+. Tag the image: 
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox quay-server.example.com/user1/testrepo/busybox:test 
+----
+
+. Push the image to your {productname} registry: 
++
+[source,terminal]
+----
+$ sudo podman push --tls-verify=false quay-server.example.com/user1/testrepo/busybox:test
+----
+
+. Ensure that you have successfully pushed the image to your repository by navigating to `www.quay-server.example.com/repository/user1/testrepo/busybox` and clicking *Tags* in the navigation pane. 
+
+. Sign out of `user1` by clicking *user1* -> *Sign out all sessions*. 
+
+. Log out of the registry using the CLI:
++
+----
+$ podman logout quay-server.example.com 
+----
++
+Example output:
++
+[source,terminal]
+----
+Removed login credentials for quay-server.example.com
+----
+
+. On the UI, log in as the designated superuser with full access privileges, or example `quayadmin`. 
+
+. On the CLI, log in as the designated superuser with full access privileges, or example `quayadmin`:
++
+[source,terminal]
+----
+$ podman login quay-server.example.com
+----
++
+Example output:
++
+[source,terminal]
+----
+Username: quayadmin
+Password: 
+Login Succeeded!
+----
+
+. Now, you can pull the `busybox` image from `user1's` repository by entering the following command:
++
+[source,terminal]
+----
+$ podman pull --tls-verify=false quay-server.example.com/user1/testrepo/busybox:test
+----
++
+Example output:
++
+----
+Trying to pull quay-server.example.com/stevsmit/busybox:test...
+Getting image source signatures
+Copying blob 29c7fae3c03c skipped: already exists  
+Copying config 2bd2971487 done  
+Writing manifest to image destination
+Storing signatures
+2bd29714875d9206777f9e8876033cbcd58edd14f2c0f1203435296b3f31c5f7
+----
+
+. You can also push images to `user1's` repository by entering the following commands:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox quay-server.example.com/user1/testrepo/busybox:test1
+----
++
+[source,terminal]
+----
+$ podman push quay-server.example.com/user1/testrepo/busybox:test1
+----
++
+Example output:
++
+----
+Getting image source signatures
+Copying blob 29c7fae3c03c skipped: already exists  
+Copying config 2bd2971487 done  
+Writing manifest to image destination
+Storing signatures
+----
+
+. Additionally, you can delete images from `user1's` repository by using the tagged image's API: 
++
+[source,terminal]
+----
+$ curl -X DELETE -H "Authorization: Bearer <example_token>"  http://quay-server.example.com/api/v1/repository/user1/testrepo/tag/test1
+----
++
+[NOTE]
+====
+For more information about obtaining OAuth tokens, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/red_hat_quay_api_guide/using_the_red_hat_quay_api#create_oauth_access_token[Create OAuth access token]. 
+====
+
+[[enabling-feature-restricted-users]]
+=== Enabling and testing `FEATURE_RESTRICTED_USERS`
+
+When set, restricted users cannot create organizations or content in their own namespace. Normal permissions apply for an organization's membership, for example, a restricted user will still have normal permissions in organizations based on the teams that they are members of.
+
+[NOTE]
+====
+This configuration field only applies when your `AUTHENTICATION_TYPE` is set to `Database` in your `config.yaml` file. If your `AUTHENTICATION_TYPE` is set to `LDAP`, see xref:enabling-ldap-restricted-users[Enabling LDAP restricted users]. 
+====
+
+.Prerequisites 
+
+`AUTHENTICATION_TYPE` is set to `Database` in your `config.yaml` file. 
+
+.Procedure 
+
+. In your deployment's `config.yaml` file, add the `FEATURE_RESTRICTED_USERS` parameter and set it to `true`, for example: 
++
+[source,yaml]
+----
+---
+FEATURE_RESTRICTED_USERS: true
+---
+----
+
+. Start, or restart, your {productname} deployment. 
+
+==== Expected results 
+
+With this feature enabled, normal users cannot create organizations. To ensure that this feature is working as intended, use the following procedure. 
+
+.Prerequisites 
+
+* `FEATURE_RESTRICTED_USERS` is set to `true` in your `config.yaml`. 
+* Your {productname} registry has a sample tag. 
+
+.Procedure 
+
+. Log in as a normal {productname} user, for example, `user1`.
+
+. Click *Create New Organization* on the {productname} UI. 
+
+. In the *Organization Name* box, enter a name, for example, `testorg`. 
+
+. Click *Create Organization*. This will result in an `Unauthorized` messaged. 
+
+
+[[enabling-restricted-users-whitelist]]
+=== Enabling and testing `RESTRICTED_USERS_WHITELIST`
+
+When this feature is set, specified users are excluded from the `FEATURE_RESTRICTED_USERS` configuration. Use the following procedure to exclude users from the `FEATURE_RESTRICTED_USERS` setting so that they can have `read` and `write` privileges. 
+
+.Prerequisites 
+
+* `FEATURE_RESTRICTED_USERS` is set to `true` in your `config.yaml`. 
+
+.Procedure
+
+. In your deployment's `config.yaml` file, add the `RESTRICTED_USERS_WHITELIST` parameter and a user, for example, `user1`:
++
+[source,yaml]
+----
+FEATURE_RESTRICTED_USERS: true
+RESTRICTED_USERS_WHITELIST:
+      - user1
+----
+
+. Start, or restart, your {productname} deployment. 
+
+==== Expected results 
+
+With this feature enabled, whitelisted users can create organizations, or read or write content from the repository even if `FEATURE_RESTRICTED_USERS` is set to `true`. To ensure that this feature is working as intended, use the following procedures. 
+
+. Log in to your {productname} registry as the white listed user, for example, `user2`. 
+
+. On the UI, click *Create New Organization*. 
+
+. Enter an organization name, for example, `testorg`. 
+
+. Click *Create Organization*. If successful, you will be loaded on to the organization's page. 
+
+Next, as the white listed user, try to push an image. This should result in a successfully pushed image. 
+
+. Tag an image by entering the following command:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox quay-server.example.com/user2/busybox:test
+----
+
+. Push the image by entering the following command:
++
+[source,terminal]
+----
+$ podman push quay-server.example.com/user2/busybox:test
+----
++
+Example output:
++
+[source,terminal]
+----
+Getting image source signatures
+Copying blob 29c7fae3c03c skipped: already exists  
+Copying config 2bd2971487 done  
+Writing manifest to image destination
+Storing signatures
+----
+
+[[enabling-ui-v2]]
+=== Enabling and testing `FEATURE_UI_V2`
+
+With this feature enabled, you can toggle between the current version of the user interface, and the new version of the user interface. 
+
+[IMPORTANT]
+====
+* This UI is currently in beta and subject to change. In its current state, users can only create, view, and delete organizations, repositories, and image tags. 
+* When running {productname} in the old UI, timed-out sessions would require that the user input their password again in the pop-up window. With the new UI, users are returned to the main page and required to input their username and password credentials. This is a known issue and will be fixed in a future version of the new UI. 
+* There is a discrepancy in how image manifest sizes are reported between the legacy UI and the new UI. In the legacy UI, image manifests were reported in mebibytes. In the new UI, {productname} uses the standard definition of megabyte (MB) to report image manifest sizes. 
+====
+
+.Procedure 
+
+. In your deployment's `config.yaml` file, add the `FEATURE_UI_V2` parameter and set it to `true`, for example: 
++
+[source,yaml]
+----
+---
+FEATURE_TEAM_SYNCING: false
+FEATURE_UI_V2: true
+FEATURE_USER_CREATION: true
+---
+----
+
+. Log in to your {productname} deployment. 
+
+. In the navigation pane of your {productname} deployment, you are given the option to toggle between *Current UI* and *New UI*. Click the toggle button to set it to new UI, and then click *Use Beta Environment*, for example: 
++
+image:38-ui-toggle.png[{productname} 3.8 UI toggle]
+
+==== Creating a new organization in the {productname} 3.8 beta UI 
+
+.Prerequisites 
+
+* You have toggled your {productname} deployment to use the 3.8 beta UI. 
+
+Use the following procedure to create an organization using the {productname} 3.8 beta UI.
+
+.Procedure 
+
+. Click *Organization* in the navigation pane. 
+
+. Click *Create Organization*.
+
+. Enter an *Organization Name*, for example, `testorg`. 
+
+. Click *Create*. 
+
+Now, your example organization should populate under the *Organizations* page. 
+
+==== Deleting an organization using the {productname} 3.8 beta UI
+
+Use the following procedure to delete an organization using the {productname} 3.8 beta UI.
+
+.Procedure 
+
+. On the *Organizations* page, select the name of the organization you want to delete, for example, `testorg`.
+
+. Click the *More Actions* drop down menu. 
+
+. Click *Delete*. 
++
+[NOTE]
+====
+On the *Delete* page, there is a *Search* input box. With this box, users can search for specific organizations to ensure that they are properly scheduled for deletion. For example, if a user is deleting 10 organizations and they want to ensure that a specific organization was deleted, they can use the *Search* input box to confirm said organization is marked for deletion. 
+====
+
+. Confirm that you want to permanently delete the organization by typing *confirm* in the box. 
+
+. Click *Delete*. 
+
+After deletion, you are returned to the *Organizations* page. 
+
+[NOTE]
+====
+You can delete more than one organization at a time by selecting multiple organizations, and then clicking *More Actions* -> *Delete*. 
+====
+
+==== Creating a new repository using the {productname} 3.8 beta UI
+
+Use the following procedure to create a repository using the {productname} 3.8 beta UI.
+
+.Procedure
+
+. Click *Repositories* on the navigation pane. 
+
+. Click *Create Repository*. 
+
+. Select a namespace, for example, *quayadmin*, and then enter a *Repository name*, for example, `testrepo`. 
+
+. Click *Create*. 
+
+Now, your example repository should populate under the *Repositories* page. 
+
+==== Deleting a repository using the {productname} 3.8 beta UI
+
+.Prerequisites 
+
+* You have created a repository. 
+
+.Procedure
+
+. On the *Repositories* page of the {productname} 3.8 beta UI, click the name of the image you want to delete, for example, `quay/admin/busybox`. 
+
+. Click the *More Actions* drop-down menu. 
+
+. Click *Delete*. 
++
+[NOTE]
+====
+If desired, you could click *Make Public* or *Make Private*. 
+====
+
+. Type *confirm* in the box, and then click *Delete*. 
+
+. After deletion, you are returned to the *Repositories* page. 
+
+==== Pushing an image to the {productname} 3.8 beta UI
+
+Use the following procedure to push an image to the {productname} 3.8 beta UI.
+
+.Procedure
+
+. Pull a sample image from an external registry: 
++
+[source,terminal]
+----
+$ podman pull busybox
+----
+
+. Tag the image:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
+----
+
+. Push the image to your {productname} registry:
++
+[source,terminal]
+----
+$ podman push quay-server.example.com/quayadmin/busybox:test
+----
+
+. Navigate to the *Repositories* page on the {productname} UI and ensure that your image has been properly pushed. 
+
+. You can check the security details by selecting your image tag, and then navigating to the *Security Report* page. 
+
+==== Deleting an image using the {productname} 3.8 beta UI
+
+Use the following procedure to delete an image using the{productname} 3.8 beta UI.
+
+.Prerequisites 
+
+* You have pushed an image to your {productname} registry. 
+
+.Procedure 
+
+. On the *Repositories* page of the {productname} 3.8 beta UI, click the name of the image you want to delete, for example, `quay/admin/busybox`. 
+
+. Click the *More Actions* drop-down menu. 
+
+. Click *Delete*. 
++
+[NOTE]
+====
+If desired, you could click *Make Public* or *Make Private*. 
+====
+
+. Type *confirm* in the box, and then click *Delete*. 
+
+. After deletion, you are returned to the *Repositories* page. 
+
+==== Viewing an image for vulnerabilities 
+
+Use the following procedure to view the list of vulnerabilities for a scanned image. 
+
+.Prerequisites 
+
+* You have manually deployed Clair. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#clair-standalone[Setting up Clair on a non-OpenShift Red Hat Quay deployment].
+
+.Procedure 
+
+. Pull a sample image from an external registry: 
++
+[source,terminal]
+----
+$ podman pull clair:4.2.3
+----
+
+. Tag the image:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox quay-server.example.com/quayadmin/clair:4.2.3:test
+----
+
+. Push the image to your {productname} registry:
++
+[source,terminal]
+----
+$ podman push quay-server.example.com/quayadmin/clair:4.2.3:test
+----
+
+. In the navigation pane of your {productname} deployment, click *Repositories*. 
+
+. Click the name of your repository, for example, *quayadmin/clair:4.2.3*. 
+
+. Click the name of your tag, for example, *test*. 
+
+. Click *Security Report*. 
+
+=== Enabling the {productname} legacy UI
+
+. In the navigation pane of your {productname} deployment, you are given the option to toggle between *Current UI* and *New UI*. Click the toggle button to set it to *Current UI*. 
++
+image:38-ui-toggle.png[{productname} 3.8 UI toggle]
+
+[[leveraging-storage-quota-limits]]
+
+=== Leveraging storage quota limits in proxy organizations 
+With {productname} 3.8, the proxy cache feature has been enhanced with an auto-pruning feature for tagged images. The auto-pruning of image tags is only available when a proxied namespace has quota limitations configured. Currently, if an image size is greater than quota for an organization, the image is skipped from being uploaded until an administrator creates the necessary space. Now, when an image is pushed that exceeds the allotted space, the auto-pruning enhancement marks the least recently used tags for deletion. As a result, the new image tag is stored, while the least used image tag is marked for deletion. 
+
+[IMPORTANT]
+====
+* As part of the auto-pruning feature, the tags that are marked for deletion are eventually garbage collected by the garbage collector (gc) worker process. As a result, the quota size restriction is not fully enforced during this period. 
+* Currently, the namespace quota size computation does not take into account the size for manifest child. This is a known issue and will be fixed in a future version of {productname}. 
+====
+
+=== Testing the storage quota limits feature in proxy organizations 
+
+Use the following procedure to test the auto-pruning feature of an organization with proxy cache and storage quota limitations enabled.
+
+.Prerequisites 
+
+* Your organization is configured to serve as a proxy organization. The following example proxies from quay.io. 
+
+* `FEATURE_PROXY_CACHE` is set to `true` in your `config.yaml` file. 
+
+* `FEATURE_QUOTA_MANAGEMENT` is set to `true` in your `config.yaml` file. 
+
+* Your organization is configured with a quota limit, for example, `150 MB`. 
+
+.Procedure 
+
+. Pull an image to your repository from your proxy organization, for example:
++
+----
+$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.7.9
+----
+
+. Depending on the space left in your repository, you might need to pull additional images from your proxy organization, for example:
++
+----
+$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.6.2
+----
+
+. In the {productname} registry UI, click the name of your repository.
+
+* Click *Tags* in the navigation pane and ensure that `quay:3.7.9` and `quay:3.6.2` are tagged. 
+
+. Pull the last image that will result in your repository exceeding the the allotted quota, for example:
++
+----
+$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.5.1
+----
+
+. Refresh the *Tags* page of your {productname} registry. The first image that you pushed, for example, `quay:3.7.9` should have been auto-pruned. The *Tags* page should now show `quay:3.6.2` and `quay:3.5.1`. 
