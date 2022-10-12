@@ -14,7 +14,7 @@ The following updates have been made to {productname}, Clair, and Quay Builders:
 .Network protocol support
 [cols="2,1,1",options="header"]
 |===============================================================
-| Protocol family           | {productname} 3.7  | {productname} 3.8
+| Protocol family           | {productname} 3.7   | {productname} 3.8
 | IPv4                      | &#10003;            | &#10003;
 | IPv6                      |                     | &#10003;
 | Dual stack (IPv4/IPv6)    |                     | &#10003;
@@ -29,6 +29,24 @@ With {productname} 3.8, {productname} has been upgraded to use Go version 1.17. 
 +
 For more information, see link:https://issues.redhat.com/browse/PROJQUAY-1605[PROJQUAY-1605]. 
 
+* The following enhancements have been made to the {productname} proxy cache feature: 
+
+** Previously, the cache of a proxy organization with quota management enabled could reach full capacity. As a result, pulls for new images could be prevented until an administrator cleaned up the cached images. 
++
+With this update, {productname} administrators can now use the storage quota of an organization to limit the cache size. Limiting the cache size ensures that backend storage consumption remains predictable by discarding images from the cache according to the pull frequency or overall usage of an image. As a result, the storage size allotted by quota management always stays within its limits. 
++
+For more information, see https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/use_red_hat_quay#proxy-cache-leveraging-storage-quota-limits[Leveraging storage quota limits in proxy organizations].
+
+==== New {productname} configuration fields 
+
+* The following configuration field has been added to test {productname}'s new user interface:
+
+** **FEATURE_UI_V2**: With this configuration field, users can test the beta UI environment. 
++
+*Default*: `true`
++
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#reference-miscellaneous-v2-ui[FEATURE_UI_V2].
+
 * The following configuration fields have been added to enhance the {productname} registry: 
 
 ** **FEATURE_LISTEN_IP_VERSION**: This configuration field allows users to set the protocol family to IPv4, IPv6, or dual-stack. This configuration field might be properly set, otherwise {productname} fails to start. 
@@ -37,21 +55,7 @@ For more information, see link:https://issues.redhat.com/browse/PROJQUAY-1605[PR
 +
 *Additional configurations*: `IPv6`, `dual-stack`
 +
-For more information, see xref:enabling-ipv6-dual-stack[IPv6 Support]. 
-
-* The following enhancements have been made to the {productname} proxy cache feature: 
-
-** Previously, the cache of a proxy organization with quota management enabled could reach full capacity. As a result, pulls for new images could be prevented until an administrator cleaned up the cached images. 
-+
-With this update, {productname} administrators can now use the storage quota of an organization to limit the cache size. Limiting the cache size ensures that backend storage consumption remains predictable by discarding images from the cache according to the pull frequency or overall usage of an image. As a result, the storage size allotted by quota management always stays within its limits. 
-+
-For more information, see xref:leveraging-storage-quota-limits[Leveraging storage quote limits]. 
-
-* The following configuration fields have been added to enhance the superuser role: 
-
-** **FEATURE_SUPERUSERS_FULL_ACCESS**: This configuration field grants superusers the ability to read, write, and delete content from other repositories in namespaces that they do not own or have explicit permissions for. 
-
-* **GLOBAL_READONLY_SUPER_USERS**: This configuration field grants users of this list read access to all repositories, regardless of whether they are public repositories. 
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-ipv6-dual-stack[Enabling the FEATURE_LISTEN_IP_VERSION configuration field on standalone {productname} deployments]. 
 
 * The following enhancements have been made to Lightweight Directory Access Protocol (LDAP): 
 
@@ -59,38 +63,40 @@ For more information, see xref:leveraging-storage-quota-limits[Leveraging storag
 +
 With this field, administrators can add or remove superusers without having to update the {productname} configuration file and restart their deployment. 
 +
-For more information, see xref:enabling-ldap-super-users[Enabling LDAP superusers for {productname}].
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-ldap-super-users[Enabling the LDAP_SUPERUSER_FILTER configuration field].
 
 * **LDAP_RESTRICTED_USER_FILTER**: This configuration field is a subset of the `LDAP_USER_FILTER` configuration field. When configured, allows {productname} administrators the ability to configure Lightweight Directory Access Protocol (LDAP) users as restricted users when {productname} uses LDAP as its authentication provider.
 +
-For more information, see 
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-ldap-restricted-users[LDAP_RESTRICTED_USER_FILTER]. 
+
+* The following configuration fields have been added to enhance the superuser role: 
+
+** **FEATURE_SUPERUSERS_FULL_ACCESS**: This configuration field grants superusers the ability to read, write, and delete content from other repositories in namespaces that they do not own or have explicit permissions for. 
++
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-superusers-full-access[FEATURE_SUPERUSERS_FULL_ACCESS].
+
+* **GLOBAL_READONLY_SUPER_USERS**: This configuration field grants users of this list read access to all repositories, regardless of whether they are public repositories. 
++
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-global-readonly-super-users[GLOBAL_READONLY_SUPER_USERS]. 
 
 * The following configuration fields have been added for user permissions: 
 
 ** **FEATURE_RESTRICTED_USERS**: This configuration field restricts normal users from reading and writing content and creating organizations. 
 +
-For more information, see
-
-** **RESTRICTED_USERS_WHITELIST**: With this configuration field enabled, administrators can exclude users from the `FEATURE_RESTRICTED_USERS` setting. 
-+
-For more information, see
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-superusers-full-access[FEATURE_RESTRICTED_USERS].
 
 ** **RESTRICTED_USER_READ_ONLY**: When set, restrict users to read-only operations unless otherwise specified in `RESTRICTED_USERS_WHITELIST`. 
 +
-For more information, see
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-restricted-users-read-only[RESTRICTED_USER_READ_ONLY]. 
 
-* The following configuration field has been added to test {productname}'s new user interface:
-
-** **FEATURE_UI_V2**: With this configuration field, users can test the beta UI environment. 
+** **RESTRICTED_USERS_WHITELIST**: With this configuration field enabled, administrators can exclude users from the `FEATURE_RESTRICTED_USERS` setting. 
 +
-*Default*: `true`
-+
-For more information, see xref:enabling-ui-v2[Enabling and testing FEATURE_UI_V2].
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-restricted-users-whitelist[RESTRICTED_USERS_WHITELIST]. 
 
 [id="known-issues-and-limitations-38"]
 === {productname} 3.8 known issues and limitations 
 
-[id="known-issues-38]
+[id="known-issues-38"]
 ==== Known issues:
 
 * The `metadata_json` column in the `logentry3` table on MySQL deployments has a limited size of `TEXT`. Currently, the default size of the column set to be `TEXT` is 65535 bytes. 65535 bytes is not big enough for some mirror logs when debugging is turned `off`. When a statement containing `TEXT` larger than 65535 bytes is sent to MySQL, the data sent is truncated to fit into the 65535 boundary. Consequently, this creates issues when the `metadata_json` object is decoded, and the decode fails because the string is not terminated properly. As a result, {productname} returns a 500 error.
@@ -112,7 +118,7 @@ For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4470[PR
 
 * Currently, OpenShift Data Foundations (ODF) is unsupported when {productname} is deployed on IPv6 single stack environments. As a result, ODF cannot be used in IPv6 environments. This limitation is scheduled to be fixed in a future version of OpenShift Data Foundations. 
 
-* Currently, dual stack support does not work on {productname} {ocp} deployments. When {productname} 3.8 is deployed on {ocp} with dual-stack (IPv4 and IPv6) support enabled, the Quay Route generated by the {productname} Operator only generates an IPv4 address, and not an IPv6 address. As a result, clients with an IPv6 address cannot access the {productname} application on {ocp}. This limitation is scheduled to be fixed in a future version of {ocp}. 
+* Currently, IPv6 and dual-stack (IPv4 and IPv6) support does not work on {productname} {ocp} deployments. When {productname} 3.8 is deployed on {ocp} with IPv6 and dual-stack support enabled, the Quay Route generated by the {productname} Operator only generates an IPv4 address, and not an IPv6 address. As a result, clients with an IPv6 address cannot access the {productname} application on {ocp}. This limitation is scheduled to be fixed in a future version of {ocp}. 
 
 [id="quay-operator-updates"]
 === {productname} Operator 
@@ -126,58 +132,58 @@ New features have been added to {productname}, some of which are currently in Te
 
 Some features available in previous releases have been deprecated or removed. Deprecated functionality is still included in {productname}, but is planned for removal in a future release and is not recommended for new deployments. For the most recent list of deprecated and removed functionality in {productname}, refer to Table 1.1. Additional details for more fine-grained functionality that has been deprecated and removed are listed after the table.
 
-//This will eventually expand to cover the latest three releases. Since this is the first TP tracker, it will include only 3.6.
+//Remove entries older than the latest three releases. 
 
 .Technology Preview tracker
 [cols="4,1,1,1",options="header"]
 |===
 |Feature | Quay 3.8 | Quay 3.7 |Quay 3.6
 
-| xref:enabling-ui-v2[FEATURE_UI_V2]
+| link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#reference-miscellaneous-v2-ui[FEATURE_UI_V2]
 | Technology Preview
 | -
 | -
 
-| xref:enabling-ipv6-dual-stack[IPv6 Support]
-| General Availability 
-| -
-| -
+| link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-ipv6-dual-stack[FEATURE_LISTEN_IP_VERSION]
+| General Availability
+|-
+|-
 
-| xref:enabling-ldap-super-users[LDAP_SUPERUSER_FILTER]
+| link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/manage_red_hat_quay/index#ldap-super-users-enabling[LDAP_SUPERUSER_FILTER]
 | General Availability 
 |-
 |- 
 
-| xref:enabling-ipv6-dual-stack[FEATURE_LISTEN_IP_VERSION]
-| General Availability
-|-
-|-
+| link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/manage_red_hat_quay/index#ldap-restricted-users-enabling[LDAP_RESTRICTED_USER_FILTER]
+| General Availability 
+| -
+| -
 
-| xref:enabling-superusers-full-access[FEATURE_SUPERUSERS_FULL_ACCESS]
+| link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-superusers-full-access[FEATURE_SUPERUSERS_FULL_ACCESS]
 | General Availability 
 |-
 |-
 
-| xref:enabling-feature-restricted-users[FEATURE_RESTRICTED_USERS]
-| General Availability 
-|-
-|-
-
-| xref:enabling-restricted-users-read-only[RESTRICTED_USERS_WHITELIST]
-| General Availability 
-|-
-|-
-
-| xref:enabling-restricted-users-whitelist[RESTRICTED_USER_READ_ONLY]
+| link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-global-readonly-super-users[GLOBAL_READONLY_SUPER_USERS]
 | General Availability
 | -
 | -
+
+| link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-superusers-full-access[FEATURE_RESTRICTED_USERS]
+| General Availability 
+|-
+|-
+
+| link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-restricted-users-read-only[RESTRICTED_USER_READ_ONLY]
+| General Availability
+| -
+| -
+
+| link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-restricted-users-whitelist[RESTRICTED_USERS_WHITELIST]
+| General Availability 
+|-
+|-
  
-| xref:enabling-global-readonly-super-users[**GLOBAL_READONLY_SUPER_USERS**]
-| General Availability
-| -
-| -
-
 
 |link:https://access.redhat.com//documentation/en-us/red_hat_quay/3.7/html-single/use_red_hat_quay#red-hat-quay-quota-management-and-enforcement[Quota management and enforcement]
 |General Availability
@@ -211,17 +217,17 @@ Some features available in previous releases have been deprecated or removed. De
 |General Availability
 |-
 
-|link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-helm-oci[FEATURE_HELM_OCI_SUPPORT]
+|link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/configure_red_hat_quay/index#config-fields-helm-oci[FEATURE_HELM_OCI_SUPPORT]
 |Deprecated
 |Deprecated
 |Deprecated
 
-|link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-ui-database[MySQL and MariaDB database support]
+|link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/configure_red_hat_quay/index#config-ui-database[MySQL and MariaDB database support]
 |Deprecated
 |Deprecated
 |Deprecated
 
-|link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#oci-intro[Open Container Initiative (OCI) Media types]
+|link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/use_red_hat_quay/index#oci-intro[Open Container Initiative (OCI) Media types]
 |General Availability
 |General Availability
 |General Availability

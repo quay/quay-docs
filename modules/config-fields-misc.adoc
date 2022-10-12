@@ -51,4 +51,201 @@
  +
 **Default:** False
 | **NON_RATE_LIMITED_NAMESPACES**  | Array of String | If rate limiting has been enabled using `FEATURE_RATE_LIMITS`,  you can override it for specific namespace that require unlimited access.
+
+| xref:reference-miscellaneous-v2-ui[**FEATURE_UI_V2**] | Boolean | When set, allows users to try the beta UI environment. 
+
+*Default:* `True`
 |===
+
+[id="miscellaneous-config-field-reference"]
+== Miscellaneous configuration field references 
+
+Use the following references to update your `config.yaml` file with the desired configuration field. 
+
+[id="reference-miscellaneous-v2-ui"]
+=== v2 user interface configuration
+
+With `FEATURE_UI_V2` enabled, you can toggle between the current version of the user interface and the new version of the user interface. 
+
+[IMPORTANT]
+====
+* This UI is currently in beta and subject to change. In its current state, users can only create, view, and delete organizations, repositories, and image tags. 
+* When running {productname} in the old UI, timed-out sessions would require that the user input their password again in the pop-up window. With the new UI, users are returned to the main page and required to input their username and password credentials. This is a known issue and will be fixed in a future version of the new UI. 
+* There is a discrepancy in how image manifest sizes are reported between the legacy UI and the new UI. In the legacy UI, image manifests were reported in mebibytes. In the new UI, {productname} uses the standard definition of megabyte (MB) to report image manifest sizes. 
+====
+
+.Procedure 
+
+. In your deployment's `config.yaml` file, add the `FEATURE_UI_V2` parameter and set it to `true`, for example: 
++
+[source,yaml]
+----
+---
+FEATURE_TEAM_SYNCING: false
+FEATURE_UI_V2: true
+FEATURE_USER_CREATION: true
+---
+----
+
+. Log in to your {productname} deployment. 
+
+. In the navigation pane of your {productname} deployment, you are given the option to toggle between *Current UI* and *New UI*. Click the toggle button to set it to new UI, and then click *Use Beta Environment*, for example: 
++
+image:38-ui-toggle.png[{productname} 3.8 UI toggle]
+
+[id="creating-new-organization-v2-ui"]
+==== Creating a new organization in the {productname} 3.8 beta UI 
+
+.Prerequisites 
+
+* You have toggled your {productname} deployment to use the 3.8 beta UI. 
+
+Use the following procedure to create an organization using the {productname} 3.8 beta UI.
+
+.Procedure 
+
+. Click *Organization* in the navigation pane. 
+
+. Click *Create Organization*.
+
+. Enter an *Organization Name*, for example, `testorg`. 
+
+. Click *Create*. 
+
+Now, your example organization should populate under the *Organizations* page. 
+
+[id="deleting-organization-v2"]
+==== Deleting an organization using the {productname} 3.8 beta UI
+
+Use the following procedure to delete an organization using the {productname} 3.8 beta UI.
+
+.Procedure 
+
+. On the *Organizations* page, select the name of the organization you want to delete, for example, `testorg`.
+
+. Click the *More Actions* drop down menu. 
+
+. Click *Delete*. 
++
+[NOTE]
+====
+On the *Delete* page, there is a *Search* input box. With this box, users can search for specific organizations to ensure that they are properly scheduled for deletion. For example, if a user is deleting 10 organizations and they want to ensure that a specific organization was deleted, they can use the *Search* input box to confirm said organization is marked for deletion. 
+====
+
+. Confirm that you want to permanently delete the organization by typing *confirm* in the box. 
+
+. Click *Delete*. 
+
+After deletion, you are returned to the *Organizations* page. 
+
+[NOTE]
+====
+You can delete more than one organization at a time by selecting multiple organizations, and then clicking *More Actions* -> *Delete*. 
+====
+
+[id="creating-new-repository-v2"]
+==== Creating a new repository using the {productname} 3.8 beta UI
+
+Use the following procedure to create a repository using the {productname} 3.8 beta UI.
+
+.Procedure
+
+. Click *Repositories* on the navigation pane. 
+
+. Click *Create Repository*. 
+
+. Select a namespace, for example, *quayadmin*, and then enter a *Repository name*, for example, `testrepo`. 
+
+. Click *Create*. 
+
+Now, your example repository should populate under the *Repositories* page. 
+
+[id="deleting-repository-v2"]
+==== Deleting a repository using the {productname} 3.8 beta UI
+
+.Prerequisites 
+
+* You have created a repository. 
+
+.Procedure
+
+. On the *Repositories* page of the {productname} 3.8 beta UI, click the name of the image you want to delete, for example, `quay/admin/busybox`. 
+
+. Click the *More Actions* drop-down menu. 
+
+. Click *Delete*. 
++
+[NOTE]
+====
+If desired, you could click *Make Public* or *Make Private*. 
+====
+
+. Type *confirm* in the box, and then click *Delete*. 
+
+. After deletion, you are returned to the *Repositories* page. 
+
+[id="pushing-image-v2"]
+==== Pushing an image to the {productname} 3.8 beta UI
+
+Use the following procedure to push an image to the {productname} 3.8 beta UI.
+
+.Procedure
+
+. Pull a sample image from an external registry: 
++
+[source,terminal]
+----
+$ podman pull busybox
+----
+
+. Tag the image:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
+----
+
+. Push the image to your {productname} registry:
++
+[source,terminal]
+----
+$ podman push quay-server.example.com/quayadmin/busybox:test
+----
+
+. Navigate to the *Repositories* page on the {productname} UI and ensure that your image has been properly pushed. 
+
+. You can check the security details by selecting your image tag, and then navigating to the *Security Report* page. 
+
+[id="deleting-image-v2"]
+==== Deleting an image using the {productname} 3.8 beta UI
+
+Use the following procedure to delete an image using the{productname} 3.8 beta UI.
+
+.Prerequisites 
+
+* You have pushed an image to your {productname} registry. 
+
+.Procedure 
+
+. On the *Repositories* page of the {productname} 3.8 beta UI, click the name of the image you want to delete, for example, `quay/admin/busybox`. 
+
+. Click the *More Actions* drop-down menu. 
+
+. Click *Delete*. 
++
+[NOTE]
+====
+If desired, you could click *Make Public* or *Make Private*. 
+====
+
+. Type *confirm* in the box, and then click *Delete*. 
+
+. After deletion, you are returned to the *Repositories* page. 
+
+[id="enabling-legacy-ui"]
+==== Enabling the {productname} legacy UI
+
+. In the navigation pane of your {productname} deployment, you are given the option to toggle between *Current UI* and *New UI*. Click the toggle button to set it to *Current UI*. 
++
+image:38-ui-toggle.png[{productname} 3.8 UI toggle]
+ 
