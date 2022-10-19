@@ -9,7 +9,7 @@ Issued 2022-10-24
 
 The following updates have been made to {productname}, Clair, and Quay Builders: 
 
-* Previously, {productname} only supported the IPv4 protocol family. IPv6 support is now available in {productname} {producty} standalone deployments. Additionally, dual stack (IPv4/IPv6) support is available. 
+* Previously, {productname} only supported the IPv4 protocol family. IPv6 support is now available in {productname} {producty} standalone deployments. Additionally, dual-stack (IPv4/IPv6) support is available. 
 +
 .Network protocol support
 [cols="2,1,1",options="header"]
@@ -17,11 +17,13 @@ The following updates have been made to {productname}, Clair, and Quay Builders:
 | Protocol family           | {productname} 3.7   | {productname} 3.8
 | IPv4                      | &#10003;            | &#10003;
 | IPv6                      |                     | &#10003;
-| Dual stack (IPv4/IPv6)    |                     | &#10003;
+| Dual-stack (IPv4/IPv6)    |                     | &#10003;
 
 |===============================================================
 +
 For more information, see link:https://issues.redhat.com/browse/PROJQUAY-272[PROJQUAY-272]. 
++
+For a list of known limitations, see xref:ipv6-limitations-38[IPv6 and dual-stack limitations]. 
 
 * Previously, {productname} did not require self-signed certificates to use Subject Alternative Names (SANs). {productname} users could temporarily enable Common Name matching with `GODEBUG=x509ignoreCN=0` to bypass the required certificate. 
 +
@@ -37,7 +39,7 @@ With this update, {productname} administrators can now use the storage quota of 
 +
 For more information, see https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/use_red_hat_quay#proxy-cache-leveraging-storage-quota-limits[Leveraging storage quota limits in proxy organizations].
 
-* Previously, when mirroring a repository, an image with the `latest` tag must have existed in the remote repository. This requirement has been removed. Now, an image with the `latest` tag is no longer required, and you do not need to specify an existing tag explicitly. 
+** Previously, when mirroring a repository, an image with the `latest` tag must have existed in the remote repository. This requirement has been removed. Now, an image with the `latest` tag is no longer required, and you do not need to specify an existing tag explicitly. 
 +
 For more information on this update, see link: https://issues.redhat.com/browse/PROJQUAY-2179[PROJQUAY-2179]. 
 +
@@ -74,7 +76,7 @@ When adding OCI media types that are not configured by default, users will also 
 
 ** **FEATURE_UI_V2**: With this configuration field, users can test the beta UI environment. 
 +
-*Default*: `true`
+*Default*: `False`
 +
 For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#reference-miscellaneous-v2-ui[FEATURE_UI_V2].
 
@@ -116,13 +118,34 @@ For more information, see link:https://access.redhat.com/documentation/en-us/red
 +
 For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-superusers-full-access[FEATURE_RESTRICTED_USERS].
 
-** **RESTRICTED_USER_READ_ONLY**: When set, restrict users to read-only operations unless otherwise specified in `RESTRICTED_USERS_WHITELIST`. 
+** **RESTRICTED_USER_READ_ONLY**: When set, restricts users to read-only operations unless otherwise specified in `RESTRICTED_USERS_WHITELIST`. 
 +
 For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-restricted-users-read-only[RESTRICTED_USER_READ_ONLY]. 
 
 ** **RESTRICTED_USERS_WHITELIST**: With this configuration field enabled, administrators can exclude users from the `FEATURE_RESTRICTED_USERS` setting. 
 +
 For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/configure_red_hat_quay/index#enabling-restricted-users-whitelist[RESTRICTED_USERS_WHITELIST]. 
+
+[id="quay-operator-updates"]
+=== {productname} Operator 
+
+The following updates have been made to the {productname} Operator: 
+
+* Previously, the {productname} Operator only supported the IPv4 protocol family. IPv6 support is now available in {productname} {producty} Operator deployments. 
++
+.Network protocol support
+[cols="1,1,1",options="header"]
+|===============================================================
+| Protocol family           | {productname} 3.7 Operator   | {productname} 3.8 Operator
+| IPv4                      | &#10003;                     | &#10003;
+| IPv6                      |                              | &#10003;
+| Dual-stack (IPv4/IPv6)    |                              |
+
+|===============================================================
++
+For more information, see link:https://issues.redhat.com/browse/PROJQUAY-272[PROJQUAY-272]. 
++
+For a list of known limitations, see xref:ipv6-limitations-38[IPv6 and dual-stack limitations]. 
 
 [id="known-issues-and-limitations-38"]
 === {productname} 3.8 known issues and limitations 
@@ -142,11 +165,10 @@ For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4588[PR
 
 * There is a known issue when using the `FEATURE_SUPERUSERS_FULL_ACCESS` configuration field with the {productname} UI v2. When this field is set, all superuser actions on tenant content should be audited. Currently, when a superuser deletes an existing organization that is owned by a normal user, there is no way to audit that operation. This will be fixed in a future version of {productname}.
 
-* When running {productname} in the old UI, timed-out sessions would require that the user input their password again in the pop-up window. With the new UI, users are returned to the main page and required to input their username and password credentials. This is a known issue and will be fixed in a future version of the new UI. 
-
+* When running {productname} in the old UI, timed-out sessions would require that a superuser input their password again in the pop-up window. With the new UI, superusers are returned to the main page and required to input their username and password credentials. This is a known issue and will be fixed in a future version of the new UI. 
 
 [id="ipv6-limitations-38"]
-==== IPv6 limitations: 
+==== IPv6 and dual-stack limitations: 
 
 * Currently, attempting to configure your {productname} deployment with the common Azure Blob Storage configuration will not work on IPv6 single stack environments. Because the endpoint of Azure Blob Storage does not support IPv6, there is no workaround in place for this issue.
 +
@@ -158,12 +180,7 @@ For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4470[PR
 
 * Currently, OpenShift Data Foundations (ODF) is unsupported when {productname} is deployed on IPv6 single stack environments. As a result, ODF cannot be used in IPv6 environments. This limitation is scheduled to be fixed in a future version of OpenShift Data Foundations. 
 
-* Currently, IPv6 and dual-stack (IPv4 and IPv6) support does not work on {productname} {ocp} deployments. When {productname} 3.8 is deployed on {ocp} with IPv6 and dual-stack support enabled, the Quay Route generated by the {productname} Operator only generates an IPv4 address, and not an IPv6 address. As a result, clients with an IPv6 address cannot access the {productname} application on {ocp}. This limitation is scheduled to be fixed in a future version of {ocp}. 
-
-[id="quay-operator-updates"]
-=== {productname} Operator 
-
-The following updates have been made to the {productname} Operator: 
+* Currently, dual-stack (IPv4 and IPv6) support does not work on {productname} {ocp} deployments. When {productname} 3.8 is deployed on {ocp} with dual-stack support enabled, the Quay route generated by the {productname} Operator only generates an IPv4 address, and not an IPv6 address. As a result, clients with an IPv6 address cannot access the {productname} application on {ocp}. This limitation is scheduled to be fixed in a future version of {ocp}. 
 
 [id="quay-feature-tracker"]
 === {productname} feature tracker
