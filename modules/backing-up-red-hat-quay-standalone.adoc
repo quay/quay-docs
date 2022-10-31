@@ -1,0 +1,137 @@
+:_content-type: PROCEDURE
+[[backing-up-red-hat-quay-standalone]]
+= Backing up {productname} on standalone deployments 
+
+This procedure describes how to create a backup of {productname} on standalone deployments. 
+
+.Prerequisites
+
+.Procedure 
+
+. Create a temporary backup directory, for example, `quay-backup`: 
++
+[source,terminal]
+----
+$ mkdir /tmp/quay-backup
+----
+
+. The following example command denotes the local directory that the {productname} was started in, for example, `/opt/quay-install`: 
++
+[source,terminal]
+----
+$ podman run --name quay-app \
+   -v /opt/quay-install/config:/conf/stack:Z \
+   -v /opt/quay-install/storage:/datastorage:Z \
+   {productrepo}/{quayimage}:{productminv}
+----
++
+Change into the directory that bind-mounts to `/conf/stack` inside of the container, for example, `/opt/quay-install`, by running the following command: 
++
+[source,terminal]
+----
+$ cd /opt/quay-install
+----
+
+. Compress the contents of your {productname} deployment into an archive in the `quay-backup` directory by entering the following command: 
++
+[source,terminal]
+----
+$ tar cvf /tmp/quay-backup/quay-backup.tar.gz *
+----
++
+Example output:
++
+[source,terminal]
+----
+config.yaml
+config.yaml.bak
+extra_ca_certs/
+extra_ca_certs/ca.crt
+ssl.cert
+ssl.key
+----
+
+. Back up the Quay container service by entering the following command: 
++
+[source,terminal]
+----
+$ podman inspect quay-app | jq -r '.[0].Config.CreateCommand | .[]' | paste -s -d ' ' -
+
+  /usr/bin/podman run --name quay-app \
+  -v /opt/quay-install/config:/conf/stack:Z \
+  -v /opt/quay-install/storage:/datastorage:Z \
+  {productrepo}/{quayimage}:{productminv}
+----
+
+. Redirect the contents of your `conf/stack/config.yaml` file to your temporary `quay-config.yaml` file by entering the following command: 
++
+[source,terminal]
+----
+$ podman exec -it quay cat /conf/stack/config.yaml > /tmp/quay-backup/quay-config.yaml 
+----
+
+. Obtain the `DB_URI` located in your temporary `quay-config.yaml` by entering the following command:
++
+[source,terminal]
+----
+$ grep DB_URI /tmp/quay-backup/quay-config.yaml
+----
++
+Example output:
++
+----
+$ postgresql://<username>:test123@172.24.10.50/quay
+----
+
+. Extract the PostgreSQL contents to your temporary backup directory in a backup .sql file by entering the following command:
++
+[source,terminal]
+----
+$ pg_dump -h 172.24.10.50  -p 5432 -d quay  -U  <username>   -W -O > /tmp/quay-backup/quay-backup.sql
+----
+
+. Print the contents of your `DISTRIBUTED_STORAGE_CONFIG` by entering the following command: 
++
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - S3Storage
+    - s3_bucket: <bucket_name>
+      storage_path: /registry 
+      s3_access_key: <s3_access_key>
+      s3_secret_key: <s3_secret_key>
+      host: <host_name>
+----
+
+. Export the `AWS_ACCESS_KEY_ID` by using the `access_key` credential obtained in Step 7:
++
+[source,terminal]
+----
+$ export AWS_ACCESS_KEY_ID=<access_key> 
+----
+
+. Export the `AWS_SECRET_ACCESS_KEY` by using the `secret_key` obtained in Step 7:
++
+[source,terminal]
+----
+$ export AWS_SECRET_ACCESS_KEY=<secret_key>
+----
+
+. Sync the `quay` bucket to the `/tmp/quay-backup/blob-backup/` directory from the `hostname` of your `DISTRIBUTED_STORAGE_CONFIG`:
++
+[source,terminal]
+----
+$ aws s3 sync s3://<bucket_name>  /tmp/quay-backup/blob-backup/ --source-region us-east-2
+----
++
+Example output:
++
+----
+download: s3://<user_name>/registry/sha256/9c/9c3181779a868e09698b567a3c42f3744584ddb1398efe2c4ba569a99b823f7a to registry/sha256/9c/9c3181779a868e09698b567a3c42f3744584ddb1398efe2c4ba569a99b823f7a
+download: s3://<user_name>/registry/sha256/e9/e9c5463f15f0fd62df3898b36ace8d15386a6813ffb470f332698ecb34af5b0d to registry/sha256/e9/e9c5463f15f0fd62df3898b36ace8d15386a6813ffb470f332698ecb34af5b0d
+----
+[NOTE]
+====
+It is recommended that you delete the `quay-config.yaml` file after syncing the `quay` bucket because it contains sensitive information. The `quay-config.yaml` file will not be lost because it is backed up in the `quay-backup.tar.gz` file. 
+====
