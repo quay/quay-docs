@@ -1,0 +1,238 @@
+:_content-type: PROCEDURE
+[[restoring-red-hat-quay-standalone]]
+= Restoring {productname} on standalone deployments 
+
+This procedure describes how to restore {productname} on standalone deployments. 
+
+.Prerequisites 
+
+* You have backed up your {productname} deployment. 
+
+.Procedure 
+
+. Create a new directory that will bind-mount to `/conf/stack` inside of the {productname} container:
++
+[source,terminal]
+----
+$ mkdir /opt/new-quay-install
+----
+
+. Copy the contents of your temporary backup directory created in xref:backing-up-red-hat-quay-standalone[Backing up {productname} on standalone deployments] to the `new-quay-install1` directory created in Step 1:
++
+[source,terminal]
+----
+$ cp /tmp/quay-backup/quay-backup.tar.gz /opt/new-quay-install/
+----
+
+. Change into the `new-quay-install` directory by entering the following command:
++
+[source,terminal]
+----
+$ cd /opt/new-quay-install/
+----
+
+. Extract the contents of your {productname} directory: 
++
+[source,terminal]
+----
+$ tar xvf /tmp/quay-backup/quay-backup.tar.gz *
+----
++
+Example output:
++
+----
+config.yaml
+config.yaml.bak
+extra_ca_certs/
+extra_ca_certs/ca.crt
+ssl.cert
+ssl.key
+----
+
+. Recall the `DB_URI` from your backed-up `config.yaml` file by entering the following command: 
++
+[source,terminal]
+----
+$ grep DB_URI config.yaml
+----
++
+Example output:
++
+[source,yaml]
+----
+postgresql://<username>:test123@172.24.10.50/quay
+----
+
+. Run the following command to enter the PostgreSQL database server: 
++
+[source,terminal]
+----
+$ sudo postgres 
+----
+
+. Enter psql and create a new database in 172.24.10.50 to restore the quay databases, for example, `example_restore_registry_quay_database`, by entering the following command:
++
+[source,terminal]
+----
+$ psql "host=172.24.10.50  port=5432 dbname=postgres user=<username>  password=test123"
+postgres=> CREATE DATABASE example_restore_registry_quay_database;
+----
++
+Example output:
++
+----
+CREATE DATABASE
+----
+
+. Connect to the database by running the following command:
++
+[source,terminal]
+----
+postgres=# \c "example-restore-registry-quay-database";
+----
++
+Example output:
++
+[source,terminal]
+----
+You are now connected to database "example-restore-registry-quay-database" as user "postgres".
+----
+
+. Create a `pg_trmg` extension of your Quay database by running the following command:
++
+[source,terminal]
+----
+example_restore_registry_quay_database=> CREATE EXTENSION IF NOT EXISTS pg_trgm;
+----
++
+Example output:
++
+[source,terminal]
+----
+CREATE EXTENSION
+----
+
+. Exit the postgres CLI by entering the following command: 
++
+[source,terminal]
+----
+\q
+----
+
+. Import the database backup to your new database by running the following command:
++
+[source,terminal]
+----
+$ psql "host=172.24.10.50 port=5432 dbname=example_restore_registry_quay_database user=<username> password=test123"  -W <  /tmp/quay-backup/quay-backup.sql
+----
++
+Example output:
++
+----
+SET
+SET
+SET
+SET
+SET
+----
++
+Update the value of `DB_URI` in your `config.yaml` from `postgresql://<username>:test123@172.24.10.50/quay` to `postgresql://<username>:test123@172.24.10.50/example-restore-registry-quay-database` before restarting the {productname} deployment.
++
+[NOTE]
+====
+The DB_URI format is `DB_URI postgresql://<login_user_name>:<login_user_password>@<postgresql_host>/<quay_database>`. If you are moving from one PostgreSQL server to another PostgreSQL server, update the value of `<login_user_name>`, `<login_user_password>` and `<postgresql_host>` at the same time.
+====
+
+
+
+. In the `/opt/new-quay-install` directory, print the contents of your `DISTRIBUTED_STORAGE_CONFIG` bundle:
++
+[source,terminal]
+----
+$ cat config.yaml | grep DISTRIBUTED_STORAGE_CONFIG -A10
+----
++
+Example output:
++
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - S3Storage
+    - s3_bucket: <bucket_name>
+      storage_path: /registry 
+      s3_access_key: <s3_access_key>
+      s3_secret_key: <s3_secret_key>
+      host: <host_name>
+----
++
+[NOTE]
+====
+Your `DISTRIBUTED_STORAGE_CONFIG` in `/opt/new-quay-install` must be updated before restarting your {productname} deployment. 
+====
+
+. Export the `AWS_ACCESS_KEY_ID` by using the `access_key` credential obtained in Step 13:
++
+[source,terminal]
+----
+$ export AWS_ACCESS_KEY_ID=<access_key> 
+----
+
+. Export the `AWS_SECRET_ACCESS_KEY` by using the `secret_key` obtained in Step 13:
++
+[source,terminal]
+----
+$ export AWS_SECRET_ACCESS_KEY=<secret_key>
+----
+
+. Create a new s3 bucket by entering the following command:
++
+[source,terminal]
+----
+$ aws s3 mb s3://<new_bucket_name>  --region us-east-2
+----
++
+Example output:
++
+[source,terminal]
+----
+$ make_bucket: quay
+----
+
+. Upload all blobs to the new s3 bucket by entering the following command: 
++
+[source,terminal]
+----
+$ aws s3 sync --no-verify-ssl \
+--endpoint-url <example_endpoint_url> <1>
+/tmp/quay-backup/blob-backup/. s3://quay/
+----
+<1> The {productname} registry endpoint must be the same before backup and after restore. 
++
+Example output: 
++
+[source,terminal]
+----
+upload: ../../tmp/quay-backup/blob-backup/datastorage/registry/sha256/50/505edb46ea5d32b5cbe275eb766d960842a52ee77ac225e4dc8abb12f409a30d to s3://quay/datastorage/registry/sha256/50/505edb46ea5d32b5cbe275eb766d960842a52ee77ac225e4dc8abb12f409a30d
+upload: ../../tmp/quay-backup/blob-backup/datastorage/registry/sha256/27/27930dc06c2ee27ac6f543ba0e93640dd21eea458eac47355e8e5989dea087d0 to s3://quay/datastorage/registry/sha256/27/27930dc06c2ee27ac6f543ba0e93640dd21eea458eac47355e8e5989dea087d0
+upload: ../../tmp/quay-backup/blob-backup/datastorage/registry/sha256/8c/8c7daf5e20eee45ffe4b36761c4bb6729fb3ee60d4f588f712989939323110ec to s3://quay/datastorage/registry/sha256/8c/8c7daf5e20eee45ffe4b36761c4bb6729fb3ee60d4f588f712989939323110ec
+...
+----
+
+. Before restarting your {productname} deployment, update the storage settings in your config.yaml:
++
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - S3Storage
+    - s3_bucket: <new_bucket_name>       
+      storage_path: /registry 
+      s3_access_key: <s3_access_key>
+      s3_secret_key: <s3_secret_key>
+      host: <host_name>
+----
