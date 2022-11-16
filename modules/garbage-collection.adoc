@@ -12,11 +12,21 @@ Currently, all garbage collection happens discreetly; there are no commands to m
 
 For namespace and repository garbage collection, the progress is tracked based on the size of their respective queues. Namespace and repository garbage collection workers require a global lock to work. As a result, and for performance reasons, only one worker runs at a time.
 
+[NOTE]
+====
+{productname} shares blobs between namespaces and repositories in order to conserve disk space. For example, if the same image is pushed 10 times, only one copy of that image will be stored. 
+
+It is possible that tags can share their layers with different images already stored somewhere in {productname}. In that case, blobs will stay in storage, because deleting shared blobs would make other images unusable. 
+
+Blob expiration is independent of the time machine. If you push a tag to {productname} and the time machine is set to 0 seconds, and then you delete a tag immediately, garbage collection deletes the tag and everything related to that tag, but will not delete the blob storage until the blob expiration time is reached. 
+====
+
 Garbage collecting tagged images works differently than garbage collection on namespaces or repositories. Rather than having a queue of items to work with, the garbage collection workers for tagged images actively search for a repository with inactive or expired tags to clean up. Each instance of garbage collection workers will grab a repository lock, which results in one worker per repository.
 
 [NOTE]
 ====
-In {productname}, inactive or expired tags are manifests without tags because the last tag was deleted or it expired. 
+* In {productname}, inactive or expired tags are manifests without tags because the last tag was deleted or it expired. The manifest stores information about how the image is composed and stored in the database for each individual tag. When a tag is deleted and the allotted time from *Time Machine* has been met, {productname} garbage collects the blobs that are not connected to any other manifests in the registry. If a particular blob is connected to a manifest, then it is preserved in storage and only its connection to the manifest that is being deleted is removed. 
+* Expired images will disappear after the allotted time, but are still stored in {productname}. The time in which an image is completely deleted, or  collected, depends on the *Time Machine* setting of your organization. The default time for garbage collection is 14 days unless otherwise specified. Until that time, tags can be pointed to an expired or deleted images. 
 ====
 
 For each type of garbage collection, {productname} provides metrics for the number of rows per table deleted by each garbage collection worker. The following image shows an example of how {productname} monitors garbage collection with the same metrics:
@@ -36,7 +46,7 @@ The `UploadedBlob` table in the {productname} metrics tracks the various blobs t
 
 The following configuration fields are available to customize what is garbage collected, and the frequency at which garbage collection occurs:
 
-[cols="4a,2a,2a",options="header"]
+[cols="3a,1a,2a",options="header"]
 |===
 |Name |Description |Schema
 | **FEATURE_GARBAGE_COLLECTION** | Whether garbage collection is enabled for image tags. Defaults to `true`. |Boolean
@@ -69,6 +79,40 @@ There is no command to manually run garbage collection. Instead, you would disab
 {productname} introduced quota management in 3.7. With quota management, users have the ability to report storage consumption and to contain registry growth by establishing configured storage quota limits.
 
 As of {productname} 3.7, garbage collection reclaims memory that was allocated to images, repositories, and blobs after deletion. Because the garbage collection feature reclaims memory after deletion, there is a discrepancy between what is stored in an environment's disk space and what quota management is reporting as the total consumption. There is currently no workaround for this issue.
+
+== Garbage collection in practice 
+
+Use the following procedure to check your {productname} logs to ensure that garbage collection is working. 
+
+.Procedure 
+
+. Enter the following command to ensure that garbage collection is properly working:
++
+[source,terminal]
+----
+$ sudo podman logs <container_id> 
+----
++
+Example output:
+[source,terminal]
+----
+gcworker stdout | 2022-11-14 18:46:52,458 [63] [INFO] [apscheduler.executors.default] Job "GarbageCollectionWorker._garbage_collection_repos (trigger: interval[0:00:30], next run at: 2022-11-14 18:47:22 UTC)" executed successfully
+----
+
+. Delete an image tag. 
+
+. Enter the following command to ensure that the tag was deleted: 
++
+[source,terminal]
+----
+$ podman logs quay-app
+----
++
+Example output:
+[source,terminal]
+----
+gunicorn-web stdout | 2022-11-14 19:23:44,574 [233] [INFO] [gunicorn.access] 192.168.0.38 - - [14/Nov/2022:19:23:44 +0000] "DELETE /api/v1/repository/quayadmin/busybox/tag/test HTTP/1.0" 204 0 "http://quay-server.example.com/repository/quayadmin/busybox?tab=tags" "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0"
+----
 
 == {productname} garbage collection metrics
 
