@@ -12,7 +12,6 @@ The Quay Operator should be installed and upgraded using the link:https://docs.o
 When the Quay Operator is installed via Operator Lifecycle Manager, it may be configured to support automatic or manual upgrades.  This option is shown on the *Operator Hub* page for the Quay Operator during installation.  It can also be found in the Quay Operator `Subscription` object via the `approvalStrategy` field.  Choosing `Automatic` means that your Quay Operator will automatically be upgraded whenever a new Operator version is released.  If this is not desirable, then the `Manual` approval strategy should be selected.
 ====
 
-
 == Upgrading the Quay Operator
 
 The standard approach for upgrading installed Operators on OpenShift is documented at link:https://docs.openshift.com/container-platform/4.7/operators/admin/olm-upgrading-operators.html[Upgrading installed Operators].
@@ -33,8 +32,9 @@ In some cases, {productname} supports direct, single-step upgrades from prior (N
 . 3.4.z -> 3.6.z
 . 3.4.z -> 3.7.z
 . 3.5.z -> 3.7.z
+. 3.7.z -> 3.8.z
 
-For users on standalone deployments of Quay wanting to upgrade to 3.7, see the link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#standalone_upgrade[Standalone upgrade] guide.
+For users on standalone deployments of Quay wanting to upgrade to 3.8, see the link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#standalone_upgrade[Standalone upgrade] guide.
 
 
 === Upgrading Quay
@@ -125,7 +125,6 @@ The list of Installed Operators provides a high-level summary of the current Qua
 
 image:installed-operators-list.png[Installed Operators]
 
-
 == Upgrading a QuayRegistry
 
 When the Quay Operator starts, it immediately looks for any `QuayRegistries` it can find in the namespace(s) it is configured to watch. When it finds one, the following logic is used:
@@ -133,60 +132,6 @@ When the Quay Operator starts, it immediately looks for any `QuayRegistries` it 
 * If `status.currentVersion` is unset, reconcile as normal.
 * If `status.currentVersion` equals the Operator version, reconcile as normal.
 * If `status.currentVersion` does not equal the Operator version, check if it can be upgraded. If it can, perform upgrade tasks and set the `status.currentVersion` to the Operator's version once complete. If it cannot be upgraded, return an error and leave the `QuayRegistry` and its deployed Kubernetes objects alone.
-
-== Enabling features in Quay 3.7
-
-=== Quota management configuration
-
-Quota management is now supported under the `FEATURE_QUOTA_MANAGEMENT` property and is turned off by default. To enable quota management, set the feature flag in your `config.yaml` to `true`:
-
-[source,yaml]
-----
-FEATURE_QUOTA_MANAGEMENT: true
-----
-
-=== Using {productname} to proxy a remote organization configuration
-
-Using {productname} to proxy a remote organization is now supported under the `FEATURE_PROXY_CACHE` property. To enable proxy cache, set the feature flag in your `confg.yaml` to `true`:
-
-[source,yaml]
-----
-FEATURE_PROXY_CACHE: true
-----
-
-=== {productname} build enhancements
-
-Builds can be run on virtualized platforms. Backwards compatibility to run previous build configurations are also available. To enable virtual builds, set the feature flag in your `config.yaml` to `true`:
-
-[source,yaml]
-----
-FEATURE_BUILD_SUPPORT: true
-----
-
-=== Geo-replication using the {productname} Operator
-
-Deployments of {productname} with geo-replication is now supported by Operator deployments. To enable geo-replication, set the feature flag in your `config.yaml` to `true`:
-
-[source,yaml]
-----
-FEATURE_STORAGE_REPLICATION: true
-----
-
-== Enabling features in Quay 3.6
-
-=== Console monitoring and alerting
-
-The support for monitoring Quay 3.6 in the OpenShift console requires that the Operator is installed in all namespaces. If you previously installed the Operator in a specific namespace, delete the Operator itself and reinstall it for all namespaces once the upgrade has taken place.
-
-=== OCI and Helm support
-
-Support for Helm and some OCI artifacts is now enabled by default in {productname} 3.6. If you want to explicitly enable the feature, for example, if you are upgrading from a version where it is not enabled by default, you need to reconfigure your Quay deployment to enable the use of OCI artifacts using the following properties:
-
-[source,yaml]
-----
-FEATURE_GENERAL_OCI_SUPPORT: true
-----
-
 
 == Upgrading a QuayEcosystem
 
