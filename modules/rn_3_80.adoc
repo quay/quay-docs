@@ -177,7 +177,49 @@ For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4588[PR
 
 * When `FEATURE_RESTRICTED_USERS` is set to `true`, superusers are unable to create new organizations. This is a known issue and will be fixed in a future version of {productname}. 
 
-* If `FEATURE_RESTRICTED_USERS` or `LDAP_RESTRICTED_USER_FILTER` are set with a user, for example, `user1`, and the same user is also a superuser, they will not be able to create new organizations. This is a known issue. The superuser configuration field should take precedence over the restricted user configuration, however this is also an invalid configuration. {productname} administrators should not set the same user as both a restricted user and a superuser. This will be fixed in a future version of {productname} so that the superuser configuration field takes precedence over the restricted user field
+* If `FEATURE_RESTRICTED_USERS` or `LDAP_RESTRICTED_USER_FILTER` are set with a user, for example, `user1`, and the same user is also a superuser, they will not be able to create new organizations. This is a known issue. The superuser configuration field should take precedence over the restricted user configuration, however this is also an invalid configuration. {productname} administrators should not set the same user as both a restricted user and a superuser. This will be fixed in a future version of {productname} so that the superuser configuration field takes precedence over the restricted user field.
+
+* After selecting *Enable Storage Replication* in the {productname} configuration editor and reconfiguring your {productname} deployment, the new `Quay` and `Mirror` pods fail to start. This error occurs because the `Quay` and `Mirror` pods rely on the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environment variable, which is now unsupported in {productname} {producty}. 
++
+As a temporary workaround, you must update the `QuayRegistry` `config.yaml` file manually to include the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environment variable, for example: 
++
+[source,yaml]
+----
+ spec:
+  components:
+    - kind: clair
+      managed: true
+    - kind: postgres
+      managed: true
+    - kind: objectstorage
+      managed: false
+    - kind: redis
+      managed: true
+    - kind: horizontalpodautoscaler
+      managed: true
+    - kind: route
+      managed: true
+    - kind: mirror
+      managed: true
+      overrides:
+        env:
+          - name: QUAY_DISTRIBUTED_STORAGE_PREFERENCE
+            value: local_us
+    - kind: monitoring
+      managed: false
+    - kind: tls
+      managed: true
+    - kind: quay
+      managed: true
+      overrides:
+        env:
+          - name: QUAY_DISTRIBUTED_STORAGE_PREFERENCE
+            value: local_us
+    - kind: clairpostgres
+      managed: true
+----
++
+This is a known issue and will be fixed in a future version of {productname}. 
 
 [id="ipv6-limitations-38"]
 ==== IPv6 and dual-stack limitations: 

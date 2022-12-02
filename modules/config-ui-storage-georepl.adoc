@@ -1,26 +1,35 @@
-[[config-ui-storage-georepl]]
+[id="enable-storage-replication-standalone"]
+
 = Enable storage replication - standalone Quay
 
-.  Scroll down to the section
-entitled `Registry Storage`.
-.  Click `Enable Storage Replication`.
-.  Add each of the storage engines to which data will be replicated.
-All storage engines to be used must be listed.
-.  If complete replication of all images to all storage engines is
-required, under each storage engine configuration click `Replicate to
-storage engine by default`. This will ensure that all images are
-replicated to that storage engine. To instead enable per-namespace
-replication, please contact support.
-.  When you are done, click `Save Configuration Changes`.
-Configuration changes will take effect the next time {productname} restarts.
+Use the following procedure to enable storage replication on {productname}. 
 
-.  After adding storage and enabling “Replicate to storage engine by default” for Georeplications, you need to sync existing image data across all storage.
-To do this, you need to `oc exec` (or docker/kubectl exec) into the container
-and run:
+.Procedure 
+
+. In your {productname} config editor, locate the *Registry Storage* section. 
+
+. Click *Enable Storage Replication*. 
+
+. Add each of the storage engines to which data will be replicated. All storage engines to be used must be listed. 
+
+. If complete replication of all images to all storage engines is required, click *Replicate to storage engine by default* under each storage engine configuration. This ensures that all images are replicated to that storage engine. 
 +
-```
+[NOTE]
+====
+To enable per-namespace replication, contact {productname} support. 
+====
+
+. When finished, click *Save Configuration Changes*. The configuration changes will take effect after {productname} restarts. 
+
+. After adding storage and enabling *Replicate to storage engine by default* for geo-replication, you must sync existing image data across all storage. To do this, you must `oc exec` (alternatively, `docker exec` or `kubectl exec`) into the container and enter the following commands:
++
+[source,terminal]
+----
 # scl enable python27 bash
 # python -m util.backfillreplication
-```
+----
 +
+[NOTE]
+====
 This is a one time operation to sync content after adding new storage.
+====
