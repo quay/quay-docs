@@ -1,50 +1,67 @@
-[[clair-disconnected]]
-= Configuring Clair for Disconnected Environments
+:_content-type: CONCEPT
+[id="configuring-clair-disconnected-environments"]
+= Configuring Clair for disconnected environments
 
-Clair utilizes a set of components called Updaters to handle the fetching and parsing of data from various vulnerability databases.  These Updaters are set up by default to pull vulnerability data directly from the internet and work out of the box.  For customers in disconnected environments without direct access to the internet this poses a problem.  Clair supports these environments through the ability to work with different types of update workflows that take into account network isolation.  Using the `clairctl` command line utility, any process can easily fetch Updater data from the internet via an open host, securely transfer the data to an isolated host, and then import the Updater data on the isolated host into Clair itself.
+Clair uses a set of components called `Updaters` to handle the fetching and parsing of data from various vulnerability databases. `Updaters` are set up by default to pull vulnerability data directly from the internet and work for immediate use. For customers in disconnected environments without direct access to the internet, this poses a problem. Clair supports these environments by working with different types of update workflows that take into account network isolation. Using the `clairctl` command line utility, any process can easily fetch `Updater` data from the internet by using an open host, securely transfer the data to an isolated host, and then import the `Updater` data on the isolated host into Clair itself. 
 
-The steps are as follows.
+[NOTE]
+====
+Clair enrichment data is currently unsupported in disconnected environments. 
+====
 
-. First ensure that your Clair configuration has disabled automated Updaters from running.
+Use the following procedure to configure Clair for a disconnected environment. 
+
+.Prerequisites 
+
+* You have installed the `clairctl` tool to be run as a binary, or by the Clair container image. 
+
+.Procedure
+
+. In your `config.yaml` file, set your Clair configuration to disable `Updaters` from running: 
 +
 .config.yaml
 [source,yaml]
 ----
 matcher:
   disable_updaters: true
-
 ----
 
-. Export out the latest Updater data to a local archive.  This requires the `clairctl` tool which can be run directly as a binary, or via the Clair container image.  Assuming your Clair configuration is in `/etc/clairv4/config/config.yaml`, to run via the container image:
+. Export the latest `Updater` data to a local archive. The following command assumes that your Clair configuration is in `/etc/clairv4/config/config.yaml`
 +
 [subs="verbatim,attributes"]
-```
+----
 $ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v /path/to/output/directory:/updaters:Z --entrypoint /bin/clairctl {productrepo}/{clairimage}:{productminv} --config /cfg/config.yaml export-updaters  /updaters/updaters.gz
-```
+----
 +
-Note that you need to explicitly reference the Clair configuration.  This will create the Updater archive in `/etc/clairv4/updaters/updaters.gz`.  If you want to ensure the archive was created without any errors from the source databases, you can supply the `--strict` flag to `clairctl`.  The archive file should be copied over to a volume that is accessible from the disconnected host running Clair.  From the disconnected host, use the same procedure now to import the archive into Clair.
+[NOTE]
+====
+You must explicitly reference the Clair configuration. This creates the `Updater` archive in `/etc/clairv4/updaters/updaters.gz`. To ensure that the archive was created without any errors from the source databases, you can use the `--strict` flag with `clairctl`. The archive file should be copied over to a volume that is accessible from the disconnected host running Clair. 
+====
+
+. From the disconnected host, use the following command to import the archive into Clair: 
 +
 [subs="verbatim,attributes"]
-```
+----
 $ podman run -it --rm -v /etc/clairv4/config:/cfg:Z -v /path/to/output/directory:/updaters:Z --entrypoint /bin/clairctl {productrepo}/{clairimage}:{productminv} --config /cfg/config.yaml import-updaters /updaters/updaters.gz
-```
+----
 
-
-
+[id="mapping-repositories-to-cpe-information"]
 == Mapping repositories to Common Product Enumeration (CPE) information
 
-Clair's RHEL scanner relies on a Common Product Enumeration (CPE) file to properly map RPM packages to the corresponding security data, in order to produce matching results. This file must be present, or access to the file must be allowed, for the scanner to properly process RPMs. If the file is not present, RPMs installed in the container images will not be scanned.
+Clair's {rhel} scanner relies on a Common Product Enumeration (CPE) file to properly map RPM packages to the corresponding security data to produce matching results. The CPE file must be present, or access to the file must be allowed, for the scanner to properly process RPM packages. If the file is not present, RPM packages installed in the container image will not be scanned. 
 
-Red Hat publishes the `repos2cep` JSON mapping file at link:https://www.redhat.com/security/data/metrics/repository-to-cpe.json[].
+* The `repos2cep` JSON mapping file is published at link:https://www.redhat.com/security/data/metrics/repository-to-cpe.json[Red Hat Repository-to-CPE JSON].
 
-Red Hat publishes the `name2repos` JSON mapping file at link:https://access.redhat.com/security/data/metrics/container-name-repos-map.json[]
+* The `name2repos` JSON mapping file is published at link:https://access.redhat.com/security/data/metrics/container-name-repos-map.json[Red Hat Name-to-Repos JSON]. 
+
+In addition to uploading CVE information to the database for disconnected Clair, you must also make the mapping file available locally: 
+
+* For standalone {productname} and Clair deployments, the mapping file must be loaded into the Clair pod. 
+* For Operator-based {productname} and Clair deployments, you must set the Clair component to `unamanged`. Then, Clair must be deployed manually, setting the configuration to load a local copy of the mapping file. 
 
 In addition to uploading CVE information to the database for disconnected Clair, you must also make the mapping file available locally:
 
-- For standalone Quay and Clair deployments, the mapping file must be loaded into the Clair pod.
-- For Operator-based deployments, you must set the Clair component to `unmanaged`. Then deploy Clair manually, setting the configuration to load a local copy of the mapping file.
-
-Use the `repo2cpe_mapping_file` field in the Clair configuration to specify the file:
+Use the `repo2cpe_mapping_file` field in your Clair configuration to specify the file, for example, 
 
 [source,yaml]
 ----
@@ -58,4 +75,4 @@ indexer:
         name2repos_mapping_file: /data/repo-map.json <1> 
 ----
 
-Further information is available from Red Hat at link:https://www.redhat.com/en/blog/how-accurately-match-oval-security-data-installed-rpms[How to accurately match OVAL security data to installed RPMs].
+For more information, see link:https://www.redhat.com/en/blog/how-accurately-match-oval-security-data-installed-rpms[How to accurately match OVAL security data to installed RPMs].
