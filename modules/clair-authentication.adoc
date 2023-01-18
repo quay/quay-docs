@@ -1,0 +1,31 @@
+// Module included in the following assemblies:
+//
+// clair/master.adoc
+
+:_content-type: CONCEPT
+[id="clair-authentication"]
+= Clair authentication
+
+In its current iteration, Clair v4 (Clair) handles authentication internally.
+
+[NOTE]
+====
+Previous versions of Clair used JWT Proxy to gate authentication.
+====
+
+Authentication is configured by specifying configuration objects underneath the `auth` key of the configuration. Multiple authentication configurations might be present, but they are used preferentially in the following order:
+
+. PSK. With this authentication configuration, Clair implements JWT-based authentication using a pre-shared key.
+
+. Configuration. For example:
++
+[source,yaml]
+----
+auth:
+  psk:
+    key: >-
+      MDQ4ODBlNDAtNDc0ZC00MWUxLThhMzAtOTk0MzEwMGQwYTMxCg==
+    iss: 'issuer'
+----
++
+In this configuration the `auth` field requires two parameters: `iss`, which is the issuer to validate all incoming requests, and `key`, which is a base64 coded symmetric key for validating the requests.

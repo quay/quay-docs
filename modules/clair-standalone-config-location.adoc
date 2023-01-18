@@ -1,13 +1,47 @@
-[[clair-standalone-config-location]]
-= Standalone Clair config
+// Module included in the following assemblies:
+//
+// clair/master.adoc
 
-For standalone Clair deployments, the config file is the one specified in CLAIR_CONF environment variable in the `podman run` command, for example:
+:_content-type: PROCEDURE
+[id="clair-standalone-config-location"]
+= Deploying a standalone Clair container for disconnected {ocp} clusters
 
+Use the following procedure to deploy a standalone Clair container for disconnected {ocp} clusters.
+
+.Prerequisites
+
+* You have installed the `clairctl` command line utility tool.
+
+.Procedure
+
+. Create a folder for your Clair configuration file, for example:
++
+[source,terminal]
+----
+$ mkdir /etc/clairv4/config/
+----
+
+. Create a Clair configuration file with the `disable_updaters` parameter set to `true`, for example:
++
+[source,yaml]
+----
+---
+indexer:
+  airgap: true
+---
+matcher:
+  disable_updaters: true
+---
+----
+
+. Start Clair by using the container image, mounting in the configuration from the file you created:
++
 [subs="verbatim,attributes"]
-....
-sudo podman run -d --rm --name clairv4 \
-  -p 8081:8081 -p 8089:8089 \
-  -e CLAIR_CONF=/clair/config.yaml -e CLAIR_MODE=combo \
-  -v /etc/clairv4/config:/clair:Z \
-  {productrepo}/{clairimage}:{productminv} 
-....
+----
+$ sudo podman run -it --rm --name clairv4 \
+-p 8081:8081 -p 8088:8088 \
+-e CLAIR_CONF=/clair/config.yaml \
+-e CLAIR_MODE=combo \
+-v /etc/clairv4/config:/clair:Z \
+{productrepo}/{clairimage}:{productminv}
+----

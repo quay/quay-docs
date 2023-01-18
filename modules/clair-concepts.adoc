@@ -1,0 +1,153 @@
+// Module included in the following assemblies:
+//
+// clair/master.adoc
+
+:_content-type: CONCEPT
+[id="clair-concepts"]
+= Clair concepts
+
+The following sections provide a conceptual overview of how Clair works.
+
+[id="clair-practice"]
+== Clair in practice
+
+A Clair analysis is broken down into three distinct parts: indexing, matching, and notification.
+
+[id="clair-indexing-concept"]
+=== Indexing
+
+Clair's indexer service is responsible for indexing a manifest. In Clair, manifests are representations of a container image. The indexer service is the component that Clair uses to understand the contents of layers. Clair leverages the fact that Open Container Initiative (OCI) manifests and layers are content addressed to reduce duplicate work.
+
+Indexing involves taking a manifest representing a container image and computing its constituent parts. The indexer tries to discover what packages exist in the image, what distribution the image is derived from, and what package repositories are used within the image. When this information is computed, it is persisted into an `IndexReport`.
+
+The `IndexReport` is an intermediate data structure that describes the contents of a container image. The `IndexReport` can be fed to a `matcher` node for vulnerability analysis.
+
+[id="content-addressability"]
+==== Content addressability
+
+Clair treats all manifests and layers as _content addressable_. In the context of Clair, content addressable means that when a specific manifest is indexed, it is not indexed again unless it is required; this is the same for individual layers.
+
+For example, consider how many images in a registry might use `ubuntu:artful` as a base layer. If the developers prefer basing their images off of Ubuntu, it could be a large majority of images. Treating the layers and manifests as content addressable means that Clair only fetches and scans the base layer one time.
+
+In some cases, Clair should re-index a manifest. For example, when an internal component such as a package scanner is updated, Clair performs the scan with the new package scanner. Clair has enough information to determine that a component has changed and that the `IndexReport` might be different the second time, and as a result it re-indexes the manifest.
+
+A client can track Clair's `index_state` endpoint to understand when an internal component has changed, and can subsequently issue re-indexes. See the Clair API guide to learn how to view Clair's API specification.
+
+[id="clair-matching-concept"]
+=== Matching
+
+With Clair, a matcher node is responsible for matching vulnerabilities to a provided `IndexReport`.
+
+Matchers are responsible for keeping the database of vulnerabilities up to date. Matchers will typically run a set of updaters, which periodically probe their data sources for new content. New vulnerabilities are stored in the database when they are discovered.
+
+The matcher API is designed to be used often. It is designed to always provide the most recent `VulnerabilityReport` when queried. The `VulnerabilityReport` summarizes both a manifest's content and any vulnerabilities affecting the content.
+
+// See. . . to learn more about how to view the Clair API specification and to work with the matcher API.
+
+[id="remote-matching"]
+==== Remote matching
+
+A remote matcher acts similar to a matcher, however remote matchers use API calls to fetch vulnerability data for a provided `IndexReport`. Remote matchers are useful when it is impossible to persist data from a given source into the database.
+
+The CRDA remote matcher is responsible for fetching vulnerabilities from Red Hat Code Ready Dependency Analytics (CRDA). By default, this matcher serves 100 requests per minute. The rate limiting can be lifted by requesting a dedicated API key, which is done by submitting link:https://developers.redhat.com/content-gateway/link/3872178[the API key request form].
+
+To enable CRDA remote matching, see "Enabling CRDA for Clair".
+
+[id="clair-notifications-concept"]
+=== Notifications
+
+Clair uses a notifier service that keeps track of new security database updates and informs users if new or removed vulnerabilities affect an indexed manifest.
+
+When the notifier becomes aware of new vulnerabilities affecting a previously indexed manifest, it uses the configured methods in your `config.yaml` file to issue notifications about the new changes. Returned notifications express the most severe vulnerability discovered because of the change. This avoids creating excessive notifications for the same security database update.
+
+When a user receives a notification, it issues a new request against the matcher to receive an up to date vulnerability report.
+
+The notification schema is the JSON marshalled form of the following types:
+
+[source,json]
+----
+// Reason indicates the catalyst for a notification
+type Reason string
+const (
+    Added   Reason = "added"
+    Removed Reason = "removed"
+    Changed Reason = "changed"
+)
+type Notification struct {
+    ID            uuid.UUID        `json:"id"`
+    Manifest      claircore.Digest `json:"manifest"`
+    Reason        Reason           `json:"reason"`
+    Vulnerability VulnSummary      `json:"vulnerability"`
+}
+type VulnSummary struct {
+    Name           string                  `json:"name"`
+    Description    string                  `json:"description"`
+    Package        *claircore.Package      `json:"package,omitempty"`
+    Distribution   *claircore.Distribution `json:"distribution,omitempty"`
+    Repo           *claircore.Repository   `json:"repo,omitempty"`
+    Severity       string                  `json:"severity"`
+    FixedInVersion string                  `json:"fixed_in_version"`
+    Links          string                  `json:"links"`
+}
+----
+
+You can subscribe to notifications through the following mechanics:
+
+* Webhook delivery
+* AMQP delivery
+* STOMP delivery
+
+Configuring the notifier is done through the Clair YAML configuration file.
+
+[id=webhook-delivery]
+==== Webhook delivery
+
+When you configure the notifier for webhook delivery, you provide the service with the following pieces of information:
+
+* A target URL where the webhook will fire.
+* The callback URL where the notifier might be reached, including its API path. For example, `http://clair-notifier/notifier/api/v1/notifications`.
+
+When the notifier has determined an updated security database has been changed the affected status of an indexed manifest, it delivers the following JSON body to the configured target:
+
+[source,json]
+----
+{
+  "notifiction_id": {uuid_string},
+  "callback": {url_to_notifications}
+}
+----
+
+On receipt, the server can browse to the URL provided in the callback field.
+
+[id="amqp-delivery"]
+==== AMQP delivery
+
+The Clair notifier also supports delivering notifications to an AMQP broker. With AMQP delivery, you can control whether a callback is delivered to the broker or whether notifications are directly delivered to the queue. This allows the developer of the AMQP consumer to determine the logic of notification processing.
+
+[NOTE]
+====
+AMQP delivery only supports AMQP 0.x protocol (for example, RabbitMQ). If you need to publish notifications to AMQP 1.x message queue (for example, ActiveMQ), you can use STOMP delivery.
+====
+
+[id="amqp-direct-delivery"]
+===== AMQP direct delivery
+
+If the Clair notifier's configuration specifies `direct: true` for AMQP delivery, notifications are delivered directly to the configured exchange.
+
+When `direct` is set, the `rollup` property might be set to instruct the notifier to send a maximum number of notifications in a single AMQP. This provides balance between the size of the message and the number of messages delivered to the queue.
+
+[id="notifier-testing-development"]
+==== Notifier testing and development mode
+
+The notifier has a testing and development mode that can be enabled with the `NOTIFIER_TEST_MODE` parameter. This parameter can be set to any value.
+
+When the `NOTIFIER_TEST_MODE` parameter is set, the notifier begins sending fake notifications to the configured delivery mechanism every `poll_interval` interval. This provides an easy way to implement and test new or existing deliverers.
+
+The notifier runs in `NOTIFIER_TEST_MODE` until the environment variable is cleared and the service is restarted.
+
+[id="deleting-notifications"]
+==== Deleting notifications
+
+To delete the notification, you can use the `DELETE` API call. Deleting a notification ID manually cleans up resources in the notifier. If you do not use the `DELETE` API call, the notifier waits a predetermined length of time before clearing delivered notifications from its database.
+
+// For more information on the `DELETE` API call, see. . .
