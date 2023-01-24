@@ -1,7 +1,17 @@
 [[georepl-prereqs]]
 = Geo-replication requirements and constraints
 
-* A single database, and therefore all metadata and Quay configuration, is shared across all regions.
+* In geo-replicated setups, {productname} requires that all regions are able to read/write to all other region's object storage. Object storage must be geographically accessible by all other regions. 
+
+* In case of an object storage system failure of one geo-replicating site, that site's {productname} deployment must be shut down so that clients are redirected to the remaining site with intact storage systems by a global load balancer. Otherwise, clients will experience pull and push failures. 
+
+* {productname} has no internal awareness of the health or availability of the connected object storage system. If the object storage system of one site becomes unavailable, there will be no automatic redirect to the remaining storage system, or systems, of the remaining site, or sites. 
+
+* Geo-replication is asynchronous. The permanent loss of a site incurs the loss of the data that has been saved in that sites' object storage system but has not yet been replicated to the remaining sites at the time of failure.
+
+* A single database, and therefore all metadata and Quay configuration, is shared across all regions. 
++
+Geo-replication does not replicate the database. In the event of an outage, {productname} with geo-replication enabled will not failover to another database. 
 
 * A single Redis cache is shared across the entire Quay setup and needs to accessible by all Quay pods.
 
