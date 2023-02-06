@@ -20,16 +20,16 @@ Clair's indexer service is responsible for indexing a manifest. In Clair, manife
 
 Indexing involves taking a manifest representing a container image and computing its constituent parts. The indexer tries to discover what packages exist in the image, what distribution the image is derived from, and what package repositories are used within the image. When this information is computed, it is persisted into an `IndexReport`.
 
-The `IndexReport` is an intermediate data structure that describes the contents of a container image. The `IndexReport` can be fed to a `matcher` node for vulnerability analysis.
+The `IndexReport` is stored in Clair's database. It can be fed to a `matcher` node to compute the vulnerability report.
 
 [id="content-addressability"]
 ==== Content addressability
 
 Clair treats all manifests and layers as _content addressable_. In the context of Clair, content addressable means that when a specific manifest is indexed, it is not indexed again unless it is required; this is the same for individual layers.
 
-For example, consider how many images in a registry might use `ubuntu:artful` as a base layer. If the developers prefer basing their images off of Ubuntu, it could be a large majority of images. Treating the layers and manifests as content addressable means that Clair only fetches and scans the base layer one time.
+For example, consider how many images in a registry might use `ubuntu:artful` as a base layer. If the developers prefer basing their images off of Ubuntu, it could be a large majority of images. Treating the layers and manifests as content addressable means that Clair only fetches and analyzes the base layer one time.
 
-In some cases, Clair should re-index a manifest. For example, when an internal component such as a package scanner is updated, Clair performs the scan with the new package scanner. Clair has enough information to determine that a component has changed and that the `IndexReport` might be different the second time, and as a result it re-indexes the manifest.
+In some cases, Clair should re-index a manifest. For example, when an internal component such as a package scanner is updated, Clair performs the analysis with the new package scanner. Clair has enough information to determine that a component has changed and that the `IndexReport` might be different the second time, and as a result it re-indexes the manifest.
 
 A client can track Clair's `index_state` endpoint to understand when an internal component has changed, and can subsequently issue re-indexes. See the Clair API guide to learn how to view Clair's API specification.
 

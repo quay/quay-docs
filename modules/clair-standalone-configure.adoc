@@ -6,17 +6,29 @@
 [id="clair-standalone-configure"]
 = Setting up Clair on standalone {productname} deployments
 
-For standalone {productname} deployments, you can set up Clair security scanner manually.
+For standalone {productname} deployments, you can set up Clair manually.
 
 .Procedure
 
-. Create a directory
+. In your {productname} installation directory, create a new directory for the Clair database data:
++
+[source,terminal]
+----
+$ mkdir /home/<user-name>/quay-poc/postgres-clairv4
+----
+
+. Set the appropriate permissions for the `postgres-clairv4` file by entering the following command:
++
+[source,terminal]
+----
+$ setfacl -m u:26:-wx /home/<user-name>/quay-poc/postgres-clairv4
+----
 
 . Deploy a Clair Postgres database by entering the following command:
 +
 [source,terminal]
 ----
-$ sudo podman run -d --rm --name postgresql-clairv4 \
+$ sudo podman run -d --name postgresql-clairv4 \
   -e POSTGRESQL_USER=clairuser \
   -e POSTGRESQL_PASSWORD=clairpass \
   -e POSTGRESQL_DATABASE=clair \
@@ -50,14 +62,14 @@ If the extension is not present, the following error will be displayed when Clai
 +
 [source,terminal]
 ----
-$ mkdir /etc/clairv4/config/
+$ mkdir /etc/opt/clairv4/config/
 ----
 
 . Change into the Clair configuration folder:
 +
 [source,terminal]
 ----
-$ cd /etc/clairv4/config/
+$ cd /etc/opt/clairv4/config/
 ----
 
 . Create a Clair configuration file, for example:
@@ -104,11 +116,11 @@ For more information about Clair's configuration format, see link:https://quay.g
 +
 [subs="verbatim,attributes"]
 ----
-$ sudo podman run -it --rm --name clairv4 \
+$ sudo podman run -d --name clairv4 \
 -p 8081:8081 -p 8088:8088 \
 -e CLAIR_CONF=/clair/config.yaml \
 -e CLAIR_MODE=combo \
--v /etc/clairv4/config:/clair:Z \
+-v /etc/opt/clairv4/config:/clair:Z \
 {productrepo}/{clairimage}:{productminv}
 ----
 +

@@ -79,6 +79,7 @@ spec:
     requests:
       storage: "5Gi"
     volumeName: "clairv4-postgres"
+    storageClassName: <1>
 ---
 apiVersion: v1
 kind: Service
@@ -96,6 +97,7 @@ spec:
   selector:
     quay-component: clairv4-postgres
 ----
+<1> If left unspecified, defaults to `quay-storageclass`.
 
 . Enter the following command to the deploy the Postgres database:
 +
@@ -109,7 +111,7 @@ $ oc create -f ./clairv4-postgres.yaml
 [source,yaml]
 ----
 introspection_addr: :8089
-http_listen_addr: :8080
+http_listen_addr: :8081
 log_level: debug
 indexer:
   connstring: host=clairv4-postgres port=5432 dbname=clair user=postgres password=postgres sslmode=disable
@@ -234,9 +236,12 @@ $ oc create -f ./clair-combo.yaml
 ----
 FEATURE_SECURITY_NOTIFICATIONS: true
 FEATURE_SECURITY_SCANNER: true
-SECURITY_SCANNER_V4_ENDPOINT: http://clairv4 <1>
+SECURITY_SCANNER_V4_ENDPOINT: <1>
+SECURITY_SCANNER_V4_PSK: <2>
 ----
-<1> Obtained by the credentials included in your Clair deployment file.
+<1> Obtained through the {productname} configuration tool. This parameter must be manually added if you do not use the {productname} configuration tool.
+<2> Obtained through the {productname} configuration tool. This parameter must be manually added if you do not use the {productname} configuration tool.
+
 
 . Enter the following command to delete the original configuration secret for your `quay-enterprise` project:
 +
