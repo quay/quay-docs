@@ -1,23 +1,23 @@
 :_content-type: PROCEDURE
 [[backing-up-red-hat-quay-standalone]]
-= Backing up {productname} on standalone deployments 
+= Backing up {productname} on standalone deployments
 
-This procedure describes how to create a backup of {productname} on standalone deployments. 
+This procedure describes how to create a backup of {productname} on standalone deployments.
 
 .Prerequisites
 
-.Procedure 
+.Procedure
 
-. Create a temporary backup directory, for example, `quay-backup`: 
+. Create a temporary backup directory, for example, `quay-backup`:
 +
 [source,terminal]
 ----
 $ mkdir /tmp/quay-backup
 ----
 
-. The following example command denotes the local directory that the {productname} was started in, for example, `/opt/quay-install`: 
+. The following example command denotes the local directory that the {productname} was started in, for example, `/opt/quay-install`:
 +
-[source,terminal]
+[subs="verbatim,attributes"]
 ----
 $ podman run --name quay-app \
    -v /opt/quay-install/config:/conf/stack:Z \
@@ -25,14 +25,14 @@ $ podman run --name quay-app \
    {productrepo}/{quayimage}:{productminv}
 ----
 +
-Change into the directory that bind-mounts to `/conf/stack` inside of the container, for example, `/opt/quay-install`, by running the following command: 
+Change into the directory that bind-mounts to `/conf/stack` inside of the container, for example, `/opt/quay-install`, by running the following command:
 +
 [source,terminal]
 ----
 $ cd /opt/quay-install
 ----
 
-. Compress the contents of your {productname} deployment into an archive in the `quay-backup` directory by entering the following command: 
+. Compress the contents of your {productname} deployment into an archive in the `quay-backup` directory by entering the following command:
 +
 [source,terminal]
 ----
@@ -51,9 +51,9 @@ ssl.cert
 ssl.key
 ----
 
-. Back up the Quay container service by entering the following command: 
+. Back up the Quay container service by entering the following command:
 +
-[source,terminal]
+[subs="verbatim,attributes"]
 ----
 $ podman inspect quay-app | jq -r '.[0].Config.CreateCommand | .[]' | paste -s -d ' ' -
 
@@ -63,11 +63,11 @@ $ podman inspect quay-app | jq -r '.[0].Config.CreateCommand | .[]' | paste -s -
   {productrepo}/{quayimage}:{productminv}
 ----
 
-. Redirect the contents of your `conf/stack/config.yaml` file to your temporary `quay-config.yaml` file by entering the following command: 
+. Redirect the contents of your `conf/stack/config.yaml` file to your temporary `quay-config.yaml` file by entering the following command:
 +
 [source,terminal]
 ----
-$ podman exec -it quay cat /conf/stack/config.yaml > /tmp/quay-backup/quay-config.yaml 
+$ podman exec -it quay cat /conf/stack/config.yaml > /tmp/quay-backup/quay-config.yaml
 ----
 
 . Obtain the `DB_URI` located in your temporary `quay-config.yaml` by entering the following command:
@@ -90,7 +90,7 @@ $ postgresql://<username>:test123@172.24.10.50/quay
 $ pg_dump -h 172.24.10.50  -p 5432 -d quay  -U  <username>   -W -O > /tmp/quay-backup/quay-backup.sql
 ----
 
-. Print the contents of your `DISTRIBUTED_STORAGE_CONFIG` by entering the following command: 
+. Print the contents of your `DISTRIBUTED_STORAGE_CONFIG` by entering the following command:
 +
 [source,yaml]
 ----
@@ -98,7 +98,7 @@ DISTRIBUTED_STORAGE_CONFIG:
    default:
     - S3Storage
     - s3_bucket: <bucket_name>
-      storage_path: /registry 
+      storage_path: /registry
       s3_access_key: <s3_access_key>
       s3_secret_key: <s3_secret_key>
       host: <host_name>
@@ -108,7 +108,7 @@ DISTRIBUTED_STORAGE_CONFIG:
 +
 [source,terminal]
 ----
-$ export AWS_ACCESS_KEY_ID=<access_key> 
+$ export AWS_ACCESS_KEY_ID=<access_key>
 ----
 
 . Export the `AWS_SECRET_ACCESS_KEY` by using the `secret_key` obtained in Step 7:
@@ -133,5 +133,5 @@ download: s3://<user_name>/registry/sha256/e9/e9c5463f15f0fd62df3898b36ace8d1538
 ----
 [NOTE]
 ====
-It is recommended that you delete the `quay-config.yaml` file after syncing the `quay` bucket because it contains sensitive information. The `quay-config.yaml` file will not be lost because it is backed up in the `quay-backup.tar.gz` file. 
+It is recommended that you delete the `quay-config.yaml` file after syncing the `quay` bucket because it contains sensitive information. The `quay-config.yaml` file will not be lost because it is backed up in the `quay-backup.tar.gz` file.
 ====

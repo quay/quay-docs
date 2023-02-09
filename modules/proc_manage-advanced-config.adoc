@@ -3,69 +3,69 @@
 [id="advanced-quay-configuration"]
 = Advanced {productname} configuration
 
-You can configure your {productname} after initial deployment using one of the following interfaces: 
+You can configure your {productname} after initial deployment using one of the following interfaces:
 
-* The {productname} Config Tool. With this tool, a web-based interface for configuring the {productname} cluster is provided when running the `Quay` container in `config` mode. This method is recommended for configuring the {productname} service. 
+* The {productname} Config Tool. With this tool, a web-based interface for configuring the {productname} cluster is provided when running the `Quay` container in `config` mode. This method is recommended for configuring the {productname} service.
 
-* Editing the `config.yaml`. The `config.yaml` file contains most configuration information for the {productname} cluster. Editing the `config.yaml` file directly is possible, but it is only recommended for advanced tuning and performance features that are not available through the Config Tool. 
+* Editing the `config.yaml`. The `config.yaml` file contains most configuration information for the {productname} cluster. Editing the `config.yaml` file directly is possible, but it is only recommended for advanced tuning and performance features that are not available through the Config Tool.
 
-* {productname} API. Some {productname} features can be configured through the API. 
+* {productname} API. Some {productname} features can be configured through the API.
 
-This content in this section describes how to use each of the aforementioned interfaces and how to configure your deployment with advanced features. 
+This content in this section describes how to use each of the aforementioned interfaces and how to configure your deployment with advanced features.
 
 [[using-the-config-tool]]
 
 == Using {productname} Config Tool to modify {productname}
 
-The {productname} Config Tool is made available by running a `Quay` container in `config` mode alongside the regular {productname} service. 
+The {productname} Config Tool is made available by running a `Quay` container in `config` mode alongside the regular {productname} service.
 
-Use the following sections to run the Config Tool from the {productname} Operator, or to run the Config Tool on host systems from the command line interface (CLI). 
+Use the following sections to run the Config Tool from the {productname} Operator, or to run the Config Tool on host systems from the command line interface (CLI).
 
 [id="running-config-tool-from-quay-operator"]
 === Running the Config Tool from the {productname} Operator
 
-When running the {productname} Operator on {ocp}, the Config Tool is readily available to use. Use the following procedure to access the {productname} Config Tool. 
+When running the {productname} Operator on {ocp}, the Config Tool is readily available to use. Use the following procedure to access the {productname} Config Tool.
 
-.Prerequisites 
+.Prerequisites
 
-. You have deployed the {productname} Operator on {ocp}. 
+. You have deployed the {productname} Operator on {ocp}.
 
-.Procedure. 
+.Procedure.
 
-. On the OpenShift console, select the {productname} project, for example, `quay-enterprise`. 
+. On the OpenShift console, select the {productname} project, for example, `quay-enterprise`.
 
 . In the navigation pane, select *Networking* -> *Routes*. You should see routes to both the {productname} application and Config Tool, as shown in the following image:
 +
 image:configtoolroute.png[View the route to the {productname} Config Tool]
 
-. Select the route to the Config Tool, for example, `example-quayecosystem-quay-config`. The Config Tool UI should open in your browser. 
+. Select the route to the Config Tool, for example, `example-quayecosystem-quay-config`. The Config Tool UI should open in your browser.
 
 . Select *Modify configuration for this cluster* to bring up the Config Tool setup, for example:
 +
 image:configtoolsetup.png[Modify {productname} cluster settings from the Config Tool]
 
-. Make the desired changes, and then select *Save Configuration Changes*. 
+. Make the desired changes, and then select *Save Configuration Changes*.
 
-. Make any corrections needed by clicking *Continue Editing*, or, select *Next* to continue. 
+. Make any corrections needed by clicking *Continue Editing*, or, select *Next* to continue.
 
-. When prompted, select *Download Configuration*. This will download a tarball of your new `config.yaml`, as well as any certificates and keys used with your {productname} setup. The `config.yaml` can be used to make advanced changes to your configuration or use as a future reference. 
+. When prompted, select *Download Configuration*. This will download a tarball of your new `config.yaml`, as well as any certificates and keys used with your {productname} setup. The `config.yaml` can be used to make advanced changes to your configuration or use as a future reference.
 
-. Select *Go to deployment rollout* -> *Populate the configuration to deployments*. Wait for the {productname} pods to restart for the changes to take effect. 
+. Select *Go to deployment rollout* -> *Populate the configuration to deployments*. Wait for the {productname} pods to restart for the changes to take effect.
 
 [id="running-config-tool-from-cli"]
 === Running the Config Tool from the command line
 
-If you are running {productname} from a host system, you can use the following procedure to make changes to your configuration after the initial deployment. 
+If you are running {productname} from a host system, you can use the following procedure to make changes to your configuration after the initial deployment.
 
 . Prerequisites
 
-* You have installed either `podman` or `docker`. 
+* You have installed either `podman` or `docker`.
 
-. Start {productname} in configuration mode. 
+. Start {productname} in configuration mode.
 
-. On the first `Quay` node, enter the following command: 
+. On the first `Quay` node, enter the following command:
 +
-[source,terminal]
+[subs="verbatim,attributes"]
 ----
 $ podman run --rm -it --name quay_config -p 8080:8080 \
     -v path/to/config-bundle:/conf/stack \
@@ -74,23 +74,23 @@ $ podman run --rm -it --name quay_config -p 8080:8080 \
 +
 [NOTE]
 ====
-To modify an existing config bundle, you can mount your configuration directory into the `Quay` container. 
+To modify an existing config bundle, you can mount your configuration directory into the `Quay` container.
 ====
 
-. When the {productname} configuration tool starts, open your browser and navigate to the URL and port used in your configuration file, for example, `quay-server.example.com:8080`. 
+. When the {productname} configuration tool starts, open your browser and navigate to the URL and port used in your configuration file, for example, `quay-server.example.com:8080`.
 
-. Enter your username and password. 
+. Enter your username and password.
 
-. Modify your {productname} cluster as desired. 
+. Modify your {productname} cluster as desired.
 
 [id="deploying-config-tool-using-tls"]
 === Deploying the config tool using TLS certificates
 
-You can deploy the config tool with secured TLS certificates by passing environment variables to the runtime variable. This ensures that sensitive data like credentials for the database and storage backend are protected. 
+You can deploy the config tool with secured TLS certificates by passing environment variables to the runtime variable. This ensures that sensitive data like credentials for the database and storage backend are protected.
 
-The public and private keys must contain valid Subject Alternative Names (SANs) for the route that you deploy the config tool on. 
+The public and private keys must contain valid Subject Alternative Names (SANs) for the route that you deploy the config tool on.
 
-The paths can be specified using `CONFIG_TOOL_PRIVATE_KEY` and `CONFIG_TOOL_PUBLIC_KEY`. 
+The paths can be specified using `CONFIG_TOOL_PRIVATE_KEY` and `CONFIG_TOOL_PUBLIC_KEY`.
 
 If you are running your deployment from a container, the `CONFIG_TOOL_PRIVATE_KEY` and `CONFIG_TOOL_PUBLIC_KEY` values the locations of the certificates inside of the container. For example:
 
@@ -118,7 +118,7 @@ link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/re
 Some advanced configuration features that are not available through the Config Tool can be implemented by editing the `config.yaml` file directly. Available settings are described in the
 link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/manage_red_hat_quay/quay-schema[Schema for {productname} configuration]
 
-The following examples are settings you can change directly in the `config.yaml` file. 
+The following examples are settings you can change directly in the `config.yaml` file.
 
 [id="add-name-and-company-to-quay-sign-in"]
 === Add name and company to {productname} sign-in
@@ -133,7 +133,7 @@ FEATURE_USER_METADATA: true
 
 [id="disable-tls-protocols"]
 === Disable TLS Protocols
-You can change the `SSL_PROTOCOLS` setting to remove SSL protocols that you do not want to support in your {productname} instance. For example, to remove TLS v1 support from the default `SSL_PROTOCOLS:['TLSv1','TLSv1.1','TLSv1.2']`, change it to the following: 
+You can change the `SSL_PROTOCOLS` setting to remove SSL protocols that you do not want to support in your {productname} instance. For example, to remove TLS v1 support from the default `SSL_PROTOCOLS:['TLSv1','TLSv1.1','TLSv1.2']`, change it to the following:
 
 [source,yaml]
 ----
@@ -145,11 +145,11 @@ SSL_PROTOCOLS : ['TLSv1.1','TLSv1.2']
 [id="rate-limit-api-calls"]
 === Rate limit API calls
 
-Adding the `FEATURE_RATE_LIMITS` parameter to the `config.yaml` file causes `nginx` to limit certain API calls to 30-per-second. If `FEATURE_RATE_LIMITS` is not set, API calls are limited to 300-per-second, effectively making them unlimited. 
+Adding the `FEATURE_RATE_LIMITS` parameter to the `config.yaml` file causes `nginx` to limit certain API calls to 30-per-second. If `FEATURE_RATE_LIMITS` is not set, API calls are limited to 300-per-second, effectively making them unlimited.
 
-Rate limiting is important when you must ensure that the available resources are not overwhelmed with traffic. 
+Rate limiting is important when you must ensure that the available resources are not overwhelmed with traffic.
 
-Some namespaces might require unlimited access, for example, if they are important to CI/CD and take priority. In that scenario, those namespaces might be placed in a list in the `config.yaml` file using the `NON_RATE_LIMITED_NAMESPACES`. 
+Some namespaces might require unlimited access, for example, if they are important to CI/CD and take priority. In that scenario, those namespaces might be placed in a list in the `config.yaml` file using the `NON_RATE_LIMITED_NAMESPACES`.
 
 [id="adjust-database-connection-pool"]
 === Adjust database connection pooling
@@ -157,9 +157,9 @@ Some namespaces might require unlimited access, for example, if they are importa
 {productname} is composed of many different processes which all run within
 the same container. Many of these processes interact with the database.
 
-With the `DB_CONNECTION_POOLING` parameter, each process that interacts with the database will contain a connection pool These per-process connection pools are configured to maintain a maximum of 20 connections. When under heavy load, it is possible to fill the connection pool for every process within a {productname} container. Under certain deployments and loads, this might require analysis to ensure that {productname} does not exceed the database's configured maximum connection count. 
+With the `DB_CONNECTION_POOLING` parameter, each process that interacts with the database will contain a connection pool These per-process connection pools are configured to maintain a maximum of 20 connections. When under heavy load, it is possible to fill the connection pool for every process within a {productname} container. Under certain deployments and loads, this might require analysis to ensure that {productname} does not exceed the database's configured maximum connection count.
 
-Over time, the connection pools will release idle connections. To release all connections immediately, {productname} must be restarted. 
+Over time, the connection pools will release idle connections. To release all connections immediately, {productname} must be restarted.
 
 Database connection pooling can be toggled by setting the `DB_CONNECTION_POOLING` to `true` or `false`. For example:
 
@@ -183,7 +183,7 @@ DB_CONNECTION_ARGS:
 [id="database-connection-arguments"]
 ==== Database connection arguments
 
-You can customize your {productname} database connection settings within the `config.yaml` file. These are dependent on your deployment's database driver, for example, `psycopg2` for Postgres and `pymysql` for MySQL. You can also pass in argument used by Peewee's connection pooling mechanism. For example: 
+You can customize your {productname} database connection settings within the `config.yaml` file. These are dependent on your deployment's database driver, for example, `psycopg2` for Postgres and `pymysql` for MySQL. You can also pass in argument used by Peewee's connection pooling mechanism. For example:
 
 [source,yaml]
 ----
@@ -199,12 +199,12 @@ DB_CONNECTION_ARGS:
 [id="database-ssl-configuration"]
 ==== Database SSL configuration
 
-Some key-value pairs defined under the `DB_CONNECTION_ARGS` field are generic, while others are specific to the database. In particular, SSL configuration depends on the database that you are deploying. 
+Some key-value pairs defined under the `DB_CONNECTION_ARGS` field are generic, while others are specific to the database. In particular, SSL configuration depends on the database that you are deploying.
 
 [id="postgres-ssl-connection-arguments"]
 ===== PostgreSQL SSL connection arguments
 
-The following YAML shows a sample PostgreSQL SSL configuration: 
+The following YAML shows a sample PostgreSQL SSL configuration:
 
 [source,yaml]
 ----
@@ -218,18 +218,18 @@ DB_CONNECTION_ARGS:
 The `sslmode` parameter determines whether, or with, what priority a secure SSL TCP/IP connection will be negotiated with the server. There are six modes for the `sslmode` parameter:
 
 * **disabl:**: Only try a non-SSL connection.
-* **allow**: Try a non-SSL connection first. Upon failure, try an SSL connection. 
-* **prefer**: Default. Try an SSL connection first. Upon failure, try a non-SSL connection. 
-* **require**: Only try an SSL connection. If a root CA file is present, verify the connection in the same way as if `verify-ca` was specified. 
-* **verify-ca**: Only try an SSL connection, and verify that the server certificate is issued by a trust certificate authority (CA). 
-* **verify-full**: Only try an SSL connection. Verify that the server certificate is issued by a trust CA, and that the requested server host name matches that in the certificate. 
+* **allow**: Try a non-SSL connection first. Upon failure, try an SSL connection.
+* **prefer**: Default. Try an SSL connection first. Upon failure, try a non-SSL connection.
+* **require**: Only try an SSL connection. If a root CA file is present, verify the connection in the same way as if `verify-ca` was specified.
+* **verify-ca**: Only try an SSL connection, and verify that the server certificate is issued by a trust certificate authority (CA).
+* **verify-full**: Only try an SSL connection. Verify that the server certificate is issued by a trust CA, and that the requested server host name matches that in the certificate.
 
 For more information about the valid arguments for PostgreSQL, see link:https://www.postgresql.org/docs/current/libpq-connect.html[Database Connection Control Functions].
 
 [id="mysql-ssl-connection-arguments"]
 ===== MySQL SSL connection arguments
 
-The following YAML shows a sample MySQL SSL configuration: 
+The following YAML shows a sample MySQL SSL configuration:
 
 [source,yaml]
 ----
@@ -245,7 +245,7 @@ For more information about the valid connection arguments for MySQL, see link:ht
 [id="http-connection-counts"]
 ==== HTTP connection counts
 
-You can specify the quantity of simultaneous HTTP connections using environment variables. The environment variables can be specified as a whole, or for a specific component. The default for each is 50 parallel connections per process. See the following YAML for example environment variables; 
+You can specify the quantity of simultaneous HTTP connections using environment variables. The environment variables can be specified as a whole, or for a specific component. The default for each is 50 parallel connections per process. See the following YAML for example environment variables;
 
 [source,yaml]
 ----
@@ -278,7 +278,7 @@ not exceed the maximum or be lower than the minimum.
 ====
 
 Each of the following process quantities can be overridden using the
-environment variable specified below: 
+environment variable specified below:
 
 - registry - Provides HTTP endpoints to handle registry action
 * minimum: 8
