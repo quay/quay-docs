@@ -1,0 +1,50 @@
+// Module included in the following assemblies:
+//
+// clair/master.adoc
+
+:_content-type: PROCEDURE
+[id="clair-testing"]
+= Testing Clair
+
+Use the following procedure to test Clair on either a standalone {productname} deployment, or on an {ocp} Operator-based deployment.
+
+.Prerequisites
+
+* You have deployed the Clair container image.
+
+.Procedure
+
+. Pull a sample image by entering the following command:
++
+[source,terminal]
+----
+$ podman pull ubuntu:20.04
+----
+
+. Tag the image to your registry by entering the following command:
++
+[source,terminal]
+----
+$ sudo podman tag docker.io/library/ubuntu:20.04 <quay-server.example.com>/<user-name>/ubuntu:20.04
+----
+
+. Push the image to your {productname} registry by entering the following command:
++
+[source,terminal]
+----
+$ sudo podman push --tls-verify=false quay-server.example.com/quayadmin/ubuntu:20.04
+----
+
+. Log in to your {productname} deployment through the UI.
+
+. Click the repository name, for example, *quayadmin/ubuntu*.
+
+. In the navigation pane, click *Tags*.
++
+.Report summary
+image:clair-reposcan.png[Security scan information appears for scanned repository images]
+
+. Click the image report, for example, *45 medium*, to show a more detailed report:
++
+.Report details
+image:clair-vulnerabilities.png[See all vulnerabilities or only those that are fixable]

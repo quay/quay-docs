@@ -1,0 +1,77 @@
+// Module included in the following assemblies:
+//
+// clair/master.adoc
+
+:_content-type: PROCEDURE
+[id="configuring-custom-clair-database-managed"]
+= Configuring a custom Clair database with a managed Clair configuration
+
+The {productname} Operator for {ocp} allows users to provide their own Clair database.
+
+Use the following procedure to create a custom Clair database.
+
+.Procedure
+
+. Create a Quay configuration bundle secret that includes the `clair-config.yaml` by entering the following command:
++
+[source,terminal]
+----
+$ oc create secret generic --from-file config.yaml=./config.yaml --from-file extra_ca_cert_rds-ca-2019-root.pem=./rds-ca-2019-root.pem --from-file clair-config.yaml=./clair-config.yaml config-bundle-secret
+----
++
+.Example Clair `config.yaml` file
++
+[source,yaml]
+----
+indexer:
+    connstring: host=quay-server.example.com port=5432 dbname=quay user=quayrdsdb password=quayrdsdb sslmode=disable
+    layer_scan_concurrency: 6
+    migrations: true
+    scanlock_retry: 11
+log_level: debug
+matcher:
+    connstring: host=quay-server.example.com port=5432 dbname=quay user=quayrdsdb password=quayrdsdb sslmode=disable
+    migrations: true
+metrics:
+    name: prometheus
+notifier:
+    connstring: host=quay-server.example.com port=5432 dbname=quay user=quayrdsdb password=quayrdsdb sslmode=disable
+    migrations: true
+----
++
+[NOTE]
+====
+* The database certificate is mounted under `/run/certs/rds-ca-2019-root.pem` on the Clair application pod in the `clair-config.yaml`. It must be specified when configuring your `clair-config.yaml`.
+* An example `clair-config.yaml` can be found at link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/quay_operator_features#clair-openshift-config[Clair on OpenShift config].
+====
+
+. Add the `clair-config.yaml` file to your bundle secret, for example:
++
+[source,yaml]
+----
+apiVersion: v1
+kind: Secret
+metadata:
+  name: config-bundle-secret
+  namespace: quay-enterprise
+data:
+  config.yaml: <base64 encoded Quay config>
+  clair-config.yaml: <base64 encoded Clair config>
+----
++
+[NOTE]
+====
+* When updated, the provided `clair-config.yaml` file is mounted into the Clair pod. Any fields not provided are automatically populated with defaults using the Clair configuration module.
+====
+
+. You can check the status of your Clair pod by clicking the commit in the *Build History* page, or by running `oc get pods -n <namespace>`. For example:
++
+----
+$ oc get pods -n <namespace>
+----
++
+.Example output
+----
+NAME                                               READY   STATUS    RESTARTS   AGE
+f192fe4a-c802-4275-bcce-d2031e635126-9l2b5-25lg2   1/1     Running   0          7s
+----

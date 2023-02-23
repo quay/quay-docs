@@ -1,17 +1,35 @@
-[[clair-clairctl]]
-= Obtaining clairctl 
+// Module included in the following assemblies:
+//
+// clair/master.adoc
 
-To obtain the `clairctl` program from a Clair deployment in an OpenShift cluster, use the `oc cp` command, for example:
+:_content-type: PROCEDURE
+[id="clair-disconnected-ocp-configuration"]
+= Setting up Clair in a disconnected {ocp} cluster
 
+Use the following procedures to set up an {ocp} provisioned Clair pod in a disconnected {ocp} cluster.
+
+[id="clair-clairctl-ocp"]
+== Installing the clairctl command line utility tool for {ocp} deployments
+
+Use the following procedure to install the `clairctl` CLI tool for {ocp} deployments.
+
+.Procedure
+
+. Install the `clairctl` program for a Clair deployment in an {ocp} cluster by using the `oc cp` command, for example:
++
+[source,terminal]
 ----
-$ oc -n quay-enterprise cp example-registry-clair-app-64dd48f866-6ptgw:/usr/bin/clairctl ./clairctl
+$ oc -n quay-enterprise exec example-registry-clair-app-64dd48f866-6ptgw -- cat /usr/bin/clairctl > clairctl
+----
++
+[NOTE]
+====
+Unofficially, the `clairctl` tool can be downloaded
+====
+
+. Set the permissions of the `clairctl` file so that it can be executed and run by the user, for example:
++
+[source,terminal]
+----
 $ chmod u+x ./clairctl
 ----
-
-For a standalone Clair deployment, use the `podman cp` command, for example:
-
-----
-$ sudo podman cp clairv4:/usr/bin/clairctl ./clairctl
-$ chmod u+x ./clairctl
-----
-
