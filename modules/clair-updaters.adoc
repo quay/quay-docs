@@ -1,0 +1,95 @@
+// Module included in the following assemblies:
+//
+// clair/master.adoc
+
+:_content-type: CONCEPT
+[id="clair-updaters"]
+= Clair updaters
+
+Clair uses `Go` packages called _updaters_ that contain the logic of fetching and parsing different vulnerability databases.
+
+Updaters are usually paired with a matcher to interpret if, and how, any vulnerability is related to a package. Administrators might want to update the vulnerability database less frequently, or not import vulnerabilities from databases that they know will not be used.
+
+[id="configuring-updaters"]
+== Configuring updaters
+
+Updaters can be configured by the `updaters` key at the top of the configuration. If updaters are being run automatically within the matcher process, which is the default setting, the period for running updaters is configured under the matcher's configuration field.
+
+[id="updater-sets"]
+=== Updater sets
+
+The following sets can be configured with Clair updaters:
+
+* `alpine`
+* `aws`
+* `debian`
+* `enricher/cvss`
+* `libvuln/driver`
+* `oracle`
+* `photon`
+* `pyupio`
+* `rhel`
+* `rhel/rhcc`
+* `suse`
+* `ubuntu`
+* `updater`
+
+[id="selecting-updater-sets"]
+=== Selecting updater sets
+
+Specific sets of updaters can be selected by the `sets` list. For example:
+
+[source,yaml]
+----
+updaters:
+  sets:
+    - rhel
+----
+
+If the `sets` field is not populated, it defaults to using all sets.
+
+[id="filtering-updater-sets"]
+=== Filtering updater sets
+
+To reject an updater from running without disabling an entire set, the `filter` option can be used.
+
+In the following example, the string is interpreted as a Go `regexp` package. This rejects any updater with a name that does not match.
+
+[NOTE]
+====
+This means that an empty string matches any string. It does not mean that it matches no strings.
+====
+
+[source,yaml]
+----
+updaters:
+  filter: '^$'
+----
+
+[id="configuring-specific-updaters"]
+=== Configuring specific updaters
+
+Configuration for specific updaters can be passed by putting a key underneath the `config` parameter of the `updaters` object. The name of an updater might be constructed dynamically, and users should examine logs to ensure updater names are accurate. The specific object that an updater expects should be covered in the updater's documentation.
+
+In the following example, the `rhel` updater fetches a manifest from a different location:
+
+[source,yaml]
+----
+updaters:
+  config:
+    rhel:
+      url: https://example.com/mirror/oval/PULP_MANIFEST
+----
+
+[id="disabling-clair-updater-component-managed-db"]
+=== Disabling the Clair Updater component
+
+In some scenarios, users might want to disable the Clair updater component. Disabling updaters is required when running {productname} in a disconnected environment.
+
+In the following example, Clair updaters are disabled:
+
+[source,yaml]
+----
+matcher:
+  disable_updaters: true
+----

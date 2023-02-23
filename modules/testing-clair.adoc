@@ -1,0 +1,61 @@
+:_content-type: CONCEPT
+[id="testing-clair"]
+= Testing Clair
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+////
+
+Currently, there are two methods for testing Clair independently of a {productname} subscription:
+
+* In a local development environment
+* In a distributed deployment
+
+[IMPORTANT]
+====
+Official documentation for testing Clair without a {productname} subscription is unsupported. These procedures and subsequent updates are maintained by upstream contributors and developers. For more information, see link:https://quay.github.io/clair/howto/getting_started.html[Getting Started With ClairV4]. 
+
+For official Clair documentation, see. . . 
+====
+
+[id="testing-clair-local-development-environment"]
+== Testing Clair in a local development environment 
+
+The simplest way to run Clair for test purposes is to use the local development environment. The local development environment can be used to test and develop Clair's integration with {productname}. Documentation for this procedure can be found on the open source Clair project at link:https://quay.github.io/clair/howto/testing.html[Testing ClairV4]. 
+
+[id="clair-modes"]
+== Testing Clair in a distributed deployment 
+
+When testing Clair in a distributed deployment, Clair uses PostgreSQL for its data persistence. Clair migrations are supported. Users can point Clair to a fresh database to set it up.  
+
+In a distributed deployment, users can test run Clair in the following modes: 
+
+* Indexer mode. When Clair is running in indexer mode, it is responsible for receiving manifests and generating `IndexReports`. An `IndexReport` is an intermediate representation of a manifest's content and is used to discover vulnerabilities. 
+
+* Matcher mode. When Clair is running in matcher mode, it is responsible for receiving `IndexReports` and generating `VulnerabilityReports`. A `VulnerabilityReport` describes the contents of a manifest and any vulnerabilities affecting it. 
+
+* Notifier mode. When Clair is running in notifier mode, it is responsible for generating notifications when new vulnerabilities affecting a previously indexed manifest enter the system. The notifier will send notifications through the configured mechanisms.
+
+* Combination mode. When Clair is running in combination mode, the `indexer`, `matcher`, and `notifier` each run on a single OS process. 
+
+[NOTE]
+====
+These modes are available when running Clair with a {productname} subscription. 
+====
+
+For more information on testing Clair in a distributed deployment, see link:https://quay.github.io/clair/howto/getting_started.html#modes[Getting Started With ClairV4]. 
