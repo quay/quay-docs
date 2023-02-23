@@ -1,0 +1,131 @@
+// Module included in the following assemblies:
+//
+// clair/master.adoc
+
+:_content-type: PROCEDURE
+[id="clair-standalone-configure"]
+= Setting up Clair on standalone {productname} deployments
+
+For standalone {productname} deployments, you can set up Clair manually.
+
+.Procedure
+
+. In your {productname} installation directory, create a new directory for the Clair database data:
++
+[source,terminal]
+----
+$ mkdir /home/<user-name>/quay-poc/postgres-clairv4
+----
+
+. Set the appropriate permissions for the `postgres-clairv4` file by entering the following command:
++
+[source,terminal]
+----
+$ setfacl -m u:26:-wx /home/<user-name>/quay-poc/postgres-clairv4
+----
+
+. Deploy a Clair Postgres database by entering the following command:
++
+[source,terminal]
+----
+$ sudo podman run -d --name postgresql-clairv4 \
+  -e POSTGRESQL_USER=clairuser \
+  -e POSTGRESQL_PASSWORD=clairpass \
+  -e POSTGRESQL_DATABASE=clair \
+  -e POSTGRESQL_ADMIN_PASSWORD=adminpass \
+  -p 5433:5433 \
+  -v /home/<user-name>/quay-poc/postgres-clairv4:/var/lib/pgsql/data:Z \
+  registry.redhat.io/rhel8/postgresql-10:1
+----
+
+. Install the Postgres `uuid-ossp` module for your Clair deployment:
++
+[source,terminal]
+----
+$ podman exec -it postgresql-clairv4 /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"" | psql -d clair -U postgres'
+----
++
+.Example output
+[source,terminal]
+----
+CREATE EXTENSION
+----
++
+[NOTE]
+====
+Clair requires the `uuid-ossp` extension to be added to its Postgres database. For users with proper privileges, creating the extension will automatically be added by Clair. If users do not have the proper privileges, the extension must be added before start Clair.
+
+If the extension is not present, the following error will be displayed when Clair attempts to start: `ERROR: Please load the "uuid-ossp" extension. (SQLSTATE 42501)`.
+====
+
+. Create a folder for your Clair configuration file, for example:
++
+[source,terminal]
+----
+$ mkdir /etc/opt/clairv4/config/
+----
+
+. Change into the Clair configuration folder:
++
+[source,terminal]
+----
+$ cd /etc/opt/clairv4/config/
+----
+
+. Create a Clair configuration file, for example:
++
+[source,yaml]
+----
+http_listen_addr: :8081
+introspection_addr: :8088
+log_level: debug
+indexer:
+  connstring: host=quay-server.example.com port=5433 dbname=clair user=clairuser password=clairpass sslmode=disable
+  scanlock_retry: 10
+  layer_scan_concurrency: 5
+  migrations: true
+matcher:
+  connstring: host=quay-server.example.com port=5433 dbname=clair user=clairuser password=clairpass sslmode=disable
+  max_conn_pool: 100
+  run: ""
+  migrations: true
+  indexer_addr: clair-indexer
+notifier:
+  connstring: host=quay-server.example.com port=5433 dbname=clair user=clairuser password=clairpass sslmode=disable
+  delivery_interval: 1m
+  poll_interval: 5m
+  migrations: true
+auth:
+  psk:
+    key: "MTU5YzA4Y2ZkNzJoMQ=="
+    iss: ["quay"]
+# tracing and metrics
+trace:
+  name: "jaeger"
+  probability: 1
+  jaeger:
+    agent_endpoint: "localhost:6831"
+    service_name: "clair"
+metrics:
+  name: "prometheus"
+----
++
+For more information about Clair's configuration format, see link:https://quay.github.io/clair/reference/config.html[Clair configuration reference].
+
+. Start Clair by using the container image, mounting in the configuration from the file you created:
++
+[subs="verbatim,attributes"]
+----
+$ sudo podman run -d --name clairv4 \
+-p 8081:8081 -p 8088:8088 \
+-e CLAIR_CONF=/clair/config.yaml \
+-e CLAIR_MODE=combo \
+-v /etc/opt/clairv4/config:/clair:Z \
+{productrepo}/{clairimage}:{productminv}
+----
++
+[NOTE]
+====
+Running multiple Clair containers is also possible, but for deployment scenarios beyond a single container the use of a container orchestrator like Kubernetes or {ocp} is strongly recommended.
+====
+

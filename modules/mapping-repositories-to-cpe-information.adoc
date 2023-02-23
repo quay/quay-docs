@@ -1,0 +1,44 @@
+// Module included in the following assemblies:
+//
+// clair/master.adoc
+
+:_content-type: CONCEPT
+[id="mapping-repositories-to-cpe-information"]
+= Mapping repositories to Common Product Enumeration information
+
+Clair's {rhel} scanner relies on a Common Product Enumeration (CPE) file to map RPM packages to the corresponding security data to produce matching results. These files are owned by product security and updated daily.
+
+The CPE file must be present, or access to the file must be allowed, for the scanner to properly process RPM packages. If the file is not present, RPM packages installed in the container image will not be scanned.
+
+.Clair CPE mapping files
+[options="header"]
+|===
+|CPE | Link to JSON mapping file
+| `repos2cpe` | link:https://www.redhat.com/security/data/metrics/repository-to-cpe.json[Red Hat Repository-to-CPE JSON]
+| `names2repos` | link:https://access.redhat.com/security/data/metrics/container-name-repos-map.json[Red Hat Name-to-Repos JSON].
+|===
+
+In addition to uploading CVE information to the database for disconnected Clair installations, you must also make the mapping file available locally:
+
+* For standalone {productname} and Clair deployments, the mapping file must be loaded into the Clair pod.
+
+* For {productname} Operator deployments on {ocp} and Clair deployments, you must set the Clair component to `unamanged`. Then, Clair must be deployed manually, setting the configuration to load a local copy of the mapping file.
+
+[id="mapping-repositories-to-cpe-configuration"]
+== Mapping repositories to Common Product Enumeration example configuration
+
+Use the `repo2cpe_mapping_file` and `name2repos_mapping_file` fields in your Clair configuration to include the CPE JSON mapping files. For example:
+
+[source,yaml]
+----
+indexer:
+ scanner:
+    repo:
+      rhel-repository-scanner:
+        repo2cpe_mapping_file: /data/cpe-map.json
+    package:
+      rhel_containerscanner:
+        name2repos_mapping_file: /data/repo-map.json
+----
+
+For more information, see link:https://www.redhat.com/en/blog/how-accurately-match-oval-security-data-installed-rpms[How to accurately match OVAL security data to installed RPMs].

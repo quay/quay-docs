@@ -1,0 +1,130 @@
+// Module included in the following assemblies:
+//
+// clair/master.adoc
+
+:_content-type: CONCEPT
+[id="about-clair"]
+= About Clair
+
+The content in this section highlights Clair releases, official Clair containers, and information about CVSS enrichment data.
+
+[id="clair-releases"]
+== Clair releases
+
+New versions of Clair are regularly released. The source code needed to build Clair is packaged as an archive and attached to each release. Clair releases can be found at link:https://github.com/quay/clair/releases[Clair releases].
+
+
+Release artifacts also include the `clairctl` command line interface tool, which obtains updater data from the internet by using an open host.
+
+[id="clair-supported-languages"]
+== Clair supported languages
+
+Clair supports the following languages:
+* Python
+* Java (CRDA must be enabled)
+
+[id="clair-containers"]
+== Clair containers
+
+Official downstream Clair containers bundled with {productname} can be found on the link:registry.redhat.io[Red Hat Ecosystem Catalog].
+
+Official upstream containers are packaged and released as a container at link:quay.io/projectquay/clair[Quay.io/projectquay/clair]. The latest tag tracks the Git development branch. Version tags are built from the corresponding release.
+
+////
+
+[id="notifier-pagination"]
+===== Notifier pagination
+
+The URL returned in the callback field takes the client to a paginated result.
+
+The following example shows the callback endpoint specification:
+[source,json]
+----
+GET /notifier/api/v1/notification/{id}?[page_size=N][next=N]
+{
+  page: {
+    size:    int,
+    next:   string, //  if present, the next id to fetch.
+  }
+  notifications: [ Notification… ] // array of notifications; max len == page.size
+}
+----
+.small
+--
+* The `GET` callback request implements a simple paging mechanism.
+* A `page` object accompanying the notification list specifies `next` and `size` fields.
+* The `next` field returned in the page must be provided as the subsequent request's `next` URL parameter to retrieve the next set of notifications.
+* The `size` field will echo back to the request `page_size` parameter.
+
+
+
+* The `page_size` URL parameter controls how many notifications rae returned in a single page. If unprovided, a default of `500` is used.
+* The `next` URL parameter informs Clair of the next set of paginated notifications to return. If not provided, the `0th` page is assumed.
+*
+
+////
+
+////
+
+.Prerequisites
+
+* The Linux `make` command is required to start the local development environment.
+
+* Podman v3.0 or greater. Alternatively, you can use Docker or Docker Compose, however not all versions of Docker or Docker Compose have been tested. As a result, some versions might not work properly.
++
+This guide uses Podman with an implementation of Compose Specification.
+
+* Go v1.16 or greater.
+
+.Procedure
+
+. Enter the following command to close the Clair github repository:
++
+[source,terminal]
+----
+$ git clone git@github.com:quay/clair.git
+----
+
+. Change into the Clair directory by entering the following command:
++
+[source,terminal]
+----
+$ cd clair
+----
+
+. Start the Clair container by entering the following command:
++
+[source,terminal]
+----
+$ podman-compose up -d
+----
+
+After the local development environment starts, the following infrastructure is available to you:
+
+* `localhost:8080`. This includes dashboards and debugging services. You can see Traefik configuration logs in `local-dev/traefik`, where various services are served.
+
+* `localhost:6060`. This includes Clair services.
+
+* {productname}. If started, {productname} will be started in a single node, local storage configuration. A random port will be forwarded from `localhost`. Use `podman port` to view mapping information.
+
+* PostgreSQL. PostgreSQL has a random port forwarded from `localhost` to the database server. See `local-dev/clair/init.sql` for credentials and permissions. Use `podman port` to view mapping information.
+
+[id="testing-clair"]
+== Testing Clair on the local development environment
+
+After starting the Clair container, a {productname} server is forwarded to a random port on the host.
+
+. Locate, and open, the port hosting {productname}.
+
+. Click *Create Account* and create a new user, for example, `admin`.
+
+. Set a password.
+
+. To push to the {productname} container, you must exec into the skopeo container. For example:
++
+[source,terminal]
+----
+$ podman exec -it quay-skopeo /usr/bin/skopeo copy --dst-creds '<user>:<pass>' --dst-tls-verify=false <src> clair-quay:8080/<namespace>/<repo>:<tag>
+----
+
+////
