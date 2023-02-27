@@ -58,6 +58,34 @@ Clair requires the `uuid-ossp` extension to be added to its Postgres database. F
 If the extension is not present, the following error will be displayed when Clair attempts to start: `ERROR: Please load the "uuid-ossp" extension. (SQLSTATE 42501)`.
 ====
 
+. Stop the `Quay` container if it is running and restart it in configuration mode, loading the existing configuration as a volume:
++
+[source,terminal]
+----
+$ sudo podman run --rm -it --name quay_config \
+  -p 80:8080 -p 443:8443 \
+  -v $QUAY/config:/conf/stack:Z \
+  registry.redhat.io/quay/quay-rhel8:v3.8.2 config secret
+----
+
+. Log in to the configuration tool and click *Enable Security Scanning* in the *Security Scanner* section of the UI.
+
+. Set the HTTP endpoint for Clair using a port that is not already in use on the `quay-server` system, for example, `8081`.
+
+. Create a pre-shared key (PSK) using the *Generate PSK* button.
++
+.Security Scanner UI
+image:poc-quay-scanner-config.png[Security Scanner]
+
+. Validate and download the `config.yaml` file for {productname}, and then stop the `Quay` container that is running the configuration editor.
+
+. Extract the new configuration bundle into your {productname} installation directory, for example:
++
+[source,terminal]
+----
+$ tar xvf quay-config.tar.gz -d /home/<user-name>/quay-poc/
+----
+
 . Create a folder for your Clair configuration file, for example:
 +
 [source,terminal]
