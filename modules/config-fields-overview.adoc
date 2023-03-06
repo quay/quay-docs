@@ -1,0 +1,97 @@
+:_content-type: CONCEPT
+[id="config-fields-overview"]
+= Clair configuration overview
+
+Clair is configured by a structured YAML file. Each Clair node needs to specify what mode it will run in and a path to a configuration file through CLI flags or environment variables. For example:
+
+[source,terminal]
+----
+$ clair -conf ./path/to/config.yaml -mode indexer
+----
+
+or
+
+[source,terminal]
+----
+$ clair -conf ./path/to/config.yaml -mode matcher
+----
+
+The aforementioned commands each start two Clair nodes using the same configuration file. One runs the indexing facilities, while other runs the matching facilities.
+
+Environment variables respected by the Go standard library can be specified if needed, for example:
+
+* `HTTP_PROXY`
+* `HTTPS_PROXY`
+* `SSL_CERT_DIR`
+
+If you are running Clair in `combo` mode, you must supply the indexer, matcher, and notifier configuration blocks in the configuration.
+
+[id="config-fields-clair-reference"]
+== Clair configuration reference
+
+The following YAML shows an example Clair configuration:
+
+[source,yaml]
+----
+http_listen_addr: ""
+introspection_addr: ""
+log_level: ""
+tls: {}
+indexer:
+    connstring: ""
+    scanlock_retry: 0
+    layer_scan_concurrency: 0
+    migrations: false
+    scanner: {}
+    airgap: false
+matcher:
+    connstring: ""
+    indexer_addr: ""
+    migrations: false
+    period: ""
+    disable_updaters: false
+    update_retention: 2
+matchers:
+    names: nil
+    config: nil
+updaters:
+    sets: nil
+    config: nil
+notifier:
+    connstring: ""
+    migrations: false
+    indexer_addr: ""
+    matcher_addr: ""
+    poll_interval: ""
+    delivery_interval: ""
+    disable_summary: false
+    webhook: null
+    amqp: null
+    stomp: null
+auth:
+  psk: nil
+trace:
+    name: ""
+    probability: null
+    jaeger:
+        agent:
+            endpoint: ""
+        collector:
+            endpoint: ""
+            username: null
+            password: null
+        service_name: ""
+        tags: nil
+        buffer_max: 0
+metrics:
+    name: ""
+    prometheus:
+        endpoint: null
+    dogstatsd:
+        url: ""
+----
+
+[NOTE]
+====
+The above YAML file lists every key for completeness. Using this configuration file as-is will result in some options not having their defaults set normally.
+====

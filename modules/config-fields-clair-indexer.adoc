@@ -1,0 +1,35 @@
+:_content-type: CONCEPT
+[id="config-fields-clair-indexer"]
+= Clair indexer configuration fields
+
+The following indexer configuration fields are available for Clair.
+
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+| **indexer** | Object | Provides Clair indexer node configuration.
+
+| **.airgap** | Boolean | Disables HTTP access to the internet for indexers and fetchers. Private IPv4 and IPv6 addresses are allowed. Database connections are unaffected.
+
+| **.connstring** | String | A Postgres connection string. Accepts format as a URL or libpq connection string.
+
+| **.index_report_request_concurrency** | Integer | Rate limits the number of index report creation requests. Setting this to `0` attemps to auto-size this value. Setting a negative value means unlimited. The auto-sizing is a multiple of the number of available cores.
+
+The API returns a `429` status code if concurrency is exceeded.
+
+| **.scanlock_retry** | Integer | A positive integer representing seconds. Concurrent indexers lock on manifest scans to avoid clobbering. This value tunes how often a waiting indexer polls for the lock.
+
+| **.layer_scan_concurrency** | Integer | Positive integer limiting the number of concurrent layer scans. Indexers will match a manifest's layer concurrently. This value tunes the number of layers an indexer scans in parallel.
+
+| **.migrations** | Boolean | Whether indexer nodes handle migrations to their database.
+
+| **.scanner** | String | Indexer configuration.
+
+Scanner allows for passing configuration options to layer scanners. The scanner will have this configuration pass to it on construction if designed to do so.
+
+| **.scanner.dist** | String | A map with the name of a particular scanner and arbitrary YAML as a value.
+
+| **.scanner.package**  | String | A map with the name of a particular scanner and arbitrary YAML as a value.
+
+| **.scanner.repo** | String | A map with the name of a particular scanner and arbitrary YAML as a value.
+|===
