@@ -1,0 +1,44 @@
+:_content-type: CONCEPT
+[id="config-fields-clair-matcher"]
+= Clair matcher configuration fields
+
+The following matcher configuration fields are available for Clair.
+
+[NOTE]
+====
+Differs from `matchers` configuration fields.
+====
+
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+| **matcher** | Object | Provides Clair matcher node configuration.
+
+| **.cache_age** | String | Controls how long users should be hinted to cache responses for.
+
+| **.connstring** | String | A Postgres connection string. Accepts format as a URL or libpq connection string.
+
+| **.max_conn_pool** | Integer | Limits the database connection pool size.
+
+Clair allows for a custom connection pool size. This number directly sets how many active database connections are allowed concurrently.
+
+This parameter will be ignored in a future version. Users should configure this through the connection string.
+
+| **.indexer_addr** | String  | A matcher contacts an indexer to create a `VulnerabilityReport`. The location of this indexer is required.
+
+Defaults to `30m`.
+
+| **.migrations** | Boolean | Whether matcher nodes handle migrations to their databases.
+
+| **.period** | String | Determines how often updates for new security advisories take place.
+
+Defaults to `30m`.
+
+| **.disable_updaters** | Boolean | Whether to run background updates or not.
+
+| **.update_retention** | Integer  | Sets the number of update operations to retain between garbage collection cycles. This should be set to a safe MAX value based on database size constraints.
+
+Defaults to `10m`.
+
+If a value of less than `0` is provided, garbage collection is disabled. `2` is the minimum value to ensure updates can be compared to notifications.
+|===

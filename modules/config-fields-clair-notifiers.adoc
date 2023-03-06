@@ -1,0 +1,107 @@
+:_content-type: CONCEPT
+[id="config-fields-clair-notifiers"]
+= Clair notifier configuration fields
+
+The following notifier configuration fields are available for Clair.
+
+[cols="3a,1a,2a",options="header"]
+
+|===
+| Field | Type | Description
+| **notifier** | Object | Provides Clair notifier node configuration.
+
+| **.connstring** | String | Postgres connection string. Accepts format as URL, or libpq connection string.
+
+| **.migrations** | Boolean | Whether notifier nodes handle migrations to their database.
+
+| **.indexer_addr** | String | A notifier contacts an indexer to create or obtain manifests affected by vulnerabilities. The location of this indexer is required.
+
+| **.matcher_addr** | String | A notifier contacts a matcher to list update operations and acquire diffs. The location of this matcher is required.
+
+| **.poll_interval** | String | The frequency at which the notifier will query a matcher for update operations.
+
+| **.delivery_interval** | String | The frequency at which the notifier attempts delivery of created, or previously failed, notifications.
+
+| **.disable_summary** | Boolean | Controls whether notifications should be summarized to one per manifest.
+
+| **.webhook** | Object | Configures the notifier for webhook delivery.
+
+| **.webhook.target** | String | URL where the webhook will be delivered.
+
+| **.webhook.callback** | String | The callback URL where notifications can be retrieved. The notification ID will be appended to this URL.
+
+This will typically be where the Clair notifier is hosted.
+
+| **.webhook.headers** | String | A map associating a header name to a list of values.
+
+| **.amqp** | Object | Configures the notifier for AMQP delivery.
+
+[NOTE]
+====
+Clair does not declare any AMQP components on its own. All attempts to use an exchange or queue are passive only and will fail. Broker administrators should setup exchanges and queues ahead of time.
+====
+
+| **.amqp.direct** | Boolean | If `true`, the notifier will deliver individual notifications (not a callback) to the configured AMQP broker.
+
+| **.amqp.rollup** | Integer | When `amqp.direct` is set to `true`, this value informs the notifier of how many notifications to send in a direct delivery. For example, if `direct` is set to `true`, and `amqp.rollup` is set to `5`, the notifier delivers no more than 5 notifications in a single JSON payload to the broker. Setting the value to `0` effectively sets it to `1`.
+
+| **.amqp.exchange** | Object | The AMQP exchange to connect to.
+
+| **.amqp.exchange.name** | String | The name of the exchange to connect to.
+
+| **.amqp.exchange.type** | String | The type of the exchange. Typically one of the following: *direct*, *fanout*, *topic*, *headers*.
+
+| **.amqp.exchange.durability** | Boolean | Whether the configured queue is durable.
+
+| **.amqp.exchange.auto_delete** | Boolean | Whether the configured queue uses an `auto_delete_policy`.
+
+| **.amqp.routing_key** | String | The name of the routing key each notification is sent with.
+
+| **.amqp.callback** | String | If `amqp.direct` is set to `false`, this URL is provided in the notification callback sent to the broker. This URL should point to Clair's notification API endpoint.
+
+| **.amqp.uris** | String | A list of one or more AMQP brokers to connect to, in priority order.
+
+| **.amqp.tls** | Object | Configures TLS/SSL connection to an AMQP broker.
+
+| **.amqp.tls.root_ca** | String | The filesystem path where a root CA can be read.
+
+| **.amqp.tls.cert** | String | The filesystem path where a TLS/SSL certificate can be read.
+
+[NOTE]
+====
+Clair also allows `SSL_CERT_DIR`, as documented for the Go `crypto/x509` package.
+====
+
+| **.amqp.tls.key** | String | The filesystem path where a TLS/SSL private key can be read.
+
+| **.stomp** | Object | Configures the notifier for STOMP delivery.
+
+| **.stomp.direct** | Boolean | If `true`, the notifier delivers individual notifications (not a callback) to the configured STOMP broker.
+
+| **.stomp.rollup** | Integer | If `stomp.direct` is set to `true`, this value limits the number of notifications sent in a single direct delivery. For example, if `direct` is set to `true`, and `rollup` is set to `5`, the notifier delivers no more than 5 notifications in a single JSON payload to the broker. Setting the value to `0` effectively sets it to `1`.
+
+| **.stomp.callback** | String | If `stomp.callback` is set to `false`, the provided URL in the notification callback is sent to the broker. This URL should point to Clair's notification API endpoint.
+
+| **.stomp.destination** | String | The STOMP destination to deliver notifications to.
+
+| **.stomp.uris** | String | A list of one or more STOMP brokers to connect to in priority order.
+
+| **.stomp.tls** | Object | Configured TLS/SSL connection to STOMP broker.
+
+| **.stomp.tls.root_ca** | String | The filesystem path where a root CA can be read.
+
+[NOTE]
+====
+Clair also respects `SSL_CERT_DIR`, as documented for the Go `crypto/x509` package.
+====
+
+| **.stomp.tls.cert** | String | The filesystem path where a TLS/SSL certificate can be read.
+
+| **.stomp.tls.key** | String | The filesystem path where a TLS/SSL private key can be read.
+
+| **.stomp.user** | String | Configures login details for the STOMP broker.
+
+| **.stomp.user.login** | String | The STOMP login to connect with.
+
+| **.stomp.user.passcode** | String | The STOMP passcode to connect with.
+|===
