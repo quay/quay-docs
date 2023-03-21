@@ -1,36 +1,37 @@
-[[georepl-prereqs]]
+:_content-type: CONCEPT
+[id="arch-georepl-prereqs"]
 = Geo-replication requirements and constraints
 
-* In geo-replicated setups, {productname} requires that all regions are able to read/write to all other region's object storage. Object storage must be geographically accessible by all other regions. 
+* In geo-replicated setups, {productname} requires that all regions are able to read and write to all other region's object storage. Object storage must be geographically accessible by all other regions.
 
-* In case of an object storage system failure of one geo-replicating site, that site's {productname} deployment must be shut down so that clients are redirected to the remaining site with intact storage systems by a global load balancer. Otherwise, clients will experience pull and push failures. 
+* In case of an object storage system failure of one geo-replicating site, that site's {productname} deployment must be shut down so that clients are redirected to the remaining site with intact storage systems by a global load balancer. Otherwise, clients will experience pull and push failures.
 
-* {productname} has no internal awareness of the health or availability of the connected object storage system. If the object storage system of one site becomes unavailable, there will be no automatic redirect to the remaining storage system, or systems, of the remaining site, or sites. 
+* {productname} has no internal awareness of the health or availability of the connected object storage system. If the object storage system of one site becomes unavailable, there will be no automatic redirect to the remaining storage system, or systems, of the remaining site, or sites.
 
 * Geo-replication is asynchronous. The permanent loss of a site incurs the loss of the data that has been saved in that sites' object storage system but has not yet been replicated to the remaining sites at the time of failure.
 
-* A single database, and therefore all metadata and Quay configuration, is shared across all regions. 
+* A single database, and therefore all metadata and {productname} configuration, is shared across all regions.
 +
-Geo-replication does not replicate the database. In the event of an outage, {productname} with geo-replication enabled will not failover to another database. 
+Geo-replication does not replicate the database. In the event of an outage, {productname} with geo-replication enabled will not failover to another database.
 
-* A single Redis cache is shared across the entire Quay setup and needs to accessible by all Quay pods.
+* A single Redis cache is shared across the entire {productname} setup and needs to accessible by all {productname} pods.
 
 * The exact same configuration should be used across all regions, with exception of the storage backend, which can be configured explicitly using the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environment variable.
 
-* Geo-Replication requires object storage in each region. It does not work with local storage or NFS.
+* Geo-replication requires object storage in each region. It does not work with local storage.
 
-* Each region must be able to access every storage engine in each region (requires a network path).
+* Each region must be able to access every storage engine in each region, which requires a network path.
 
 * Alternatively, the storage proxy option can be used.
 
-* The entire storage backend (all blobs) is replicated. This is in contrast to repository mirroring, which can be limited to an organization or repository or image.
+* The entire storage backend, for example, all blobs, is replicated. Repository mirroring, by contrast, can be limited to an organization, repository, or image.
 
-* All Quay instances must share the same entrypoint, typically via load balancer.
+* All {productname} instances must share the same entrypoint, typically through a load balancer.
 
-* All Quay instances must have the same set of superusers, as they are defined inside the common configuration file.
+* All {productname} instances must have the same set of superusers, as they are defined inside the common configuration file.
 
-* Geo-replication requires your Clair configuration to be set to `unmanaged`. An unmanaged Clair database allows the {productname} Operator to work in a geo-replicated environment, where multiple instances of the Operator must communicate with the same database. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/deploy_red_hat_quay_on_openshift_with_the_quay_operator/index#clair-unmanaged[Advanced Clair configuration].
+* Geo-replication requires your Clair configuration to be set to `unmanaged`. An unmanaged Clair database allows the {productname} Operator to work in a geo-replicated environment, where multiple instances of the {productname} Operator must communicate with the same database. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/deploy_red_hat_quay_on_openshift_with_the_quay_operator/index#clair-unmanaged[Advanced Clair configuration].
 
-* Geo-Replication requires SSL/TSL certificates and keys. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/deploy_red_hat_quay_for_proof-of-concept_non-production_purposes/index#using_ssl_to_protect_connections_to_red_hat_quay[Using SSL to protect connections to {productname}].
+* Geo-Replication requires SSL/TSL certificates and keys. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/deploy_red_hat_quay_for_proof-of-concept_non-production_purposes/index#using_ssl_to_protect_connections_to_red_hat_quay[Using SSL/TSL to protect connections to {productname}].
 
-If the above requirements cannot be met, you should instead use two or more distinct Quay deployments and take advantage of repository mirroring functionality.
+If the above requirements cannot be met, you should instead use two or more distinct {productname} deployments and take advantage of repository mirroring functions.
