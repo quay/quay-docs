@@ -1,53 +1,55 @@
+
+:_content-type: CONCEPT
+[id="arch-quay-infrastructure"]
 = {productname} infrastructure
 
-{productname} runs on any physical or virtual infrastructure, both on-premise or public cloud. Deployments range from simple to massively scaled, including:
+{productname} runs on any physical or virtual infrastructure, both on premise or public cloud. Deployments range from simple to massively scaled, like the following:
 
-* All-in-one setup on a developer laptop
-* Highly available on Virtual Machines or on OpenShift
+* All-in-one setup on a developer notebook
+* Highly available on virtual machines or on {ocp}
 * Geographically dispersed across multiple availability zones and regions
 
+[id="arch-quay-standalone-hosts"]
 == Running {productname} on standalone hosts
 
-Standalone deployment is a manual process, but it can easily be automated by the customer, for example, using Ansible.  All standalone hosts require valid RHEL subscriptions.
+You can automate the standalone deployment process by using Ansible or another automation suite. All standalone hosts require valid a {rhel} subscription.
 
-Proof-of-concept deployment:: {productname} runs on a machine with image storage, containerized database, Redis, and optionally, Clair security scanning (scanning only works with object storage).
+Proof of Concept deployment:: {productname} runs on a machine with image storage, containerized database, Redis, and optionally, Clair security scanning.
 
-Highly available setups:: {productname} and Clair run in containers across multiple hosts, using `systemd` to ensure restart on failure/reboot.
+Highly available setups:: {productname} and Clair run in containers across multiple hosts. You can use `systemd` units to ensure restart on failure or reboot.
 +
-High availability setups on standalone hosts require customer-provided load balancers, either low-level TCP load balancers or application load balancers capable of terminating TLS.
+High availability setups on standalone hosts require customer-provided load balancers, either low-level TCP load balancers or application load balancers, capable of terminating TLS.
 
-
-
+[id="arch-quay-openshift"]
 == Running {productname} on OpenShift
 
-The {productname} Operator for OpenShift provides the following features:
+The {productname} Operator for {ocp} provides the following features:
 
-* Automated deployment and Day 2 management of {productname}with customization options
-* Management of {productname} and all its dependencies
+* Automated deployment and management of {productname} with customization options
+* Management of {productname} and all of its dependencies
 * Automated scaling and updates
-* Integration with existing OpenShift processes like GitOps, monitoring, alerting, logging
-* Provision of out-of-the-box object storage with limited availability, backed by the Multi-Cloud Object Gateway (NooBaa), as part of the ODF Operator (no additional subscription required)
-* Scaled-out, high availability object storage provided by the ODF Operator (additional subscription required)
+* Integration with existing {ocp} processes like GitOps, monitoring, alerting, logging
+* Provision of object storage with limited availability, backed by the multi-cloud object gateway (NooBaa), as part of the Red Hat OpenShift Data Foundation (ODF) Operator. This service does not require an additional subscription.
+* Scaled-out, high availability object storage provided by the ODF Operator. This service requires an additional subscription.
 
-{productname} can run on OpenShift infrastructure nodes, meaning no further subscriptions are required. Benefits of running {productname} on OpenShift include:
+{productname} can run on {ocp} infrastructure nodes. As a result, no further subscriptions are required. Running {productname} on {ocp} has the following benefits:
 
 * **Zero to Hero:** Simplified deployment of {productname} and associated components means that you can start using the product immediately
-* **Scalability:** Leverage cluster compute capacity to manage demand via automated scaling, based on actual load
-* **Simplified Networking:** Automated provisioning of load balancers and traffic ingress secured via HTTPS using OpenShift TLS certificates and Routes  
+* **Scalability:** Use cluster compute capacity to manage demand through automated scaling, based on actual load
+* **Simplified Networking:** Automated provisioning of load balancers and traffic ingress secured through HTTPS using {ocp} TLS certificates and Routes
 * **Declarative configuration management:** Configurations stored in CustomResource objects for GitOps-friendly lifecycle management
-* **Repeatability:** Consistency regardless of the number of replicas of {productname} / Clair
-* **OpenShift integration:** Additional services to leverage OpenShift Monitoring and Alerting facilities to manage multiple Quay deployments on a single cluster
+* **Repeatability:** Consistency regardless of the number of replicas of {productname} and Clair
+* **OpenShift integration:** Additional services to use {ocp} Monitoring and Alerting facilities to manage multiple {productname} deployments on a single cluster
 
-== Integrating standalone {productname} with OpenShift
+[id="arch-integrating-standalone-ocp"]
+== Integrating standalone {productname} with {ocp}
 
-While the {productname} Operator ensures seamless deployment and management of {productname} running on OpenShift, it is also possible to run {productname} in standalone mode and then serve content to one or many OpenShift clusters, wherever they are running. 
+While the {productname} Operator ensures seamless deployment and management of {productname} running on {ocp}, it is also possible to run {productname} in standalone mode and then serve content to one or many {ocp} clusters, wherever they are running.
 
-image:178_Quay_architecture_0821_deployment_ex2.png[Integrating standalone Quay with OpenShift]
+.Integrating standalone {productname} with {ocp}
+image:178_Quay_architecture_0821_deployment_ex2.png[Integrating standalone {productname} with {ocp}]
 
-A number of Operators are available to help integrate standalone Quay with OpenShift:
+Several Operators are available to help integrate standalone and Operator based deployments of{productname} with {ocp}, like the following:
 
-{productname} Cluster Security Operator:: Relays Quay vulnerability scanning results into the OpenShift Console
-{productname} Bridge Operator:: Ensures seamless integration and user experience for using {productname} with OpenShift in conjunction with OpenShift Builds and ImageStreams
-
-
-
+{productname} Cluster Security Operator:: Relays {productname} vulnerability scanning results into the {ocp} console
+{productname} Bridge Operator:: Ensures seamless integration and user experience by using {productname} with {ocp} in conjunction with {ocp} Builds and ImageStreams
