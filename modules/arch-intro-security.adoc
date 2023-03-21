@@ -1,30 +1,41 @@
-[[arch-intro-security]]
+:_content-type: CONCEPT
+[id="arch-intro-security"]
 = Security
 
-{productname} is built for real enterprise use cases where content governance and security are two major focus areas. {productname} content governance and security includes built-in vulnerability scanning via Clair.
+{productname} is built for real enterprise use cases where content governance and security are two major focus areas.
 
+{productname} content governance and security includes built-in vulnerability scanning through Clair.
 
-== TLS / SSL configuration
+[id="arch-tls-ssl-config"]
+== TLS/SSL configuration
 
-You can configure TLS for the {productname} registry in the configuration tool UI or in the config bundle. 
-SSL connections to the database, to image storage, and to Redis can also be specified through congfiguration. 
+You can configure SSL/TLS for the {productname} registry in the configuration tool UI or in the configuration bundle. SSL/TSL connections to the database, to image storage, and to Redis can also be specified through configuration.
+
 Sensitive fields in the database and at run time are automatically encrypted. You can also require HTTPS and verify certificates for the {productname} registry during mirror operations.
 
-
+[id="arch-intro-clair"]
 == Clair
 
-Clair is an open source tool developed by CoreOS for Quay that generates analyses of vulnerabilities in application containers, which currently includes Open Container Initiative (OCI) and Docker images. Clients that use the Clair API to index their container images can then match their images against known vulnerabilities. 
+Clair is an open source application that leverages static code analyses for parsing image content and reporting vulnerabilities affecting the content. Clair is packaged with {productname} and can be used in both standalone and Operator deployments. It can be run in highly scalable configurations, where components can be scaled separately as appropriate for enterprise environments.
 
+[id="arch-operator-security"]
 == {productname} Operator security
 
-When {productname} is deployed using the Operator, the `tls` component is set to `managed` by default and the OpenShift Container Platform's Certificate Authority is used to create HTTPS endpoints and to rotate TLS certificates. 
+When {productname} is deployed using the {productname} Operator, the `tls` component is set to `managed` by default and the {ocp}'s Certificate Authority is used to create HTTPS endpoints and to rotate TLS certificates.
 
-If you set the `tls` component to `unmanaged`, you can provide custom certificates to the pass-thru Routes, but you are then responsible for certificate rotation.
+If you set the `tls` component to `unmanaged`, you can provide custom certificates to the pass-through Routes, however you are responsible for certificate rotation.
 
-== Builders
+[id="arch-builders"]
+== Fully isolated builds
 
-{productname} now supports building Dockerfiles using both bare-metal and virtual builders.
+{productname} now supports building Dockerfiles that uses both bare metal and virtual builders.
 
-Using bare-metal worker nodes, each build is done in an ephemeral virtual machine to ensure complete isolation and security while the build is running. This provides the best protection against rogue payloads. 
+By using bare-metal worker nodes, each build is done in an ephemeral virtual machine to ensure isolation and security while the build is running. This provides the best protection against rogue payloads.
 
-Running builds directly in a container does not have the same isolation as when using using virtual machines, but it still provides good protection.
+Running builds directly in a container does not have the same isolation as when using virtual machines, but it still provides good protection.
+
+
+[id="arch-rbac"]
+== Role-based access controls
+
+{productname} provides full isolation of registry content by organization and team with fine-grained entitlements for read, write, and administrative access by users and automated tools.

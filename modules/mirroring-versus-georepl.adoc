@@ -1,32 +1,36 @@
-[[mirroring-versus-georepl]]
-= Repository mirroring versus geo-replication
+:_content-type: CONCEPT
+[id="mirroring-versus-georepl"]
+= Repository mirroring compared to geo-replication
 
-{productname} geo-replication mirrors the entire image storage backend data between 2 or more different storage backends while the database is shared (one {productname} registry with two different blob storage endpoints).  The primary use cases for geo-replication are: 
+{productname} geo-replication mirrors the entire image storage backend data between 2 or more different storage backends while the database is shared, for example, one {productname} registry with two different blob storage endpoints. The primary use cases for geo-replication include the following:
 
 * Speeding up access to the binary blobs for geographically dispersed setups
+
 * Guaranteeing that the image content is the same across regions
 
-Repository mirroring synchronizes selected repositories (or subsets of repositories) from one registry to another. The registries are distinct, with each registry having a separate database and separate image storage. The primary use cases for mirroring are:
+Repository mirroring synchronizes selected repositories, or subsets of repositories, from one registry to another. The registries are distinct, with each registry having a separate database and separate image storage.
 
-* Independent registry deployments in different datacenters or regions, where a certain subset of the overall content is supposed to be shared across the datacenters / regions
-* Automatic synchronization or mirroring of selected (whitelisted) upstream repositories from external registries into a local {productname} deployment
+The primary use cases for mirroring include the following:
+
+* Independent registry deployments in different data centers or regions, where a certain subset of the overall content is supposed to be shared across the data centers and regions
+* Automatic synchronization or mirroring of selected (allowlisted) upstream repositories from external registries into a local {productname} deployment
 
 [NOTE]
 ====
 Repository mirroring and geo-replication can be used simultaneously.
 ====
 
-.{productname} Repository mirroring versus geo-replication
+.{productname} Repository mirroring and geo-replication comparison
 [width="100%",options="header"]
 
 |===
 | Feature / Capability | Geo-replication | Repository mirroring
 | What is the feature designed to do? | A shared, global registry | Distinct, different registries
-| What happens if replication or mirroring hasn’t been completed yet? | The remote copy is used (slower) | No image is served
+| What happens if replication or mirroring has not been completed yet? | The remote copy is used (slower) | No image is served
 | Is access to all storage backends in both regions required? | Yes (all {productname} nodes) | No (distinct storage)
 | Can users push images from both sites to the same repository? | Yes | No
-| Is all registry content and configuration identical across all regions (shared database) | Yes | No
+| Is all registry content and configuration identical across all regions (shared database)? | Yes | No
 | Can users select individual namespaces or repositories to be mirrored? | No | Yes
 | Can users apply filters to synchronization rules? | No | Yes
-| Are individual / different RBAC configurations allowed in each region | No | Yes
+| Are individual / different role-base access control configurations allowed in each region | No | Yes
 |===
