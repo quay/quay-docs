@@ -1,7 +1,7 @@
 [[operator-unmanaged-storage]]
 = Unmanaged storage
 
-Some configuration examples for unmanaged storage are provided in this section for convenience. See the {productname} configuration guide for full details for setting up object storage. 
+Some configuration examples for unmanaged storage are provided in this section for convenience. See the {productname} configuration guide for full details for setting up object storage.
 
 == AWS S3 storage
 
@@ -57,14 +57,13 @@ DISTRIBUTED_STORAGE_PREFERENCE:
 +
 As of {productname} 3.7, you must use the Primary endpoint of your MAG Blob service. Using the Secondary endpoint of your MAG Blob service will result in the following error: `AuthenticationErrorDetail:Cannot find the claimed account when trying to GetProperties for the account whusc8-secondary`.
 
-== Ceph / RadosGW Storage / Hitachi HCP storage 
-
+== Ceph/RadosGW Storage
 [source,yaml]
 ----
 DISTRIBUTED_STORAGE_CONFIG:
-  radosGWStorage:
-    - RadosGWStorage
-    - access_key: access_key_here
+  radosGWStorage: #storage config name
+    - RadosGWStorage #actual driver
+    - access_key: access_key_here #parameters
       secret_key: secret_key_here
       bucket_name: bucket_name_here
       hostname: hostname_here
@@ -72,8 +71,8 @@ DISTRIBUTED_STORAGE_CONFIG:
       port: '443'
       storage_path: /datastorage/registry
 DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
-DISTRIBUTED_STORAGE_PREFERENCE:
-    - default
+DISTRIBUTED_STORAGE_PREFERENCE: #must contain name of the storage config
+    - radosGWStorage
 ----
 
 == Swift storage
@@ -97,13 +96,13 @@ DISTRIBUTED_STORAGE_PREFERENCE:
 
 == NooBaa unmanaged storage
 
-Use the following procedure to deploy NooBaa as your unmanaged storage configuration. 
+Use the following procedure to deploy NooBaa as your unmanaged storage configuration.
 
-.Procedure 
+.Procedure
 
-. Create a NooBaa Object Bucket Claim in the {product-title} console by navigating to *Storage* -> *Object Bucket Claims*. 
+. Create a NooBaa Object Bucket Claim in the {product-title} console by navigating to *Storage* -> *Object Bucket Claims*.
 
-. Retrieve the Object Bucket Claim Data details, including the Access Key, Bucket Name, Endpoint (hostname), and Secret Key. 
+. Retrieve the Object Bucket Claim Data details, including the Access Key, Bucket Name, Endpoint (hostname), and Secret Key.
 
 . Create a `config.yaml` configuration file using the information for the Object Bucket Claim:
 +
@@ -124,4 +123,4 @@ DISTRIBUTED_STORAGE_PREFERENCE:
   - default
 ----
 
-For more information about configuring an Object Bucket Claim, see link:https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.8/html-single/managing_hybrid_and_multicloud_resources/index#object-bucket-claim[Object Bucket Claim]. 
+For more information about configuring an Object Bucket Claim, see link:https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.8/html-single/managing_hybrid_and_multicloud_resources/index#object-bucket-claim[Object Bucket Claim].
