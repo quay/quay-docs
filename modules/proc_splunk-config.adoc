@@ -1,0 +1,36 @@
+:_content-type: PROCEDURE
+[id="proc_splunk-config"]
+= Configuring {productname} to use Splunk
+
+Use the following procedure to configure {productname} to use Splunk.
+
+.Prerequisites
+
+* You have installed Splunk and created a username.
+* You have generated a Splunk bearer token.
+
+.Procedure
+
+* Open your {productname} `config.yaml` file and add the following configuration fields:
++
+[source,yaml]
+----
+---
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  	producer: splunk
+  	splunk_config:
+    	host: http://<user_name>.remote.csb <1>
+    	port: 8089 <2>
+    	bearer_token: <bearer_token> <3>
+		url_scheme: <http/https> <4>
+    	verify_ssl: False <5>
+    	index_prefix: <splunk_log_index_name> <6>
+---
+----
+<1> String. The Splunk cluster endpoint.
+<2> Integer. The Splunk management cluster endpoint port. Differs from the Splunk GUI hosted port. Can be found on the Splunk UI under *Settings* -> *Server Settings* -> *General Settings*.
+<3> String. The generated bearer token for Splunk.
+<4> String. The URL scheme for access the Splunk service. If Splunk is configured to use TLS/SSL, this must be `http`.
+<5> Boolean. Whether to enable TLS/SSL. Defaults to `true`.
+<6> String. The Splunk index prefix. Can be a new, or used, index. Can be created from the Splunk UI.

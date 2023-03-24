@@ -1,4 +1,4 @@
-[[config-fields-actionlog]]
+[id="config-fields-actionlog"]
 = Action log configuration fields
 
 == Action log storage configuration
@@ -8,12 +8,12 @@
 |===
 | Field | Type | Description
 | **FEATURE_LOG_EXPORT**  | Boolean |  Whether to allow exporting of action logs +
- + 
+ +
 **Default:** `True`
-| **LOGS_MODEL** | String |  Enable or disable the security scanner + 
- + 
-**Values:** One of `database`, `transition_reads_both_writes_es`, `elasticsearch` + 
-**Default:** `database` 
+| **LOGS_MODEL** | String |  Enable or disable the security scanner +
+ +
+**Values:** One of `database`, `transition_reads_both_writes_es`, `elasticsearch`, `splunk` +
+**Default:** `database`
 | **LOGS_MODEL_CONFIG** | Object |  Logs model config for action logs
 |===
 
@@ -61,10 +61,14 @@
 *** **bootstrap_servers** [array]: List of Kafka brokers to bootstrap the client from
 *** **max_block_seconds** [number]: Max number of seconds to block during a `send()`, either because the buffer is full or metadata unavailable
 **** **Example**: `10`
-
-
-
-
+//splunk
+** **producer** [string]: `splunk`
+** **splunk_config** [object]: Logs model configuration for Splunk action logs or the Splunk cluster configuration
+*** **host** [string]: Splunk cluster endpoint.
+*** **port** [integer]: Splunk management cluster endpoint port.
+*** **bearer_token** [string]: The bearer token for Splunk.
+*** **use_ssl** [boolean]: Enable (`True`) or disable (`False`) TLS/SSL verification for HTTPS connections.
+*** **index_prefix** [string]: Splunk's index prefix.
 
 == Action log rotation and archiving configuration
 
@@ -73,17 +77,17 @@
 |===
 | Field | Type | Description
 | **FEATURE_ACTION_LOG_ROTATION** | Boolean |  Enabling log rotation and archival will move all logs older than 30 days to storage +
- + 
-**Default:** `false` 
+ +
+**Default:** `false`
 
-| **ACTION_LOG_ARCHIVE_LOCATION** | String | If action log archiving is enabled, the storage engine in which to place the archived data + 
- + 
+| **ACTION_LOG_ARCHIVE_LOCATION** | String | If action log archiving is enabled, the storage engine in which to place the archived data +
+ +
 **Example:**: `s3_us_east`
-| **ACTION_LOG_ARCHIVE_PATH** | String | If action log archiving is enabled, the path in storage in which to place the archived data + 
- + 
+| **ACTION_LOG_ARCHIVE_PATH** | String | If action log archiving is enabled, the path in storage in which to place the archived data +
+ +
 **Example:** `archives/actionlogs`
-| **ACTION_LOG_ROTATION_THRESHOLD** | String | The time interval after which to rotate logs + 
- + 
+| **ACTION_LOG_ROTATION_THRESHOLD** | String | The time interval after which to rotate logs +
+ +
 **Example:** `30d`
 |===
 
