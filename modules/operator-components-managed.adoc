@@ -1,10 +1,9 @@
-[[operator-components-managed]]
+[id="operator-components-managed"]
 = Using managed components
 
+Unless your `QuayRegistry` custom resource specifies otherwise, the {productname} Operator uses defaults for the following managed components:
 
-Unless your `QuayRegistry` custom resource specifies otherwise, the Operator will use defaults for the following managed components:
-
-* **quay:** Holds overrides for the Quay deployment, for example, environment variables and number of replicas. This component is new in {productname} 3.7 and cannot be set to unmanaged.
+* **quay:** Holds overrides for the {productname} deployment. For example, environment variables and number of replicas. This component is new in {productname} 3.7 and cannot be set to unmanaged.
 * **postgres:**  For storing the registry metadata,
 ifeval::["{productname}" == "Red Hat Quay"]
 uses a version of Postgres 10 from the link:https://www.softwarecollections.org/en/[Software Collections]
@@ -13,17 +12,13 @@ ifeval::["{productname}" == "Project Quay"]
 uses an upstream (CentOS) version of Postgres 10
 endif::[]
 * **clair:**  Provides image vulnerability scanning
-* **redis:**  Handles Quay builder coordination and some internal logging
-* **horizontalpodautoscaler:**  Adjusts the number of Quay pods depending on memory/cpu consumption
+* **redis:**  Stores live builder logs and the {productname} tutorial. Also includes the locking mechanism that is required for garbage collection.
+* **horizontalpodautoscaler:**  Adjusts the number of `Quay` pods depending on memory/cpu consumption
 * **objectstorage:**  For storing image layer blobs,  utilizes the `ObjectBucketClaim` Kubernetes API which is provided by Noobaa/RHOCS
-* **route:**  Provides an external entrypoint to the Quay registry from outside OpenShift
-* **mirror:**  Configures repository mirror workers (to support optional repository mirroring)
+* **route:**  Provides an external entrypoint to the {productname} registry from outside of {ocp}
+* **mirror:**  Configures repository mirror workers to support optional repository mirroring
 * **monitoring:** Features include a Grafana dashboard, access to individual metrics, and alerting to notify for frequently restarting Quay pods
-* **tls:** Configures whether {productname} or OpenShift handles TLS
+* **tls:** Configures whether {productname} or {ocp} handles SSL/TLS
 * **clairpostgres:** Configures a managed Clair database
 
-
-The Operator will handle any required configuration and installation work needed for {productname} to use the managed components. If the opinionated deployment performed by the Quay Operator is unsuitable for your environment, you can provide the Operator with `unmanaged` resources (overrides) as described in the following sections.
-
-
-
+The {productname} Operator handles any required configuration and installation work needed for {productname} to use the managed components. If the opinionated deployment performed by the {productname} Operator is unsuitable for your environment, you can provide the {productname} Operator with `unmanaged` resources (overrides) as described in the following sections.
