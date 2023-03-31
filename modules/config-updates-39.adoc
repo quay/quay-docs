@@ -63,7 +63,7 @@ LOGS_MODEL_CONFIG:
 
 The following configuration fields have been added to enhance the {productname} quota management feature. 
 
-.{productname} 3.9 configuration fields
+.{productname} 3.9 quota management configuration fields
 [cols="2a,1a,2a",options="header"]
 |===
 |Field | Type |Description
@@ -87,7 +87,7 @@ The following configuration fields have been added to enhance the {productname} 
 |===
 
 [id="quota-management-config-settings-39"]
-== Possible quota management configuration settings 
+=== Possible quota management configuration settings 
 
 The following table explains possible quota management configuration settings in {productname} 3.9. 
 
@@ -102,7 +102,7 @@ The following table explains possible quota management configuration settings in
 |===
 
 [id="suggested-management-config-settings-39-quota"]
-== Suggested quota management configuration settings 
+=== Suggested quota management configuration settings 
 
 The following YAML is the suggested configuration when enabling quota management. 
 
@@ -114,4 +114,43 @@ FEATURE_GARBAGE_COLLECTION: true
 PERMANENTLY_DELETE_TAGS: true
 QUOTA_TOTAL_DELAY_SECONDS: 1800
 RESET_CHILD_MANIFEST_EXPIRATION: true
+----
+
+[id=postgresql-pvc-backup-config-fields]
+== PostgreSQL PVC backup environment variable
+
+The following environment variable has been added to configure whether {productname} automatically removes old persistent volume claims (PVCs) when upgrading from version 3.8 -> 3.9:
+
+.{productname} 3.9 PostgreSQL backup environment variable
+[cols="2a,1a,2a",options="header"]
+|===
+|Field | Type |Description
+| *POSTGRES_UPGRADE_RETAIN_BACKUP* |Boolean | When set to `True`, persistent volume claims from PostgreSQL 10 are backed up. 
++
+**Default**: `False`
+
+|===
+
+[id="pvc-backup-example-yaml"]
+=== Example configuration for PostgreSQL PVC backup
+
+The following `Subscription` object provides an example configuration for backing up PostgreSQL 10 PVCs. 
+
+.`Subscription` object for PostgreSQL 10 PVCs
+[source,yaml]
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: quay-operator
+  namespace: quay-enterprise
+spec:
+  channel: stable-3.8
+  name: quay-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  config:
+    env: 
+    - name: POSTGRES_UPGRADE_RETAIN_BACKUP
+      value: "true"
 ----
