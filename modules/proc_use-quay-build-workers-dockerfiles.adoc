@@ -196,7 +196,7 @@ BUILD_MANAGER:
     WORKER_TAG: some_tag
     BUILDER_VM_CONTAINER_IMAGE: <registry>/quay-quay-builder-qemu-rhcos:v3.4.0
     SETUP_TIME: 180
-    MINIMUM_RETRY_THRESHOLD:
+    MINIMUM_RETRY_THRESHOLD: 0
     SSH_AUTHORIZED_KEYS:
     - ssh-rsa 12345 someuser@email.com
     - ssh-rsa 67890 someuser2@email.com
@@ -248,7 +248,7 @@ ifdef::downstream[]
 (`registry.redhat.io/quay/quay-builder-qemu-rhcos:v3.4.0`).
 endif::downstream[]
 SETUP_TIME:: Specifies the number of seconds at which a build times out if it has not yet registered itself with the Build Manager (default is 500 seconds).  Builds that time out are attempted to be restarted three times.  If the build does not register itself after three attempts it is considered failed.
-MINIMUM_RETRY_THRESHOLD:: This setting is used with multiple Executors; it indicates how many retries are attempted to start a build before a different Executor is chosen.  Setting to 0 means there are no restrictions on how many tries the build job needs to have.  This value should be kept intentionally small (three or less) to ensure failovers happen quickly in the event of infrastructure failures.
+MINIMUM_RETRY_THRESHOLD:: This setting is used with multiple Executors; it indicates how many retries are attempted to start a build before a different Executor is chosen.  Setting to 0 means there are no restrictions on how many tries the build job needs to have.  This value should be kept intentionally small (three or less) to ensure failovers happen quickly in the event of infrastructure failures. You must specify a value for this setting.
 E.g Kubernetes is set as the first executor and EC2 as the second executor. If we want the last attempt to run a job to always be executed on EC2 and not Kubernetes, we would set the Kubernetes executor’s `MINIMUM_RETRY_THRESHOLD` to 1 and EC2’s `MINIMUM_RETRY_THRESHOLD` to 0 (defaults to 0 if not set).
 In this case, kubernetes’ `MINIMUM_RETRY_THRESHOLD` > retries_remaining(1) would evaluate to False, thus falling back to the second executor configured
 SSH_AUTHORIZED_KEYS:: List of ssh keys to bootstrap in the ignition config. This allows other keys to be used to ssh into the EC2 instance or QEMU VM
