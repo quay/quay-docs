@@ -2,7 +2,7 @@
 [id="builders-virtual-environment"]
 = Creating a {productname} builders environment with {ocp}
 
-The procedures in this section explain how to create a {productname} virtual builders environment with {ocp}. 
+The procedures in this section explain how to create a {productname} virtual builders environment with {ocp}.
 
 [id="openshift-tls-component"]
 == {ocp} TLS component
@@ -14,7 +14,7 @@ The `tls` component allows you to control TLS configuration.
 {productname} {producty} does not support builders when the TLS component is managed by the Operator.
 ====
 
-If you set `tls` to `unmanaged`, you supply your own `ssl.cert` and `ssl.key` files. In this instance, if you want your cluster to support builders, you must add both the Quay route and the builder route name to the SAN list in the cert, or use a wildcard. 
+If you set `tls` to `unmanaged`, you supply your own `ssl.cert` and `ssl.key` files. In this instance, if you want your cluster to support builders, you must add both the Quay route and the builder route name to the SAN list in the cert, or use a wildcard.
 
 To add the builder route, use the following format:
 
@@ -33,7 +33,7 @@ If you are using Amazon Web Service (AWS) S3 storage, you must modify your stora
 [id="red-hat-quay-setting-up-builders"]
 === Preparing {ocp} for virtual builders
 
-Use the following procedure to prepare {ocp} for {productname} virtual builders. 
+Use the following procedure to prepare {ocp} for {productname} virtual builders.
 
 [NOTE]
 ====
@@ -45,7 +45,7 @@ Use the following procedure to prepare {ocp} for {productname} virtual builders.
 
 . Log in to your {productname} cluster using a cluster administrator account.
 
-. Create a new project where your virtual builders will be run, for example, `virtual-builders`, by running the following command: 
+. Create a new project where your virtual builders will be run, for example, `virtual-builders`, by running the following command:
 +
 [source,terminal]
 ----
@@ -66,7 +66,7 @@ $ oc create sa -n virtual-builders quay-builder
 $ oc adm policy -n virtual-builders add-role-to-user edit system:serviceaccount:virtual-builders:quay-builder
 ----
 
-. Grant the Quay builder `anyuid scc` permissions by entering the following command: 
+. Grant the Quay builder `anyuid scc` permissions by entering the following command:
 +
 [source,terminal]
 ----
@@ -78,16 +78,16 @@ $ oc adm policy -n virtual-builders add-scc-to-user anyuid -z quay-builder
 This action requires cluster admin privileges. This is required because builders must run as the Podman user for unprivileged or rootless builds to work.
 ====
 
-. Obtain the token for the Quay builder service account. 
+. Obtain the token for the Quay builder service account.
 
-.. If using {ocp} 4.10 or an earlier version, enter the following command: 
+.. If using {ocp} 4.10 or an earlier version, enter the following command:
 +
 [source,terminal]
 ----
 oc sa get-token -n virtual-builders quay-builder
 ----
 
-.. If using {ocp} 4.11 or later, enter the following command: 
+.. If using {ocp} 4.11 or later, enter the following command:
 +
 [source,terminal]
 ----
@@ -129,7 +129,7 @@ $ oc extract cm/kube-root-ca.crt -n openshift-apiserver
 ca.crt
 ----
 
-. Rename the `ca.crt` file to `extra_ca_cert_build_cluster.crt` by entering the following command: 
+. Rename the `ca.crt` file to `extra_ca_cert_build_cluster.crt` by entering the following command:
 +
 [source,terminal]
 ----
@@ -163,7 +163,7 @@ BUILD_MANAGER:
         NAME: openshift
         BUILDER_NAMESPACE: <sample_builder_namespace> <4>
         SETUP_TIME: 180
-        MINIMUM_RETRY_THRESHOLD:
+        MINIMUM_RETRY_THRESHOLD: 0
         BUILDER_CONTAINER_IMAGE: <sample_builder_container_image> <5>
         # Kubernetes resource options
         K8S_API_SERVER: <sample_k8s_api_server> <6>
@@ -219,7 +219,7 @@ BUILD_MANAGER:
         NAME: openshift
         BUILDER_NAMESPACE: virtual-builders
         SETUP_TIME: 180
-        MINIMUM_RETRY_THRESHOLD:
+        MINIMUM_RETRY_THRESHOLD: 0
         BUILDER_CONTAINER_IMAGE: quay.io/projectquay/quay-builder:3.7.0-rc.2
         # Kubernetes resource options
         K8S_API_SERVER: api.docs.quayteam.org:6443
@@ -239,7 +239,7 @@ BUILD_MANAGER:
 [id="red-hat-quay-manual-ssl-for-builders"]
 === Manually adding SSL/TLS certificates
 
-Due to a known issue with the configuration tool, you must manually add your custom SSL/TLS certificates to properly run builders. Use the following procedure to manually add custom SSL/TLS certificates. 
+Due to a known issue with the configuration tool, you must manually add your custom SSL/TLS certificates to properly run builders. Use the following procedure to manually add custom SSL/TLS certificates.
 
 For more information creating SSL/TLS certificates, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_for_proof-of-concept_non-production_purposes/advanced_red_hat_quay_deployment#using_ssl_to_protect_connections_to_red_hat_quay[Adding TLS certificates to the {productname} container].
 
@@ -247,7 +247,7 @@ For more information creating SSL/TLS certificates, see link:https://access.redh
 [id="create-sign-certificates"]
 ==== Creating and signing certificates
 
-Use the following procedure to create and sign an SSL/TLS certificate. 
+Use the following procedure to create and sign an SSL/TLS certificate.
 
 .Procedure
 
@@ -268,8 +268,8 @@ subjectAltName = @alt_names
 DNS.1 = example-registry-quay-quay-enterprise.apps.docs.quayteam.org <1>
 DNS.2 = example-registry-quay-builder-quay-enterprise.apps.docs.quayteam.org <2>
 ----
-<1> An `alt_name` for the URL of your {productname} registry must be included. 
-<2> An `alt_name` for the `BUILDMAN_HOSTNAME` 
+<1> An `alt_name` for the URL of your {productname} registry must be included.
+<2> An `alt_name` for the `BUILDMAN_HOSTNAME`
 +
 .Sample commands
 [source,terminal]
@@ -284,7 +284,7 @@ $ openssl x509 -req -in ssl.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial
 [id="setting-tls-unmanaged"]
 ==== Setting TLS to unmanaged
 
-Use the following procedure to set `king:tls` to unmanaged. 
+Use the following procedure to set `king:tls` to unmanaged.
 
 .Procedure
 
@@ -296,7 +296,7 @@ Use the following procedure to set `king:tls` to unmanaged.
     managed: false
 ----
 
-. On the *Events* page, the change is blocked until you set up the appropriate `config.yaml` file. For example: 
+. On the *Events* page, the change is blocked until you set up the appropriate `config.yaml` file. For example:
 +
 [source,yaml]
 ----
@@ -313,7 +313,7 @@ Use the following procedure to set `king:tls` to unmanaged.
 [id="creating-temporary-secrets"]
 ==== Creating temporary secrets
 
-Use the following procedure to create temporary secrets for the CA certificate. 
+Use the following procedure to create temporary secrets for the CA certificate.
 
 .Procedure
 
@@ -332,7 +332,7 @@ $ oc create secret generic -n quay-enterprise quay-config-ssl --from-file ssl.ce
 [id="copying-secret-data-to-config"]
 ==== Copying secret data to the configuration YAML
 
-Use the following procedure to copy secret data to your `config.yaml` file. 
+Use the following procedure to copy secret data to your `config.yaml` file.
 
 .Procedure
 
@@ -408,7 +408,7 @@ data:
 type: Opaque
 ----
 
-. Click *Save*. 
+. Click *Save*.
 
 . Enter the following command to see if your pods are restarting:
 +
@@ -434,7 +434,7 @@ example-registry-quay-mirror-764d7b68d9-jqzwg          1/1     Terminating      
 example-registry-quay-redis-7cc5f6c977-956g8           1/1     Running             0          5d21h
 ----
 
-. After your {productname} registry has reconfigured, enter the following command to check if the {productname} app pods are running: 
+. After your {productname} registry has reconfigured, enter the following command to check if the {productname} app pods are running:
 +
 [source,terminal]
 ----
@@ -466,7 +466,7 @@ Organisational Unit (OU)	QUAY
 [id="red-hat-quay-builders-ui"]
 === Using the UI to create a build trigger
 
-Use the following procedure to use the UI to create a build trigger. 
+Use the following procedure to use the UI to create a build trigger.
 
 .Procedure
 
@@ -539,7 +539,7 @@ $ oc get pods -n virtual-builders
 No resources found in virtual-builders namespace.
 ----
 
-. When the build is finished, you can check the status of the tag under *Tags* on the navigation pane. 
+. When the build is finished, you can check the status of the tag under *Tags* on the navigation pane.
 +
 [NOTE]
 ====
