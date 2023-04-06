@@ -1,37 +1,40 @@
-== Set up Load Balancer and Database
+:_content-type: PROCEDURE
+[id="setting-up-load-balancer-database"]
+== Setting up the HAProxy load balancer and the PostgreSQL database
 
-On the first two systems (q01 and q02), install the haproxy load balancer and postgresql database. Haproxy will be configured as the access point and load balancer for the following services running on other systems:
+Use the following procedure to set up the HAProxy load balancer and the PostgreSQL database.
 
+.Prerequisites
+
+* You have installed the Podman or Docker CLI.
+
+.Procedure
+
+. On the first two systems, `q01` and `q02`, install the HAProxy load balancer and the PostgreSQL database. This configures HAProxy as the access point and load balancer for the following services running on other systems:
++
 * {productname} (ports 80 and 443 on B systems)
 * Redis (port 6379 on B systems)
 * RADOS (port 7480 on C systems)
 
-Because the services on the two systems run as containers, you will use `podman`, if it is installed. Alternatively, you could use the equivalent `docker` commands.
-
-[NOTE]
-====
-For more information on using `podman` and restarting containers, see the section "Using podman" earlier in this document.
-====
-
-Here is how to set up the A systems:
 
 //. **Install and start docker service**: Install, start, and enable the link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html-single/getting_started_with_containers/index#getting_docker_in_rhel_7[docker service].
 
-. **Open ports for haproxy service**: Open all haproxy ports in SELinux and selected haproxy ports in the firewall:
-
+. Open all HAProxy ports in SELinux and selected HAProxy ports in the firewall:
 +
-```
+[source,terminal]
+----
 # setsebool -P haproxy_connect_any=on
 # firewall-cmd --permanent --zone=public --add-port=6379/tcp --add-port=7480/tcp
 success
 # firewall-cmd --reload
 success
-```
-//. **Set up link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/load_balancer_administration/index#install_haproxy_example1[haproxy service]**: Configure the `/etc/haproxy/haproxy.cfg` to point to the systems and ports providing the {productname}, Redis, and Ceph RADOS services. Here are examples of defaults and added frontend and backend settings:
-. **Set up haproxy service**: Configure the `/etc/haproxy/haproxy.cfg` to point to the systems and ports providing the {productname}, Redis, and Ceph RADOS services. Here are examples of defaults and added frontend and backend settings:
+----
 
+//. **Set up link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/load_balancer_administration/index#install_haproxy_example1[haproxy service]**: Configure the `/etc/haproxy/haproxy.cfg` to point to the systems and ports providing the {productname}, Redis, and Ceph RADOS services. Here are examples of defaults and added frontend and backend settings:
+
+. Configure the `/etc/haproxy/haproxy.cfg` to point to the systems and ports providing the {productname}, Redis and Ceph RADOS services. The following are examples of defaults and added frontend and backend settings:
 +
-```
+----
 #---------------------------------------------------------------------
 # common defaults that all the 'listen' and 'backend' sections will
 # use if not designated in their block
@@ -82,75 +85,138 @@ backend be_rdgw
     server ceph02 ceph02:7480 check
     server ceph03 ceph03:7480 check
 backend be_redis
-server quay01 quay01:6380 check inter 1s
-server quay02 quay02:6380 check inter 1s
-server quay03 quay03:6380 check inter 1s
-```
-
+server quay01 quay01:6379 check inter 1s
+server quay02 quay02:6379 check inter 1s
+server quay03 quay03:6379 check inter 1s
+----
 +
-Once the new haproxy.cfg file is in place, restart the haproxy service.
+After the new `haproxy.cfg` file is in place, restart the HAProxy service by entering the following command:
 +
-```
+[source,terminal]
+----
 # systemctl restart haproxy
-```
+----
 
-. **Install / Deploy a Database**: Install, enable and start the link:https://access.redhat.com/containers/?tab=overview#/registry.access.redhat.com/rhel8/postgresql-10)[PostgreSQL] database container. The following commands will:
-
+. Create a folder for the PostgreSQL database by entering the following command:
 +
-* Start the PostgreSQL database with the user, password and database all set. Data from the container will be stored on the host system in the `/var/lib/pgsql/data` directory.
-+
-* List available extensions.
-+
-* Create the pg_trgm extension.
-+
-* Confirm the extension is installed
-+
-```
+[source,terminal]
+----
 $ mkdir -p /var/lib/pgsql/data
+----
+
+. Set the following permissions for the `/var/lib/pgsql/data` folder:
++
+[source,terminal]
+----
 $ chmod 777 /var/lib/pgsql/data
+----
+
+. Enter the following command to start the PostgreSQL database:
++
+[source,terminal]
+----
 $ sudo podman run -d --name postgresql_database \
     -v /var/lib/pgsql/data:/var/lib/pgsql/data:Z  \
     -e POSTGRESQL_USER=quayuser -e POSTGRESQL_PASSWORD=quaypass \
     -e POSTGRESQL_DATABASE=quaydb -p 5432:5432 \
     registry.redhat.io/rhel8/postgresql-13:1-109
+----
++
+[NOTE]
+====
+Data from the container will be stored on the host system in the `/var/lib/pgsql/data` directory.
+====
 
+. List the available extensions by entering the following command:
++
+[source,terminal]
+----
 $ sudo podman exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_available_extensions" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+----
++
+.Example output
++
+[source,terminal]
+----
    name    | default_version | installed_version |           comment
 -----------+-----------------+-------------------+----------------------------------------
  adminpack | 1.0             |                   | administrative functions for PostgreSQL
 ...
+----
 
+. Create the `pg_trgm` extension by entering the following command:
++
+[source,terminal]
+----
 $ sudo podman exec -it postgresql_database /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm;" | /opt/rh/rh-postgresql96/root/usr/bin/psql -d quaydb'
+----
 
+. Confirm that the `pg_trgm` has been created by entering the following command:
++
+[source,terminal]
+----
 $ sudo podman exec -it postgresql_database /bin/bash -c 'echo "SELECT * FROM pg_extension" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+----
++
+.Example output
++
+[source,terminal]
+----
  extname | extowner | extnamespace | extrelocatable | extversion | extconfig | extcondition
 ---------+----------+--------------+----------------+------------+-----------+--------------
  plpgsql |       10 |           11 | f              | 1.0        |           |
  pg_trgm |       10 |         2200 | t              | 1.3        |           |
 (2 rows)
+----
 
+. Alter the privileges of the Postgres user `quayuser` and grant them the `superuser` role to give the user unrestricted access to the database:
++
+[source,terminal]
+----
 $ sudo podman exec -it postgresql_database /bin/bash -c 'echo "ALTER USER quayuser WITH SUPERUSER;" | /opt/rh/rh-postgresql96/root/usr/bin/psql'
+----
++
+.Example output
++
+[source,terminal]
+----
 ALTER ROLE
+----
 
-```
-
-. **Open the firewall**: If you have a firewalld service active on your system, run the following commands to make the PostgreSQL port available through the firewall:
-
+. If you have a firewalld service active on your system, run the following commands to make the PostgreSQL port available through the firewall:
 +
-```
+[source,terminal]
+----
 # firewall-cmd --permanent --zone=trusted --add-port=5432/tcp
-success
-# firewall-cmd --reload
-success
-```
-
-. **Test PostgreSQL Connectivity**: Use the `psql` command to test connectivity to the PostgreSQL database. Try this on a remote system as well, to make sure you can access the service remotely:
-
+----
 +
-```
-# yum install postgresql -y
+[source,terminal]
+----
+# firewall-cmd --reload
+----
 
+. Optional. If you do not have the `postgres` CLI package installed, install it by entering the following command:
++
+[source,terminal]
+----
+# yum install postgresql -y
+----
+
+. Use the `psql` command to test connectivity to the PostgreSQL database.
++
+[NOTE]
+====
+To verify that you can access the service remotely, run the following command on a remote system.
+====
++
+----
 # psql -h localhost quaydb quayuser
+----
++
+.Example output
++
+[source,terminal]
+----
 Password for user test:
 psql (9.2.23, server 9.6.5)
 WARNING: psql version 9.2, server version 9.6.
@@ -158,4 +224,4 @@ WARNING: psql version 9.2, server version 9.6.
 Type "help" for help.
 
 test=> \q
-```
+----
