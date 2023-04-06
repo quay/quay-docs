@@ -22,14 +22,11 @@ The following build logs configuration fields are available for Redis deployment
 (Required)| Number | The port at which Redis is accessible. +
 **Example:** +
 `6379`
-|**.password** | String | The port at which Redis is accessible. +
+|**.password** | String | The password to connect to the Redis instance. +
 **Example:** +
 `strongpassword`
-|**.port**  +
-(Required)| Number | The port at which Redis is accessible. +
-**Example:** +
-`6379`
-| **ssl** | Boolean | Whether to enable TLS communication between Redis and Quay. Defaults to false.
+| **.ssl** +
+(Optional) | Boolean | Whether to enable TLS communication between Redis and Quay. Defaults to false.
 |===
 
 [id="user-event-fields-redis"]
@@ -51,29 +48,55 @@ The following user event fields are available for Redis deployments:
 (Required)| Number | The port at which Redis is accessible. +
 **Example:** +
 `6379`
-|**.password** | String | The port at which Redis is accessible. +
+|**.password** | String | The password to connect to the Redis instance. +
 **Example:** +
 `strongpassword`
-| **ssl** | Boolean | Whether to enable TLS communication between Redis and Quay. Defaults to false.
+| **.ssl** | Boolean | Whether to enable TLS communication between Redis and Quay. Defaults to false.
+| **.ssl_keyfile** +
+(Optional) | String | The name of the key database file, which houses the client certificate to be used. +
+**Example:** +
+`ssl_keyfile: /path/to/server/privatekey.pem`
+| **.ssl_certfile** +
+(Optional) | String | Used for specifying the file path of the SSL certificate. +
+**Example:** +
+`ssl_certfile: /path/to/server/certificate.pem`
+| **.ssl_cert_reqs** +
+(Optional) | String | Used to specify the level of certificate validation to be performed during the SSL/TLS handshake. +
+**Example:** +
+`ssl_cert_reqs: CERT_REQUIRED`
+| **.ssl_ca_certs** +
+(Optional) | String | Used to specify the path to a file containing a list of trusted Certificate Authority (CA) certificates. +
+**Example:** +
+`ssl_ca_certs: /path/to/ca_certs.pem`
+| **.ssl_ca_data** +
+(Optional) | String | Used to specify a string containing the trusted CA certificates in PEM format. +
+**Example:** +
+`ssl_ca_data: <certificate>`
+| **.ssl_check_hostname ** +
+(Optional) | Boolean | Used when setting up an SSL/TLS connection to a server. It specifies whether the client should check that the hostname in the server's SSL/TLS certificate matches the hostname of the server it is connecting to. +
+**Example:** +
+`ssl_check_hostname: true`
 |===
 
 [id="example-redis-configuration"]
 == Example Redis configuration
-The following YAML shows a sample configuration using Redis:
+The following YAML shows a sample configuration using Redis with optional SSL/TLS fields:
 
 [source,yaml]
 ----
 BUILDLOGS_REDIS:
-    host: quay-server.example.com
-    password: strongpassword
-    port: 6379
-    ssl: true
+  host: quay-server.example.com
+  password: strongpassword
+  port: 6379
+  ssl: true
+
 
 USER_EVENTS_REDIS:
-    host: quay-server.example.com
-    password: strongpassword
-    port: 6379
-    ssl: true
+  host: quay-server.example.com
+  password: strongpassword
+  port: 6379
+  ssl: true
+  ssl_*: <path_location_or_certificate>
 ----
 
 [NOTE]
