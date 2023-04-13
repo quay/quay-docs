@@ -1,62 +1,79 @@
-[[create-a-ca-and-sign-a-certificate]]
-= Create a Certificate Authority and sign a certificate
+:_content-type: PROCEDURE
+[id="create-a-ca-and-sign-a-certificate"]
+= Creating a certificate authority and signing a certificate
 
-At the end of this procedure, you will have a certificate file and a primary key file named `ssl.cert` and `ssl.key`, respectively.
+Use the following procedures to create a certificate file and a primary key file named `ssl.cert` and `ssl.key`.
 
-== Create a Certificate Authority 
+[id="creating-a-certificate-authority"]
+== Creating a certificate authority
 
-. Generate the root CA key:
+Use the following procedure to create a certificate authority (CA)
+
+.Procedure
+
+. Generate the root CA key by entering the following command:
 +
-```
+[source,terminal]
+----
 $ openssl genrsa -out rootCA.key 2048
-```
+----
 
-. Generate the root CA cert:
+. Generate the root CA certificate by entering the following command:
 +
-```
+[source,terminal]
+----
 $ openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 1024 -out rootCA.pem
-```
+----
 
 . Enter the information that will be incorporated into your certificate request, including the server hostname, for example:
 +
-```
+[source,terminal]
+----
 Country Name (2 letter code) [XX]:IE
 State or Province Name (full name) []:GALWAY
 Locality Name (eg, city) [Default City]:GALWAY
 Organization Name (eg, company) [Default Company Ltd]:QUAY
 Organizational Unit Name (eg, section) []:DOCS
 Common Name (eg, your name or your server's hostname) []:quay-server.example.com
-```
+----
 
-== Sign a certificate
+[id="signing-a-certificate"]
+== Signing a certificate
 
-. Generate the server key:
+Use the following procedure to sign a certificate.
+
+.Procedure
+
+. Generate the server key by entering the following command:
 +
-```
+[source,terminal]
+----
 $ openssl genrsa -out ssl.key 2048
-```
+----
 
-. Generate a signing request:
+. Generate a signing request by entering the following command:
 +
-```
+[source,terminal]
+----
 $ openssl req -new -key ssl.key -out ssl.csr
-```
+----
 
 . Enter the information that will be incorporated into your certificate request, including the server hostname, for example:
 +
-```
+[source,terminal]
+----
 Country Name (2 letter code) [XX]:IE
 State or Province Name (full name) []:GALWAY
 Locality Name (eg, city) [Default City]:GALWAY
 Organization Name (eg, company) [Default Company Ltd]:QUAY
 Organizational Unit Name (eg, section) []:DOCS
 Common Name (eg, your name or your server's hostname) []:quay-server.example.com
-```
+----
 
-. Create a configuration file `openssl.cnf`, specifying the server hostname, for example: 
+. Create a configuration file `openssl.cnf`, specifying the server hostname, for example:
 +
 .openssl.cnf
-[source]
+[source,terminal]
 ----
 [req]
 req_extensions = v3_req
@@ -71,9 +88,9 @@ DNS.1 = quay-server.example.com
 IP.1 = 192.168.1.112
 ----
 
-
 . Use the configuration file to generate the certificate `ssl.cert`:
 +
-```
+[source,terminal]
+----
 $ openssl x509 -req -in ssl.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out ssl.cert -days 356 -extensions v3_req -extfile openssl.cnf
-```
+----
