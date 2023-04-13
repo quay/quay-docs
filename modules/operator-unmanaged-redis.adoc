@@ -1,10 +1,13 @@
-[[operator-unmanaged-redis]]
+[id="operator-unmanaged-redis"]
 = Using external Redis
+
+Use the following procedure to use an external Redis database.
 
 If you wish to use an external Redis database, set the component as unmanaged in the `QuayRegistry` instance:
 
+.Procedure
 
-. Create a configuration file `config.yaml` with the necessary redis fields:
+. Create a `config.yaml` file using the following Redis fields:
 +
 [source,yaml]
 ----
@@ -19,13 +22,14 @@ USER_EVENTS_REDIS:
     ssl: false
 ----
 
-. Create a Secret using the configuration file
+. Enter the following command to create a secret using the configuration file:
 +
-```
+[source,terminal]
+----
 $ oc create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
-```
+----
 
-. Create a QuayRegistry YAML file `quayregistry.yaml` which marks redis component as unmanaged and references the created Secret:
+. Create a `quayregistry.yaml` file  that sets the Redis component to `unmanaged` and references the created secret:
 +
 [source,yaml]
 ----
@@ -41,5 +45,4 @@ spec:
       managed: false
 ----
 
-. Deploy the registry
-
+. Deploy the {productname} registry.
