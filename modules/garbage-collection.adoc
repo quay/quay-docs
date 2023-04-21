@@ -1,14 +1,13 @@
 :_content-type: CONCEPT
+[id="garbage-collection"]
 = {productname} garbage collection
-[[garbage-collection]]
-
-== About {productname} garbage collection
 
 {productname} includes automatic and continuous image garbage collection. Garbage collection ensures efficient use of resources for active objects by removing objects that occupy sizeable amounts of disk space, such as dangling or untagged images, repositories, and blobs, including layers and manifests. Garbage collection performed by {productname} can reduce downtime in your organization's environment.
 
+[id="garbage-collection-practice"]
 == {productname} garbage collection in practice
 
-Currently, all garbage collection happens discreetly; there are no commands to manually run garbage collection. {productname} provides metrics that track the status of the different garbage collection workers.
+Currently, all garbage collection happens discreetly, and there are no commands to manually run garbage collection. {productname} provides metrics that track the status of the different garbage collection workers.
 
 For namespace and repository garbage collection, the progress is tracked based on the size of their respective queues. Namespace and repository garbage collection workers require a global lock to work. As a result, and for performance reasons, only one worker runs at a time.
 
@@ -33,6 +32,7 @@ For each type of garbage collection, {productname} provides metrics for the numb
 
 image:garbage-collection-metrics.png[Garbage collection metrics]
 
+[id="measuring-storage-reclamation"]
 === Measuring storage reclamation
 
 {productname} does not have a way to track how much space is freed up by garbage collection. Currently, the best indicator of this is by checking how many blobs have been deleted in the provided metrics.
@@ -42,6 +42,7 @@ image:garbage-collection-metrics.png[Garbage collection metrics]
 The `UploadedBlob` table in the {productname} metrics tracks the various blobs that are associated with a repository. When a blob is uploaded, it will not be garbage collected before the time designated by the `PUSH_TEMP_TAG_EXPIRATION_SEC` parameter. This is to avoid prematurely deleting blobs that are part of an ongoing push. For example, if garbage collection is set to run often, and a tag is deleted in the span of less than one hour, then it is possible that the associated blobs will not get cleaned up immediately. Instead, and assuming that the time designated by the `PUSH_TEMP_TAG_EXPIRATION_SEC` parameter has passed, the associated blobs will be removed the next time garbage collection runs on that same repository.
 ====
 
+[id="garbage-collection-configuration-fields"]
 == Garbage collection configuration fields
 
 The following configuration fields are available to customize what is garbage collected, and the frequency at which garbage collection occurs:
@@ -62,6 +63,7 @@ The following configuration fields are available to customize what is garbage co
 
 |===
 
+[id="disabling-garbage-collection"]
 == Disabling garbage collection
 
 The garbage collection features for image tags, namespaces, and repositories are stored in the `config.yaml` file. These features default to `true`.
@@ -74,12 +76,14 @@ In rare cases, you might want to disable garbage collection, for example, to con
 There is no command to manually run garbage collection. Instead, you would disable, and then re-enable, the garbage collection feature.
 ====
 
+[id="garbage-collection-quota-management"]
 == Garbage collection and quota management
 
 {productname} introduced quota management in 3.7. With quota management, users have the ability to report storage consumption and to contain registry growth by establishing configured storage quota limits.
 
 As of {productname} 3.7, garbage collection reclaims memory that was allocated to images, repositories, and blobs after deletion. Because the garbage collection feature reclaims memory after deletion, there is a discrepancy between what is stored in an environment's disk space and what quota management is reporting as the total consumption. There is currently no workaround for this issue.
 
+[id="garbage-collection-procedure"]
 == Garbage collection in practice
 
 Use the following procedure to check your {productname} logs to ensure that garbage collection is working.
@@ -109,11 +113,13 @@ $ podman logs quay-app
 ----
 +
 Example output:
++
 [source,terminal]
 ----
 gunicorn-web stdout | 2022-11-14 19:23:44,574 [233] [INFO] [gunicorn.access] 192.168.0.38 - - [14/Nov/2022:19:23:44 +0000] "DELETE /api/v1/repository/quayadmin/busybox/tag/test HTTP/1.0" 204 0 "http://quay-server.example.com/repository/quayadmin/busybox?tab=tags" "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0"
 ----
 
+[id="garbage-collection-metrics"]
 == {productname} garbage collection metrics
 
 The following metrics show how many resources have been removed by garbage collection. These metrics show how many times the garbage collection workers have run and how many namespaces, repositories, and blobs were removed.
