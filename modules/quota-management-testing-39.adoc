@@ -1,0 +1,59 @@
+:_content-type: PROCEDURE
+[id="quota-management-testing-39"]
+= Testing quota management for {productname} 3.9
+
+With quota management configured for {productname} 3.9, duplicative images are now only counted once towards the repository total. 
+
+Use the following procedure to test that a duplicative image is only counted once toward the repository total.
+
+.Prerequisites 
+
+* You have configured quota management for {productname} 3.9. 
+
+.Procedure 
+
+. Pull a sample image, for example, `ubuntu:18.04`, by entering the following command:
++
+[source,terminal]
+----
+$ podman pull ubuntu:18.04
+----
+
+. Tag the same image twice by entering the following command:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/ubuntu:18.04 quay-server.example.com/quota-test/ubuntu:tag1
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/ubuntu:18.04 quay-server.example.com/quota-test/ubuntu:tag2
+----
+
+. Push the sample image to your organization by entering the following commands:
++
+[source,terminal]
+----
+$ podman push --tls-verify=false quay-server.example.com/quota-test/ubuntu:tag1
+----
++
+[source,terminal]
+----
+$ podman push --tls-verify=false quay-server.example.com/quota-test/ubuntu:tag2
+----
+
+. On the {productname} UI, navigate to *Organization* and click the *Repository Name*, for example, *quota-test/ubuntu*. Then, click *Tags*. There should be two repository tags, `tag1` and `tag2`, each with the same manifest. For example:
++
+image:manifest-example.png[Manifest example]
++
+However, by clicking on the *Organization* link, we can see that the *Total Quota Consumed* is *27.94 MB*, meaning that the Ubuntu image has only been accounted for once:
++
+image:total-quota-consumed.png[Total quota consumed]
++
+If you delete one of the Ubuntu tags, the *Total Quota Consumed* remains the same. 
++
+[NOTE]
+====
+If you have configured the {productname} time machine to be longer than `0` seconds, subtraction will not happen until those tags pass the time machine window. If you want to expedite permanent deletion, see Permanently deleting an image tag in {productname} 3.9.
+====
