@@ -1,0 +1,82 @@
+:_content-type: PROCEDURE
+[id="configuring-oidc-authentication"]
+= Configuring OIDC for {productname}
+
+Configuring OpenID Connect (OIDC) for {productname} can provide several benefits to your {productname} deployment. For example, OIDC allows users to authenticate to {productname} using their existing credentials from an OIDC provider, such as link:https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.0[Red Hat Single  Sign-On], Google, Github, or Microsoft.  Other benefits of OIDC include centralized user management, enhanced security, and single sign-on (SSO). Overall, OIDC configuration can simplify user authentication and management, enhance security, and provide a seamless user experience for {productname} users.
+
+Use the following procedures to configure OIDC for {productname} using the config tool, or by updating the `config.yaml` file directly.
+
+[id="configuring-azuread-using-config-tool"]
+== Configuring OIDC using the {productname} config tool
+
+The following procedure configures Azure AD for {productname} using the config tool. However, by following this procedure, you can add any ODIC provider to {productname}, regardless of which identity provider is being added.
+
+Azure Active Directory (AzureAD) authentication for {productname} allows users to authenticate and access {productname} using their Azure AD credentials.
+
+By integrating Azure AD authentication with {productname}, your organization can take advantage of the centralized user management and security features offered by Azure AD. Some features include the ability to manage user access to {productname} repositories based on their Azure AD roles and permissions, and the ability to enable multi-factor authentication and other security features provided by Azure AD.
+
+.Procedure
+
+. Enter the {productname} config editor tool.
+.. If you are running a standalone {productname} deployment, you can enter the following command:
++
+[subs="verbatim,attributes"]
+----
+$ sudo podman run --rm -it --name quay_config -p 80:8080 -p 443:8443 {productrepo}/{quayimage}:{productminv} config secret
+----
++
+Use your browser to navigate to the user interface for the configuration tool and log in.
+
+.. If you are on the {productname} Operator, navigate to *Operators* -> *Installed Operators*. Click *Red Hat Quay* -> *Quay Registry*. Then, click the name of your {productname} registry, and the URL of *Config Editor Endpoint*.
+
+. Scroll down to the *External Authorization (OAuth)* section.
+
+. Click *Add OIDC Provider*.
+
+. When prompted, enter the ID for the ODIC provider.
++
+[NOTE]
+====
+Your OIDC server must end with `/`.
+====
+
+. After the ODIC provider has been added, {productname} lists three callback URLs that must be registered on Azure. These addresses allow Azure to direct back to {productname} after authentication is confirmed.
+
+. After all required fields have been set, validate your settings by clicking *Validate Configuration Changes*. If any errors are reported, continue editing your configuration until the settings are valid and {productname} can connect to your database and Redis servers.
+
+[id="configuring-azuread-updating-config-yaml"]
+== Configuring Azure AD by updating the {productname} config.yaml file
+
+Use the following procedure to configure Azure AD by updating the {productname} config.yaml file directly.
+
+.Procedure
+
+[NOTE]
+====
+Using the following procedure, you can add any ODIC provider to {productname}, regardless of which identity provider is being added.
+====
+
+. Add the following information to your {productname} `config.yaml` file:
++
+[souce,yaml]
+----
+AZURE_LOGIN_CONFIG:
+    CLIENT_ID: <client_id>
+    CLIENT_SECRET: <client_secret
+    OIDC_SERVER: <oidc_server_address_> <1>
+    SERVICE_NAME: Azure AD
+    VERIFIED_EMAIL_CLAIM_NAME: <verified_email>
+----
+<1> You must use the `https://sts.windows.net/<tenant-id>/` endpoint for OIDC server configuration, and not `https://login.microsoftonline.com`. The Azure AD token uses `sts.windows.net` as the issuer identifier.
++
+[NOTE]
+====
+* If your system has a firewall in use, or proxy enabled, you must whitelist all Azure API endpoints for each Oauth application that is created. Otherwise, the following error is returned: `x509: certificate signed by unknown authority`.
+* Using `https://login.microsoftonline.com` results in the following error: `Could not create provider for AzureAD. Error: oidc: issuer did not match the issuer returned by provider, expected "https://login.microsoftonline.com/73f2e714-xxxx-xxxx-xxxx-dffe1df8a5d5" got "https://sts.windows.net/73f2e714-xxxx-xxxx-xxxx-dffe1df8a5d5/"`. You must use `sts.windows.net` as the issuer identifier.
+====
+
+. Proper configuration of Azure AD results three redirects with the following format:
++
+* `https://QUAY_HOSTNAME/oauth2/<name_of_service>/callback`
+* `https://QUAY_HOSTNAME/oauth2/<name_of_service>/callback/attach`
+* `https://QUAY_HOSTNAME/oauth2/<name_of_service>/callback/cli`
