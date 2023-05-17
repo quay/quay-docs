@@ -1,0 +1,50 @@
+:_content-type: PROCEDURE
+[id="deploy-quay-api"]
+= Using the API to deploy {productname} 
+
+This section introduces using the API to deploy {productname}. 
+
+.Prerequisites 
+
+* The config option `FEATURE_USER_INITIALIZE` must be set to `true`.
+* No users can already exist in the database. 
+
+For more information on pre-configuring your {productname} deployment, see the section xref:config-preconfigure-automation[Pre-configuring {productname} for automation]
+
+[id="using-the-api-to-create-first-user"]
+== Using the API to create the first user
+
+Use the following procedure to create the first user in your {productname} organization. 
+
+[NOTE]
+====
+This procedure requests an OAuth token by specifying `"access_token": true`. 
+====
+
+* Using the `status.registryEndpoint` URL, invoke the `/api/v1/user/initialize` API, passing in the username, password and email address by entering the following command:
++
+[source,terminal]
+----
+$  curl -X POST -k  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayadmin", "password":"quaypass123", "email": "quayadmin@example.com", "access_token": true}'
+----
++
+If successful, the command returns an object with the username, email, and encrypted password. For example: 
++
+[source,yaml]
+----
+{"access_token":"<access_token>", "email":"quayadmin@example.com","encrypted_password":"<encrypted_password>","username":"quayadmin"}
+----
++
+If a user already exists in the database, an error is returned:
++
+[source,terminal]
+----
+{"message":"Cannot initialize user in a non-empty database"}
+----
++ 
+If your password is not at least eight characters or contains whitespace, an error is returned: 
++
+[source,terminal]
+----
+{"message":"Failed to initialize user: Invalid password, password must be at least 8 characters and contain no whitespace."}
+----
