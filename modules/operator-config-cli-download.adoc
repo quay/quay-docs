@@ -1,14 +1,23 @@
-[[operator-config-cli-download]]
+[id="operator-config-cli-download"]
 = Downloading the existing configuration
 
-There are a number of methods for accessing the current configuration: 
+The following procedures detail how to download the existing configuration using different strategies.
 
-. Using the config editor endpoint, specifying the username and password for the config editor:
+[id="using-config-editor-endpoint"]
+== Using the config editor endpoint to download the existing configuration
+
+Use the following procedure to download the existing configuration through the config editor endpoint.
+
+.Procedure
+
+* Enter the following command, specifying the username and password for the config editor, to download the existing configuration:
 +
-[source,bash]
+[source,terminal]
 ----
 $ curl -k -u quayconfig:JFpBEJMCtkPTfjxt https://example-registry-quay-config-editor-quay-enterprise.apps.docs.quayteam.org/api/v1/config
 ----
++
+.Example output
 +
 [source,yaml]
 ----
@@ -24,27 +33,37 @@ $ curl -k -u quayconfig:JFpBEJMCtkPTfjxt https://example-registry-quay-config-ed
     }
 }
 ----
-. Using the config bundle secret
-.. Get the secret data:
+
+[id="using-config-bundle-secret"]
+== Using the config bundle secret to download the existing configuration
+
+You can use the config bundle secret to download the existing configuration.
+
+.Procedure
+
+. Obtain the secret data by entering the following command:
 +
-[source,bash]
+[source,terminal]
 ----
 $ oc get secret -n quay-enterprise init-config-bundle-secret -o jsonpath='{.data}'
 ----
 +
-.Sample output
+.Example output
++
 [source,yaml]
 ----
 {
     "config.yaml": "RkVBVFVSRV9VU0 ... MDAwMAo="
 }
 ----
-.. Decode the data:
+. Enter the following command to decode the data:
 +
-[source,bash]
+[source,terminal]
 ----
 $ echo 'RkVBVFVSRV9VU0 ... MDAwMAo=' | base64 --decode
 ----
++
+.Example output
 +
 [source,yaml]
 ----
@@ -58,4 +77,3 @@ FEATURE_PROXY_CACHE: true
 FEATURE_BUILD_SUPPORT: true
 DEFAULT_SYSTEM_REJECT_QUOTA_BYTES: 102400000
 ----
-
