@@ -1,15 +1,22 @@
-[[operator-monitor-deploy-cli]]
+:_content-type: PROCEDURE
+[id="operator-monitor-deploy-cli"]
 = Monitoring and debugging the deployment process
 
-Users can now troubleshoot problems during the deployment phase. The status in the `QuayRegistry` object can help you monitor the health of the components during the deployment an help you debug any problems that may arise:
+Users can now troubleshoot problems during the deployment phase. The status in the `QuayRegistry` object can help you monitor the health of the components during the deployment an help you debug any problems that may arise.
 
+.Procedure
 
-```
+. Enter the following command to check the status of your deployment:
++
+[source,terminal]
+----
 $ oc get quayregistry -n quay-enterprise -o yaml
-```
-
-Immediately after deployment, the QuayRegistry object will show the basic configuration:
-
+----
++
+.Example output:
++
+Immediately after deployment, the `QuayRegistry` object will show the basic configuration:
++
 [source,yaml]
 ----
 apiVersion: v1
@@ -51,12 +58,17 @@ metadata:
   selfLink: ""
 ----
 
-
-Use the `oc get pods` command to view the current state of the deployed components:
-
-```
+. Use the `oc get pods` command to view the current state of the deployed components:
++
+[source,terminal]
+----
 $ oc get pods -n quay-enterprise
-
+----
++
+.Example output:
++
+[source,terminal]
+----
 NAME                                                   READY   STATUS              RESTARTS   AGE
 example-registry-clair-app-86554c6b49-ds7bl            0/1     ContainerCreating   0          2s
 example-registry-clair-app-86554c6b49-hxp5s            0/1     Running             1          17s
@@ -68,13 +80,11 @@ example-registry-quay-mirror-854c88457b-d845g          0/1     Init:0/1         
 example-registry-quay-mirror-854c88457b-fghxv          0/1     Init:0/1            0          17s
 example-registry-quay-postgres-init-bktdt              0/1     Terminating         0          17s
 example-registry-quay-redis-f9b9d44bf-4htpz            0/1     ContainerCreating   0          17s
-```
+----
 
-
-While the deployment is in progress, the QuayRegistry object will show the current status. In this instance, database migrations are taking place, and other components are waiting until this completes.
-
-
-[source,yaml]
+. While the deployment is in progress, the `QuayRegistry` object will show the current status. In this instance, database migrations are taking place, and other components are waiting until completion:
++
+[source,terminal]
 ----
   status:
     conditions:
@@ -116,9 +126,9 @@ While the deployment is in progress, the QuayRegistry object will show the curre
         type: Available
 ----
 
-When the deployment process finishes successfully, the status in the QuayRegistry object shows no unhealthy components:
-
-[source,yaml]
+. When the deployment process finishes successfully, the status in the `QuayRegistry` object shows no unhealthy components:
++
+[source,terminal]
 ----
   status:
     conditions:

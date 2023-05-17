@@ -1,26 +1,31 @@
-[[operator-unmanaged-postgres]]
-= Using an existing Postgres database
+:_content-type: PROCEDURE
+[id="operator-unmanaged-postgres"]
+= Using an existing PostgreSQL database
 
-Requirements:
+If you are using an externally managed PostgreSQL database, you must manually enable the `pg_trgm` extension for a successful deployment.
 
-If you are using an externally managed PostgreSQL database, you must manually enable pg_trgm extension for a successful deployment.
+Use the following procedure to deploy an existing PostgreSQL database.
 
-. Create a  configuration file `config.yaml` with the necessary database fields:
+.Procedure
+
+. Create a `config.yaml` file with the necessary database fields. For example:
 +
-.config.yaml:
+.Example `config.yaml` file:
++
 [source,yaml]
 ----
-DB_URI: postgresql://test-quay-database:postgres@test-quay-database:5432/test-quay-database 
+DB_URI: postgresql://test-quay-database:postgres@test-quay-database:5432/test-quay-database
 ----
-. Create a Secret using the configuration file:
+. Create a `Secret` using the configuration file:
 +
 ----
 $ kubectl create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
 ----
 +
-. Create a QuayRegistry YAML file `quayregistry.yaml` which marks the `postgres` component as unmanaged and references the created Secret:
+. Create a `QuayRegistry` YAML file which marks the `postgres` component as `unmanaged` and references the created `Secret`. For example:
 +
-.quayregistry.yaml
+.Example `quayregistry.yaml` file
++
 [source,yaml]
 ----
 apiVersion: quay.redhat.com/v1
@@ -34,4 +39,5 @@ spec:
     - kind: postgres
       managed: false
 ----
+
 . Deploy the registry as detailed in the following sections.
