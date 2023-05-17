@@ -1,8 +1,30 @@
-[[operator-managed-postgres]]
-= Using the managed PostgreSQL
+:_content-type: CONCEPT
+[id="operator-managed-postgres"]
+= Using the managed PostgreSQL database
 
-Recommendations:
+With {productname} 3.9, if your database is managed by the {productnmame} Operator, updating from {productname} 3.8 -> 3.9 automatically handles upgrading PostgreSQL 10 to PostgreSQL 13. This automatic procedure works by first upgrading your PostgreSQL 10 to PostgreSQL 12, and then from PostgreSQL 12 to PostgreSQL 13.
++
+[IMPORTANT]
+====
+Users with a managed database are required to upgrade their PostgreSQL database from 10 -> 13.
+====
++
+If you do not want the {productname} Operator to upgrade your PostgreSQL deployment from PostgreSQL 10 -> 13, you must set the PostgreSQL parameter to `managed: false` in your `quayregistry.yaml` file. For more information about setting your database to unmanaged, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/configure_red_hat_quay/index#operator-unmanaged-postgres[Using an existing Postgres database].
++
+[IMPORTANT]
+====
+* It is highly recommended to upgrade your PostgreSQL database to version 13. PostgreSQL 10 will reach end of life in May, 2024.
+====
++
+If you want your PostgreSQL database to match the same version as your {rhel} system, see link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/deploying_different_types_of_servers/using-databases#migrating-to-a-rhel-8-version-of-postgresql_using-postgresql[Migrating to a RHEL 8 version of PostgreSQL] for {rhel-short} 8 or link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/configuring_and_using_database_servers/using-postgresql_configuring-and-using-database-servers#migrating-to-a-rhel-9-version-of-postgresql_using-postgresql[Migrating to a RHEL 9 version of PostgreSQL] for {rhel-short} 9. 
 
-* Database backups should be performed regularly using either the supplied tools on the Postgres image or your own backup infrastructure.  The Operator does not currently ensure the Postgres database is backed up.
-* Restoring the Postgres database from a backup must be done using Postgres tools and procedures.  Be aware that your Quay `Pods` should not be running while the database restore is in progress.
-* Database disk space is allocated automatically by the Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but may not be sufficient for your use cases. Resizing the database volume is currently not handled by the Operator.
+[id="operator-managed-postgres-recommendations"]
+== PostgreSQL database recommendations
+
+The {productname} team recommends the following for managing your PostgreSQL database. 
+
+* Database backups should be performed regularly using either the supplied tools on the PostgreSQL image or your own backup infrastructure. The {productname} Operator does not currently ensure that the PostgreSQL database is backed up.
+
+* Restoring the PostgreSQL database from a backup must be done using PostgreSQL tools and procedures. Be aware that your `Quay` pods should not be running while the database restore is in progress.
+
+* Database disk space is allocated automatically by the {productname} Operator with 50 GiB. This number represents a usable amount of storage for most small to medium {productname} installations but might not be sufficient for your use cases. Resizing the database volume is currently not handled by the {productname} Operator.

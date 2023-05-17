@@ -1,20 +1,25 @@
-[[operator-custom-ssl-certs-config-bundle]]
-= Using the config bundle to configure custom SSL certs
+:_content-type: PROCEDURE
+[id="operator-custom-ssl-certs-config-bundle"]
+= Using the config bundle to configure custom SSL/TLS certs
 
-You can configure custom SSL certs either before initial deployment or after {productname} is deployed on OpenShift, by creating or updating the config bundle secret. If you are adding the cert(s) to an existing deployment, you must include the existing `config.yaml` in the new config bundle secret, even if you are not making any configuration changes.
+You can configure custom SSL/TLS certificates before the initial deployment, or after {productname} is deployed on {ocp}. This is done by creating or updating the config bundle secret.
 
-== Set TLS to unmanaged
+If you are adding the certificates to an existing deployment, you must include the existing `config.yaml` file in the new config bundle secret, even if you are not making any configuration changes.
 
-In your Quay Registry yaml, set `kind: tls` to `managed: false`:
+Use the following procedure to add custom SSL/TLS certificates.
 
+.Procedure
+
+. In your `QuayRegistry` YAML file, set `kind: tls` to `managed:false`, for example:
++
 [source,yaml]
 ----
   - kind: tls
     managed: false
 ----
 
-In the events, you should see that the change is blocked until you set up the appropriate config:
-
+. Navigate to the *Events* page, which should reveal that the change is blocked until you set up the appropriate config. For example:
++
 [source,yaml]
 ----
     - lastTransitionTime: '2022-03-28T12:56:49Z'
@@ -27,11 +32,9 @@ In the events, you should see that the change is blocked until you set up the ap
 
 ----
 
-== Add certs to config bundle
+. Create the secret using embedded data or by using files.
 
-.Procedure
-. Create the secret using embedded data or using files: 
-.. Embed the configuration details directly in the Secret resource YAML file, for example:
+.. Embed the configuration details directly in the `Secret` resource YAML file. For example:
 +
 [source,yaml]
 .custom-ssl-config-bundle.yaml
@@ -57,15 +60,19 @@ data:
     MIIDsDCCApigAwIBAgIUCqlzkHjF5i5TXLFy+sepFrZr/UswDQYJKoZIhvcNAQEL
     BQAwbzELMAkGA1UEBhMCSUUxDzANBgNVBAgMBkdBTFdBWTEPMA0GA1UEBwwGR0FM
     ....
-    -----END CERTIFICATE-----    
+    -----END CERTIFICATE-----
 ----
-+
-Next, create the secret from the YAML file:
+
+.. Create the secret from the YAML file:
 +
 ----
 $ oc create  -f custom-ssl-config-bundle.yaml
 ----
-.. Alternatively, you can create files containing the desired information, and then create the secret from those files:
+..
+
+. Alternatively, you can create files containing the desired information, and then create the secret from those files.
+
+.. Enter the following command to create a generic `Secret` object that contains the `config.yaml` file and a `custom-ssl.crt` file:
 +
 ----
 $ oc create secret generic custom-ssl-config-bundle-secret \
@@ -74,9 +81,10 @@ $ oc create secret generic custom-ssl-config-bundle-secret \
 ----
 
 
-. Create or update the QuayRegistry YAML file `quayregistry.yaml`, referencing the created Secret, for example:
+.. Create or update the `QuayRegistry` YAML file, referencing the created `Secret`, for example:
 +
-.quayregistry.yaml
+.Example `QuayRegistry` YAML file
++
 [source,yaml]
 ----
 apiVersion: quay.redhat.com/v1
@@ -87,9 +95,10 @@ metadata:
 spec:
   configBundleSecret: custom-ssl-config-bundle-secret
 ----
-. Deploy or update the registry using the YAML file:
+
+.. Deploy or update the registry using the YAML file by entering the following command:
 +
 ----
-oc apply -f quayregistry.yaml 
+oc apply -f quayregistry.yaml
 ----
 

@@ -1,10 +1,31 @@
-[[operator-deploy-cli]]
+:_content-type: PROCEDURE
+[id="operator-deploy-cli"]
 = Deploying {productname} from the command line
 
+Use the following procedure to deploy {productname} from using the command-line interface (CLI).
 
-. Create a namespace, for example, `quay-enterprise`.
-. Create a secret for the config bundle, if you want to pre-configure any aspects of the deployment
+.Prerequisites
+
+* You have logged into {ocp} using the CLI.
+
+.Procedure
+
+. Create a namespace, for example, `quay-enterprise`, by entering the following command:
++
+[source,terminal]
+----
+$ oc new-project quay-enterprise
+----
+
+. Optional. If you want to pre-configure any aspects of your {productname} deployment, create a `Secret` for the config bundle:
++
+[source,terminal]
+----
+$ oc create secret generic quay-enterprise-config-bundle --from-file=config-bundle.tar.gz=/path/to/config-bundle.tar.gz
+----
+
 . Create a `QuayRegistry` custom resource in a file called `quayregistry.yaml`
+
 .. For a minimal deployment, using all the defaults:
 +
 .quayregistry.yaml:
@@ -16,9 +37,11 @@ metadata:
   name: example-registry
   namespace: quay-enterprise
 ----
-.. If you want to have some components unmanaged, add this information in the `spec` field. For example, a minimal deployment might look like:
+
+.. Optional. If you want to have some components unmanaged, add this information in the `spec` field. A minimal deployment might look like the following example:
 +
-.quayregistry.yaml:
+.Example quayregistry.yaml with unmanaged components
++
 [source,yaml]
 ----
 apiVersion: quay.redhat.com/v1
@@ -37,9 +60,11 @@ spec:
     - kind: monitoring
       managed: false
 ----
-.. If you have created a config bundle, for example, `init-config-bundle-secret`, reference it in the `quayregistry.yaml` file:
+
+.. Optional. If you have created a config bundle, for example, `init-config-bundle-secret`, reference it in the `quayregistry.yaml` file:
 +
-.quayregistry.yaml:
+.Example quayregistry.yaml with a config bundle
++
 [source,yaml]
 ----
 apiVersion: quay.redhat.com/v1
@@ -51,9 +76,10 @@ spec:
   configBundleSecret: init-config-bundle-secret
 ----
 
-.. If you have a proxy configured, you can add the information using overrides for Quay, Clair, and mirroring:
+.. Optional. If you have a proxy configured, you can add the information using overrides for {productname}, Clair, and mirroring:
 +
-.quayregistry.yaml:
+.Example quayregistry.yaml with proxy configured
++
 [source,yaml]
 ----
   kind: QuayRegistry
@@ -106,12 +132,18 @@ spec:
 
 . Create the `QuayRegistry` in specified namespace:
 +
-```sh
+[source,terminal]
+----
 $ oc create -n quay-enterprise -f quayregistry.yaml
-```
-. See the section xref:operator-monitor-deploy-cli[Monitoring and debugging the deployment process] for information on how to track the progress of the deployment.
-. Wait until the `status.registryEndpoint` is populated.
+----
+
+. Enter the following command to see when the `status.registryEndpoint` is populated:
 +
-```sh
+[source,terminal]
+----
 $ oc get quayregistry -n quay-enterprise example-registry -o jsonpath="{.status.registryEndpoint}" -w
-```
+----
+
+.Additional resources
+
+* For more information about how to track the progress of your {productname} deployment, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/operator-deploy#operator-monitor-deploy-cli[Monitoring and debugging the deployment process].
