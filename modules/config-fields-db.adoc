@@ -2,19 +2,19 @@
 [id="config-fields-db"]
 = Database configuration
 
-This section describes the database configuration fields available for {productname} deployments. 
+This section describes the database configuration fields available for {productname} deployments.
 
 [id="database-uri"]
 == Database URI
 
-With {productname}, connection to the database is configured by using the required `DB_URI` field. 
+With {productname}, connection to the database is configured by using the required `DB_URI` field.
 
-The following table describes the `DB_URI` configuration field: 
+The following table describes the `DB_URI` configuration field:
 
 .Database URI
 [cols="3a,1a,2a",options="header"]
 |===
-| Field | Type | Description 
+| Field | Type | Description
 | **DB_URI** +
 (Required) | String | The URI for accessing the database, including any credentials.
 
@@ -26,29 +26,29 @@ Example `DB_URI` field:
 [id="database-connection-arguments"]
 == Database connection arguments
 
-Optional connection arguments are configured by the `DB_CONNECTION_ARGS` parameter. Some of the key-value pairs defined under `DB_CONNECTION_ARGS` are generic, while others are database specific. 
+Optional connection arguments are configured by the `DB_CONNECTION_ARGS` parameter. Some of the key-value pairs defined under `DB_CONNECTION_ARGS` are generic, while others are database specific.
 
-The following table describes database connection arguments: 
+The following table describes database connection arguments:
 
 .Database connection arguments
 [cols="3a,1a,2a",options="header"]
 |===
-| Field | Type | Description 
-| **DB_CONNECTION_ARGS** | Object | Optional connection arguments for the database, such as timeouts and SSL.
+| Field | Type | Description
+| **DB_CONNECTION_ARGS** | Object | Optional connection arguments for the database, such as timeouts and SSL/TLS.
 | **.autorollback**| Boolean | Whether to use thread-local connections. +
-Should always be `true` 
-| **.threadlocals**| Boolean | Whether to use auto-rollback connections. + 
-Should always be `true` 
+Should always be `true`
+| **.threadlocals**| Boolean | Whether to use auto-rollback connections. +
+Should always be `true`
 // TODO 36 max_connections, timeout, stale_timeout
-// | {nbsp}{nbsp}{nbsp}.max_connections| Number | 
-// | {nbsp}{nbsp}{nbsp}.timeout | Number | 
-// | {nbsp}{nbsp}{nbsp}.stale_timeout | Number | 
+// | {nbsp}{nbsp}{nbsp}.max_connections| Number |
+// | {nbsp}{nbsp}{nbsp}.timeout | Number |
+// | {nbsp}{nbsp}{nbsp}.stale_timeout | Number |
 |===
 
 [id="config-fields-postgres"]
-=== PostgreSQL SSL connection arguments
+=== PostgreSQL SSL/TLS connection arguments
 
-With SSL, configuration depends on the database you are deploying. The following example shows a PostgreSQL SSL configuration:
+With SSL/TLS, configuration depends on the database you are deploying. The following example shows a PostgreSQL SSL/TLS configuration:
 
 [source,yaml]
 ----
@@ -57,35 +57,35 @@ DB_CONNECTION_ARGS:
   sslrootcert: /path/to/cacert
 ----
 
-The `sslmode` option determines whether, or with, what priority a secure SSL TCP/IP connection will be negotiated with the server. There are six modes:
+The `sslmode` option determines whether, or with, what priority a secure SSL/TLS TCP/IP connection will be negotiated with the server. There are six modes:
 
-.SSL options 
+.SSL/TLS options
 [options="header"]
-|=== 
+|===
 |Mode |Description
 
-| **disable** | Your configuration only tries non-SSL connections. 
-| **allow** | Your configuration first tries a non-SSL connection. Upon failure, tries an SSL connection.
+| **disable** | Your configuration only tries non-SSL/TLS connections.
+| **allow** | Your configuration first tries a non-SSL/TLS connection. Upon failure, tries an SSL/TLS connection.
 | **prefer** +
-(Default) | Your configuration first tries an SSL connection. Upon failure, tries a non-SSL connection. 
-| **require** | Your configuration only tries an SSL connection. If a root CA file is present, it verifies the certificate in the same way as if verify-ca was specified. 
-| **verify-ca** | Your configuration only tries an SSL connection, and verifies that the server certificate is issued by a trusted certificate authority (CA). 
-| **verify-full** | Only tries an SSL connection, and verifies that the server certificate is issued by a trusted CA and that the requested server host name matches that in the certificate.
-|=== 
+(Default) | Your configuration first tries an SSL/TLS connection. Upon failure, tries a non-SSL/TLS connection.
+| **require** | Your configuration only tries an SSL/TLS connection. If a root CA file is present, it verifies the certificate in the same way as if verify-ca was specified.
+| **verify-ca** | Your configuration only tries an SSL/TLS connection, and verifies that the server certificate is issued by a trusted certificate authority (CA).
+| **verify-full** | Only tries an SSL/TLS connection, and verifies that the server certificate is issued by a trusted CA and that the requested server hostname matches that in the certificate.
+|===
 
 For more information on the valid arguments for PostgreSQL, see link:https://www.postgresql.org/docs/current/libpq-connect.html[Database Connection Control Functions].
 
 
 [id="mysql-ssl-connection-arguments"]
-=== MySQL SSL connection arguments
+=== MySQL SSL/TLS connection arguments
 
-The following example shows a sample MySQL SSL configuration: 
+The following example shows a sample MySQL SSL/TLS configuration:
 
 [source.yaml]
 ----
 DB_CONNECTION_ARGS:
-  ssl: 
+  ssl:
     ca: /path/to/cacert
 ----
 
-Information on the valid connection arguments for MySQL is available at link:https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html[Connecting to the Server Using URI-Like Strings or Key-Value Pairs].  
+Information on the valid connection arguments for MySQL is available at link:https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html[Connecting to the Server Using URI-Like Strings or Key-Value Pairs].

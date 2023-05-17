@@ -1,19 +1,25 @@
-[[operator-preconfigure]]
-= Configuring Quay before deployment
+:_content-type: PROCEDURE
+[id="operator-preconfigure"]
+= Configuring {productname} before deployment
 
-The Operator can manage all the {productname} components when deploying on OpenShift, and this is the default configuration. Alternatively, you can manage one or more components externally yourself, where you want more control over the set up, and then allow the Operator to manage the remaining components.
+The {productname} Operator can manage all of the {productname} components when deployed on {ocp}. This is the default configuration, however, you can manage one or more components externally when you want more control over the set up.
 
-The standard pattern for configuring unmanaged components is:
+Use the following pattern to configure unmanaged {productname} components.
 
-. Create a `config.yaml` configuration file with the appropriate settings
-. Create a Secret using the configuration file
+.Procedure
+
+. Create a `config.yaml` configuration file with the appropriate settings.
+
+. Create a `Secret` using the configuration file by entering the following command:
 +
+[source,terminal]
 ----
 $ oc create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
 ----
-. Create a QuayRegistry YAML file `quayregistry.yaml`, identifying the unmanaged components and also referencing the created Secret, for example:
+. Create a `quayregistry.yaml` file, identifying the unmanaged components and also referencing the created `Secret`, for example:
 +
-.quayregistry.yaml
+.Example `QuayRegistry` YAML file
++
 [source,yaml]
 ----
 apiVersion: quay.redhat.com/v1
@@ -27,8 +33,10 @@ spec:
     - kind: objectstorage
       managed: false
 ----
-. Deploy the registry using the YAML file:
+
+. Deploy the registry by using the `quayregistry.yaml` file:
 +
+[source,terminal]
 ----
 $ oc create -n quay-enterprise -f quayregistry.yaml
 ----
