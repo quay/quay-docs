@@ -1,0 +1,92 @@
+:_content-type: PROCEDURE
+[id="upgrading-geo-repl-quay-operator"]
+= Upgrading a geo-replication deployment of the {productname} Operator
+
+Use the following procedure to upgrade your geo-replicated {productname} Operator.
+
+[IMPORTANT]
+====
+* When upgrading geo-replicated {productname} Operator deployments to the next y-stream release (for example, {productname} 3.7 -> {productname} 3.8), you must stop operations before upgrading.
+* There is intermittent downtime down upgrading from one y-stream release to the next.
+* It is highly recommended to back up your {productname} Operator deployment before upgrading.
+====
+
+.Procedure
+
+[NOTE]
+====
+This procedure assumes that you are running the {productname} Operator on three (or more) systems. For this procedure, we will assume three systems named `System A,` `System B,` and `System C`. `System A` will serve as the primary system in which the {productname} Operator is deployed.
+====
+
+. On System B and System C, scale down your {productname} Operator deployment. This is done by disabling auto scaling and overriding the replica county for {productname}, mirror workers, and Clair (if it is managed). Use the following `quayregistry.yaml` file as a reference:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: false <1>
+    - kind: quay
+      managed: true
+      overrides: <2>
+        replicas: 0
+    - kind: clair
+      managed: true
+      overrides:
+        replicas: 0
+    - kind: mirror
+      managed: true
+      overrides:
+        replicas: 0
+    …
+----
+<1> Disable auto scaling of Quay, Clair and Mirroring workers
+<2> Set the replica count to 0 for components accessing the database and objectstorage
++
+[NOTE]
+====
+You must keep the {productname} Operator running on System A. Do not update the `quayregistry.yaml` file on System A.
+====
+
+. Wait for the `registry-quay-app`, `registry-quay-mirror`, and `registry-clair-app` pods to disappear. Enter the following command to check their status:
++
+[source,terminal]
+----
+oc get pods -n <quay-namespace>
+----
++
+.Example output
++
+[source,terminal]
+----
+quay-operator.v3.7.1-6f9d859bd-p5ftc               1/1     Running     0             12m
+quayregistry-clair-postgres-7487f5bd86-xnxpr       1/1     Running     1 (12m ago)   12m
+quayregistry-quay-app-upgrade-xq2v6                0/1     Completed   0             12m
+quayregistry-quay-config-editor-6dfdcfc44f-hlvwm   1/1     Running     0             73s
+quayregistry-quay-redis-84f888776f-hhgms           1/1     Running     0             12m
+----
+
+. On System A, initiate a {productname} Operator upgrade to the latest y-stream version. This is a manual process. For more information about upgrading installed Operators, see link:https://docs.openshift.com/container-platform/4.12/operators/admin/olm-upgrading-operators.html[Upgrading installed Operators]. For more information about {productname} upgrade paths, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/operator-upgrade#upgrading_the_quay_operator[Upgrading the {productname} Operator].
+
+. After the new {productname} Operator is installed, the necessary upgrades on the cluster are automatically completed. Afterwards, new {productname} pods are started with the latest y-stream version. Additionally, new `Quay` pods are scheduled and started.
+
+. Confirm that the update has properly worked by navigating to the {productname} UI:
+.. In the *OpenShift* console, navigate to *Operators* → *Installed Operators*, and click the *Registry Endpoint* link.
++
+[IMPORTANT]
+====
+Do not execute the following step until the {productname} UI is available. Do not upgrade the {productname} Operator on System B and on System C until the UI is available on System A.
+====
+
+. After confirming that the update has properly worked on System A, initiate the {productname} Operator on System B and on System C. The Operator upgrade results in an upgraded {productname} installation, and the pods are restarted.
++
+[NOTE]
+====
+Because the database schema is correct for the new y-stream installation, the new pods on System B and on System C should quickly start.
+====
