@@ -1,0 +1,184 @@
+:_content-type: PROCEDURE
+[id="upgrading-geo-repl-quay"]
+= Upgrading a geo-replication deployment of {productname}
+
+Use the following procedure to upgrade your geo-replication {productname} deployment.
+
+[IMPORTANT]
+====
+* When upgrading geo-replication {productname} deployments to the next y-stream release (for example, {productname} 3.7 -> {productname} 3.8), or geo-replication deployments, you must stop operations before upgrading.
+* There is intermittent downtime down upgrading from one y-stream release to the next.
+* It is highly recommended to back up your {productname} deployment before upgrading.
+====
+
+.Prerequisites
+
+* You have logged into `registry.redhat.io`
+
+.Procedure
+
+[NOTE]
+====
+This procedure assumes that you are running {productname} services on three (or more) systems. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploy_red_hat_quay_-_high_availability/index#preparing_for_red_hat_quay_high_availability[Preparing for {productname} high availability].
+====
+
+. Obtain a list of all {productname} instances on each system running a {productname} instance.
+
+.. Enter the following command on System A to reveal the {productname} instances:
++
+[source,terminal]
+----
+$ sudo podman ps
+----
++
+.Example output
++
+[source,terminal]
++
+.Example output
++
+[source,terminal]
+----
+CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
+ec16ece208c0  registry.redhat.io/quay/quay-rhel8:v3.7.0  registry        6 minutes ago  Up 6 minutes ago  0.0.0.0:80->8080/tcp, 0.0.0.0:443->8443/tcp  quay01
+----
+
+.. Enter the following command on System B to reveal the {productname} instances:
++
+[source,terminal]
+----
+$ sudo podman ps
+----
++
+.Example output
++
+[source,terminal]
++
+----
+CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
+7ae0c9a8b37d  registry.redhat.io/quay/quay-rhel8:v3.7.0  registry        5 minutes ago   Up 2 seconds ago   0.0.0.0:82->8080/tcp, 0.0.0.0:445->8443/tcp  quay02
+----
+
+.. Enter the following command on System C to reveal the {productname} instances:
++
+[source,terminal]
+----
+$ sudo podman ps
+----
++
+.Example output
++
+[source,terminal]
++
+----
+CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
+e75c4aebfee9  registry.redhat.io/quay/quay-rhel8:v3.7.0  registry        4 seconds ago   Up 4 seconds ago   0.0.0.0:84->8080/tcp, 0.0.0.0:447->8443/tcp  quay03
+----
+
+. Temporarily shut down all {productname} instances on each system.
+
+.. Enter the following command on System A to shut down the {productname} instance:
++
+[source,terminal]
+----
+$ sudo podman stop ec16ece208c0
+----
+
+.. Enter the following command on System B to shut down the {productname} instance:
++
+[source,terminal]
+----
+$ sudo podman stop 7ae0c9a8b37d
+----
+
+.. Enter the following command on System C to shut down the {productname} instance:
++
+[source,terminal]
+----
+$ sudo podman stop e75c4aebfee9
+----
+
+. Obtain the latest {productname} version, for example, {productname} {producty}, on each system.
+
+.. Enter the following command on System A to obtain the latest {productname} version:
++
+[source,terminal]
+----
+$ sudo podman pull registry.redhat.io/quay/quay-rhel8:v3.8.0
+----
+
+.. Enter the following command on System B to obtain the latest {productname} version:
++
+[source,terminal]
+----
+$ sudo podman pull registry.redhat.io/quay/quay-rhel8:v3.8.0
+----
+
+.. Enter the following command on System C to obtain the latest {productname} version:
++
+[source,terminal]
+----
+$ sudo podman pull registry.redhat.io/quay/quay-rhel8:v3.8.0
+----
+
+. On System A of your highly available {productname} deployment, run the new image version, for example, {productname} {producty}:
++
+[source,terminal]
+----
+# sudo podman run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   --name=quay01 \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d registry.redhat.io/quay/quay-rhel8:v3.8.0
+----
+
+. Wait for the new {productname} container to become fully operational on System A. You can check the status of the container by entering the following command:
++
+[source,terminal]
+----
+$ sudo podman ps
+----
++
+.Example output
++
+[source,terminal]
+----
+CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
+70b9f38c3fb4  registry.redhat.io/quay/quay-rhel8:v3.8.0  registry        2 seconds ago   Up 2 seconds ago   0.0.0.0:82->8080/tcp, 0.0.0.0:445->8443/tcp  quay01
+----
+
+. Optional: Ensure that {productname} is fully operation by navigating to the {productname} UI.
+
+. After ensuring that {productname} on System A is fully operational, run the new image versions on System B and on System C.
+
+.. On System B of your highly available {productname} deployment, run the new image version, for example, {productname} {producty}:
++
+[source,terminal]
+----
+# sudo podman run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   --name=quay02 \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d registry.redhat.io/quay/quay-rhel8:v3.8.0
+----
+
+.. On System C of your highly available {productname} deployment, run the new image version, for example, {productname} {producty}:
++
+[source,terminal]
+----
+# sudo podman run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   --name=quay03 \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d registry.redhat.io/quay/quay-rhel8:v3.8.0
+----
+
+. You can check the status of the containers on System B and on System C by entering the following command:
++
+[source,terminal]
+----
+$ sudo podman ps
+----
