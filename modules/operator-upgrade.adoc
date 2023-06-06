@@ -1,20 +1,22 @@
-[[operator-upgrade]]
-= Upgrading the Quay Operator Overview
+[id="operator-upgrade"]
+= Upgrading the {productname} Operator Overview
 
-The Quay Operator follows a _synchronized versioning_ scheme, which means that each version of the Operator is tied to the version of Quay and the components that it manages. There is no field on the `QuayRegistry` custom resource which sets the version of Quay to deploy; the Operator only knows how to deploy a single version of all components. This scheme was chosen to ensure that all components work well together and to reduce the complexity of the Operator needing to know how to manage the lifecycles of many different versions of Quay on Kubernetes.
+The {productname} Operator follows a _synchronized versioning_ scheme, which means that each version of the Operator is tied to the version of {productname} and the components that it manages. There is no field on the `QuayRegistry` custom resource which sets the version of {productname} to `deploy`; the Operator can only deploy a single version of all components. This scheme was chosen to ensure that all components work well together and to reduce the complexity of the Operator needing to know how to manage the lifecycles of many different versions of {productname} on Kubernetes.
 
+[id="operator-lifecycle-manager"]
 == Operator Lifecycle Manager
 
-The Quay Operator should be installed and upgraded using the link:https://docs.openshift.com/container-platform/{producty}/operators/understanding/olm/olm-understanding-olm.html[Operator Lifecycle Manager (OLM)]. When creating a `Subscription` with the default `approvalStrategy: Automatic`, OLM will automatically upgrade the Quay Operator whenever a new version becomes available.
+The {productname} Operator should be installed and upgraded using the link:https://docs.openshift.com/container-platform/{producty}/operators/understanding/olm/olm-understanding-olm.html[Operator Lifecycle Manager (OLM)]. When creating a `Subscription` with the default `approvalStrategy: Automatic`, OLM will automatically upgrade the {productname} Operator whenever a new version becomes available.
 
 [WARNING]
 ====
-When the Quay Operator is installed via Operator Lifecycle Manager, it may be configured to support automatic or manual upgrades.  This option is shown on the *Operator Hub* page for the Quay Operator during installation.  It can also be found in the Quay Operator `Subscription` object via the `approvalStrategy` field.  Choosing `Automatic` means that your Quay Operator will automatically be upgraded whenever a new Operator version is released.  If this is not desirable, then the `Manual` approval strategy should be selected.
+When the {productname} Operator is installed by Operator Lifecycle Manager, it might be configured to support automatic or manual upgrades. This option is shown on the *Operator Hub* page for the {productname} Operator during installation. It can also be found in the {productname} Operator `Subscription` object by the `approvalStrategy` field.  Choosing `Automatic` means that your {productname} Operator will automatically be upgraded whenever a new Operator version is released. If this is not desirable, then the `Manual` approval strategy should be selected.
 ====
 
+[id="upgrading-quay-operator"]
 == Upgrading the Quay Operator
 
-The standard approach for upgrading installed Operators on OpenShift is documented at link:https://docs.openshift.com/container-platform/4.7/operators/admin/olm-upgrading-operators.html[Upgrading installed Operators].
+The standard approach for upgrading installed Operators on {ocp} is documented at link:https://docs.openshift.com/container-platform/4.7/operators/admin/olm-upgrading-operators.html[Upgrading installed Operators].
 
 In general, {productname} supports upgrades from a prior (N-1) minor version only.  For example, upgrading directly from {productname} 3.0.5 to the latest version of 3.5 is not supported. Instead, users would have to upgrade as follows:
 
@@ -33,18 +35,23 @@ In some cases, {productname} supports direct, single-step upgrades from prior (N
 . 3.4.z -> 3.7.z
 . 3.5.z -> 3.7.z
 . 3.7.z -> 3.8.z
+. 3.8.z -> 3.9.z
 
-For users on standalone deployments of Quay wanting to upgrade to 3.8, see the link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#standalone_upgrade[Standalone upgrade] guide.
+For users on standalone deployments of {productname} wanting to upgrade to 3.9, see the link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#standalone_upgrade[Standalone upgrade] guide.
 
-
+[id="upgrading-red-hat-quay"]
 === Upgrading Quay
-To update Quay from one minor version to the next, for example, 3.4 -> 3.5, you need to change the update channel for the Quay Operator.
+
+To update {productname} from one minor version to the next, for example, 3.4 -> 3.5, you must change the update channel for the {productname} Operator.
 
 For `z` stream upgrades, for example, 3.4.2 -> 3.4.3, updates are released in the major-minor channel that the user initially selected during install. The procedure to perform a `z` stream upgrade depends on the `approvalStrategy` as outlined above. If the approval strategy is set to `Automatic`, the Quay Operator will upgrade automatically to the newest `z` stream. This results in automatic, rolling Quay updates to newer `z` streams with little to no downtime. Otherwise, the update must be manually approved before installation can begin.
 
-[[upgrade-33-36]]
-=== Notes on upgrading directly from 3.3.z or 3.4.z to 3.6
+[id="upgrade-33-36"]
+=== Upgrading directly from 3.3.z or 3.4.z to 3.6
 
+The following section provides important information when upgrading from {productname} 3.3.z or 3.4.z to 3.6. 
+
+[id="upgrading-edge-routing-enabled"]
 ==== Upgrading with edge routing enabled
 
 * Previously, when running a 3.3.z version of {productname} with edge routing enabled, users were unable to upgrade to 3.4.z versions of {productname}. This has been resolved with the release of {productname} 3.6.
@@ -71,23 +78,28 @@ spec:
 ...
 ----
 
-==== Upgrading with custom TLS certificate/key pairs without Subject Alternative Names
+[id="upgrading-with-tls-cert-key-pairs-without-san"]
+==== Upgrading with custom SSL/TLS certificate/key pairs without Subject Alternative Names
 
-There is an issue for customers using their own TLS certificate/key pairs without Subject Alternative Names (SANs) when upgrading from {productname} 3.3.4 to {productname} 3.6 directly. During the upgrade to {productname} 3.6, the deployment is blocked, with the error message from the Quay Operator pod logs indicating that the Quay TLS certificate must have SANs.
+There is an issue for customers using their own SSL/TLS certificate/key pairs without Subject Alternative Names (SANs) when upgrading from {productname} 3.3.4 to {productname} 3.6 directly. During the upgrade to {productname} 3.6, the deployment is blocked, with the error message from the {productname} Operator pod logs indicating that the {productname} SSL/TLS certificate must have SANs.
 
-If possible, you should regenerate your TLS certificates with the correct hostname in the SANs. A possible workaround involves defining an environment variable in the `quay-app`, `quay-upgrade` and `quay-config-editor` pods after upgrade to enable CommonName matching:
+If possible, you should regenerate your SSL/TLS certificates with the correct hostname in the SANs. A possible workaround involves defining an environment variable in the `quay-app`, `quay-upgrade` and `quay-config-editor` pods after upgrade to enable CommonName matching:
 
-```
+----
  GODEBUG=x509ignoreCN=0
-```
+----
 
-The `GODEBUG=x509ignoreCN=0` flag enables the legacy behavior of treating the CommonName field on X.509 certificates as a host name when no SANs are present. However, this workaround is not recommended, as it will not persist across a redeployment.
+The `GODEBUG=x509ignoreCN=0` flag enables the legacy behavior of treating the CommonName field on X.509 certificates as a hostname when no SANs are present. However, this workaround is not recommended, as it will not persist across a redeployment.
 
-==== Configuring Clair v4 when upgrading from 3.3.z or 3.4.z to 3.6 using the Quay Operator
-To set up Clair v4 on a new {productname} deployment on OpenShift, it is highly recommended to use the Quay Operator. By default, the Quay Operator will install or upgrade a Clair deployment along with your {productname} deployment and configure Clair automatically.
+[id="configuring-clair-v4-upgrading-from-33-34-to-36"]
+==== Configuring Clair v4 when upgrading from 3.3.z or 3.4.z to 3.6 using the {productname} Operator
 
-For instructions on setting up Clair v4 on OpenShift, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#clair-openshift[Setting Up Clair on a {productname} OpenShift deployment].
+To set up Clair v4 on a new {productname} deployment on {ocp}, it is highly recommended to use the {productname} Operator. By default, the {productname} Operator will install or upgrade a Clair deployment along with your {productname} deployment and configure Clair automatically.
 
+//link needs replaced
+For instructions about setting up Clair v4 in a disconnected {ocp} cluster, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#clair-openshift[Setting Up Clair on a {productname} OpenShift deployment].
+
+[id="swift-config-upgrading-from-33-to-36"]
 === Swift configuration when upgrading from 3.3.z to 3.6
 
 When upgrading from {productname} 3.3.z to 3.6.z, some users might receive the following error: `Switch auth v3 requires tenant_id (string) in os_options`. As a workaround, you can manually update your `DISTRIBUTED_STORAGE_CONFIG` to add the `os_options` and `tenant_id` parameters:
@@ -109,13 +121,15 @@ When upgrading from {productname} 3.3.z to 3.6.z, some users might receive the f
       swift_user: *****
 ----
 
-=== Changing the update channel for an Operator
+[id="changin-update-channel-for-operator"]
+=== Changing the update channel for the {productname} Operator
 
-The subscription of an installed Operator specifies an update channel, which is used to track and receive updates for the Operator. To upgrade the Quay Operator to start tracking and receiving updates from a newer channel, change the update channel in the *Subscription* tab for the installed Quay Operator. For subscriptions with an `Automatic` approval strategy, the upgrade begins automatically and can be monitored on the page that lists the Installed Operators.
+The subscription of an installed Operator specifies an update channel, which is used to track and receive updates for the Operator. To upgrade the {productname} Operator to start tracking and receiving updates from a newer channel, change the update channel in the *Subscription* tab for the installed {productname} Operator. For subscriptions with an `Automatic` approval strategy, the upgrade begins automatically and can be monitored on the page that lists the Installed Operators.
 
+[id="manually-approving-pending-operator-upgrade"]
 === Manually approving a pending Operator upgrade
 
-If an installed Operator has the approval strategy in its subscription set to `Manual`, when new updates are released in its current update channel, the update must be manually approved before installation can begin. If the Quay Operator has a pending upgrade, this status will be displayed in the list of Installed Operators. In the `Subscription` tab for the Quay Operator, you can preview the install plan and review the resources that are listed as available for upgrade. If satisfied, click `Approve` and return to the page that lists Installed Operators to monitor the progress of the upgrade.
+If an installed Operator has the approval strategy in its subscription set to `Manual`, when new updates are released in its current update channel, the update must be manually approved before installation can begin. If the {productname} Operator has a pending upgrade, this status will be displayed in the list of Installed Operators. In the `Subscription` tab for the {productname} Operator, you can preview the install plan and review the resources that are listed as available for upgrade. If satisfied, click `Approve` and return to the page that lists Installed Operators to monitor the progress of the upgrade.
 
 The following image shows the *Subscription* tab in the UI, including the update `Channel`, the `Approval` strategy, the `Upgrade status` and the `InstallPlan`:
 
@@ -125,23 +139,28 @@ The list of Installed Operators provides a high-level summary of the current Qua
 
 image:installed-operators-list.png[Installed Operators]
 
+[id="upgrading-quayregistry"]
 == Upgrading a QuayRegistry
 
-When the Quay Operator starts, it immediately looks for any `QuayRegistries` it can find in the namespace(s) it is configured to watch. When it finds one, the following logic is used:
+When the {productname} Operator starts, it immediately looks for any `QuayRegistries` it can find in the namespace(s) it is configured to watch. When it finds one, the following logic is used:
 
 * If `status.currentVersion` is unset, reconcile as normal.
 * If `status.currentVersion` equals the Operator version, reconcile as normal.
 * If `status.currentVersion` does not equal the Operator version, check if it can be upgraded. If it can, perform upgrade tasks and set the `status.currentVersion` to the Operator's version once complete. If it cannot be upgraded, return an error and leave the `QuayRegistry` and its deployed Kubernetes objects alone.
 
+[id="upgrading-quayecosystem"]
 == Upgrading a QuayEcosystem
 
-Upgrades are supported from previous versions of the Operator which used the `QuayEcosystem` API for a limited set of configurations. To ensure that migrations do not happen unexpectedly, a special label needs to be applied to the `QuayEcosystem` for it to be migrated. A new `QuayRegistry` will be created for the Operator to manage, but the old `QuayEcosystem` will remain until manually deleted to ensure that you can roll back and still access Quay in case anything goes wrong. To migrate an existing `QuayEcosystem` to a new `QuayRegistry`, follow these steps:
+Upgrades are supported from previous versions of the Operator which used the `QuayEcosystem` API for a limited set of configurations. To ensure that migrations do not happen unexpectedly, a special label needs to be applied to the `QuayEcosystem` for it to be migrated. A new `QuayRegistry` will be created for the Operator to manage, but the old `QuayEcosystem` will remain until manually deleted to ensure that you can roll back and still access Quay in case anything goes wrong. To migrate an existing `QuayEcosystem` to a new `QuayRegistry`, use the following procedure. 
+
+.Procedure
 
 . Add `"quay-operator/migrate": "true"` to the `metadata.labels` of the `QuayEcosystem`.
 +
-```
+[source,terminal]
+----
 $ oc edit quayecosystem <quayecosystemname>
-```
+----
 +
 [source,yaml]
 ----
@@ -151,30 +170,35 @@ metadata:
 ----
 . Wait for a `QuayRegistry` to be created with the same `metadata.name` as your `QuayEcosystem`. The `QuayEcosystem` will be marked with the label `"quay-operator/migration-complete": "true"`.
 
-. Once the `status.registryEndpoint` of the new `QuayRegistry` is set, access Quay and confirm all data and settings were migrated successfully.
+. After the `status.registryEndpoint` of the new `QuayRegistry` is set, access {productname} and confirm that all data and settings were migrated successfully.
 
-. When you are confident everything worked correctly, you may delete the `QuayEcosystem` and Kubernetes garbage collection will clean up all old resources.
+. If everything works correctly, you can delete the `QuayEcosystem` and Kubernetes garbage collection will clean up all old resources.
 
+[id="reverting-quayecosystem-upgrade"]
 === Reverting QuayEcosystem Upgrade
 
 If something goes wrong during the automatic upgrade from `QuayEcosystem` to `QuayRegistry`, follow these steps to revert back to using the `QuayEcosystem`:
 
+.Procedure
+
 . Delete the `QuayRegistry` using either the UI or `kubectl`:
 +
-```sh
+[source,terminal]
+----
 $ kubectl delete -n <namespace> quayregistry <quayecosystem-name>
-```
+----
 
 . If external access was provided using a `Route`, change the `Route` to point back to the original `Service` using the UI or `kubectl`.
 
 [NOTE]
 ====
-If your `QuayEcosystem` was managing the Postgres database, the upgrade process will migrate your data to a new Postgres database managed by the upgraded Operator. Your old database will not be changed or removed but Quay will no longer use it once the migration is complete. If there are issues during the data migration, the upgrade process will exit and it is recommended that you continue with your database as an unmanaged component.
+If your `QuayEcosystem` was managing the PostgreSQL database, the upgrade process will migrate your data to a new PostgreSQL database managed by the upgraded Operator. Your old database will not be changed or removed but {productname} will no longer use it once the migration is complete. If there are issues during the data migration, the upgrade process will exit and it is recommended that you continue with your database as an unmanaged component.
 ====
 
+[id="supported-quayecossytem-configurations-for-upgrades"]
 === Supported QuayEcosystem Configurations for Upgrades
 
-The Quay Operator will report errors in its logs and in `status.conditions` if migrating a `QuayEcosystem` component fails or is unsupported. All unmanaged components should migrate successfully because no Kubernetes resources need to be adopted and all the necessary values are already provided in Quay's `config.yaml`.
+The {productname} Operator reports errors in its logs and in `status.conditions` if migrating a `QuayEcosystem` component fails or is unsupported. All unmanaged components should migrate successfully because no Kubernetes resources need to be adopted and all the necessary values are already provided in {productname}'s `config.yaml` file.
 
 *Database*
 

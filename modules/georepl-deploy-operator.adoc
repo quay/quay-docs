@@ -1,19 +1,27 @@
-[[georepl-deploy-operator]]
-= Setting up geo-replication on Openshift
+:_content-type: PROCEDURE
+[id="georepl-deploy-operator"]
+= Setting up geo-replication on {ocp}
 
+Use the following procedure to set up geo-replication on {ocp}. 
 
 .Procedure
 
-. Deploy Quay postgres instance:
+. Deploy a postgres instance for {productname}.
 
-.. Login to the database
-.. Create a database for Quay
+. Login to the database by entering the following command:
++
+[source,terminal]
+----
+psql -U <username> -h <hostname> -p <port> -d <database_name>
+----
+
+. Create a database for {productname} named `quay`. For example: 
 +
 [source,terminal]
 ----
 CREATE DATABASE quay;
 ----
-.. Enable pg_trm extension inside the database
+. Enable pg_trm extension inside the database
 +
 [source,terminal]
 ----
@@ -30,7 +38,7 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 ====
 
 .. Deploy a VM for Redis
-.. Make sure that it is accessible from the clusters where Quay is running
+.. Verify that it is accessible from the clusters where {productname} is running
 .. Port 6379/TCP must be open
 .. Run Redis inside the instance
 +
@@ -40,20 +48,22 @@ sudo dnf install -y podman
 podman run -d --name redis -p 6379:6379 redis
 ----
 
-. Create two object storage backends, one for each cluster
+. Create two object storage backends, one for each cluster. Ideally, one object storage bucket will be close to the first, or primary, cluster, and the other will run closer to the second, or secondary, cluster.
+
+. Deploy the clusters with the same config bundle, using environment variable overrides to select the appropriate storage backend for an individual cluster.
+
+. Configure a load balancer to provide a single entry point to the clusters.
+
+[id="configuring-geo-repl"]
+== Configuring geo-replication for the {productname} Operator on {ocp}
+
+Use the following procedure to configure geo-replication for the {productname} Operator. 
+
+.Procedure
+
+. Create a `config.yaml` file that is shared between clusters. This `config.yaml` file contains the details for the common PostgreSQL, Redis and storage backends:
 +
-Ideally one object storage bucket will be close to the 1st cluster (primary) while the other will run closer to the 2nd cluster (secondary).
-
-. Deploy the clusters with the same config bundle, using environment variable overrides to select the appropriate storage backend for an individual cluster
-
-. Configure a load balancer, to provide a single entry point to the clusters
-
-
-== Configuration
-
-The `config.yaml` file is shared between clusters, and will contain the details for the common PostgreSQL, Redis and storage backends:
-
-.config.yaml
+.Geo-replication `config.yaml` file
 [source,yaml]
 ----
 SERVER_HOSTNAME: <georep.quayteam.org or any other name> <1>
@@ -89,23 +99,24 @@ DISTRIBUTED_STORAGE_PREFERENCE:
 FEATURE_STORAGE_REPLICATION: true
 ----
 <1> A proper `SERVER_HOSTNAME` must be used for the route and must match the hostname of the global load balancer.
-<2> To retrieve the configuration file for a Clair instance deployed using the OpenShift Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/quay_operator_features#clair-openshift-config[Retrieving the Clair config].
+<2> To retrieve the configuration file for a Clair instance deployed using the {ocp} Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/quay_operator_features#clair-openshift-config[Retrieving the Clair config].
 
-Create the `configBundleSecret`:
-
+. Create the `configBundleSecret` by entering the following command:
++
 [source,terminal]
 ----
 $ oc create secret generic --from-file config.yaml=./config.yaml georep-config-bundle
 ----
 
-In each of the clusters, set the `configBundleSecret` and use the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environmental variable override to configure the appropriate storage for that cluster:
-
+. In each of the clusters, set the `configBundleSecret` and use the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environmental variable override to configure the appropriate storage for that cluster. For example:
++
 [NOTE]
 ====
 The `config.yaml` file between both deployments must match. If making a change to one cluster, it must also be changed in the other.
 ====
-
-.US cluster
++
+[source,yaml]
+.US cluster `QuayRegistry` example 
 ----
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
@@ -143,9 +154,10 @@ spec:
 +
 [NOTE]
 ====
-Because TLS is unmanaged, and the route is managed, you must supply the certificates with either with the config tool or directly in the config bundle. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/operator-preconfigure#operator-preconfig-tls-routes[Configuring TLS and routes].
+Because SSL/TLS is unmanaged, and the route is managed, you must supply the certificates with either with the config tool or directly in the config bundle. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/operator-preconfigure#operator-preconfig-tls-routes[Configuring TLS and routes].
 ====
-
++
+[source,yaml]
 .European cluster
 ----
 apiVersion: quay.redhat.com/v1
@@ -184,5 +196,5 @@ spec:
 +
 [NOTE]
 ====
-Because TLS is unmanaged, and the route is managed, you must supply the certificates with either with the config tool or directly in the config bundle. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/operator-preconfigure#operator-preconfig-tls-routes[Configuring TLS and routes].
+Because SSL/TLS is unmanaged, and the route is managed, you must supply the certificates with either with the config tool or directly in the config bundle. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/operator-preconfigure#operator-preconfig-tls-routes[Configuring TLS and routes].
 ====
