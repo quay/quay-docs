@@ -1,3 +1,5 @@
+:_content-type: PROCEDURE
+[id="standalone-upgrade"]
 = Standalone upgrade
 
 In general, {productname} supports upgrades from a prior (N-1) minor version only.  For example, upgrading directly from {productname} 3.0.5 to the latest version of 3.5 is not supported. Instead, users would have to upgrade as follows:
@@ -17,14 +19,15 @@ In some cases, {productname} supports direct, single-step upgrades from prior (N
 . 3.4.z -> 3.7.z
 . 3.5.z -> 3.7.z
 . 3.7.z -> 3.8.z
+. 3.9.z -> 3.9.z
 
+//link
+For users wanting to upgrade the {productname} Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrading_quay_by_upgrading_the_quay_operator[Upgrading the {productname} Operator Overview].
 
-For users wanting to upgrade via the Quay Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrading_quay_by_upgrading_the_quay_operator[Upgrading Quay by upgrading the Quay Operator].
+This document describess the steps needed to perform each individual upgrade. Determine your current version and then follow the steps in sequential order, starting with your current version and working up to your desired target version.
 
-
-This document describes the steps needed to perform each individual upgrade. Determine your current version and then follow the steps in sequential order, starting with your current version and working up to your desired target version.
-
-* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_7_z_from_3_6_z[Upgrade to 3.8.z from 3.7.z]
+*link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_9_z_from_3_9_z[Upgrade to 3.9.z from 3.7.z]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_8_z_from_3_7_z[Upgrade to 3.8.z from 3.7.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_7_z_from_3_6_z[Upgrade to 3.7.z from 3.6.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_7_z_from_3_5_z[Upgrade to 3.7.z from 3.5.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_7_z_from_3_4_z[Upgrade to 3.7.z from 3.4.z]
@@ -58,12 +61,25 @@ link:https://registry.access.redhat.com[registry.access.redhat.com], with authen
 
 Images for Quay 3.3.4 and earlier are available from link:https://quay.io[quay.io], with authentication set up as described in link:https://access.redhat.com/solutions/3533201[Accessing {productname} without a CoreOS login].
 
-== Upgrade to 3.8.z from 3.7.z
+== Upgrade to 3.9.z from 3.8.z
 
 === Target images
 * **Quay:** {productrepo}/{quayimage}:{productminv}
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{productminv}
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::downstream[]
+ifdef::upstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::upstream[]
+* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
+* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+
+== Upgrade to 3.8.z from 3.7.z
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:v3.8.0
+ifdef::downstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
@@ -76,7 +92,7 @@ endif::upstream[]
 === Target images
 * **Quay:** {productrepo}/{quayimage}:v3.7.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:v3.7.0
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
@@ -89,7 +105,7 @@ endif::upstream[]
 === Target images
 * **Quay:** {productrepo}/{quayimage}:v3.7.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:v3.7.0
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
@@ -102,7 +118,7 @@ endif::upstream[]
 === Target images
 * **Quay:** {productrepo}/{quayimage}:v3.7.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:v3.7.0
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
@@ -119,7 +135,7 @@ Upgrading to {productname} 3.7 from 3.3. is unsupported. Users must first upgrad
 === Target images
 * **Quay:** {productrepo}/{quayimage}:v3.6.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:v3.6.0
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
