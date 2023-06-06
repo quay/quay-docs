@@ -1,12 +1,12 @@
-[[restoring-up-red-hat-quay]]
+:_content-type: PROCEDURE
+[id="restoring-up-red-hat-quay"]
 = Restoring {productname}
 
-This procedure is used to restore {productname} when the {productname} Operator manages the database. It should be performed after a backup of your {productname} registry has been performed. See xref:backing-up-red-hat-quay-operator.adoc#backing-up-red-hat-quay-operator[Backing up {productname}] for more information.
-
+Use the following procedures to restore {productname} when the {productname} Operator manages the database. It should be performed after a backup of your {productname} registry has been performed. See xref:backing-up-red-hat-quay-operator.adoc#backing-up-red-hat-quay-operator[Backing up {productname}] for more information.
 
 .Prerequisites
 
-* {productname} is deployed on OpenShift Container Platform using the {productname} Operator.
+* {productname} is deployed on {ocp} using the {productname} Operator.
 * A backup of the {productname} configuration managed by the {productname} Operator has been created following the instructions in the xref:backing-up-red-hat-quay-operator.adoc#backing-up-red-hat-quay-operator[Backing up {productname}] section
 * Your {productname} database has been backed up.
 * The object storage bucket used by {productname} has been backed up.
@@ -16,29 +16,38 @@ This procedure is used to restore {productname} when the {productname} Operator 
 
 [NOTE]
 ====
-If your deployment contains partially unmanaged database or storage components and you are using external services for Postgres or S3-compatible object storage to run your {productname} deployment, you must refer to the service provider or vendor documentation to restore their data from a backup prior to restore {productname}
+If your deployment contains partially unmanaged database or storage components and you are using external services for PostgreSQL or S3-compatible object storage to run your {productname} deployment, you must refer to the service provider or vendor documentation to restore their data from a backup prior to restore {productname}
 ====
 
+[id="restoring-quay-and-configuration-from-backup"]
 == Restoring {productname} and its configuration from a backup
+
+Use the following procedure to restore {productname} and its configuration files from a backup.
 
 [NOTE]
 ====
 These instructions assume you have followed the process in the xref:backing-up-red-hat-quay-operator.adoc#backing-up-red-hat-quay-operator[Backing up {productname}] guide and create the backup files with the same names.
 ====
 
-. Restore the backed up {productname} configuration and the generated keys from the backup:
-+
+.Procedure
+
+. Restore the backed up {productname} configuration by entering the following command:
 [source,terminal]
 ----
 $ oc create -f ./config-bundle.yaml
-
-$ oc create -f ./managed-secret-keys.yaml
 ----
 +
 [IMPORTANT]
 ====
 If you receive the error `Error from server (AlreadyExists): error when creating "./config-bundle.yaml": secrets "config-bundle-secret" already exists`, you must delete your existing resource with `$ oc delete Secret config-bundle-secret -n <quay-namespace>` and recreate it with `$ oc create -f ./config-bundle.yaml`.
 ====
+
+. Restore the generated keys from the backup by entering the following command:
++
+[source,terminal]
+----
+$ oc create -f ./managed-secret-keys.yaml
+----
 
 . Restore the `QuayRegistry` custom resource:
 +
@@ -54,9 +63,16 @@ $ oc create -f ./quay-registry.yaml
 $ oc wait quayregistry registry --for=condition=Available=true -n <quay-namespace>
 ----
 
-== Scale down your {productname} deployment
+[id="scale-down-quay-deployment"]
+== Scaling down your {productname} deployment
 
-. *For Operator version 3.7 and newer:* Scale down the {productname} deployment by disabling auto scaling and overriding the replica count for Quay, mirror workers and Clair (if managed). Your `QuayRegistry` resource should look similar to the following:
+Use the following procedure to scale down your {productname} deployment. 
+
+.Procedure 
+
+. Depending on the version of your {productname} deployment, scale down your deployment using one of the following options. 
+
+.. *For Operator version 3.7 and newer:* Scale down the {productname} deployment by disabling auto scaling and overriding the replica count for Quay, mirror workers and Clair (if managed). Your `QuayRegistry` resource should look similar to the following:
 +
 [source,yaml]
 ----
@@ -87,18 +103,29 @@ spec:
 <1> Disable auto scaling of Quay, Clair and Mirroring workers
 <2> Set the replica count to 0 for components accessing the database and objectstorage
 
-. *For Operator version 3.6 and earlier:* Scale down the {productname} deployment by scaling down the {productname} Operator first and then the managed {productname} resources:
+.. *For Operator version 3.6 and earlier:* Scale down the {productname} deployment by scaling down the {productname} Operator first and then the managed {productname} resources:
 +
 [source,terminal]
 ----
 $ oc scale --replicas=0 deployment $(oc get deployment -n <quay-operator-namespace>|awk '/^quay-operator/ {print $1}') -n <quay-operator-namespace>
-
+----
++
+[source,terminal]
+----
 $ oc scale --replicas=0 deployment $(oc get deployment -n <quay-namespace>|awk '/quay-app/ {print $1}') -n <quay-namespace>
+----
++
+[source,terminal]
+----
 $ oc scale --replicas=0 deployment $(oc get deployment -n <quay-namespace>|awk '/quay-mirror/ {print $1}') -n <quay-namespace>
+----
++
+[source,terminal]
+----
 $ oc scale --replicas=0 deployment $(oc get deployment -n <quay-namespace>|awk '/clair-app/ {print $1}') -n <quay-namespace>
 ----
 
-. Wait for the `registry-quay-app`, `registry-quay-mirror` and `registry-clair-app` pods (depending on which components you set to be managed by Operator) to disappear. You can check their status by running the following command:
+. Wait for the `registry-quay-app`, `registry-quay-mirror` and `registry-clair-app` pods (depending on which components you set to be managed by {productname} Operator) to disappear. You can check their status by running the following command:
 +
 [source,terminal]
 ----
@@ -114,9 +141,14 @@ registry-quay-database-66969cd859-n2ssm        1/1     Running            0     
 registry-quay-redis-7cc5f6c977-956g8           1/1     Running            0          5d21h
 ----
 
-== Restore your {productname} database
+[id="restoring-quay-database"]
+== Restoring your {productname} database
 
-. Identify your Quay database pod:
+Use the following procedure to restore your {productname} database. 
+
+.Procedure 
+
+. Identify your `Quay` database pod by entering the following command:
 +
 [source,terminal]
 ----
@@ -135,14 +167,14 @@ quayregistry-quay-database-59f54bb7-58xs7
 $ oc cp ./backup.sql -n <quay-namespace> registry-quay-database-66969cd859-n2ssm:/tmp/backup.sql
 ----
 
-. Open a remote terminal to the database:
+. Open a remote terminal to the database by entering the following command:
 +
 [source,terminal]
 ----
 $ oc rsh -n <quay-namespace> registry-quay-database-66969cd859-n2ssm
 ----
 
-. Enter psql:
+. Enter psql by running the following command:
 +
 [source,terminal]
 ----
@@ -155,30 +187,34 @@ bash-4.4$ psql
 postgres=# \l
 ----
 +
-Example output:
+.Example output
 +
 [source,terminal]
+----
                                                   List of databases
            Name            |           Owner            | Encoding |  Collate   |   Ctype    |   Access privileges
 ----------------------------+----------------------------+----------+------------+------------+-----------------------
 postgres                   | postgres                   | UTF8     | en_US.utf8 | en_US.utf8 |
 quayregistry-quay-database | quayregistry-quay-database | UTF8     | en_US.utf8 | en_US.utf8 |
+----
 
-
-. Drop the database:
+. Drop the database by entering the following command:
 +
+[source,terminal]
 ----
 postgres=# DROP DATABASE "quayregistry-quay-database";
 ----
 +
-Example output:
+.Example output
 +
+[source,terminal]
 ----
 DROP DATABASE
 ----
 
 . Exit the postgres CLI to re-enter bash-4.4:
 +
+[source,terminal]
 ----
 \q
 ----
@@ -190,22 +226,28 @@ DROP DATABASE
 sh-4.4$ psql < /tmp/backup.sql
 ----
 
-. Exit bash:
+. Exit bash by entering the following command:
 +
+[source,terminal]
 ----
 sh-4.4$ exit
 ----
 
+[id="restoring-quay-object-storage-data"]
 == Restore your {productname} object storage data
 
-. Export the `AWS_ACCESS_KEY_ID`:
+Use the following procedure to restore your {productname} object storage data. 
+
+.Procedure
+
+. Export the `AWS_ACCESS_KEY_ID` by entering the following command:
 +
 [source,terminal]
 ----
 $ export AWS_ACCESS_KEY_ID=$(oc get secret -l app=noobaa -n <quay-namespace>  -o jsonpath='{.items[0].data.AWS_ACCESS_KEY_ID}' |base64 -d)
 ----
 
-. Export the `AWS_SECRET_ACCESS_KEY`:
+. Export the `AWS_SECRET_ACCESS_KEY` by entering the following command:
 +
 [source,terminal]
 ----
@@ -224,9 +266,12 @@ $ aws s3 sync --no-verify-ssl --endpoint https://$(oc get route s3 -n openshift-
 You can also use link:https://rclone.org/[rclone] or link:https://s3tools.org/s3cmd[sc3md] instead of the AWS command line utility.
 ====
 
-== Scale up your {productname} deployment
+[id="scaling-up-quay"]
+== Scaling up your {productname} deployment
 
-. *For Operator version 3.7 and newer:* Scale up the {productname} deployment by re-enabling auto scaling, if desired, and removing the replica overrides for Quay, mirror workers and Clair as applicable. Your `QuayRegistry` resource should look similar to the following:
+. Depending on the version of your {productname} deployment, scale up your deployment using one of the following options. 
+
+.. *For Operator version 3.7 and newer:* Scale up the {productname} deployment by re-enabling auto scaling, if desired, and removing the replica overrides for Quay, mirror workers and Clair as applicable. Your `QuayRegistry` resource should look similar to the following:
 +
 [source,yaml]
 ----
@@ -251,7 +296,7 @@ spec:
 <1> Re-enables auto scaling of {productname}, Clair and mirroring workers again (if desired)
 <2> Replica overrides are removed again to scale the {productname} components back up
 
-. *For Operator version 3.6 and earlier:* Scale up the {productname} deployment by scaling up the {productname} Operator again:
+.. *For Operator version 3.6 and earlier:* Scale up the {productname} deployment by scaling up the {productname} Operator again:
 +
 [source,terminal]
 ----

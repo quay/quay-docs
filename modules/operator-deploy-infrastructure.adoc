@@ -1,19 +1,27 @@
-[[operator-deploy-infrastructure]]
+:_content-type: PROCEDURE
+[id="operator-deploy-infrastructure"]
 = Deploying Quay on infrastructure nodes
 
-By default, Quay-related pods are placed on arbitrary worker nodes when using the Operator to deploy the registry. The OpenShift Container Platform documentation shows how to use machine sets to configure nodes to only host infrastructure components (see link:https://docs.openshift.com/container-platform/4.7/machine_management/creating-infrastructure-machinesets.html[]).
+By default, `Quay` related pods are placed on arbitrary worker nodes when using the {productname} Operator to deploy the registry. The {ocp} documentation shows how to use machine sets to configure nodes to only host infrastructure components. For more information, see link:https://docs.openshift.com/container-platform/4.13/machine_management/creating-infrastructure-machinesets.html[Creating infrastructure machine sets]. 
 
+If you are not using {ocp} `MachineSet` resources to deploy infra nodes, the following sections shows you how to manually label and tain nodes for infrastructure purposes. After you have configured your infrastructure nodes, either manually or by using machine sets, you can control the placement of `Quay` pods on these nodes using node selectors and tolerations. 
 
-If you are not using OCP MachineSet resources to deploy infra nodes, this section shows you how to manually label and taint nodes for infrastructure purposes. 
+[id="label-taint-nodes-for-infrastructure-use"]
+== Labeling and tainting nodes for infrastructure use
 
-Once you have configured your infrastructure nodes, either manually or using machine sets, you can then control the placement of Quay pods on these nodes using node selectors and tolerations. 
+Use the following procedure to label and taint nodes for infrastructure use. 
 
-== Label and taint nodes for infrastructure use
-
-In the cluster used in this example, there are three master nodes and six worker nodes:
-
+. In the following example cluster, there are three master nodes and six worker nodes. For example:
++
+[source,terminal]
 ----
 $ oc get nodes
+----
++
+.Example output
++
+[source,terminal]
+----
 NAME                                               STATUS   ROLES    AGE     VERSION
 user1-jcnp6-master-0.c.quay-devel.internal         Ready    master   3h30m   v1.20.0+ba45583
 user1-jcnp6-master-1.c.quay-devel.internal         Ready    master   3h30m   v1.20.0+ba45583
@@ -26,18 +34,34 @@ user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal   Ready    worker   3h22m �
 user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal   Ready    worker   3h21m   v1.20.0+ba45583
 ----
 
-Label the final three worker nodes for infrastructure use:
-
+. Label the last three worker nodes for infrastructure use:
++
+[source,terminal]
 ----
 $ oc label node --overwrite user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal node-role.kubernetes.io/infra=
+----
++
+[source,terminal]
+----
 $ oc label node --overwrite user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal node-role.kubernetes.io/infra=
+----
++
+[source,terminal]
+----
 $ oc label node --overwrite user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal node-role.kubernetes.io/infra=
 ----
 
-Now, when you list the nodes in the cluster, the last 3 worker nodes will have an added role of `infra`:
-
+. Enter the following command to list the nodes in the cluster. The last three worker nodes should have the added role `infra`. For example:
++
+[source,terminal]
 ----
 $ oc get nodes
+----
++
+.Example output
++
+[source,terminal]
+----
 NAME                                               STATUS   ROLES          AGE     VERSION
 user1-jcnp6-master-0.c.quay-devel.internal         Ready    master         4h14m   v1.20.0+ba45583
 user1-jcnp6-master-1.c.quay-devel.internal         Ready    master         4h15m   v1.20.0+ba45583
@@ -47,24 +71,41 @@ user1-jcnp6-worker-b-jr7hc.c.quay-devel.internal   Ready    worker       �
 user1-jcnp6-worker-c-jrq4v.c.quay-devel.internal   Ready    worker         4h5m    v1.20.0+ba45583
 user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal   Ready    infra,worker   4h6m    v1.20.0+ba45583
 user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal   Ready    infra,worker   4h6m    v1.20.0+ba45583
-user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal   Ready    infra,worker   4h6m    v1.20.0+ba45583
+user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal   Ready    infra,worker   4h6m    v1.20.0+ba4558
 ----
 
-With an infra node being assigned as a worker, there is a chance that user workloads could get inadvertently assigned to an infra node. To avoid this, you can apply a taint to the infra node and then add tolerations for the pods you want to control.
-
+. When an `infra` node is assigned as a worker, there is a chance that user workloads could get inadvertently assigned to an `infra` node. To avoid this, you can apply a tain to the infra node, and then add tolerations for the pods that you want to control. For example:
++
+[source,terminal]
 ----
 $ oc adm taint nodes user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal node-role.kubernetes.io/infra:NoSchedule
+----
++
+[source,terminal]
+----
 $ oc adm taint nodes user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal node-role.kubernetes.io/infra:NoSchedule
+----
++
+[source,terminal]
+----
 $ oc adm taint nodes user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal node-role.kubernetes.io/infra:NoSchedule
 ----
 
-== Create a Project with node selector and toleration
+[id="creating-project-with-node-selector"]
+== Creating a project with node selector and toleration
 
-If you have already deployed Quay using the Quay Operator, remove the installed operator and any specific namespace(s) you created for the deployment.
+Use the following procedure to create a `Project` resource with node selector and toleration. 
 
-Create a Project resource, specifying a node selector and toleration as shown in the following example:
+[NOTE]
+====
+If you have already deployed {productname} using the Operator, remove the installed Operator and any specific namespace(s) you created for the deployment.
+====
 
-.quay-registry.yaml
+.Procedure 
+
+. Create a `Project` resource, specifying a node selector and toleration as shown in the following example:
++
+[source,yaml]
 ----
 kind: Project
 apiVersion: project.openshift.io/v1
@@ -78,32 +119,62 @@ metadata:
       ]
 ----
 
-Use the `oc apply` command to create the project:
-
+. Use the `oc apply` command to create the `Project` resource:
++
+[source,terminal]
 ----
 $ oc apply -f quay-registry.yaml
+----
++
+.Example output
++
+[source,terminal]
+----
 project.project.openshift.io/quay-registry created
 ----
 
-Any subsequent resources created in the `quay-registry` namespace should now be scheduled on the dedicated infrastructure nodes.
+Subsequent resources created in the `quay-registry` namespace should now be scheduled on the dedicated infrastructure nodes.
 
+[id="installing-quay-operator-in-namespace"]
+== Installing the {productname} Operator in the namespace 
 
-== Install the Quay Operator in the namespace 
+Use the following procedure to install the {productname} Operator in the namesapce. 
 
-When installing the Quay Operator, specify the appropriate project namespace explicitly, in this case `quay-registry`. This will result in the operator pod itself landing on one of the three infrastructure nodes:
+.Procedure
 
+* When installing the {productname} Operator, specify the appropriate project namespace explicitly. In this example, it is `quay-registry`. This results in the Operator pod itself landing on one of the three infrastructure nodes:
++
+[source,terminal]
 ----
 $ oc get pods -n quay-registry -o wide
+----
++
+.Example output
++
+[source,terminal]
+----
 NAME                                    READY   STATUS    RESTARTS   AGE   IP            NODE                                               
 quay-operator.v3.4.1-6f6597d8d8-bd4dp   1/1     Running   0          30s   10.131.0.16   user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal 
 ----
 
-== Create the registry
+[id="creating-the-registry"]
+== Creating the {productname} registry
 
-Create the registry as explained earlier, and then wait for the deployment to be ready. When you list the Quay pods, you should now see that they have only been scheduled on the three nodes that you have labelled for infrastructure purposes:
+Use the following procedure to create the {productname} registry. 
 
+.Procedure 
+
+. Create the registry as outlined in Creating a project with node selector and toleration and wait for the deployment to be marked as `Ready`. When you list the `Quay` pods, you should now see that they have only been scheduled on the three nodes that you have labelled for infrastructure purposes. For example:
++
+[source,terminal]
 ----
 $ oc get pods -n quay-registry -o wide
+----
++
+.Example output
++
+[source,terminal]
+----
 NAME                                                   READY   STATUS      RESTARTS   AGE     IP            NODE                                                 
 example-registry-clair-app-789d6d984d-gpbwd            1/1     Running     1          5m57s   10.130.2.80   user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal
 example-registry-clair-postgres-7c8697f5-zkzht         1/1     Running     0          4m53s   10.129.2.19   user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal
