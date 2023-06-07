@@ -9,18 +9,18 @@ The link:https://operatorhub.io/operator/container-security-operator[Container S
 The CSO does not work without {productname} and Clair. 
 ====
 
-The Container Security Operator (CSO) performs the following features: 
+The Container Security Operator (CSO) includes the following features: 
 
 * Watches containers associated with pods on either specified or all namespaces. 
 
-* Queries the container registry where the containers came from for vulnerability information (provided that an image's registry supports image scanning, such a a {productname} registry with Clair scanning). 
+* Queries the container registry where the containers came from for vulnerability information, provided that an image's registry supports image scanning, such a a {productname} registry with Clair scanning. 
 
-* Exposes vulnerabilities via the `ImageManifestVuln` object in the Kubernetes API. 
+* Exposes vulnerabilities through the `ImageManifestVuln` object in the Kubernetes API. 
 
 [NOTE]
 ====
 To see instructions on installing the CSO on Kubernetes,
-select the Install button from the link:https://operatorhub.io/operator/container-security-operator[Container Security OperatorHub.io] page.
+select the *Install* button from the link:https://operatorhub.io/operator/container-security-operator[Container Security OperatorHub.io] page.
 ====
 
 [id="running-cso-openshift"]
@@ -66,15 +66,11 @@ The Container Security Operator currently provides broken links for Red Hat Secu
 
 . You can do one of two things at this point to follow up on any detected vulnerabilities:
 
-..  Select the link to the vulnerability. You are taken to the container registry, {productname} or other registry
-where the container came from, where you can see information about the vulnerability. The following
-figure shows an example of detected vulnerabilities from a Quay.io registry:
+..  Select the link to the vulnerability. You are taken to the container registry, {productname} or other registry where the container came from, where you can see information about the vulnerability. The following figure shows an example of detected vulnerabilities from a Quay.io registry:
 +
 image:cso-registry-vulnerable.png[The CSO points you to a registry containing the vulnerable image]
 +
-.. Select the namespaces link to go to the *ImageManifestVuln* screen, where you can see the name of the selected image
-and all namespaces where that image is running. The following figure indicates that a particular vulnerable image
-is running in two namespaces:
+.. Select the namespaces link to go to the *ImageManifestVuln* screen, where you can see the name of the selected image and all namespaces where that image is running. The following figure indicates that a particular vulnerable image is running in two namespaces:
 +
 image:cso-namespace-vulnerable.png[View namespaces a vulnerable image is running in]
 
@@ -88,22 +84,39 @@ After executing this procedure, you are made aware of what images are vulnerable
 If you delete the pod, it might take a few minutes for the vulnerability to reset on the dashboard. 
 ====
 
-
+[id="query-image-vulnerabilities-from-cli"]
 == Query image vulnerabilities from the CLI
-You can query information on security from the command line. To query for detected vulnerabilities, type:
 
-```
+Use the following procedure to query image vulnerabilities from the command line interface (CLI). 
+
+.Procedure 
+
+. Enter the following command to query for detected vulnerabilities: 
++
+[source,terminal]
+----
 $ oc get vuln --all-namespaces
+----
++
+.Example output
++
+[source,terminal]
+----
 NAMESPACE     NAME              AGE
 default       sha256.ca90...    6m56s
 skynet        sha256.ca90...    9m37s
-```
-To display details for a particular vulnerability, identify one of the
-vulnerabilities, along with its namespace and the `describe` option.
-This example shows an active container whose image includes an RPM package with a vulnerability:
+----
 
-```
+. Optional. To display details for a particular vulnerability, identify a specific vulnerability and its namespace, and use the `oc describe` command. The following example shows an active container whose image includes an RPM package with a vulnerability:
++
+[source,terminall]
+----
 $ oc describe vuln --namespace mynamespace sha256.ac50e3752...
+----
+.Example output
++
+[source,terminal]
+----
 Name:         sha256.ac50e3752...
 Namespace:    quay-enterprise
 ...
@@ -115,4 +128,4 @@ Spec:
     Versionformat:   rpm
     Vulnerabilities:
       Description: Network Security Services (NSS) is a set of libraries...
-```
+----
