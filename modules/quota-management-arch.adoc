@@ -1,28 +1,32 @@
-[[quota-management-arch]]
+:_content-type: CONCEPT
+[id="quota-management-arch"]
 = Quota management architecture
 
-////
-image:quota-management.png[Quota management architecture]
+With the quota management feature enabled, individual blob sizes are summed at the repository and namespace level. For example, if two tags in the same repository reference the same blob, the size of that blob is only counted once towards the repository total. Additionally, manifest list totals are counted toward the repository total. 
 
-The preceding image shows the expected design flow and architecture of the Quota management feature.
+[IMPORTANT]
+====
+Because manifest list totals are counted toward the repository total, the total quota consumed when upgrading from a previous version of {productname} might be reportedly differently in {productname} 3.9. In some cases, the new total might go over a repository's previously-set limit. {productname} administrators might have to adjust the allotted quota of a repository to account for these changes. 
+====
+
+The quota management feature works by calculating the size of existing repositories and namespace with a backfill worker, and then adding or subtracting from the total for every image that is pushed or garbage collected afterwords. Additionally, the subtraction from the total happens when the manifest is garbage collected.
 
 [NOTE]
 ====
-With {productname} 3.7, boxes outlined in black show the current flow, and boxes outlined in green show what need to be implemented to support this feature.
+Because subtraction occurs from the total when the manifest is garbage collected, there is a delay in the size calculation until it is able to be garbage collected. For more information about garbage collection, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#red_hat_quay_garbage_collection[{productname} garbage collection].
 ====
-////
 
-The `RepositorySize` database table holds the storage consumption, in bytes, of a {productname} repository within an organization. The sum of all repository sizes for an organization defines the current storage size of a {productname} organization. When an image push is initialized, the user's organization storage is validated to check if it is beyond the configured quota limits. If an image push exceeds defined quota limitations, a soft or hard check occurs: 
+The following database tables hold the quota repository size, quota namespace size, and quota registry size, in bytes, of a {productname} repository within an organization:
+
+* `QuotaRepositorySize`
+* `QuotaNameSpaceSize`
+* `QuotaRegistrySize` 
+
+The organization size is calculated by the backfill worker to ensure that it is not duplicated. When an image push is initialized, the user's organization storage is validated to check if it is beyond the configured quota limits. If an image push exceeds defined quota limitations, a soft or hard check occurs:
 
 * For a soft check, users are notified.
 * For a hard check, the push is stopped.
 
 If storage consumption is within configured quota limits, the push is allowed to proceed.
 
-Image manifest deletion follows a similar flow, whereby the links between associated image tags and the manifest are deleted. Additionally, after the image manifest is deleted, the repository size is recalculated and updated in the `RepositorySize` table. 
-
-////
-The image below represents the design flow and architecture when deleting an image manifest:
-
-image:manifest-deletion-architecture.png[Manifest deletion architecture]
-////
+Image manifest deletion follows a similar flow, whereby the links between associated image tags and the manifest are deleted. Additionally, after the image manifest is deleted, the repository size is recalculated and updated in the `QuotaRepositorySize`, `QuotaNameSpaceSize`, and `QuotaRegistrySize` tables.
