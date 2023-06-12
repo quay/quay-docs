@@ -12,16 +12,25 @@ Issued 2022-05-XXX
 
 The following updates have been made to {productname}, Clair, and Quay Builders:
 
-[id="quota-management-enhancement-rn"]
+[id="quota-management-enhancements"]
 === Quota management enhancements
 
-Prior to {productname} 3.9, the quota management feature created totals by combining the manifest sizes at the repository and namespace level. This created an issue wherein a single blob could be counted multiple times within the total.
+* Prior to {productname} 3.9, the quota management feature created totals by combining the manifest sizes at the repository and namespace level. This created an issue wherein a single blob could be counted multiple times within the total. For example, in previous versions of {productname}, if blobs were referenced multiple times within a repository and namespace, the blob was counted towards the allotted quota for every time it was referenced.
++
+With this release, individual blob sizes are summed at the repository and namespace level. For example, if two tags in the same repository reference the same blob, the size of that blob is now only counted once towards the repository total. This enhancement to the quota management feature works by calculating the size of existing repositories and namespace with a backfill worker, and then adding or subtracting from the total for every image that is pushed or garbage collected afterwords. Additionally, the subtraction from the total happens when the manifest is garbage collected, whereas in the past it occurred when the tag was deleted.
++
+[NOTE]
+====
+Because subtraction occurs from the total when the manifest is garbage collected, there is a delay in the size calculation until it is able to be garbage collected. For more information about {productname} garbage collection, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#red_hat_quay_garbage_collection[{productname garbage collection}].
+====
++
+Additionally, manifest list totals are now counted toward the repository total, the total quota consumed when upgrading from a previous version of {productname} might be reportedly differently in {productname} 3.9. In some cases, the new total might go over a repository's previously-set limit. {productname} administrators might have to adjust the allotted quota of a repository to account for these changes. 
++
+Collectively, the quota management feature in {productname} 3.9 provides a more accurate depiction of storage growth and registry consumption. As a result, users can place quota limits on the namespace and repository sizes based on the actual usage of storage by {productname}.
++
+For more information, see ...
 
-With this release, individual blob sizes are summed at the repository and namespace level. This provides a more accurate depiction of storage growth and registry consumption. As a result, users can place quota limits on the namespace and repository sizes based on the actual usage of storage by {productname}.
-
-For more information, see [insert link]
-
-[id="configuring-action-log-storage-splunk-rn"]
+[id="configuring-action-log-storage-splunk"]
 === Configuring action log storage for Splunk
 
 With this release, {productname} administrators can forward logs to a Splunk deployment. This allows administrators to perform log analyses and offload the internal database.
@@ -49,7 +58,25 @@ With this release, Nutanix Object Storage is now supported. For more information
 
 The following configuration fields have been added to {productname} 3.9:
 
-*
+* The following configuration fields have been added to the quota management feature:
+
+** **QUOTA_BACKFILL**: Enables the quota backfill worker to calculate the size of pre-existing blobs. Because this parameter sums the de-duplicated totals in the database, it might increase database load. 
++
+*Default*: `True`
+
+**QUOTA_TOTAL_DELAY_SECONDS**:The time delay for starting the quota backfill. Rolling deployments can cause incorrect totals. This field *must* be set to a time longer than it takes for the rolling deployment to complete.
++
+**Default**: `1800`
+
+** **PERMANENTLY_DELETE_TAGS**: Enables functionality related to the removal of tags from the time machine window.
++
+**Default**: `False`
+
+** **RESET_CHILD_MANIFEST_EXPIRATION**: Resets the expirations of temporary tags targeting the child manifests. With this feature set to `True`, child manifests are immediately garbage collected.
++
+**Default**: `False`
+
+For more information, see ...
 
 [id="quay-operator-updates"]
 == {productname} Operator
@@ -72,7 +99,14 @@ The following sections note known issues and limitations for {productname} 3.9.
 [id="known-issues-39"]
 === Known issues:
 
-*
+* Using `conftest pull` commands to obtain policies might return the following error: `Error: download policies: client get: stat /policy/quayregistry-quay-quay-enterprise-847.apps.quaytest-847.qe.devcluster.openshift.com/conftest/policy:latest: no such file or directory`. As a workaround, you can add the `oci://` prefix on your registry host. For example:
++
+[source,terminal]
+----
+$ conftest pull oci://mkoktest.quaydev.org/admin/conftest:v1
+----
++
+This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-5573[*PROJQUAY-5573*])
 
 [id="limitations-39"]
 
