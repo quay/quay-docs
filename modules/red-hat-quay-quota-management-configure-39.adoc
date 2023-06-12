@@ -1,0 +1,91 @@
+:_content-type: CONCEPT
+[id="red-hat-quay-quota-management-39"]
+= Quota management for {productname} 3.9
+
+If you are upgrading to {productname} 3.9, you must reconfigure the quota management feature. This is because with {productname} 3.9, calculation is done differently. As a result, totals prior to {productname} 3.9 are no longer valid. There are two methods for configuring quota management in {productname} 3.9, which are detailed in the following sections. 
+
+[NOTE]
+====
+* This is a one time calculation that must be done after you have upgraded to {productname} 3.9.
+* Superuser privileges are required to create, update and delete quotas. While quotas can be set for users as well as organizations, you cannot reconfigure the _user_ quota using the {productname} UI and you must use the API instead.
+====
+
+[id="quota-management-configuring-38"]
+== Option A: Configuring quota management for {productname} 3.9 by adjusting the QUOTA_TOTAL_DELAY feature flag
+
+Use the following procedure to recalculate {productname} 3.9 quota management by adjusting the `QUOTA_TOTAL_DELAY` feature flag. 
+
+[NOTE]
+====
+With this recalculation option, the totals appear as *0.00 KB* until the allotted time designated for `QUOTA_TOTAL_DELAY`. 
+====
+
+.Prerequisites
+
+* You have upgraded to {productname} 3.9.
+* You are logged into {productname} 3.9 as a superuser. 
+
+.Procedure 
+
+. Deploy {productname} 3.9 with the following `config.yaml` settings:
++
+[source,yaml]
+----
+FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_GARBAGE_COLLECTION: true
+PERMANENTLY_DELETE_TAGS: true
+QUOTA_TOTAL_DELAY_SECONDS: 1800 <1>
+RESET_CHILD_MANIFEST_EXPIRATION: true
+----
+<1> The `QUOTA_TOTAL_DELAY_SECONDS` flag defaults to `1800` seconds, or 30 minutes. This allows {productname} 3.9 to successfully deploy before the quota management feature begins calculating storage consumption for every blob that has been pushed. Setting this flag to a lower number might result in miscalculation; it *must* be set to a number that is greater than the time it takes your {productname} deployment to start. `1800` is the recommended setting, however larger deployments that take longer than 30 minutes to start might require a longer duration than `1800`. 
+
+. Navigate to the {productname} UI and click the name of your Organization. 
+
+. The *Total Quota Consumed* should read *0.00 KB*. Additionally, the *Backfill Queued* indicator should be present.
+
+. After the allotted time, for example, 30 minutes, refresh your {productname} deployment page and return to your Organization. Now, the *Total Quota Consumed* should be present. 
+
+[id="quota-management-configuring-39"]
+== Option B: Configuring quota management for {productname} 3.9 by setting QUOTA_TOTAL_DELAY_SECONDS to 0
+
+Use the following procedure to recalculate {productname} 3.9 quota management by setting `QUOTA_TOTAL_DELAY_SECONDS` to `0`.
+
+[NOTE]
+====
+Using this option prevents the possibility of miscalculations, however is more time intensive. Use the following procedure for when your {productname} deployment swaps the `FEATURE_QUOTA_MANAGEMENT` parameter from `false` to `true`. Most users will find xref:
+====
+
+.Prerequisites
+
+* You have upgraded to {productname} 3.9.
+* You are logged into {productname} 3.9 as a superuser. 
+
+.Procedure
+
+. Deploy {productname} 3.9 with the following `config.yaml` settings:
++
+[source,yaml]
+----
+FEATURE_GARBAGE_COLLECTION: true
+FEATURE_QUOTA_MANAGEMENT: true
+QUOTA_BACKFILL: false
+QUOTA_TOTAL_DELAY_SECONDS: 0
+PERMANENTLY_DELETE_TAGS: true
+RESET_CHILD_MANIFEST_EXPIRATION: true
+----
+
+. Navigate to the {productname} UI and click the name of your Organization. 
+
+. The *Total Quota Consumed* should read *0.00 KB*. 
+
+. Redeploy {productname} and set the `QUOTA_BACKFILL` flag set to `true`. For example:
++
+[source,yaml]
+----
+QUOTA_BACKFILL: true
+----
++
+[NOTE]
+====
+If you choose to disable quota management after it has calculated totals, {productname} marks those totals as stale. If you re-enable the quota management feature again in the future, those namespaces and repositories are recalculated by the backfill worker.
+====
