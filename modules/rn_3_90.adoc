@@ -108,8 +108,15 @@ $ conftest pull oci://mkoktest.quaydev.org/admin/conftest:v1
 +
 This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-5573[*PROJQUAY-5573*])
 
-[id="limitations-39"]
+* {productname} 3.9 introduced changes to the quota management feature. One of these changes is that tags in the time machine window now count towards the quota total of your organization. 
++
+There is a known issue when the proxy cache feature is enabled and configured in a new organization with a link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#quota-management-arch[hard quota check] and time machine settings set to longer than *a few seconds* under their organization settings. In sum, tags in a proxy organization are all given a tag expiration that defaults to 1 day. If your proxy organization has a time machine policy set to longer than *a few seconds* under your organization settings, and the tag expires, it is not immediately available for garbage collection; it must wait to be outside of the time machine window before it can be garbage collected. Because subtraction happens upon garbage collection, and pruned tags are kept within the time frame allotted by your organization's settings, image tags are not immediately garbage collected. This results in the quota consumption metric not being updated, and runs the risk of your proxy organization going over the allotted quota. 
++
+When a hard quota check is configured for a proxy organization, {productname} administrators will want to reclaim the space taken by tags within the time machine window to prevent organizations from hitting their allotted quota. As a temporary workaround, you can set the time machine expiration for proxy organizations to *a few seconds* under *Organizations* -> *Settings* on the {productname} UI. This immediately removes image tags and allows for more accurate quota consumption metrics.
++
+This is a non-issue for proxy organizations employing a soft quota check and can be ignored. 
 
+[id="limitations-39"]
 === {productname} 3.9 limitations
 
 *
