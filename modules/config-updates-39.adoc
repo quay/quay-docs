@@ -2,7 +2,66 @@
 [id="config-updates-39"]
 = Configuration updates for {productname} 3.9
 
-The following configuration fields have been introduced with {productname} 3.9:
+The following sections detail new configuration fields added in {productname} 3.9. 
+
+[id="splunk-action-log-field"]
+== Addition of Splunk action logs
+
+With {productname} 3.9, Splunk can be configured under the *LOGS_MODEL* parameter. 
+
+.Splunk configuration fields
+[cols="2a,1a,2a",options="header"]
+|===
+|Field | Type |Description
+| **LOGS_MODEL** | String |  Enable or disable the security scanner +
+ +
+**Values:** One of `database`, `transition_reads_both_writes_es`, `elasticsearch`, `splunk` +
+**Default:** `database`
+
+|===
+
+[id="new-model-config-options"]
+=== LOGS_MODEL_CONFIG additions
+
+The following *LOGS_MODEL_CONFIG* options are available when configuring Splunk. 
+
+* **LOGS_MODEL_CONFIG** [object]: Logs model config for action logs
+** **producer** [string]: `splunk`
+** **splunk_config** [object]: Logs model configuration for Splunk action logs or the Splunk cluster configuration
+*** **host** [string]: Splunk cluster endpoint.
+*** **port** [integer]: Splunk management cluster endpoint port.
+*** **bearer_token** [string]: The bearer token for Splunk.
+*** **verify_ssl** [boolean]: Enable (`True`) or disable (`False`) TLS/SSL verification for HTTPS connections.
+*** **index_prefix** [string]: Splunk's index prefix.
+*** **ssl_ca_path** [string]: The relative container path to a single `.pem` file containing a certificate authority (CA) for SSL validation.
+
+[id="splunk-example-yaml"]
+=== Example configuration for Splunk
+
+The following YAML entry provides an example configuration for Splunk.
+
+.Splunk config.yaml example
+[source,yaml]
+----
+---
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+    producer: splunk
+    splunk_config:
+        host: http://<user_name>.remote.csb
+        port: 8089
+        bearer_token: <bearer_token>
+        url_scheme: <http/https>
+        verify_ssl: False
+        index_prefix: <splunk_log_index_name>
+        ssl_ca_path: <location_to_ssl-ca-cert.pem> 
+---
+----
+
+[id="quota-management-config-fields"]
+== Quota management configuration fields 
+
+The following configuration fields have been added to enhance the {productname} quota management feature. 
 
 .{productname} 3.9 configuration fields
 [cols="2a,1a,2a",options="header"]
@@ -10,19 +69,19 @@ The following configuration fields have been introduced with {productname} 3.9:
 |Field | Type |Description
 
 | **QUOTA_BACKFILL** | Boolean | Enables the quota backfill worker to calculate the size of pre-existing blobs. +
-+
+ +
 **Default**: `True`
 
 |**QUOTA_TOTAL_DELAY_SECONDS** |String | The time delay for starting the quota backfill. Rolling deployments can cause incorrect totals. This field *must* be set to a time longer than it takes for the rolling deployment to complete. +
-+
+ +
 **Default**: `1800`
 
 |**PERMANENTLY_DELETE_TAGS** |Boolean | Enables functionality related to the removal of tags from the time machine window. +
-+
+ +
 **Default**: `False`
 
 |**RESET_CHILD_MANIFEST_EXPIRATION** |Boolean |Resets the expirations of temporary tags targeting the child manifests. With this feature set to `True`, child manifests are immediately garbage collected. +
-+
+ +
 **Default**: `False`
 
 |===
@@ -41,3 +100,18 @@ The following table explains possible quota management configuration settings in
 |`false` |`false` | With these features configured as `false`, the quota management feature is disabled. 
 |`false` |`true` | With `FEATURE_QUOTA_MANAGEMENT` set to `false`, and `QUOTA_BACKFILL` set to `true`, the quota management feature is disabled. 
 |===
+
+[id="suggested-management-config-settings-39"]
+== Suggested quota management configuration settings 
+
+The following YAML is the suggested configuration when enabling quota management. 
+
+.Suggested quota management configuration
+[source,yaml]
+----
+FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_GARBAGE_COLLECTION: true
+PERMANENTLY_DELETE_TAGS: true
+QUOTA_TOTAL_DELAY_SECONDS: 1800
+RESET_CHILD_MANIFEST_EXPIRATION: true
+----
