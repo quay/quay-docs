@@ -1,9 +1,22 @@
-[[other-oci-artifacts-with-quay]]
-= Adding other OCI media types to Quay
+:_content-type: REFERENCE
+[id="other-oci-artifacts-with-quay"]
+= OCI configuration fields 
 
-Helm, cosign, and ztsd compression scheme artifacts are built into {productname} 3.6 by default. For any other OCI media type that is not supported by default, you can add them to the `ALLOWED_OCI_ARTIFACT_TYPES` configuration in Quay's config.yaml using the following format:
+.OCI configuration
+[cols="3a,1a,2a",options="header"]
+|===
+|Field |Type |Description 
+|**ALLOWED_OCI_ARTIFACT_TYPES** | Object | The set of allowed OCI artifact mimetypes and the associated layer types.
 
-....
+|===
+
+[id="configuring-oci-media-types"]
+== Configuring OCI media types 
+
+Helm, cosign, and ztsd compression scheme artifacts are built into {productname} by default. For any other OCI media type that is not supported by default, you can add them to the `ALLOWED_OCI_ARTIFACT_TYPES` configuration in {productname}'s `config.yaml` file using the following format:
+
+[source,yaml]
+----
 ALLOWED_OCI_ARTIFACT_TYPES:
   <oci config type 1>:
   - <oci layer type 1>
@@ -12,13 +25,12 @@ ALLOWED_OCI_ARTIFACT_TYPES:
   <oci config type 2>:
   - <oci layer type 3>
   - <oci layer type 4>
-...
-....
+----
 
 For example, you can add Singularity (SIF) support by adding the following to your config.yaml:
 
-....
-...
+[source,yaml]
+----
 ALLOWED_OCI_ARTIFACT_TYPES:
   application/vnd.oci.image.config.v1+json:
   - application/vnd.dev.cosign.simplesigning.v1+json
@@ -26,9 +38,7 @@ ALLOWED_OCI_ARTIFACT_TYPES:
   - application/tar+gzip
   application/vnd.sylabs.sif.config.v1+json:
   - application/vnd.sylabs.sif.layer.v1+tar
-...
-....
-
+----
 [NOTE]
 ====
 When adding OCI media types that are not configured by default, users will also need to manually add support for cosign and Helm if desired. The ztsd compression scheme is supported by default, so users will not need to add that OCI media type to their config.yaml to enable support.
