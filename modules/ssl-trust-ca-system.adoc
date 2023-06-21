@@ -1,35 +1,51 @@
+[id="configuring-system-trust-ca"]
 = Configuring the system to trust the certificate authority
 
-. Copy the root CA file to the consolidated system-wide trust store:
+Use the following procedure to configure your system to trust the certificate authority. 
+
+.Procedure
+
+. Enter the following command to copy the `rootCA.pem` file to the consolidated system-wide trust store:
 +
-```
+[source,terminal]
+----
 $ sudo cp rootCA.pem /etc/pki/ca-trust/source/anchors/
-```
+----
 
-. Update the system-wide trust store configuration:
+. Enter the following command to update the system-wide trust store configuration:
 +
-```
+[source,terminal]
+----
 $ sudo update-ca-trust extract
-```
+----
 
-. You can use the `trust list` command to ensure that the Quay server has been configured:
+. Optional. You can use the `trust list` command to ensure that the `Quay` server has been configured:
 +
-```
+[source,terminal]
+----
 $ trust list | grep quay
     label: quay-server.example.com
-```
+----
 +
 Now, when you browse to the registry at `https://quay-server.example.com`, the lock icon shows that the connection is secure:
 +
 image:ssl-connection-secure.png[Connection not secure]
 
-. To remove the root CA from system-wide trust, delete the file and update the configuration:
+. To remove the `rootCA.pem` file from system-wide trust, delete the file and update the configuration:
 +
-```
+[source,terminal]
+----
 $ sudo rm /etc/pki/ca-trust/source/anchors/rootCA.pem
+----
++
+[source,terminal]
+----
 $ sudo update-ca-trust extract
+----
++
+[source,terminal]
+----
 $ trust list | grep quay
-$
-```
+----
 
-More information can be found in the RHEL 8 documentation in the chapter https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/security_hardening/using-shared-system-certificates_security-hardening[Using shared system certificates].
+More information can be found in the RHEL 8 documentation in the chapter link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/securing_networks/index#using-shared-system-certificates_securing-networks[Using shared system certificates].
