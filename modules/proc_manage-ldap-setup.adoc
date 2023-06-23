@@ -1,100 +1,141 @@
-[[ldap-authentication-setup-for-quay-enterprise]]
+:_content-type: CONCEPT
+[id="ldap-authentication-setup-for-quay-enterprise"]
 = LDAP Authentication Setup for {productname}
 
-The Lightweight Directory Access Protocol (LDAP) is an open,
-vendor-neutral, industry standard application protocol for accessing and
-maintaining distributed directory information services over an Internet
-Protocol (IP) network. {productname} supports using LDAP as an
-identity provider.
+Lightweight Directory Access Protocol (LDAP) is an open, vendor-neutral, industry standard application protocol for accessing and maintaining distributed directory information services over an Internet Protocol (IP) network. {productname} supports using LDAP as an identity provider.
 
-== Considerations prior to enabling LDAP
+[id="ldap-considerations"]
+== Considerations when enabling LDAP
 
-[[considerations-for-existing-quay-deployments]]
-=== Existing Quay deployments
-Conflicts between user names can arise when you enable LDAP for an existing Quay deployment that already has users configured. Consider the scenario where a particular user, `alice`, was manually created in Quay prior to enabling LDAP. If the user name `alice` also exists in the LDAP directory, Quay will create a new user `alice-1` when `alice` logs in for the first time using LDAP, and will map the LDAP credentials to this account. This might not be want you want, for consistency reasons, and it is recommended that you remove any potentially conflicting local account names from Quay prior to enabling LDAP.
+Prior to enabling LDAP for your {productname} deployment, you should consider the following.
 
-[[considerations-for-manual-user-creation]]
+[discrete]
+[id="existing-quay-deployments"]
+=== Existing {productname} deployments
+
+Conflicts between usernames can arise when you enable LDAP for an existing {productname} deployment that already has users configured. For example, one user, `alice`, was manually created in {productname} prior to enabling LDAP. If the username `alice` also exists in the LDAP directory, {productname} automatically creates a new user, `alice-1`, when `alice` logs in for the first time using LDAP. {productname} then automatically maps the LDAP credentials to the `alice` account. For consistency reasons, this might be erroneous for your {productname} deployment. It is recommended that you remove any potentially conflicting local account names from {productname} prior to enabling LDAP. 
+
+[discrete]
+[id="considerations-for-manual-user-creation"]
 === Manual User Creation and LDAP authentication
 
-When Quay is configured for LDAP, LDAP-authenticated users are automatically created in Quay's database on first log in, if the configuration option `FEATURE_USER_CREATION` is set to `true`. If this option is set to `false`, the automatic user creation for LDAP users will fail and the user is not allowed to log in. In this scenario, the superuser needs to create the desired user account first.
-Conversely, if `FEATURE_USER_CREATION` is set to `true`, this also means that a user can still create an account from the Quay login screen, even if there is an equivalent user in LDAP.
+When {productname} is configured for LDAP, LDAP-authenticated users are automatically created in {productname}'s database on first log in, if the configuration option `FEATURE_USER_CREATION` is set to `true`. If this option is set to `false`, the automatic user creation for LDAP users fails, and the user is not allowed to log in. In this scenario, the superuser needs to create the desired user account first. Conversely, if `FEATURE_USER_CREATION` is set to `true`, this also means that a user can still create an account from the {productname} login screen, even if there is an equivalent user in LDAP.
 
-[[setup-ldap-configuration]]
-== Set Up LDAP Configuration
+[id="setup-ldap-configuration"]
+== Configuring LDAP for {productname}
 
-In the config tool, locate the Authentication section and select “LDAP” from the drop-down menu. Update LDAP configuration fields as required.
+Use the following procedure to configure LDAP for your {productname} deployment. 
 
-image:authentication-ldap.png[Fill in LDAP information]
+[NOTE]
+====
+For a full list of LDAP configuration fields, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/configure_red_hat_quay/index#config-fields-ldap[LDAP configuration fields]
+====
 
-* Here is an example of the resulting entry in the _config.yaml_ file:
-....
-AUTHENTICATION_TYPE: LDAP
-....
+.Procedure
 
-=== Full LDAP URI
+. You can use the {productname} config tool to configure LDAP.
 
-image:authentication-ldap-uri.png[LDAP server URI]
-image:authentication-ldap-ssl.png[LDAP server SSL]
+.. Using the {productname} config tool, locate the *Authentication* section. Select *LDAP* from the dropdown menu, and update the LDAP configuration fields as required.
++
+image:authentication-ldap.png[LDAP configuration fields]
 
-* The full LDAP URI, including the _ldap://_ or _ldaps://_ prefix.
-* A URI beginning with _ldaps://_ will make use of the provided SSL certificate(s) for TLS setup.
-* Here is an example of the resulting entry in the _config.yaml_ file:
-....
-LDAP_URI: ldaps://ldap.example.org
-....
-
-=== Team Synchronization
-
+.. Optional. On the *Team synchronization* box, and click *Enable Team Syncrhonization Support*. With team synchronization enabled, {productname} administrators who are also superusers can set teams to have their membership synchronized with a backing group in LDAP. 
++
 image:authentication-ldap-team-sync-1.png[Team synchronization]
 
-* If enabled, organization administrators who are also superusers can set teams to have their membership synchronized with a backing group in LDAP.
+.. For *Resynchronization duration* enter *60m*. This option sets the resynchronization duration at which a team must be re-synchronized. This field must be set similar to the following examples: `30m`, `1h`, `1d`. 
 
+.. Optional. For *Self-service team syncing setup*, you can click *Allow non-superusers to enable and manage team syncing* to allow superusers the ability to enable and manage team syncing under the organizations that they are administrators for. 
++
 image:authentication-ldap-team-sync-2.png[Team synchronization]
 
-* The resynchronization duration is the period at which a team must be re-synchronized. Must be expressed in a duration string form: 30m, 1h, 1d.
-* Optionally allow non-superusers to enable and manage team syncing under organizations in which they are administrators.
-* Here is an example of the resulting entries in the _config.yaml_ file:
-....
-FEATURE_TEAM_SYNCING: true
-TEAM_RESYNC_STALE_TIME: 60m
-FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true
-....
+.. Locate the *LDAP URI* box and provide a full LDAP URI, including the _ldap://_ or _ldaps://_ prefix, for example, `ldap://117.17.8.101`.
++
+image:authentication-ldap-uri.png[LDAP server URI]
 
-=== Base and Relative Distinguished Names
-
+.. Under *Base DN*, provide a name which forms the base path for looking up all LDAP records, for example, `o=<organization_id>`,`dc=<example_domain_component>`,`dc=com`. 
++
 image:authentication-ldap-basedn.png[Distinguished Names]
 
-* A Distinguished Name path which forms the base path for looking up all LDAP records. Example: _dc=my,dc=domain,dc=com_
-* Optional list of Distinguished Name path(s) which form the secondary base path(s) for looking up all user LDAP records, relative to the Base DN defined above. These path(s) will be tried if the user is not found via the primary relative DN.
-* User Relative DN is relative to BaseDN. Example: _ou=NYC_ not _ou=NYC,dc=example,dc=org_
-* Multiple “Secondary User Relative DNs” may be entered if there are multiple Organizational Units where User objects are located at. Simply type in the Organizational Units and click on Add button to add multiple RDNs. Example: _ou=Users,ou=NYC and ou=Users,ou=SFO_
-* The "User Relative DN" searches with subtree scope. For example, if your Organization has Organizational Units NYC and SFO under the Users OU (_ou=SFO,ou=Users_ and _ou=NYC,ou=Users_), {productname} can authenticate users from both the _NYC_ and _SFO_ Organizational Units if the User Relative DN is set to Users (_ou=Users_).
-* Here is an example of the resulting entries in the _config.yaml_ file:
-....
+.. Under *User Relative DN*, provide a list of Distinguished Name path(s), which form the secondary base path(s) for looking up all user LDAP records relative to the *Base DN* defined above. For example, `uid=<name>`,`ou=Users`,`o=<organization_id>`,`dc=<example_domain_component>`,`dc=com`. This path, or these paths, is tried if the user is not found through the primary relative DN. 
++
+image:user-relative-dn.png[User Relative DN]
++
+[NOTE]
+====
+*User Relative DN* is relative to *Base DN*, for example, `ou=Users` and not `ou=Users,dc=<example_domain_component>,dc=com`.
+====
+
+.. Optional. Provide *Secondary User Relative DNs* if there are multiple Organizational Units where user objects are located. You can type in the Organizational Units and click *Add* to add multiple RDNs. For example, `ou=Users,ou=NYC and ou=Users,ou=SFO`. 
++
+The *User Relative DN* searches with subtree scope. For example, if your organization has Organization Units `NYC` and `SFO` under the Users OU (that is, `ou=SFO,ou=Users` and `ou=NYC,ou=Users`), {productname} can authenticate users from both the `NYC` and `SFO` Organizational Units if the *User Relative DN* is set to `Users` (`ou=Users`). 
+
+.. Optional. Fill in the *Additional User Filter Expression* field for all user lookup queries if desired. Distinguished Names used in the filter must be full based. The *Base DN* is not added automatically added to this field, and you must wrap the text in parentheses, for example, `(memberOf=cn=developers,ou=groups,dc=<example_domain_component>,dc=com)`.
++
+image:authentication-ldap-user-filter.png[Additional User Filter]
+
+.. Fill in the *Administrator DN* field for the {productname} administrator account. This account must be able to login and view the records for all users accounts. For example: `uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com`. 
++
+image:authentication-ldap-admin-dn.png[Administrator DN]
+
+.. Fill in the *Administrator DN Password* field. This is the password for the administrator distinguished name. 
++
+[IMPORTANT]
+====
+The password for this field is stored in plaintext inside of the `config.yaml` file. Setting up a dedicated account of using a password hash is highly recommended. 
+====
+
+.. Optional. Fill in the *UID Attribute* field. This is the name of the property field in the LDAP user records that stores your user's username. Most commonly, *uid* is entered for this field. This field can be used to log into your {productname} deployment. 
++
+image:uid-attribute-ldap.png[UID Attribute] 
+
+.. Optional. Fill in the *Mail Attribute* field. This is the name of the property field in your LDAP user records that stores your user's e-mail addresses. Most commonly, *mail* is entered for this field. This field can be used to log into your {productname} deployment. 
++
+image:mail-attribute-ldap.png[Mail Attribute]
++
+[NOTE]
+====
+* The username to log in must exist in the *User Relative DN*. 
+* If you are using Microsoft Active Directory to setup your LDAP deployment, you must use `sAMAccountName` for your UID attribute. 
+====
+
+.. Optional. You can add a custom SSL/TLS certificate by clicking *Choose File* under the *Custom TLS Certificate* optionl. Additionally, you can enable fallbacks to insecure, non-TLS connections by checking the *Allow fallback to non-TLS connections* box. 
++
+image:authentication-ldap-ssl.png[LDAP server SSL]
++
+If you upload an SSl/TLS certificate, you must provide an _ldaps://_ prefix, for example, `LDAP_URI: ldaps://ldap_provider.example.org`. 
+
+. Alternatively, you can update your `config.yaml` file directly to include all relevant information. For example:
++
+[source,yaml]
+----
+---
+AUTHENTICATION_TYPE: LDAP
+---
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
+LDAP_ADMIN_PASSWD: ABC123
+LDAP_ALLOW_INSECURE_FALLBACK: false
 LDAP_BASE_DN:
-- dc=example
-- dc=com
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
+LDAP_EMAIL_ATTR: mail
+LDAP_UID_ATTR: uid
+LDAP_URI: ldap://<example_url>.com
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=<domain_name>,dc=com)
 LDAP_USER_RDN:
-- ou=users
-LDAP_SECONDARY_USER_RDNS:
-- ou=bots
-- ou=external
-....
+    - ou=<example_organization_unit>
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
+----
 
-=== Additional User Filters
-
-image:authentication-ldap-user-filter.png[User filters]
-
-* If specified, the additional filter used for all user lookup queries. Note that all Distinguished Names used in the filter must be *full* paths; the Base DN is not added automatically here. *Must* be wrapped in parens. Example: (&(someFirstField=someValue)(someOtherField=someOtherValue))
-* Here is an example of the resulting entry in the _config.yaml_ file:
-....
-LDAP_USER_FILTER: (memberof=cn=developers,ou=groups,dc=example,dc=com)
-....
+. After you have added all required LDAP fields, click the *Save Configuration Changes* button to validate the configuration. All validation must succeed before proceeding. Additional configuration can be performed by selecting the *Continue Editing* button.
 
 [id="ldap-restricted-users-enabling"]
-==== Enabling the LDAP_RESTRICTED_USER_FILTER configuration field
+== Enabling the LDAP_RESTRICTED_USER_FILTER configuration field
 
-The `LDAP_RESTRICTED_USER_FILTER` configuration field is a subset of the `LDAP_USER_FILTER` configuration field. When configured, allows {productname} administrators the ability to configure Lightweight Directory Access Protocol (LDAP) users as restricted users when {productname} uses LDAP as its authentication provider.
+The `LDAP_RESTRICTED_USER_FILTER` configuration field is a subset of the `LDAP_USER_FILTER` configuration field. When configured, this option allows {productname} administrators the ability to configure LDAP users as restricted users when {productname} uses LDAP as its authentication provider.
 
 Use the following procedure to enable LDAP restricted users on your {productname} deployment. 
 
@@ -134,80 +175,6 @@ LDAP_USER_RDN:
 . Start, or restart, your {productname} deployment. 
 
 After enabling the `LDAP_RESTRICTED_USER_FILTER` feature, your LDAP {productname} users are restricted from reading and writing content, and creating organizations. 
-
-
-=== Administrator DN
-
-image:authentication-ldap-admin-dn.png[Administrator DN]
-
-* The Distinguished Name  and password for the administrator account. This account must be able to login and view the records for all user accounts. Example: uid=admin,ou=employees,dc=my,dc=domain,dc=com
-* The password will be stored in *plaintext* inside the config.yaml, so setting up a dedicated account or using a password hash is highly recommended.
-* Here is an example of the resulting entries in the _config.yaml_ file:
-....
-LDAP_ADMIN_DN: cn=admin,dc=example,dc=com
-LDAP_ADMIN_PASSWD: changeme
-....
-
-=== UID and Mail attributes
-
-image:authentication-ldap-uid-mail.png[UID and Mail]
-
-* The UID attribute is the name of the property field in LDAP user record to use as the *username*. Typically "uid".
-* The Mail attribute is the name of the property field in LDAP user record that stores user e-mail address(es). Typically "mail".
-* Either of these may be used during login.
-* The logged in username must exist in User Relative DN.
-* _sAMAccountName_ is the UID attribute for against Microsoft Active Directory setups.
-* Here is an example of the resulting entries in the _config.yaml_ file:
-....
-LDAP_UID_ATTR: uid
-LDAP_EMAIL_ATTR: mail
-....
-
-=== Validation
-
-Once the configuration is completed, click on “Save Configuration
-Changes” button to validate the configuration.
-
-image:authentication-ldap-success.png[Fill in LDAP information]
-
-All validation must succeed before proceeding, or additional configuration may be performed by selecting the "Continue Editing" button.
-
-[[common-issues]]
-== Common Issues
-
-*_Invalid credentials_*
-
-Administrator DN or Administrator DN Password values are incorrect
-
-*_Verification of superuser %USERNAME% failed: Username not found The
-user either does not exist in the remote authentication system OR LDAP
-auth is misconfigured._*
-
-{productname} can connect to the LDAP server via Username/Password specified in
-the Administrator DN fields however cannot find the current logged in
-user with the UID Attribute or Mail Attribute fields in the User
-Relative DN Path. Either current logged in user does not exist in User
-Relative DN Path, or Administrator DN user do not have rights to
-search/read this LDAP path.
-
-[[configure-ldap-superuser]]
-== Configure an LDAP user as superuser
-Once LDAP is configured, you can log in to your {productname}
-instance with a valid LDAP username and password. 
-You are prompted to confirm your {productname} username as shown in the following figure:
-
-image:confirm-ldap-username.png[Confirm LDAP username for {productname}]
-
-To attach superuser privilege to an LDAP user, modify the _config.yaml_ file
-with the username. For example:
-
-....
-SUPER_USERS:
-- testadmin
-....
-
-Restart the Red Hat `Quay` container with the updated config.yaml file. 
-The next time you log in, the user will have superuser privileges.
 
 [id="ldap-super-users-enabling"]
 == Enabling the LDAP_SUPERUSER_FILTER configuration field
@@ -259,3 +226,24 @@ After enabling the `LDAP_SUPERUSER_FILTER` feature, your LDAP {productname} user
 * View the change log
 * Query the usage logs
 * Create globally visible user messages 
+
+[id="common-ldap-configuration-issues"]
+== Common LDAP configuration issues 
+
+The following errors might be returned with an invalid configuration. 
+
+* **Invalid credentials**. If you receive this error, the Administrator DN or Administrator DN password values are incorrect. Ensure that you are providing accurate Administrator DN and password values. 
+
+* **Verification of superuser %USERNAME% failed*. This error is returned for the following reasons: 
+
+** The username has not been found. 
+** The user does not exist in the remote authentication system. 
+** LDAP authorization is configured improperly. 
+
+* **Cannot find the current logged in user**. When configuring LDAP for {productname}, there may be situations where the LDAP connection is established successfully using the username and password provided in the *Administrator DN* fields. However, if the current logged-in user cannot be found within the specified *User Relative DN* path using the *UID Attribute* or *Mail Attribute* fields, there are typically two potential reasons for this:
+
+** The current logged in user does not exist in the *User Relative DN* path.
+** The *Administrator DN* does not have rights to search or read the specified LDAP path. 
++
+To fix this issue, ensure that the logged in user is included in the *User Relative DN* path, or provide the correct permissions to the *Administrator DN* account. 
+
