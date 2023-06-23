@@ -1,16 +1,17 @@
-[[config-fields-ldap]]
+:_content-type: REFERENCE
+[id="config-fields-ldap"]
 = LDAP configuration fields
 
 .LDAP configuration
-[cols="3a,1a,2a",options="header"]
+[cols="2a,1a,2a",options="header"]
 |===
 | Field | Type | Description
 | **AUTHENTICATION_TYPE** +
-(Required) | String | Must be set to `LDAP` 
-| **FEATURE_TEAM_SYNCING** | Boolean | Whether to allow for team membership to be synced from a backing group in the authentication engine (LDAP or Keystone) + 
+(Required) | String | Must be set to `LDAP`.
+| **FEATURE_TEAM_SYNCING** | Boolean | Whether to allow for team membership to be synced from a backing group in the authentication engine (LDAP or Keystone). + 
  + 
 **Default:**  `true`
-| **FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP** | Boolean | If enabled, non-superusers can setup syncing on teams using LDAP + 
+| **FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP** | Boolean | If enabled, non-superusers can setup syncing on teams using LDAP. + 
  + 
 **Default:**  `false`
 | **LDAP_ADMIN_DN** | String | The admin DN for LDAP authentication.
@@ -22,7 +23,7 @@
 | **LDAP_URI** | String | The LDAP URI.
 | **LDAP_USER_FILTER** | String | The user filter for LDAP authentication.
 | **LDAP_USER_RDN** | Array of String|  The user RDN for LDAP authentication.
-| **TEAM_RESYNC_STALE_TIME**  | String | If team syncing is enabled for a team, how often to check its membership and resync if necessary + 
+| **TEAM_RESYNC_STALE_TIME**  | String | If team syncing is enabled for a team, how often to check its membership and resync if necessary. + 
  + 
 **Pattern:** + 
 `^[0-9]+(w\|m\|d\|h\|s)$` + 
@@ -44,30 +45,34 @@ This field requires that your `AUTHENTICATION_TYPE` is set to `LDAP`.
 |===
 
 [id="ldap-config-field-reference"]
-== LDAP configuration field references 
+== LDAP configuration references
 
 Use the following references to update your `config.yaml` file with the desired configuration field. 
 
 [id="reference-ldap-user"]
-=== Basic LDAP user configuration
+=== Basic LDAP configuration
 
 [source,yaml]
 ----
 ---
 AUTHENTICATION_TYPE: LDAP
 ---
-LDAP_ADMIN_DN: uid=testuser,ou=Users,o=orgid,dc=jumpexamplecloud,dc=com
-LDAP_ADMIN_PASSWD: samplepassword
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
+LDAP_ADMIN_PASSWD: ABC123
 LDAP_ALLOW_INSECURE_FALLBACK: false
 LDAP_BASE_DN:
-    - o=orgid
-    - dc=example
+    - o=<organization_id>
+    - dc=<example_domain_component>
     - dc=com
 LDAP_EMAIL_ATTR: mail
 LDAP_UID_ATTR: uid
-LDAP_URI: ldap://ldap.example.com:389
+LDAP_URI: ldaps://<ldap_url_domain_name>
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=<domain_name>,dc=com)
 LDAP_USER_RDN:
-    - ou=Users
+    - ou=<example_organization_unit>
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
 ----
 
 [id="reference-ldap-restricted-user"]
