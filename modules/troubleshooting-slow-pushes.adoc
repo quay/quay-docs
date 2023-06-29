@@ -39,16 +39,14 @@ $ time podman pull <quay_server.example.com>/<repository_name>/<image>:<tag>
 +
 [source,terminal]
 ----
-Trying to pull quay_server.example.com/repository_name/image:tag...
 Getting image source signatures
-Copying blob sha256:<blob_sha> [--------------------------------------] 0.0b/4.2MB
-Copying config sha256:<config_sha> [--------------------------------------] 0.0b/1.5KB
+Copying blob 900e6061671b done  
+Copying config 8135583d97 done  
 Writing manifest to image destination
 Storing signatures
-
-real 1m15.346s
-user 1m0.056s
-sys 1m0.020s
+8135583d97feb82398909c9c97607159e6db2c4ca2c885c0b8f590ee0f9fe90d
+0.57user 0.11system 0:00.99elapsed 68%CPU (0avgtext+0avgdata 78716maxresident)k
+800inputs+15424outputs (18major+6528minor)pagefaults 0swaps
 ----
 
 . Compare the Podman time with another client's time, like Docker. For example:
@@ -62,7 +60,6 @@ $ time docker pull <quay_server.example.com>/<repository_name>/<image>:<tag>
 +
 [source,terminal]
 ----
-Trying to pull quay_server.example.com/repository_name/image:tag...
 Getting image source signatures
 Copying blob sha256:<blob_sha> [--------------------------------------] 0.0b/4.2MB
 Copying config sha256:<config_sha> [--------------------------------------] 0.0b/1.5KB
@@ -75,7 +72,7 @@ sys 0m0.020s
 ----
 
 [id="checking-health-quay-pods"]
-== Checking the health of your Quay pods
+== Checking the health of your deployment using the API
 
 In some cases, the health of your `Quay` pods might be compromised. Use the following procedure to check the health of your `Quay` pods.
 
@@ -83,32 +80,56 @@ In some cases, the health of your `Quay` pods might be compromised. Use the foll
 
 . The following commands run a health check on the `Quay` pods:
 +
-.. If you are using custom certificates for {productname}, enter the following commands:
+.. If you are using custom certificates for {productname}, you can enter the following commands:
 +
 [source,terminal]
 ----
 $ curl -k <https://quay_server.example.com>/health/instance
 ----
 +
-[source,terminal]
-----
-$ curl -k <https://quay_server.example.com>/health/endtoend
-----
 .Example output
 +
 [source,terminal]
 ----
-HTTPS/1.1 503 Service Unavailable
-Content-Type: application/json
-Content-Length: 58
-
-{"status": "unhealthy", "error": "Database connection failed"}
+{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
 ----
++
+[source,terminal]
+----
+$ curl -k <https://quay_server.example.com>/health/endtoend
+----
++
+.Example output
++
+[source,terminal]
+----
+{"data":{"services":{"auth":true,"database":true,"redis":true,"storage":true}},"status_code":200}
+----
++
+[source,terminal]
+----
+$ curl -k <https://quay_server.example.com>/health/warning
+----
++
+.Example output
++
+[source,terminal]
+----
+{"data":{"services":{"disk_space_warning":true}},"status_code":200}
+----
+
 .. If you are not using custom certificates, enter the following commands:
 +
 [source,terminal]
 ----
 $ curl <http://quay-server.example.com>/health/instance
+----
++
+.Example output
++
+[source,terminal]
+----
+{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
 ----
 +
 [source,terminal]
@@ -120,11 +141,19 @@ $ curl <http://quay-server.example.com>/health/endtoend
 +
 [source,terminal]
 ----
-HTTP/1.1 503 Service Unavailable
-Content-Type: application/json
-Content-Length: 58
-
-{"status": "unhealthy", "error": "Database connection failed"}
+{"data":{"services":{"auth":true,"database":true,"redis":true,"storage":true}},"status_code":200}
+----
++
+[source,terminal]
+----
+$ curl -k <http://quay_server.example.com>/health/warning
+----
++
+.Example output
++
+[source,terminal]
+----
+{"data":{"services":{"disk_space_warning":true}},"status_code":200}
 ----
 
 . If the status of your `Quay` pod is reported as `unhealthy`, consult with your storage provider to ensure that it is supported for use with {productname}. Otherwise, you can check the link:https://access.redhat.com/articles/4067991[Quay Enterprise 3.x Test Integrations] document. 
@@ -155,39 +184,10 @@ Destination Host Unreachable
 +
 If an error is returned, there is network connectively issues or the storage provider is currently unavailable. 
 
-[id="troubleshooting-with-debug-mode"]
-== Running {productname} in debug mode
-
-You can try running {productname} in debug mode to resolve slow pushes and pulls. 
-
-.Procedure 
-
-. Enter the following command to edit the `QuayRegistry` CRD:
-+
-[source,terminal]
-----
-$ oc edit quayregistry <quay-registry-name> -n <quay-namespace>
-----
-
-. Update the `QuayRegistry` to add the following parameters:
-+
-[source,yaml]
-----
-spec:
-  - kind: quay
-    managed: true
-    overrides:
-      env:
-      - name: DEBUGLOG
-        value: "true"
-----
-
-. After the {productname} Operator has restarted with debugging enabled, try pulling an image from the registry. If it is still slow, dump all dogs from all `Quay` pods to a file, and check the files for more information. 
-
 [id="checking-throughput-vms"]
 == Checking the throughput of your virtual machines to your storage bucket 
 
-Use the following procedure to check the throughput of your virtual machine(s) to your storage provider. The execution time revealed in the following procedure might help you optimize performance, reveal why pushes and pulls are slow, or compare different configurations or setups. 
+Use the following procedure to check the throughput of your virtual machine to your storage provider. The execution time revealed in the following procedure might help you optimize performance, reveal why pushes and pulls are slow, or compare different configurations or setups. 
 
 .Prerequisites 
 
