@@ -1,22 +1,31 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
 :_content-type: REFERENCE
 [id="other-oci-artifacts-with-quay"]
-= OCI configuration fields 
+= Open Container Initiative configuration fields 
 
-.OCI configuration
+.Additional OCI artifact configuration field
 [cols="3a,1a,2a",options="header"]
 |===
 |Field |Type |Description 
+
 |**ALLOWED_OCI_ARTIFACT_TYPES** | Object | The set of allowed OCI artifact mimetypes and the associated layer types.
 
 |===
 
-[id="configuring-oci-media-types"]
-== Configuring OCI media types 
+[id="configuring-oci-artifact-types"]
+== Configuring additional artifact types
 
-Helm, cosign, and ztsd compression scheme artifacts are built into {productname} by default. For any other OCI media type that is not supported by default, you can add them to the `ALLOWED_OCI_ARTIFACT_TYPES` configuration in {productname}'s `config.yaml` file using the following format:
+Other OCI artifact types that are not supported by default can be added to your {productname} deployment by using the `ALLOWED_OCI_ARTIFACT_TYPES` configuration field. 
 
+Use the following reference to add additional OCI artifact types:
+
+.OCI artifact types configuration
 [source,yaml]
 ----
+FEATURE_GENERAL_OCI_SUPPORT: true
 ALLOWED_OCI_ARTIFACT_TYPES:
   <oci config type 1>:
   - <oci layer type 1>
@@ -27,8 +36,9 @@ ALLOWED_OCI_ARTIFACT_TYPES:
   - <oci layer type 4>
 ----
 
-For example, you can add Singularity (SIF) support by adding the following to your config.yaml:
+For example, you can add Singularity (SIF) support by adding the following to your `config.yaml` file:
 
+.Example OCI artifact type configuration
 [source,yaml]
 ----
 ALLOWED_OCI_ARTIFACT_TYPES:
@@ -41,5 +51,5 @@ ALLOWED_OCI_ARTIFACT_TYPES:
 ----
 [NOTE]
 ====
-When adding OCI media types that are not configured by default, users will also need to manually add support for cosign and Helm if desired. The ztsd compression scheme is supported by default, so users will not need to add that OCI media type to their config.yaml to enable support.
+When adding OCI artifact types that are not configured by default, {productname} administrators will also need to manually add support for cosign and Helm if desired.
 ====

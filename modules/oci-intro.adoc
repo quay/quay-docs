@@ -1,10 +1,15 @@
-[[oci-intro]]
-= OCI Support and {productname}
+:_content-type: CONCEPT
+[id="oci-intro"]
+= Open Container Initiative support and {productname}
 
 Container registries such as {productname} were originally designed to support container images in the Docker image format. To promote the use of additional runtimes apart from Docker, the Open Container Initiative (OCI) was created to provide a standardization surrounding container runtimes and image formats. Most container registries support the OCI standardization as it is based on the link:https://docs.docker.com/registry/spec/manifest-v2-2/[Docker image manifest V2, Schema 2] format.
 
-In addition to container images, a variety of artifacts have emerged that support not just individual applications, but the Kubernetes platform as a whole. These range from Open Policy Agent (OPA) policies for security and governance to Helm charts and Operators to aid in application deployment.
+In addition to container images, a variety of artifacts have emerged that support not just individual applications, but also the Kubernetes platform as a whole. These range from Open Policy Agent (OPA) policies for security and governance to Helm charts and Operators that aid in application deployment.
 
-{productname} is a private container registry that not only stores container images, but supports an entire ecosystem of tooling to aid in the management of containers. Support for OCI based artifacts in {productname} 3.6 has extended from solely Helm to include cosign and ztsd compression schemes by default. As such, `FEATURE_HELM_OCI_SUPPORT` has been deprecated.
+{productname} is a private container registry that not only stores container images, but supports an entire ecosystem of tooling to aid in the management of containers. Prior to version 3.6, {productname} only supported Helm, which is considered to be the _de facto_ package manager for Kubernetes.
 
-When {productname} 3.6 is deployed using the OpenShift Operator, support for Helm and OCI artifacts is now enabled by default under the `FEATURE_GENERAL_OCI_SUPPORT` configuration. If you need to explicitly enable the feature, for example, if it has previously been disabled or if you have upgraded from a version where it is not enabled by default, see the section xref:config-fields-helm-oci[Explicitly enabling OCI and Helm support].
+Helm simplifies how applications are packaged and deployed. Helm uses a packaging format called _Charts_ which contain the Kubernetes resources representing an application. Charts can be made available for general distribution and consumption in repositories. A Helm repository is an HTTP server that serves an `index.yaml` metadata file and, optionally, a set of packaged charts. Beginning with Helm version 3, support was made available for distributing charts in OCI registries as an alternative to a traditional repository.
+
+As an enhance to Helm support, {productname} introduced support for OCI-based artifacts from version 3.6 to include support for cosign, the _ZStandard_ compression scheme, and other OCI media types. Support for Helm and other OCI artifacts are now enabled by default under the `FEATURE_GENERAL_OCI_SUPPORT` configuration field, and can be expanded to other artifact types using the `ALLOWED_OCI_ARTIFACT_TYPES` and `IGNORE_UNKNOWN_MEDIATYPES` fields. 
+
+Because of the addition of `FEATURE_GENERAL_OCI_SUPPORT`, `ALLOWED_OCI_ARTIFACT_TYPES`, and `IGNORE_UNKNOWN_MEDIATYPES`, the `FEATURE_HELM_OCI_SUPPORT` configuration field has been deprecated. This configuration field is no longer supported and will be removed in a future version of {productname}. 
