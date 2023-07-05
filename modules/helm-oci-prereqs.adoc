@@ -1,20 +1,69 @@
-[[helm-oci-prereqs]]
+:_content-type: CONCEPT
+[id="helm-oci-prereqs"]
 = Helm and OCI prerequisites
 
-* **Trusted certificates:** Communication between the Helm client and Quay is facilitated over HTTPS and as of Helm 3.5, support is only available for registries communicating over HTTPS with trusted certificates. In addition, the operating system must trust the certificates exposed by the registry. Support in future Helm releases will allow for communicating with remote registries insecurely. With that in mind, ensure that your operating system has been configured to trust the certificates used by Quay, for example:
-+
-----
-$ sudo cp rootCA.pem   /etc/pki/ca-trust/source/anchors/
-$ sudo update-ca-trust extract
-----
+Prior to enabling Helm and other Open Container Initiative (OCI) artifact types, you must meet the following prerequisites.
 
-* **Generally available:** As of Helm 3.8, OCI registry support for charts is now generally available.
+[id="installing-helm"]
+== Installing Helm
 
-* **Install Helm client:** Download your desired version from the link:https://github.com/helm/helm/releases[Helm releases] page. Unpack it and move the helm binary to its desired destination:
+Use the following procedure to install the Helm client.
+
+.Procedure
+
+. Download the latest version of Helm from the link:https://github.com/helm/helm/releases[Helm releases] page. 
+
+. Enter the following command to unpack the Helm binary:
 +
+[source,terminal]
 ----
 $ tar -zxvf helm-v3.8.2-linux-amd64.tar.gz
+----
+
+. Move the Helm binary to the desired location:
++
+[source,terminal]
+----
 $ mv linux-amd64/helm /usr/local/bin/helm
 ----
 
-* **Create organization in Quay:** Create a new organization for storing the Helm charts, using the Quay registry UI. For example, create an organization named `helm`.
+For more information about installing Helm, see the link:https://helm.sh/docs/intro/install/[Installing Helm] documentation.
+
+[id="upgrading-helm-38"]
+== Upgrading to Helm 3.8
+
+Support for OCI registry charts requires that Helm has been upgraded to at least 3.8. If you have already downloaded Helm and need to upgrade to Helm 3.8, see the link:https://helm.sh/docs/helm/helm_upgrade/[Helm Upgrade] documentation.
+
+[id="enabling-system-trust-ssl-tls-certs"]
+== Enabling your system to trust SSL/TLS certificates used by {productname}
+
+Communication between the Helm client and {productname} is facilitated over HTTPS. As of Helm 3.5, support is only available for registries communicating over HTTPS with trusted certificates. In addition, the operating system must trust the certificates exposed by the registry. You must ensure that your operating system has been configured to trust the certificates used by {productname}. Use the following procedure to enable your system to trust the custom certificates.
+
+.Procedure
+
+. Enter the following command to copy the `rootCA.pem` file to the `/etc/pki/ca-trust/source/anchors/` folder:
++
+[source,terminal]
+----
+$ sudo cp rootCA.pem   /etc/pki/ca-trust/source/anchors/
+----
+
+. Enter the following command to update the CA trust store:
++
+[source,terminal]
+----
+$ sudo update-ca-trust extract
+----
+
+[id="creating-organization-helm"]
+== Creating an organization for Helm in {productname}
+
+It is recommended that you create a new organization for storing Helm charts in {productname} after you have downloaded the Helm client. Use the following procedure to create a new organization using the {productname} UI. 
+
+.Procedure
+
+. Log in to your {productname} deployment. 
+
+. Click *Create New Organization*. 
+
+. Enter a name for the organization, for example, *helm*. Then, click *Create Organization*. 

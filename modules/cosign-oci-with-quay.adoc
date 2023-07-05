@@ -1,50 +1,83 @@
-[[cosign-oci-with-quay]]
-= Using cosign with quay
+:_content-type: CONCEPT
+[id="cosign-oci-with-quay"]
+= Installing and using Cosign for {productname}
 
-If you have Go 1.16+, you can directly install cosign with the following command: 
+Use the following procedure to directly install Cosign. 
 
-....
+.Prerequisites 
+
+* You have installed Go version 1.16 or later.
+* You have set `FEATURE_GENERAL_OCI_SUPPORT` to `true` in your `config.yaml` file. 
+
+.Procedure 
+
+. Enter the following `go` command to directly install Cosign:
++
+[source,terminal]
+----
 $ go install github.com/sigstore/cosign/cmd/cosign@v1.0.0
+----
++
+.Example output
++
+[source,terminal]
+----
 go: downloading github.com/sigstore/cosign v1.0.0
 go: downloading github.com/peterbourgon/ff/v3 v3.1.0
-...
-....
+----
 
-Next, generate a keypair: 
-
-....
+. Generate a keypair for Cosign by entering the following command:
++
+[source,terminal]
+----
 $ cosign generate-key-pair
+----
++
+.Example output
++
+[source,terminal]
+----
 Enter password for private key:
 Enter again:
 Private key written to cosign.key
 Public key written to cosign.pub
-....
+----
 
-Sign the keypair with the following command: 
-
-....
+. Sign the keypair by entering the following command:
++
+[source,terminal]
+----
 $ cosign sign -key cosign.key quay-server.example.com/user1/busybox:test
+----
++
+.Example output
++
+[source,terminal]
+----
 Enter password for private key:
 Pushing signature to: quay-server.example.com/user1/busybox:sha256-ff13b8f6f289b92ec2913fa57c5dd0a874c3a7f8f149aabee50e3d01546473e3.sig
-....
-
-Some users may experience the following error: 
-
-....
-error: signing quay-server.example.com/user1/busybox:test: getting remote image: GET https://quay-server.example.com/v2/user1/busybox/manifests/test: UNAUTHORIZED: access to the requested resource is not authorized; map[]
-....
-
-Because cosign relies on  ~/.docker/config.json for authorization, you might need to execute the following command: 
-
-....
+----
++
+If you experience the `error: signing quay-server.example.com/user1/busybox:test: getting remote image: GET https://quay-server.example.com/v2/user1/busybox/manifests/test: UNAUTHORIZED: access to the requested resource is not authorized; map[]` error, which occurs because Cosign relies on `~./docker/config.json` for authorization, you might need to execute the following command:
++
+[source,terminal]
+----
 $ podman login --authfile ~/.docker/config.json quay-server.example.com
+----
++
+.Example output
++
+[source,terminal]
+----
 Username:
 Password:
 Login Succeeded!
-....
+----
 
-You can see the updated authorization configuration using the following command: 
-....
+. Enter the following command to see the updated authorization configuration:
++
+[source,terminal]
+----
 $ cat ~/.docker/config.json
 {
 	"auths": {
@@ -52,4 +85,4 @@ $ cat ~/.docker/config.json
 			"auth": "cXVheWFkbWluOnBhc3N3b3Jk"
 		}
 	}
-....
+----

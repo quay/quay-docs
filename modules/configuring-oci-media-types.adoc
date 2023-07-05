@@ -1,0 +1,131 @@
+// Document included in the following assemblies: 
+
+// Managing Red Hat Quay
+
+:_content-type: REFERENCE
+[id="supported-oci-media-types"]
+= Configuring artifact types
+
+As a {productname} administrator, you can configure Open Container Initiative (OCI) artifact types and other experimental artifact types through the `FEATURE_GENERAL_OCI_SUPPORT`, `ALLOWED_OCI_ARTIFACT_TYPES`, and `IGNORE_UNKNOWN_MEDIATYPES` configuration fields. 
+
+The following Open Container Initiative (OCI) artifact types are built into {productname} by default and are enabled through the *FEATURE_GENERAL_OCI_SUPPORT* configuration field:
+
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Media Type | Supported content types
+
+| *Helm* | `application/vnd.cncf.helm.config.v1+json` | `application/tar+gzip`, `application/vnd.cncf.helm.chart.content.v1.tar+gzip`
+
+| *Cosign* | `application/vnd.oci.image.config.v1+json` | `application/vnd.dev.cosign.simplesigning.v1+json`, `application/vnd.dsse.envelope.v1+json`
+
+| *SPDX* | `application/vnd.oci.image.config.v1+json` | `text/spdx`, `text/spdx+xml`, `text/spdx+json`
+
+| *Syft* | `application/vnd.oci.image.config.v1+json` | `application/vnd.syft+json`
+
+| *CycloneDX* | `application/vnd.oci.image.config.v1+json` | `application/vnd.cyclonedx`, `application/vnd.cyclonedx+xml`, `application/vnd.cyclonedx+json`
+
+| *In-toto* | `application/vnd.oci.image.config.v1+json` | `application/vnd.in-toto+json`
+
+| *Unknown* | `application/vnd.cncf.openpolicyagent.policy.layer.v1+rego` | `application/vnd.cncf.openpolicyagent.policy.layer.v1+rego`, `application/vnd.cncf.openpolicyagent.data.layer.v1+json`
+
+|===
+
+Additionally, {productname} uses the _ZStandard_, or _zstd_, to reduce the size of container images or other related artifacts. Zstd helps optimize storage and improve transfer speeds when working with container images. 
+
+Use the following procedures to configure support for the default and experimental OCI media types. 
+
+[id="configuring-oci-media-types-proc"]
+== Configuring OCI artifact types
+
+Use the following procedure to configure artifact types that are embedded in {productname} by default. 
+
+.Prerequisites 
+
+* You have {productname} administrator privileges.
+
+.Procedure 
+
+* In your {productname} `config.yaml` file, enable support for general OCI support by setting the `FEATURE_GENERAL_OCI_SUPPORT` field to `true`. For example:
++
+[source,yaml]
+----
+FEATURE_GENERAL_OCI_SUPPORT: true
+----
++
+With `FEATURE_GENERAL_OCI_SUPPORT` set to true, {productname} users can now push and pull charts of the default artifact types to their {productname} deployment.
+
+[id="configuring-additional-oci-media-types-proc"]
+== Configuring additional artifact types
+
+Use the following procedure to configure additional, and specific, artifact types for your {productname} deployment.
+
+[NOTE]
+====
+Using the `ALLOWED_OCI_ARTIFACT_TYPES` configuration field, you can restrict which artifact types are accepted by your {productname} registry. If you want your {productname} deployment to accept all artifact types, see "Configuring unknown media types". 
+====
+
+.Prerequistes 
+
+* You have {productname} administrator privileges.
+
+.Procedure
+
+* Add the `ALLOWED_OCI_ARTIFACT_TYPES` configuration field, along with the configuration and layer types:
++
+[source,yaml]
+----
+FEATURE_GENERAL_OCI_SUPPORT: true
+ALLOWED_OCI_ARTIFACT_TYPES:
+  <oci config type 1>:
+  - <oci layer type 1>
+  - <oci layer type 2>
+
+  <oci config type 2>:
+  - <oci layer type 3>
+  - <oci layer type 4>
+----
++
+For example, you can add Singularity Image Format (SIF) support by adding the following to your `config.yaml` file:
++
+[source,yaml]
+----
+ALLOWED_OCI_ARTIFACT_TYPES:
+  application/vnd.oci.image.config.v1+json:
+  - application/vnd.dev.cosign.simplesigning.v1+json
+  application/vnd.cncf.helm.config.v1+json:
+  - application/tar+gzip
+  application/vnd.sylabs.sif.config.v1+json:
+  - application/vnd.sylabs.sif.layer.v1+tar
+----
++
+[NOTE]
+====
+When adding OCI artifact types that are not configured by default, {productname} administrators will also need to manually add support for Cosign and Helm if desired.
+====
++
+Now, users can tag SIF images for their {productname} registry.
+
+[id="configuring-unknown-oci-media-types-proc"]
+== Configuring unknown media types
+
+Use the following procedure to enable all artifact types for your {productname} deployment.
+
+[NOTE]
+====
+With this field enabled, your {productname} deployment accepts all artifact types.
+====
+
+.Prerequistes 
+
+* You have {productname} administrator privileges.
+
+.Procedure
+
+. Add the `IGNORE_UNKNOWN_MEDIATYPES` configuration field to your {productname} `config.yaml` file:
++
+[source,yaml]
+----
+IGNORE_UNKNOWN_MEDIATYPES: true
+----
++
+With this field enabled, your {productname} deployment accepts unknown and unrecognized artifact types.
