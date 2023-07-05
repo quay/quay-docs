@@ -1,0 +1,52 @@
+// Document included in the following assemblies: 
+
+// Using Red Hat Quay
+
+:_content-type: REFERENCE
+[id="using-other-oci-artifacts-with-quay"]
+= Using other artifact types with {productname}
+
+Other artifact types that are not supported by default can be added to your {productname} deployment by using the `ALLOWED_OCI_ARTIFACT_TYPES` configuration field. 
+
+Use the following procdure to add additional OCI media types.
+
+.Prerequisites 
+
+* You have set `FEATURE_GENERAL_OCI_SUPPORT` to `true` in your `config.yaml` file. 
+
+.Procedure 
+
+. In your `config.yaml` file, add the `ALLOWED_OCI_ARTIFACT_TYPES` configuration field. For example:
++
+[source,yaml]
+----
+FEATURE_GENERAL_OCI_SUPPORT: true
+ALLOWED_OCI_ARTIFACT_TYPES:
+  <oci config type 1>:
+  - <oci layer type 1>
+  - <oci layer type 2>
+
+  <oci config type 2>:
+  - <oci layer type 3>
+  - <oci layer type 4>
+----
+
+. Add support for your desired artifact type, for example, Singularity Image Format (SIF), by adding the following to your `config.yaml` file:
++
+[source,yaml]
+----
+ALLOWED_OCI_ARTIFACT_TYPES:
+  application/vnd.oci.image.config.v1+json:
+  - application/vnd.dev.cosign.simplesigning.v1+json
+  application/vnd.cncf.helm.config.v1+json:
+  - application/tar+gzip
+  application/vnd.sylabs.sif.config.v1+json:
+  - application/vnd.sylabs.sif.layer.v1+tar
+----
++
+[IMPORTANT]
+====
+When adding artifact types that are not configured by default, {productname} administrators will also need to manually add support for Cosign and Helm if desired.
+====
++
+Now, users can tag SIF images for their {productname} registry. 
