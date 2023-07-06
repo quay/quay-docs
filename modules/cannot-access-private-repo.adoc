@@ -1,0 +1,26 @@
+:_content-type: CONCEPT
+[id="cannot-access-private-repo"]
+= Unable to access private repositories using Amazon EC2 Container Service
+
+In some cases, authentication fails while attempting to use Amazon Elastic Container Service (EC2). This error occurs when the authentication configuration in the `ecs.config` file is missing. 
+
+In order for ECS to pull down Docker images, the following information must be included in the ECS configuration file that is located in the `/etc/ecs/ecs.conf` file:
+
+[source,yaml]
+----
+ECS_ENGINE_AUTH_TYPE=dockercfg
+ECS_ENGINE_AUTH_DATA={"https://quay.io": {"auth": "YOURAUTHTOKENFROMDOCKERCFG", "email": "user@example.com"}}
+----
+
+If you are using a robot account, you must include the username:
+
+[source,terminal]
+----
+ECS_ENGINE_AUTH_TYPE=dockercfg <1>
+ECS_ENGINE_AUTH_DATA={"https://quay.io": {"auth": "YOURAUTHTOKENFROMDOCKERCFG", "email": ".", "username": "USERNAME"}}
+----
+<1> This field is the contents of the `auths` attribute in `.docker/config.json` starting at Docker version 1.7.0, or the contents of `.dockercfg` before that. 
+
+After you have updated the configuration file, restart the ECS service. 
+
+For more information about ECS, see link:https://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html[Private registry authentication for tasks]. 
