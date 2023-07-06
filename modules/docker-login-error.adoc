@@ -1,0 +1,21 @@
+:_content-type: CONCEPT
+[id="docker-login-error"]
+= Docker login is failing
+
+In some cases, Docker fails with the following error: `2014/01/01 12:00:00 Error: Invalid Registry endpoint: Get https://quay.io/v1/_ping: dial tcp: ping timeout`. This occurs for one of three reasons:
+
+* *You are on a high-latency, slow connection.* Docker has defined a maximum timeout of five seconds before timeout occurs. Currently, the only solution is to find a connection with better latency. 
+
+* *Docker on OSX (through boot2docker) is out of sync.* If you are using Docker on OSX through link:https://github.com/boot2docker/boot2docker[boot2docker], the networking stack can get out of sync. To fix it, restart the `boot2docker` image. For example:
++
+[source,terminal]
+----
+$ boot2docker restart
+----
++
+Alternatively, because Docker-machine supersedes boot2docker on OSX, you might need to restart Docker-machine:
++
+[source,terminal]
+----
+$ docker-machine restart default
+----
