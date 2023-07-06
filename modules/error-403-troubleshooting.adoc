@@ -1,0 +1,40 @@
+:_content-type: CONCEPT
+[id="error-403-troubleshooting"]
+= Troubleshooting HTTP status code 403
+
+HTTP status code `403` occurs when a user does not have the necessary permissions to access certain resources of the server, such as files, directories, API endpoints, or authenticated content. For some users, this might occur when attempting to push or pull content from {productname}, even after successfully logging in with Docker or Podman.
+
+Use the following sections to troubleshoot the various reasons for receiving an HTTP status code `403`. 
+
+[id="centos-seven"]
+== CentOS 7
+
+CentOS 7, released 2014-07-07, introduced a custom build of Docker with a known issue that prevents logging into private registries. As a workaround for this issue, upgrade CentOS to version 8, or upgrade your version of Docker. 
+
+For more information, see link:https://bugzilla.redhat.com/show_bug.cgi?id=1209439[Docker fails to authenticate against additional registries].
+
+[id="docker-zero-eight-one"]
+== Docker version 0.8.1
+
+Docker version 0.8.1 introduced a bug in its storage of authentication credentials in the `.dockercfg` file that resulted in no credentials being sent to Quay.io, despite a successful login. 
+
+As a workaround for this issue, upgrade your version of Docker. 
+
+For more information, see link:https://github.com/moby/moby/issues/4267[Dockercfg registry endpoint format invalid in v0.8.1]. 
+
+[id="docker-execution-environment"]
+== Docker is being executed in a different environment
+
+Docker stores the credentials that it uses for pushing and pulling in a file that is usually placed in the `$HOME/.docker/config.json` folder. If you are executing Docker in another environment, such as a scripted `docker build`, a virtual machine, `makefile`, `virtualenv`, and so on, Docker cannot find the `config.json` file and fails. 
+
+As a workaround, make sure that the `config.json` file is accessible to the environment which is performing the push or pull commands. 
+
+[id="repository-permissions"]
+== Insufficient repository permissions
+
+Ensure that your user, robot account, or token has sufficient permissions on the repository. Permissions on a repository can be edited from the *Settings* -> *Repository settings* page. 
+
+[NOTE]
+====
+If you are trying to pull or push an organization repository, your account must either have the correct permissions, or you must be a member of a team. 
+====
