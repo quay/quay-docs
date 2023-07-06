@@ -1,0 +1,117 @@
+:_content-type: CONCEPT
+[id="marathon-mesos-fail"]
+= Pulling private images with Marathon or Mesos fails
+
+When using Marathon or Mesos, attempting to pull an image from a private repository fails with the following error: `msg="Error: Status 403 trying to pull repository repo/project: \"{\\\"error\\\": \\\"Permission Denied\\\"}\""`.
+
+As a workaround, you must copy the Docker configuration file's credentials on to the worker machines. For more information about configuring Mesos registry authentication, see link:https://mesosphere.github.io/marathon/docs/native-docker-private-registry.html[Using a Private Docker Registry]. 
+
+When using Mesos app definitions, credentials must be provided as a URI that must be accessible by all nodes that might start your application. Approaches include distributing the file to the local filesystem of all nodes, for example through RSYNC/SCP, or storing it on a shared network drive, for example Amazon S3. It is worth considering the security implications of each approach.
+
+[id="deployment-docker-1-6-earlier"]
+== For deployments using Docker 1.6 or earlier 
+
+Use the following steps to configure Marathon or Mesos for use on private registries with Docker 1.6 or earlier. 
+
+.Procedure 
+
+. Download a configuration from a `Quay.io` credentials dialog, or log in to the private repository manually:
++
+[source,terminal]
+----
+$ docker login quay.io
+----
++
+This create a configuration file in `$HOME/.dockercfg`. 
+
+. Add the `.dockercfg` to the `uris` field of your Mesos app definition. The `$HOME` environment variable must then be set to the same value as `$MESOS_SANDBOX` so that Docker can automatically pick up the configuration file. The following is an example app definition:
++
+[source,yaml]
+----
+{
+  "id": "/some/name/or/id",
+  "cpus": 1,
+  "mem": 1024,
+  "instances": 1,
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "some.docker.host.com/namespace/repo",
+      "network": "HOST"
+    }
+  },
+  "uris":  [
+      "file:///etc/.dockercfg"
+  ]
+}
+----
+
+[id="deployment-docker-1-6-later"]
+== For deployments using Docker 1.6 or later 
+
+Use the following steps to configure Marathon or Mesos for use on private registries with Docker 1.6 or later. 
+
+. Download a configuration from a `Quay.io` credentials dialog, or log in to the private repository manually:
++
+[source,terminal]
+----
+$ docker login quay.io
+----
++
+This create a configuration file in `$HOME/.dockercfg/config.json`.
+
+. `Tar` and `GZIP` the `$HOME/.DOCKER` directory and its contents:
++
+[source,terminal]
+----
+$ cd $HOME
+----
++
+[source,terminal]
+----
+$ tar czf docker.tar.gz .docker
+----
+
+. Enter the following command to ensure that both the directory and the configuration are inside of the `tar`:
++
+[source,terminal]
+----
+$ tar -tvf $HOME/docker.tar.gz
+----
++
+.Exampe output
++
+[source,terminal]
+----
+drwx------ root/root         0 2015-07-28 02:54 .docker/
+-rw------- root/root       114 2015-07-28 01:31 .docker/config.json
+----
+
+. Optional. Put the tarball into a directory readably by Mesos:
++
+[source,terminal]
+----
+$ cp docker.tar.gz /etc/
+----
+
+. Add the file to the `uris` field of your Mesos app definition:
++
+[source,yaml]
+----
+{
+  "id": "/some/name/or/id",
+  "cpus": 1,
+  "mem": 1024,
+  "instances": 1,
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "some.docker.host.com/namespace/repo",
+      "network": "HOST"
+    }
+  },
+  "uris":  [
+      "file:///etc/docker.tar.gz"
+  ]
+}
+----

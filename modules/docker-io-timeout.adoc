@@ -1,0 +1,19 @@
+:_content-type: CONCEPT
+[id="docker-io-timeout"]
+= Docker is returning an i/o timeout
+
+In some cases, interacting with a remote repository yields an i/o timeout. For example:
+
+[source,terminal]
+----
+$ sudo docker pull ...
+----
+.Example output
+[source,terminal]
+----
+FATA[0021] Error response from daemon: v1 ping attempt failed with error: Get https://quay.io/v1/_ping: dial tcp: i/o timeout.
+----
+
+If you are running an older version of Docker, for example, 1.7 or before, this issue was related to DNS. Try restarting the Docker daemon process. If that solution does not work, you can try rebooting. For more information about this issue, see link:https://github.com/docker/docker/issues/13337[Ambiguous i/o timeouts]
+
+If you are running Docker 1.8 or greater, the issue is related to network infrastructure, and is likely the product of latency between the client and the registry. Ensure that there are no proxies in between the client and the registry, and that the two are geographically close, to resolve the issue. 
