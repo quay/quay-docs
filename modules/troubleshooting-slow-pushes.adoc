@@ -1,0 +1,245 @@
+:_content-type: CONCEPT
+[id="troubleshooting-slow-pushes"]
+= Troubleshooting slow image pushes and pulls on the {productname} Operator
+
+In some cases, your {productname} deployment on {ocp} might experience slow pushes and pulls. The {productname} Operator is only able to serve or accept container image data as fast as the underlying storage allows. There are various causes that might dictate pull speed on a {productname} registry, including: 
+
+* Intermittent networking issues to {productname}'s s3 storage, as pulls directly depend on it. 
+* Slow backend storage. 
+* Various problems on {ocp} nodes. 
+* DNS issues in the cluster. 
+* Layers or blobs of an image are large, even if the image size is not. 
+* Using a VPN. 
+* High network bandwidth loads that lead to hogging network resources on certain {ocp} pods. 
+
+To explore the root cause of some of these issues, you can run {productname} in debug mode. For more information, see xref:running-quay-debug-mode-operator[Running the {productname} Operator in debug mode]. 
+
+Other troubleshooting procedures for slow pushes and pulls on the {productname} Operator can be found in subsequent sections.  
+
+[id="understanding-quay-setup"]
+== Understanding your {productname} setup
+
+In some cases, understanding your {productname} setup and the load on the cluster, and determining whether it is sufficient, can help diagnose slow pushes and pulls. 
+
+[id="comparing-containizeration-platforms"]
+== Comparing containerization platforms 
+
+In some cases, pushes and pulls done with the Podman CLI might be slow. Use the following procedure to compare Podman pushes and pulls to Docker. 
+
+.Procedure 
+
+. Enter the following command to check how long it takes for the Podman client to pull images:
++
+[source,terminal]
+----
+$ time podman pull <quay_server.example.com>/<repository_name>/<image>:<tag>
+----
++
+.Example output
++
+[source,terminal]
+----
+Trying to pull quay_server.example.com/repository_name/image:tag...
+Getting image source signatures
+Copying blob sha256:<blob_sha> [--------------------------------------] 0.0b/4.2MB
+Copying config sha256:<config_sha> [--------------------------------------] 0.0b/1.5KB
+Writing manifest to image destination
+Storing signatures
+
+real 1m15.346s
+user 1m0.056s
+sys 1m0.020s
+----
+
+. Compare the Podman time with another client's time, like Docker. For example:
++
+[source,terminal]
+----
+$ time docker pull <quay_server.example.com>/<repository_name>/<image>:<tag>
+----
++
+.Example output
++
+[source,terminal]
+----
+Trying to pull quay_server.example.com/repository_name/image:tag...
+Getting image source signatures
+Copying blob sha256:<blob_sha> [--------------------------------------] 0.0b/4.2MB
+Copying config sha256:<config_sha> [--------------------------------------] 0.0b/1.5KB
+Writing manifest to image destination
+Storing signatures
+
+real 0m15.346s
+user 0m0.056s
+sys 0m0.020s
+----
+
+[id="checking-health-quay-pods"]
+== Checking the health of your Quay pods
+
+In some cases, the health of your `Quay` pods might be compromised. Use the following procedure to check the health of your `Quay` pods.
+
+.Procedure
+
+. The following commands run a health check on the `Quay` pods:
++
+.. If you are using custom certificates for {productname}, enter the following commands:
++
+[source,terminal]
+----
+$ curl -k <https://quay_server.example.com>/health/instance
+----
++
+[source,terminal]
+----
+$ curl -k <https://quay_server.example.com>/health/endtoend
+----
+.Example output
++
+[source,terminal]
+----
+HTTPS/1.1 503 Service Unavailable
+Content-Type: application/json
+Content-Length: 58
+
+{"status": "unhealthy", "error": "Database connection failed"}
+----
+.. If you are not using custom certificates, enter the following commands:
++
+[source,terminal]
+----
+$ curl <http://quay-server.example.com>/health/instance
+----
++
+[source,terminal]
+----
+$ curl <http://quay-server.example.com>/health/endtoend
+----
++
+.Example output
++
+[source,terminal]
+----
+HTTP/1.1 503 Service Unavailable
+Content-Type: application/json
+Content-Length: 58
+
+{"status": "unhealthy", "error": "Database connection failed"}
+----
+
+. If the status of your `Quay` pod is reported as `unhealthy`, consult with your storage provider to ensure that it is supported for use with {productname}. Otherwise, you can check the link:https://access.redhat.com/articles/4067991[Quay Enterprise 3.x Test Integrations] document. 
+
+
+[id="checking-network-connection"]
+== Checking the network connection between {productname} and the storage location 
+
+In some cases, the network connection between {productname} and its storage location might be erroneous. 
+
+Use the following procedure to check the network connection between {productname} and the storage location. 
+
+.Procedure 
+
+* From a system that has access to {productname} and to the storage provider, enter the following command:
++
+[source,terminal]
+----
+$ ping <storage_provider_hostname_or_ip>
+----
++
+.Example output
++
+[source,terminal]
+----
+Destination Host Unreachable
+----
++
+If an error is returned, there is network connectively issues or the storage provider is currently unavailable. 
+
+[id="troubleshooting-with-debug-mode"]
+== Running {productname} in debug mode
+
+You can try running {productname} in debug mode to resolve slow pushes and pulls. 
+
+.Procedure 
+
+. Enter the following command to edit the `QuayRegistry` CRD:
++
+[source,terminal]
+----
+$ oc edit quayregistry <quay-registry-name> -n <quay-namespace>
+----
+
+. Update the `QuayRegistry` to add the following parameters:
++
+[source,yaml]
+----
+spec:
+  - kind: quay
+    managed: true
+    overrides:
+      env:
+      - name: DEBUGLOG
+        value: "true"
+----
+
+. After the {productname} Operator has restarted with debugging enabled, try pulling an image from the registry. If it is still slow, dump all dogs from all `Quay` pods to a file, and check the files for more information. 
+
+[id="checking-throughput-vms"]
+== Checking the throughput of your virtual machines to your storage bucket 
+
+Use the following procedure to check the throughput of your virtual machine(s) to your storage provider. The execution time revealed in the following procedure might help you optimize performance, reveal why pushes and pulls are slow, or compare different configurations or setups. 
+
+.Prerequisites 
+
+* You have installed the AWS CLI (`aws`).
+
+.Procedure 
+
+. Enter the following command to create a sample file of 500 MB, that is filled with random data, in the `/tmp` directory:
++
+[source,terminal]
+----
+$ dd if=/dev/urandom of=/tmp/random-file count=10 bs=50M iflag=fullblock 
+----
+
+. Enter the following command to set the value of your AWS access key:
++
+[source,terminal]
+----
+$ export AWS_ACCESS_KEY_ID=<ABCDEFGHIJKLMN12345>
+----
+
+. Enter the following command to set the value of your AWS secret access key:
++
+[source,terminal]
+----
+$ export AWS_SECRET_ACCESS_KEY=123456789ABCD
+----
+
+. Copy the sample file created in Step 1 to your storage bucket, measuring the execution time, by entering the following command:
++
+[source,terminal]
+----
+$ time { aws s3 cp --no-verify-ssl --endpoint-url https://<example_url>.com /tmp/random-file s3://<bucket_name>; }
+----
+
+. Remove the sample file by entering the following command:
++
+[source,terminal]
+----
+$ rm /tmp/random-file
+----
+
+. Copy the sample file from your storage bucket to your local directory, measuring the execution time, by entering the following command:
++
+[source,terminal]
+----
+$ time { aws s3 cp --no-verify-ssl --endpoint-url https://<example_url>.com s3://<bucket_name>/random-file /tmp; }
+----
++
+Use this information to reveal insights into the performance of the virtual machine and storage provider that you are using. 
+
+[id="obtaining-regional-information"]
+== Obtaining regional information
+
+If your {productname} machine is located in a different region as your s3 bucket, pushes and pulls might be slower than expected. 
