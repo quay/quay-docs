@@ -184,6 +184,32 @@ Destination Host Unreachable
 +
 If an error is returned, there is network connectively issues or the storage provider is currently unavailable. 
 
+[id="checking-size-image"]
+== Checking the size of the image
+
+In some cases, overall time when pulling an image can be determined by its size. Use the following procedure to check the size of an image.
+
+.Procedure 
+
+. Enter the following command to obtain the image manifest:
++
+[source,terminal]
+----
+$ curl -X GET https://<registry-url>/v2/<image-name>/manifests/<tag> -H "Accept: application/vnd.docker.distribution.manifest.v2+json"
+----
+
+. Enter the following command to extract the image size from the response:
++
+[source,terminal]
+----
+$ curl -X GET https://<registry-url>/v2/<image-name>/manifests/<tag> -H "Accept: application/vnd.docker.distribution.manifest.v2+json" | jq '.config.size'
+----
++
+[NOTE]
+====
+The response is in a JSON document. Locate the `config` field. Within that field, you will find a `size` property. The value of `size` represents the size of the image in bytes.
+====
+
 [id="checking-throughput-vms"]
 == Checking the throughput of your virtual machines to your storage bucket 
 
@@ -243,3 +269,23 @@ Use this information to reveal insights into the performance of the virtual mach
 == Obtaining regional information
 
 If your {productname} machine is located in a different region as your s3 bucket, pushes and pulls might be slower than expected. 
+
+[id="configuring-firewall"]
+== Configuring firewalls 
+
+If your machine has any proxies or firewalls between the client pulling images and the {productname} registry, additional latency might be introduced, or bandwidth could be restricted. You can try disabling your firewall to improve push and pull speeds.
+
+[NOTE]
+====
+If you are not using the `FEATURE_PROXY_STORAGE` feature, {productname} provides a direct download link to the client through Podman, Skopeo, or Docker. At this point, traffic does not go through {productname}. Instead, the client pings the underlying storage and requests the image layer. 
+====
+
+[id="checking-antivirus-software"]
+== Checking your antivirus software
+
+In some cases, antivirus software can interact with an image when it is pulled. This can increase the time that it takes to pull an image. Ensure that your antivirus software does not interfere with images when they are being pulled. 
+
+[id="checking-resource-allocation"]
+== Checking resource allocation 
+
+In some cases, an under-provisioned machine can result in slow performance. Check the resource allocation for the machine that is hosting the `Quay` pod or container. Ensure that it has sufficient CPU, memory, and network resources allocated to handle the expected workload.
