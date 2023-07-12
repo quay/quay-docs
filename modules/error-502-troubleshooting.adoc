@@ -1,0 +1,167 @@
+:_content-type: CONCEPT
+[id="error-502-troubleshooting"]
+= Troubleshooting HTTP status code 502
+
+In some cases, {productname} users might receive the following HTTP status code when attemping to pull or push an image with Podman: `invalid status code from registry 502 (Bad Gateway)`. Code `502` indicates a a problem with the communication between two serves. This error commonly occurs when a server acting as a gateway or a proxy receives an invalid response from an upstream server. 
+
+The primary solution when receiving this error is to restart your {productname} deployment to clear locked-up worker nodes, clean up temporary files or caches, or to resolve other transient issues. Restarting {productname} can help resolve many problematic states. In some cases, more thorough troubleshooting must be done.
+
+[id="restart-standalone-quay"]
+== Restarting a standalone {productname} deployment
+
+Use the following procedure to restart a standalone {productname} deployment.
+
+.Procedure
+
+* Enter the following command to restart your {productname} container:
++
+[source,terminal]
+----
+$ podman restart <container_id>
+----
+
+[id="restart-quay-operator"]
+== Restarting the {productname} Operator
+
+Use the following procedure to restart your {productname} Operator
+
+* Enter the following command to restart your {productname} Operator:
++
+[source,terminal]
+----
+$ oc delete pod quay-app 
+----
+
+[id="integer-502-issue"]
+== Integer out of range 
+
+Some `502` error messages might occur because the garbage collection worker fails when collecting images whose value is too high. Other `502` error messages might occurs because PostgreSQL cannot handle an integer bigger than 2147483647, which causes the garbage collection worker to fail. Running {productname} in debug mode can reveal additional information about the `502` error. 
+
+If debug mode reveals the error `peewee.DataError: integer out of range`, it means there is an issue with the range of an integer value in the context of the Peewee Object-Relational Mapping (ORM) library. This error occurs when an attempt is made to store an integer value that is outside of the valid range for the corresponding database column; this is often caused when a user sets their tag expiration too high, which causes the garbage collection worker to fail when collecting images. Each database has its own limits on the range of integer values it can store. PostgreSQL can store values from -2147483648 to 2147483647. 
+
+If you run {productname} in debug mode and the error `peewee.DataError: integer out of range` is returned, use the following steps for troubleshooting. 
+
+.Procedure 
+
+* In most cases, a {productname} administrator can resolve this error by setting the `FEATURE_CHANGE_TAG_EXPIRATION` configuration field to `false` in their `config.yaml` file. 
++
+[NOTE]
+====
+This change affects all users of your organization and disables them from setting tag expirations themselves. 
+====
+
+* Alternatively, you can request the user or owner of the repository in question to either remove, or change, the tag expiration manually. If they do not respond, you can execute the following steps:
++
+** Obtain information from the user table:
++
+[source,terminal]
+----
+$ SELECT username, removed_tag_expiration_s FROM "user" WHERE id = (SELECT namespace_user_id FROM repository WHERE id = <repoId>);
+----
++
+** Update the user or owner of the repository in question and set the `default tag expiration` for that user to two weeks:
++
+[source,terminal]
+----
+$ UPDATE "user" SET removed_tag_expiration_s = 1209600 WHERE id = (SELECT namespace_user_id FROM repository WHERE id = <repoID>);
+----
+
+[id="troubleshooting-502-pull"]
+== Troubleshooting 502 Podman pull errors 
+
+In some cases, the following error might be returned when using `podman pull`: `Error: error pulling image " <registry>/<image>:<tag>": unable to pull <registry>/<image>:<tag>: unable to pull image: Error parsing image configuration: Error fetching blob: invalid status code from registry 502 (Bad Gateway)`. This error primarily occurred in {productname} versions 3.7 and earlier. It has been resolved in {productname} 3.7.1 and later.
+
+If you are using an earlier version of {productname}, the error occurs because the installation script `cert_install.sh` do not have a new line at the end of the file. To resolve this issue, you can manually add a new line at the end of your `cert_install.sh` file by simply going to the end of the file, pressing `enter`, saving the file, and then reuploading it to {productname}. 
+
+[id="troubleshooting-502-push"]
+== Troubleshooting 502 Podman push errors 
+
+In some cases, the following error might be returned when using `podman push`: `Error: Error writing blob: Error initiating layer upload to /v2/repo/image/blobs/uploads/ in <registry>: received unexpected HTTP status: 502 Bad Gateway`. This issue is caused by either the Noobaa certificate rotation, or the service signing root CA rotation. The workaround for this issue is to manually add a new certificate chain to {productname}'s deployment after it has rotated. 
+
+.Procedure 
+
+. Download the new certificate chain for your Noobaa endpoint by entering the following command:
++
+[source,terminal]
+----
+$ oc exec -it quay-quay-pod-name -- openssl s_client -connect s3.openshift-storage.svc.cluster.local:443 -showcerts 2>/dev/null </dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' >> extra_ca_certs_noobaa.crt
+----
++
+.Example output
++
+[source,terminal]
+----
+-----BEGIN CERTIFICATE-----
+MIIFRjCCBC6gAwIBAgIUKd8q...
+-----END CERTIFICATE-----
+----
+
+. Locate the custom config bundle secret that the Operator is using to deploy {productname} by entering the following command:
++
+[source,terminal]
+----
+$ oc get quayregistry name-of-registry -o yaml | grep -i custom
+----
+
+. On the {ocp} console, locate the namespace where the {productname} Operator is deployed. Click *Workloads* -> *Secret* in the navigation pane to find the custom config bundle secret. 
+
+. Open the secret and set it to *Editing* mode by clicking *Actions* -> *Edit* on the navigation pane. 
+
+. Scroll to the end of the file and create a new key named `extra_ca_certs_noobaa.crt`. Paste the certificate generated in Step 1 of this procedure inside of the secret. 
+
+. Save the file and let the {productname} Operator recycle the deployment. If reconciliation does not happen immediately, delete the Operator pod name and let it restart. For example:
++
+[source,terminal]
+----
+$ oc delete pod quay-operator-xxxxx-xxxxxxxx -n <namespace> <1>
+----
+
+For more information about this issue, see link:https://issues.redhat.com/browse/PROJQUAY-5174[PROJQUAY-5174]. 
+
+[id="troubleshooting-502-unmanaged-storage"]
+== Troubleshooting 502 errors when using unmanaged storage
+
+In some cases, pulling an image from a {productname} registry that is using RadosGW or Noobaa as an unamanged object storage returns the following error: `parsing image configuration 502 (Bad Gateway):`. Use the following steps to resolve this issue. 
+
+.Procedure 
+
+. In your `config.yaml` file, update the `DISTRIBUTED_STORAGE_CONFIG` field. 
+
+.. If you are using RadosGW storage:
++
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  radosGWStorage:
+    - RadosGWStorage
+    - access_key: xxx
+      secret_key: xxx
+      bucket_name: xxx      
+      hostname: rook-ceph-rgw-ocs-storagecluster-cephobjectstore.openshift-storage.svc.cluster.local
+      is_secure: true
+      port: 443
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - radosGWStorage
+----
+
+.. If you are using Noobaa storage:
++
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+    - RHOCSStorage
+    - access_key: xxx
+      bucket_name: xxx
+      hostname: s3.openshift-storage.svc.cluster.local
+      is_secure: true
+      port: "443"
+      secret_key: xxx
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+  - default
+----
++
+With these updates, you should be able to successfully pull images when using unmanaged object storage.
