@@ -182,23 +182,37 @@ Using Kubernetes authentication method
 
 . Click *Create StorageSystem*. 
 
-////
 
-== Create A Standalone Object Gateway
+[id="creating-standalone-object-gateway"]
+== Create A standalone Multicloud Object Gateway using the CLI
 
-To install the ODF (formerly known as OpenShift Container Storage) Operator and configure a single instance Multi-Cloud Gateway service, follow these steps:
+Use the following procedure to install the {odf} (formerly known as OpenShift Container Storage) Operator and configure a single instance Multi-Cloud Gateway service.
 
-. Open the OpenShift console and select Operators -> OperatorHub, then select the OpenShift Data Foundation Operator.
-. Select Install.  Accept all default options and select Install again.
-. Within a minute, the Operator will install and create a namespace `openshift-storage`.  You can confirm it has completed when the `Status` column is marked `Succeeded`.
+[NOTE]
+====
+The following configuration cannot be run in parallel on a cluster with {odf} installed.
+====
+
+.Procedure
+
+. On the *OpenShift Web Console*, and then select *Operators* -> *OperatorHub*. 
+
+. Search for *{odf}*, and then select *Install*. 
+
+. Accept all default options, and then select *Install*. 
+
+. Confirm that the Operator has installed by viewing the *Status* column, which should be marked as *Succeeded*. 
 +
 [WARNING]
-----
-When the installation of the ODF Operator is complete, you are prompted to create a storage system. Do not follow this instruction. Instead, create NooBaa object storage as outlined the following steps.
-----
-. Create NooBaa object storage.  Save the following YAML to a file called `noobaa.yaml`.
+====
+When the installation of the {odf} Operator is finished, you are prompted to create a storage system. Do not follow this instruction. Instead, create NooBaa object storage as outlined the following steps.
+====
+
+. On your machine, create a file named `noobaa.yaml` with the following information:
 +
-```
+[source,yaml]
++
+----
 apiVersion: noobaa.io/v1alpha1
 kind: NooBaa
 metadata:
@@ -214,27 +228,41 @@ spec:
    requests:
      cpu: '0.1'
      memory: 1Gi
-```
+----
 +
-This will create a single instance deployment of the _Multi-cloud Object Gateway_.
+This creates a single instance deployment of the _Multi-cloud Object Gateway_.
+
 . Apply the configuration with the following command:
 +
-```
+[source,terminal]
+----
 $ oc create -n openshift-storage -f noobaa.yaml
+----
++
+.Example output
++
+[source,terminal]
+----
 noobaa.noobaa.io/noobaa created
-```
+----
+
+. After a few minutes, the _Multi-cloud Object Gateway_ should finish provisioning. You can enter the following command to check its status:
 +
-. After a couple of minutes, you should see that the MCG instance has finished provisioning  (`PHASE` column will be set to `Ready`):
-+
-```
+[source,terminal]
+----
 $ oc get -n openshift-storage noobaas noobaa -w
+----
++
+.Example output
++
+[source,terminal]
+----
 NAME     MGMT-ENDPOINTS              S3-ENDPOINTS                IMAGE                                                                                                            PHASE   AGE
 noobaa   [https://10.0.32.3:30318]   [https://10.0.32.3:31958]   registry.redhat.io/ocs4/mcg-core-rhel8@sha256:56624aa7dd4ca178c1887343c7445a9425a841600b1309f6deace37ce6b8678d   Ready   3d18h
-```
+----
 
-. Next, configure a backing store for the gateway. Save the following YAML to a file called `noobaa-pv-backing-store.yaml`.
+. Configure a backing store for the gateway by creating the following YAML file, named  `noobaa-pv-backing-store.yaml`:
 +
-.noobaa-pv-backing-store.yaml
 [source,yaml]
 ----
 apiVersion: noobaa.io/v1alpha1
@@ -255,23 +283,28 @@ spec:
     storageClass: STORAGE-CLASS-NAME <2>
   type: pv-pool
 ----
-<1> The overall capacity of the object storage service, adjust as needed
-<2> The `StorageClass` to use for the `PersistentVolumes` requested, delete this property to use the cluster default
+<1> The overall capacity of the object storage service. Adjust as needed.
+<2> The `StorageClass` to use for the `PersistentVolumes` requested. Delete this property to use the cluster default.
 
-. Apply the configuration with the following command:
+. Enter the following command to apply the configuration:
 +
-```
+[source,terminal]
+----
 $ oc create -f noobaa-pv-backing-store.yaml
+----
++
+.Example output
++
+[source,terminal]
+----
 backingstore.noobaa.io/noobaa-pv-backing-store created
-```
+----
 +
-This creates the backing store configuration for the gateway. All images in Quay will be stored as objects through the gateway in a `PersistentVolume` created by the above configuration.
+This creates the backing store configuration for the gateway. All images in {productname} will be stored as objects through the gateway in a `PersistentVolume` created by the above configuration.
 
-. Finally, run the following command to make the `PersistentVolume` backing store the default for all `ObjectBucketClaims` issued by the Operator.
+. Run the following command to make the `PersistentVolume` backing store the default for all `ObjectBucketClaims` issued by the {productname} Operator:
 +
-```
+[source,terminal]
+----
 $ oc patch bucketclass noobaa-default-bucket-class --patch '{"spec":{"placementPolicy":{"tiers":[{"backingStores":["noobaa-pv-backing-store"]}]}}}' --type merge -n openshift-storage
-```
-
-This concludes the setup of the _Multi-Cloud Object Gateway_ instance for {productname}. Note that this configuration cannot be run in parallel on a cluster with Red Hat OpenShift Data Foundation installed.
-////
+----
