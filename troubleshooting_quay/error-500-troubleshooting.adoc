@@ -1,0 +1,25 @@
+:_content-type: CONCEPT
+[id="error-500-troubleshooting"]
+= Troubleshooting HTTP status code 500
+
+In some cases, users are unable to push or pull images from their {productname} registry, or cannot access the {productname} web UI. The received error message, HTTP error `500`, indicates that the database connections are exhausted. As a result, the database influences the service key renewal that is used for internal communication and the signing of requests made to the Docker v2 API. Consequently, the registry falls back to the Docker v1 API, which has been deprecated, and returns HTTP error `500`
+
+To resolve this issue, you can increase the database connection count by using the following procedure.
+
+.Procedure
+
+. Optional. For an immediate solution, you can force start the `Quay` container. Restarting the container helps resolve the issue because, on each restart, {productname} creates a new service key. These keys have a life of 2 hours and are regularly rotated. 
+
+. Navigate to your `/var/lib/pgsql/data/postgresql.conf` file. 
+
+. Increase the database connection count by updating the the `max_connections` variable. It is recommended to set the number of connections on the database to at least `1000` for a development cluster, and `2000` for a production cluster. In some cases you might need more. For example:
++
+[source,yaml]
+----
+max_connections = 1000
+----
++
+[IMPORTANT]
+====
+You should consult with your database team before making any changes to this field. 
+====
