@@ -1,0 +1,105 @@
+:_content-type: CONCEPT
+[id="authentication-troubleshooting"]
+= Troubleshooting {productname} authentication
+
+Authentication and authorization is crucial for secure access to {productname}. Together, they safeguard sensitive container images, verify user identities, enforce access controls, facilitate auditing and accountability, and enable seamless integration with external identity providers. By prioritizing authentication, organizations can bolster the overall security and integrity of their container registry environment. 
+
+The following authentication methods are supported by {productname}: 
+
+* *Username and password*. Users can authentication by providing their username and password, which are validated against the user database configured in {productname}. This traditional method requires users to enter their credentials to gain access. 
+
+* *OAuth*. {productname} supports OAuth authentication, which allows users to authenticate using their credentials from third party services like Google, GitHub, or Keycloak. OAuth enables a seamless and federated login experience, eliminating the need for separate account creation and simplifying user management. 
+
+* *OIDC*. OpenID Connect enables single sign-on (SSO) capabilities and integration with enterprise identity providers. With OpenID Connect, users can authenticate using their existing organizational credentials, providing a unified authentication experience across various systems and applications.
+
+* *Token-based authentication*. Users can obtain unique tokens that grant access to specific resources within {productname}. Tokens can be obtained through various means, such as OAuth or by generating API tokens within the {productname} user interface. Token-based authentication is often used for automated or programmatic access to the registry.
+
+* *External identity provider*. {productname} can integrate with external identity providers, such as LDAP or AzureAD, for authentication purposes. This integration allows organizations to leverage their existing identity management infrastructure, enabling centralized user authentication and reducing the need for separate user databases.
+
+Use the following procedure to troubleshoot authentication and authorization issues. 
+
+.Procedure 
+
+. Run your {productname} deployment in debug mode. For more information, see "Running {productname} in debug mode".
+
+. Examine the authentication provider logs.
+
+.. If you are using the {productname} Operator, enter the following command:
++
+[source,terminal]
+----
+$ oc logs <quay_pod_name> &> quay.logs
+----
+
+.. If you are on a standalone {productname} deployment, enter the following command:
++
+[source,terminal]
+----
+$ podman logs <quay_container> &> quay.logs
+----
++
+.Example output
++
+[source,terminal]
+----
+...
+gunicorn-web stdout | 2023-01-20 15:41:52,071 [205] [DEBUG] [app] Starting request: urn:request:0d88de25-03b0-4cf9-b8bc-87f1ac099429 (/oauth2/azure/callback) {'X-Forwarded-For': '174.91.79.124'}
+...
+----
+
+. Review the external authentication configuration from your {productname} `config.yaml` file. 
+
+.. If you are using the {productname} Operator, enter the following command to exec in the `Quay` pod:
++
+[source,terminal]
+----
+$ oc exec -it <quay_pod_name> -- cat /conf/stack/config.yaml
+----
+
+.. If you are on a standalone {productname} deployment, enter the following command to exec into the `Quay` container:
++
+[source,terminal]
+----
+$ podman exec -it <quay_container> cat /conf/stack/config.yaml
+----
+
+. Enter the following command to show all users for external authentication:
++
+[source,terminal]
+----
+quay=# select * from federatedlogin;
+----
++
+.Example output
++
+[source,terminal]
+----
+id | user_id | service_id |                service_ident                |               metadata_json               
+----+---------+------------+---------------------------------------------+-------------------------------------------
+1 |       1 |          3 | testuser0                                   | {}
+2 |       1 |          8 | PK7Zpg2Yu2AnfUKG15hKNXqOXirqUog6G-oE7OgzSWc | {"service_username": "live.com#testuser0"}
+3 |       2 |          3 | testuser1                                    | {}
+4 |       2 |          4 | 110875797246250333431                       | {"service_username": "testuser1"}
+5 |       3 |          3 | testuser2                                    | {}
+6 |       3 |          1 | 26310880                                    | {"service_username": "testuser2"}
+(6 rows)
+----
+
+. Verify that the users are inserted into the `user` table:
++
+[source,terminal]
+----
+quay=# select username, email from "user";
+----
++
+.Example output
++
+[source,terminal]
+----
+username  |        email         
+-----------+----------------------
+testuser0 | testuser0@outlook.com
+testuser1  | testuser1@gmail.com
+testuser2  | testuser2@redhat.com
+(3 rows)
+----
