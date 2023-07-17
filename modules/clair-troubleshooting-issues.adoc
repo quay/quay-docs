@@ -1,0 +1,136 @@
+:_content-type: PROCEDURE
+[id="clair-troubleshooting-issues"]
+= Troubleshooting Clair issue
+
+Use the following procedures to troubleshoot Clair. 
+
+[id="verify-image-compatibility"]
+== Verifying image compatibility
+
+If you are using Clair, ensure that the images you are trying to scan are supported by Clair. Clair has certain requirements and does not support all image formats or configurations.
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/manage_red_hat_quay/clair-vulnerability-scanner#clair-vulnerability-scanner-hosts[Clair vulnerability databases]. 
+
+[id="allowlist-clair-updaters"]
+== Allowlisting Clair updaters
+
+If you are using Clair behind a proxy configuration, you must allowlist the updaters in your proxy or firewall configuration. For more information about updater URLs, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/vulnerability_reporting_with_clair_on_red_hat_quay/clair-concepts#clair-updater-urls[Clair updater URLs].
+
+[id="clair-dependencies-update"]
+== Updating Clair scanner and its dependencies 
+
+Ensure that you are using the latest version of Clair security scanner. Outdated versions might lack support for newer image formats, or might have known issues. 
+
+Use the following procedure to check your version of Clair. 
+
+.Procedure
+
+. Check your version of Clair.
+
+.. If you are running Clair on the {productname} Operator, enter the following command:
++
+[source,terminal]
+----
+$ oc logs clair-pod
+----
+
+.. If you are running a standalone deployment of {productname} and using a Clair container, enter the following command:
++
+[source,terminal]
+----
+$ podman logs clair-container
+----
++
+.Example output
++
+[source,terminal]
+----
+"level":"info",
+"component":"main",
+"version":"v4.5.1",
+----
+
+[id="enabling-debug-mode-clair"]
+== Enabling debug mode for Clair
+
+By default, debug mode for Clair is enabled. You can enable debug mode for Clair by updating your Clair `config.yaml` file. 
+
+Use the following procedure to enable debug mode for Clair.
+
+.Procedure
+
+. Enable debug mode for Clair 
+
+.. If you are running Clair on the {productname} Operator, enter the following command:
++
+[source,terminal]
+----
+$ oc exec -it clair-pod-name -- cat /clair/config.yaml
+----
+
+.. If you are running a standalone deployment of {productname} and using a Clair container, enter the following command:
++
+[source,terminal]
+----
+$ podman exec -it clair-container-name cat /clair/config.yaml
+----
+
+. Update your Clair `config.yaml` file to enable debugging:
++
+[source,yaml]
+----
+http_listen_addr: :8081
+introspection_addr: :8088
+log_level: debug
+----
+
+[id="check-logs-updaters-errors"]
+== Checking logs for updaters errors 
+
+Check if there are any errors from the updaters microservice in your Clair logs. By default, Clair updates the vulnerability database every 30 minutes. 
+
+Use the following procedure to check your Clair logs.
+
+.Procedure 
+
+. Check your Clair logs.
+
+.. If you are running Clair on the {productname} Operator, enter the following command:
++
+[source,terminal]
+----
+$ oc logs clair-pod
+----
+
+.. If you are running a standalone deployment of {productname} and using a Clair container, enter the following command:
++
+[source,terminal]
+----
+$ podman logs clair-container
+----
+
+[id="updating-cve-database"]
+== Updating the CVE database 
+
+Updating the CVE database can be a memory and CPU intensive task, especially if there are several CVEs that must be parsed. If the resources are exhausted during this process, the system kernel can terminate the offending process. This should be visible in Docker logs, Podman logs, or in the system journal. For example:
+
+[source,terminal]
+----
+May 14 21:48:14 vm-mtr3-live-k8s-00-ranchernode-4 kernel: [36611.338195] [26556]     0 26556   734467   386889  4165632        0           937 clair
+
+May 14 21:48:14 vm-mtr3-live-k8s-00-ranchernode-4 kernel: [36611.338227] Memory cgroup out of memory: Kill process 26556 (clair) score 1922 or sacrifice child
+
+May 14 21:48:14 vm-mtr3-live-k8s-00-ranchernode-4 kernel: [36611.339573] Killed process 26556 (clair) total-vm:2937868kB, anon-rss:1536364kB, file-rss:11192kB, shmem-rss:0kB
+
+May 14 21:48:14 vm-mtr3-live-k8s-00-ranchernode-4 kernel: [36611.396171] oom_reaper: reaped process 26556 (clair), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+----
+
+[id="checking-clair-configuration"]
+== Checking Clair configuration 
+
+Check your Clair `config.yaml` file to ensure that there are no misconfigurations or inconsistencies that could lead to issues. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/vulnerability_reporting_with_clair_on_red_hat_quay/index#config-fields-overview[Clair configuration overview].
+
+[id="inspect-image-metadata"]
+== Inspect image metadata 
+
+In some cases, you might receive an *Unsupported* message. This might indicate that the scanner is unable to extract the necessary metadata from the image. Check if the image metadata is properly formatted and accessible. 

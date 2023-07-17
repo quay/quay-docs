@@ -1,0 +1,26 @@
+:_content-type: PROCEDURE
+[id="geo-repl-sslerror"]
+= Geo-replication errors out with SSLError 
+
+In some cases, using the `podman push` command might return the following error:
+
+[source,terminal]
+----
+storagereplication stdout | 2021-12-16 14:56:29,602 [144] [ERROR] [__main__] Failed to copy path `sha256/9f/9f9b90db7acda0f3f43e720ac9d54a7e623078fc7af6cf0c1d055410986d3f10` of image storage 0a014260-01a3-4a54-8dd6-784de7bf4feb to location dr
+toragereplication stdout | Traceback (most recent call last):
+storagereplication stdout |   File "/usr/local/lib/python3.8/site-packages/urllib3/util/ssl_.py", line 336, in ssl_wrap_socket
+storagereplication stdout |     context.load_verify_locations(ca_certs, ca_cert_dir)
+storagereplication stdout | ssl.SSLError: [X509] PEM lib (_ssl.c:4265)
+storagereplication stdout | During handling of the above exception, another exception occurred:
+.
+storagereplication stdout |   File "/usr/local/lib/python3.8/site-packages/botocore/httpsession.py", line 338, in send
+storagereplication stdout |     raise SSLError(endpoint_url=request.url, error=e)
+storagereplication stdout | botocore.exceptions.SSLError: SSL validation failed for https://s3-openshift-storage.apps.ocp1.rosbank.rus.socgen/quay-bucket-dr [X509] PEM lib (_ssl.c:4265)
+storagereplication stdout | 2021-12-16 14:56:29,603 [144] [WARNING] [workers.queueworker] An error occurred processing request: {"namespace_user_id": 1, "storage_id": "0a014260-01a3-4a54-8dd6-784de7bf4feb"}
+storagereplication stdout | 2021-12-16 14:56:29,603 [144] [WARNING] [workers.queueworker] Job exception:
+----
+
+`SSLError` usually occurs after multiple certificates signing the same thing are added to your {productname} deployment. This error is most commonly seen on regular pushes and LDAP connectivity, even when outside sources are used, for example, AWS storage buckets. 
+
+As a workaround for this issue, remove certificates from the `extra_ca_certs` one by one until you find the duplicate. After each removal, restart the `Quay` pod to test whether the issue persists. 
+

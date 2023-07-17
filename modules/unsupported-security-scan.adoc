@@ -1,0 +1,11 @@
+:_content-type: PROCEDURE
+[id="unsupported-security-scan"]
+= Image security scan reporting Unsupported
+
+In some cases, Clair cannot scan images and returns the following error: `{"level":"error","component":"internal/indexer/controller/Controller.Index","manifest":"sha256:e76c212f0288f1f4fe79d219fc6a90514234ef1016babdb7e11946db959d1bac","state":"FetchLayers","error":"failed to fetch layers: encountered error while fetching a layer: fetcher: unexpected status code: 404 Not Found (body starts: \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Resource>/quay/datastorage/registry/sha256/a3/a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4?AWSAccessKeyId=xxxxxxxxxxxx\")","time":"2022-10-12T06:59:42Z","message":"error during scan"}`. 
+
+This error means that a particular layer is missing from the bucket.  Objects in S3 bucket are referenced by keys. If a key is missing, that means that that object the key references is missing and is not found in the bucket. In the above example, the layer with SHA a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4 is missing from the S3 bucket.
+
+To resolve this issue, the image to which the SHA IDs belong to must be re-pushed to the registry so that all blobs are re-pushed as well. 
+
+For more information, see link:https://repost.aws/knowledge-center/404-error-nosuchkey-s3[How can I troubleshoot the 404 "NoSuchKey" error from Amazon S3?]

@@ -1,0 +1,53 @@
+:_content-type: PROCEDURE
+[id="java-image-scan-not-working"]
+= Java image scanning not work with disconnected Clair
+
+In {productname} 3.8, Java image scanning does not work in a disconnected Clair environment. It requires an active connection to the internet. 
+
+To resolve this issue, you must disable Java scanning from Clair, or connect to the internet. 
+
+Use the following procedure to disable Java scanning from Clair. 
+
+.Procedure 
+
+. Check which SHA ID errors out by reaching out to the Java/Maven indexer, for example:
++
+[source,terminal]
+----
+{"level":"warn","file":"spring-web/lib/jcip-annotations-1.0.jar","layer":"sha256:7072d1ca8cd39f2ae4fd36d5a5272e4564a06c92441bdf29185c312ff87432ee","component":"java/Scanner.Scan","version":"3","scanner":"java","manifest":"sha256:d2eed634032c3827bd36f8aae86ef6113d9f4763fbeb6ad041b1f2a3962b6b24","state":"ScanLayers","kind":"package","error":"Get \"https://search.maven.org/solrsearch/select?q=1%3A%22afba4942caaeaf46aab0b976afd57cc7c181467e%22&wt=json\": dial tcp 52.1.120.204:443: i/o timeout","time":"2023-02-08T10:46:59Z","message":"error making request"}
+----
+
+. Run the following command to reveal which image this SHA ID belongs to:
++
+[source,terminal]
+----
+quay=# SELECT t1.username AS namespace, t2.name AS repo_name, t4.content_checksum AS sha_digest FROM "user" AS t1 INNER JOIN repository AS t2 ON t1.id = t2.namespace_user_id INNER JOIN manifestblob AS t3 on t2.id = t3.repository_id INNER JOIN imagestorage AS t4 ON t3.blob_id = t4.id WHERE t4.content_checksum = 'sha256:0cea90e4778f9241c20421d8c97a8d182fd0fa51e6c84210dc4b57522fc901b8';
+----
++
+.Example output
++
+[source,terminal]
+----
+namespace | repo_name |                               sha_digest
+-----------+-----------+-------------------------------------------------------------------------
+redhat    | quay      | sha256:0cea90e4778f9241c20421d8c97a8d182fd0fa51e6c84210dc4b57522fc901b8
+----
+
+. Run the following command to find the base OS of the image, assuming it is Java-based:
++
+[source,terminal]
+----
+$ podman run image:tag  /bin/bash -c "cat /etc/*release"
+----
+
+. There are no documented steps to stop the Java/Maven indexer. Run the following command in a development or test cluster first, setting the API request to a page that returns a `404` so that it fails quickly:
++
+[source,yaml]
+----
+scanner:
+  package:
+    java:
+      api: https://quay.github.io/clair404
+----
++
+Replace the API with a known page that returns error `404`. This should fail the Maven indexer and turn it off for that image. 
