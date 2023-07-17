@@ -1,0 +1,29 @@
+:_content-type: PROCEDURE
+[id="scans-not-working-behind-proxy"]
+= Clair scans are not working behind proxy
+
+In some cases, {productname} debug logs return a `401` error when interacting with Clair through a proxy, which suggests that {productname} is unable to communicate with Clair. For example: `securityworker stdout | 2022-11-08 14:32:52,443 [106] [DEBUG] [urllib3.connectionpool] http://192.168.xx.xx:3128 "GET http://clairv4/indexer/api/v1/index_state HTTP/1.1" 401 843 securityworker stdout | 2022-11-08 14:32:52,474 [106] [ERROR] [util.secscan.v4.api] Security scanner endpoint responded with non-200 HTTP status code: 401`. 
+
+This issue occurs because {productname} inherited the cluster proxy configuration from {ocp} and attempted to connect with Clair through the proxy, which results in the aforementioned error code. 
+
+To resolve this issue, remove any proxy variables from the `QuayRegistry` custom resource definition (CRD) to keep {productname} unproxied. For example:
+
+[source,yaml]
+----
+kind: QuayRegistry
+components:
+  - kind: quay
+    managed: true
+overrides:
+  env:
+    - name: DEBUGLOG
+      value: "true"
+    - name: NO_PROXY
+      value: svc.cluster.local,localhost,quay.example.com
+    - name: HTTP_PROXY
+      value: ""
+    - name: HTTPS_PROXY
+      value: ""
+----
+
+You must set the proxy variables for Clair. Proxy variables can be copied from {ocp}'s `cluster proxy` file. Add the full Clair service name to `NO_PROXY` in the `QuayRegistry` CRD. 
