@@ -1,0 +1,53 @@
+:_content-type: PROCEDURE
+[id="connection-issues-clair-quay-db"]
+= Clair and Quay database connection issues 
+
+When attempting to connect to an external PostgreSQL database for {productname} and Clair, attempting to connect to the "public" schema might not be allowed. The public schema is only accessible by PostgreSQL administrators. Use the following procedure to troubleshoot connection issues.
+
+.Procedure 
+
+. If you are an individual user accessing separate databases, use the following steps. 
+
+.. Specify a `search_path`, for example, `\https://postgresqlco.nf/doc/en/param/search_path/` to the `Quay` and `Clair` database for the service account or user.
+
+... Enter the following command on the `Quay` database:
++
+[source,terminal]
+----
+ALTER ROLE "role_name" SET search_path TO quay_username;
+----
+
+.. Enter the following command on the `Clair` database:
++
+[source,terminal]
+----
+ALTER ROLE "role_name" SET search_path TO clair_username;
+----
++
+[NOTE]
+====
+This will not allow one user to access the `Quay` and `Clair` database at the same time.
+====
+
+.. Optional. The `quay-app` pod requires the database to be created in advance to that the `quay-app-upgrade` pod assists in setting it up. As a result, schemas and tables are already populated. This causes an issue with the `search_path` setting for {productname}. To resolve this issue, add a `search_path` in your {productname} and Clair `config.yaml` files.
+
+... Add the following line to your {productname} `config.yaml` file:
++
+[source,yaml]
+----
+DB_URI: postgresql://<user>:<pass>@quayhostname.example.com:<port>/quay_username?options=-csearch_path%3Dquay_username
+----
+
+... Reset the `Quay` database by cleaning it up and restarting the `quay-upgrade-app-pod`. 
+
+... Configure the Clair connstring to use a `search_path` by adding the following line to your Clair `config.yaml` file:
++
+[source,yamnl]
+----
+indexer:
+connstring: host=<dbname> port=5402 dbname=db_name user=<clair_username> password=<pass> sslmode=disable options=--search_path=clair_username
+----
+
+. In some cases, you might have a single service account or be a user that can access both databases. A database contains one or more named schemas, which in turn contains tables. Unlike databases, schemas are not rigidly separated; that is, a user can access objects in any of the schemas in the database that they are connected to if they have proper privileges.
++
+In this case, you must ensure that the tables of your {productname} and Clair are part of the same schema. Otherwise, unqualified queries are unable to find the tables. The queries from {productname} and Clair are all unqualified, as they expect the tables to be accessible from the database connection by default. 
