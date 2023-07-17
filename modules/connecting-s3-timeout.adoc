@@ -1,0 +1,27 @@
+:_content-type: PROCEDURE
+[id="connecting-s3-timeout"]
+= Connection to AWS s3 bucket errors out
+
+In some cases, {productname} attempts to connect to the s3 bucket that is described in a `config.yaml` file and errors out. Running {productname} in debug might reveal the following error: `gunicorn-registry stdout | 2022-10-21 14:38:36,892 [253] [DEBUG] [urllib3.connectionpool] https://s3.ap-south-1.amazonaws.com:443 "POST /quay-bucket-1/storage/quayregistrystorage/uploads/23cd6e62-264c-48e4-94a7-21061b0e4ef1?uploads HTTP/1.1" 400 None`. 
+
+This error occurs because the URL format of a bucket is one of two options. For example:
+
+* `http://s3.amazonaws.com/[bucket_name]/`
+* `http://[bucket_name].s3.amazonaws.com/`
+
+To resolve this issue, you must add the `s3_region` configuration parameter to your `config.yaml` file. This field is not currently embedded in the {productname} config editor, so it must be manually added. If this field is not present in your `config.yaml` file, the Authorization header explicitly mentions a different region and not the region set in the `hostname` field of your `config.yaml` file. 
+
+The following `config.yaml` excerpt is the correct configuration when using AWS:
+
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+    default:
+        - S3Storage
+        - host: s3.ap-south-1.amazonaws.com
+          s3_access_key: *****************
+          s3_bucket: quay-bucket-1
+          s3_secret_key: *********************************
+          storage_path: /storage/quayregistrystorage
+          s3_region: ap-south-1
+----
