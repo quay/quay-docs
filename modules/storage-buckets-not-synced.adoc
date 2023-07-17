@@ -1,0 +1,9 @@
+:_content-type: PROCEDURE
+[id="storage-buckets-not-synced"]
+= Unsynced storage buckets in a geo-replication environment
+
+In some cases, your s3 buckets might differ in size and the number of objects. This occurs because, over a period of time, {productname} registries are deleted. However, within {productname} there is no mechanism to ensure that a delete image is entirety removed from the backing storage. Because of this, it is likely that many layers of such images are still in the backing storage and causing inconsistencies in all backing stores. 
+
+`Replicationworkers` from the backfill script might take some time to catch up with the latest tasks, especially when images are consistently being pushed and new layers are being added to the registry. A difference in the size of back s3 storage is common and not problematic. However, in rare cases, it might lead to failed pulls due to layers of an image not being present in the `imagestoragelocation` table. 
+
+Currently, there is no workaround for this issue. 
