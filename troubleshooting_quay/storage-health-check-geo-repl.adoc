@@ -1,0 +1,79 @@
+:_content-type: PROCEDURE
+[id="storage-health-check-geo-repl"]
+= Geo-replication storage health check issues
+
+There is a known issue when running a three-site geo-replication {productname} environment. When one of the three sites goes down due to storage failure, restarting the `Quay` pods in the remaining two sites causes {productname} to shut down.
+
+When checking the status of your geo-replication environment, the `GET /health/endtoend` health check endpoint does not check distributed storage engines. It only checks the preferred storage engine. 
+
+This is the expected behavior, however here are two workarounds for this issue. 
+
+[id="adding-overrides-to-quayregistry-crd"]
+== Workaround 1: Adding overrides to the QuayRegistry CRD 
+
+Use the following procedure to add overrides to the `QuayRegistry` CRD. Overriding the `QuayRegistry` custom resource definition (CRD) disables the initial validation. 
+
+.Procedure
+
+[IMPORTANT]
+====
+The overrides field is potentially destructive and should be removed from your `QuayRegistry` CRD as soon as possible. 
+====
+
+* Update your `QuayRegistry` CRD to include the following information:
++
+[source,yaml]
+----
+spec:
+- kind: quay
+  managed: true
+  overrides:
+    env:
+    - name: IGNORE_VALIDATION
+      value: "true" <1>
+----
+<1> `value` is a boolean and must be in quotation marks. This forces {productname} to restart. This restart also runs the config tool as the first process which does a health check on the configuration and ensures that all components that {productname} hooks to are available.
+
+[id="remove-offending-storage-engine"]
+== Workaround 2: Removing the offending storage engine
+
+Another workaround is to remove the storage engine that is failing. To successfully remove a certain storage engine, you must remove the storage name, driver and all related parameters to that driver from the {productname} `config.yaml` file. Also remove the storage driver name from the `DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS` and `DISTRIBUTED_STORAGE_PREFERENCE` fields. For example:
+
+[source,yaml]
+----
+...
+DISTRIBUTED_STORAGE_CONFIG:
+    default:                                            # storage name
+        - RadosGWStorage                                # storage driver
+        - access_key: minioadmin                        # driver parameters
+          bucket_name: quay
+          hostname: 10.0.0.1
+          is_secure: false
+          port: "9000"
+          secret_key: minioadmin
+          storage_path: /datastorage/registry
+    swift:                                              # storage name
+        - SwiftStorage                                  # storage driver
+        - auth_url: http://10.0.50.50/identity          # driver parameters
+          auth_version: "3"
+          os_options:
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+    - default
+    - swift
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+    - swift
+...
+----
+
+Remove a faulty storage engine comes with the following conditions:
+
+* This change must be done on all {productname} instances that you are running. The `Quay` pods should come online afterwards. 
+* Image that are completely stored in the failed data center will not be pullable. 
+* Georeplication is an asynchronous operation, it happens in batches and after the image has been completely pushed to the registry. There is no guarantee that all blobs for all images pushed to the failed data center were transferred to other storage locations in time. If such an image is encountered, it should be re-pushed to {productname} again.
+* After the failed storage engine has been restored, the configuration for that storage engine should be restored to remaining 2 Quay instances and Quay should be restarted. One needs to enqueue blobs that are now in the remaining two DCs to be pushed to the failed DC. This can be done with the following script:
++
+[source,terminal]
+----
+$ oc exec -it quay-pod-name -- pythom -m util.backfillreplication
+----
