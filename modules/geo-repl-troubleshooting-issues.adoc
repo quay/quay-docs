@@ -1,0 +1,104 @@
+:_content-type: PROCEDURE
+[id="geo-repl-troubleshooting-issues"]
+= Troubleshooting geo-replication for {productname}
+
+Use the following sections to troubleshoot geo-replication for {productname}. 
+
+[id="check-debug-logs-geo-repl"]
+== Checking debug logs for geo-replication deployments 
+
+Use the following procedure to check the debug logs for your geo-replication deployment. 
+
+.Procedure
+
+. Look for any relevant error messages or warnings related to storage replication. 
+
+.. If you are using the {productname} Operator, enter the following command:
++
+[source,terminal]
+----
+$ oc logs quay-pod
+----
+
+.. If you are using a standalone deployment of {productname}, enter the following command:
++
+[source,terminal]
+----
+$ podman logs quay-container
+----
+
+
+[id="check-geo-repl-config"]
+== Checking the geo-replication configuration
+
+Use the following procedure to check your geo-replication configuration in your {productname} `config.yaml` file. 
+
+[IMPORTANT]
+====
+The same configuration must be used across all regions.
+====
+
+.Procedure
+
+. Check your geo-replication configuration.
+
+.. If you are using the {productname} Operator, enter the following command:
++
+[source,terminal]
+----
+$ oc exec -it quay-pod -- cat /conf/stack/config.yaml
+----
+
+.. If you are using a standalone deployment of {productname}, enter the following command:
++
+[source,terminal]
+----
+$ podman exec -it quay-container cat /conf/stack/config.yaml
+----
+
+[id="check-data-replication"]
+== Checking data replication in backend buckets 
+
+Use the following procedure to ensure that your data is properly replicated in all backend buckets.
+
+.Prerequisites 
+
+* You have installed the `aws` CLI. 
+
+.Procedure
+
+. Enter the following command to ensure that your data is replicated in all backend buckets:
++
+[source,terminal]
+----
+$ aws --profile quay_prod_s3 --endpoint=http://10.0.x.x:port s3 ls ocp-quay --recursive --human-readable --summarize
+----
++
+.Example output
++
+[source,terminal]
+----
+Total Objects: 17996
+Total Size: 514.4 GiB
+----
+
+[id="check-backend-storage-running"]
+== Checking the status of your backend storage
+
+Use the following resources to check the status of your backend storage. 
+
+* *Amazon Web Service Storage (AWS)*. Check the AWS S3 service health status on the link:https://health.aws.amazon.com/health/status[AWS Service Health Dashboard]. Validate your access to S3 by listing objects in a known bucket using the `aws` CLI or SDKs. 
+
+* *Google Cloud Storage (GCS)*. Check the link:https://status.cloud.google.com/[Google Cloud Status Dashboard] for the status of the GCS service. Verify your access to GCS by listing objects in a known bucket using the Google Cloud SDK or GCS client libraries. 
+
+* *NooBaa*. Check the NooBaa management console or administrative interface for any health or status indicators. Ensure that the NooBaa services and related components are running and accessible. Verify access to NooBaa by listing objects in a known bucket using the NooBaa CLI or SDK.
+
+* **{odf}**. Check the {ocp} Console or management interface for the status of the {odf} components. Verify the availability of {odf} S3 interface and services. Ensure that the {odf} services are running and accessible. Validate access to {odf} S3 by listing objects in a known bucket using the appropriate S3-compatible SDK or CLI.
+
+* **Ceph**. Check the status of Ceph services, including Ceph monitors, OSDs, and RGWs. Validate that the Ceph cluster is healthy and operational. Verify access to Ceph object storage by listing objects in a known bucket using the appropriate Ceph object storage API or CLI.
+
+* **Azure Blob Storage**. Check the link:https://azure.status.microsoft/en-us/status[Azure Status Dashboard] to see the health status of the Azure Blob Storage service. Validate your access to Azure Blob Storage by listing containers or objects using the Azure CLI or Azure SDKs. 
+
+* **OpenStack Swift**. Check the link:https://www.ibm.com/docs/ro/cmwo/4.3.0.0?topic=services-checking-status[OpenStack Status] page to verify the status of the OpenStack Swift service. Ensure that the Swift services, like the proxy server, container servers, object servers, are running and accessible. Validate your access to Swift by listing containers or objects using the appropriate Swift CLI or SDK.
+
+After checking the status of your backend storage, ensure that all {productname} instances have access to all s3 storage backends. 
