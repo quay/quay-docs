@@ -1,0 +1,104 @@
+:_content-type: PROCEDURE
+[id="repo-mirroring-troubleshooting-issues"]
+= Troubleshooting repository mirroring 
+
+Use the following sections to troubleshoot repository mirroring for {productname}. 
+
+[id="reviewing-logs-repo-mirroring"]
+== Reviewing the logs of your mirrored {productname} instances 
+
+Use the following procedure to review the logs of your mirrored instances. 
+
+.Prerequisites 
+
+* You have enabled debug mode in your {productname} `config.yaml` file. 
+
+.Procedure 
+
+. Retrieve the logs from all running mirror pods. 
+
+.. If you are using the {productname} Operator, enter the following command:
++
+[source,terminal]
+----
+$ oc logs mirror-pod 
+----
+
+.. If you are using a standalone deployment of {productname}, enter the following command:
++
+[source,terminal]
+----
+$ podman logs repomirror-container
+----
+
+
+[id="checking-mirror-configuration"]
+== Checking the mirror configuration 
+
+Use the following procedure to review the mirror configuration settings in your {productname} instances. 
+
+.Procedure 
+
+. Review your `config.yaml` settings. 
+
+.. If you are using the {productname} Operator, enter the following command:
++
+[source,terminal]
+----
+$ oc exec -it quay-pod -- cat /conf/stack/config.yaml
+----
+
+.. If you are using a standalone deployment of {productname}, enter the following command:
++
+[source,terminal]
+----
+$ podman exec -it quay-container cat /conf/stack/config.yaml 
+----
+
+[id="verifying-authentication-permissions"]
+== Verifying authentication and permissions 
+
+Ensure that the authentication credentials used for mirroring have the necessary permissions and access rights on both the source and destination {productname} instances. 
+
+On the {productname} UI, check the following settings: 
+
+* The access control settings. Ensure that the user or service account performing the mirroring operation has the required privileges.
+* The permissions of your robot account on the {productname} registry. 
+
+
+[id="manual-copy"]
+== Checking slow disk issues 
+
+Repository mirroring uses `skopeo copy` as a background process. Test the time it takes to copy an image by manually running `skopeo copy`. This can help isolate any issues related to specific images or repositories and narrow down the troubleshooting scope. Additionally, it can help identify any network issues or bottlenecks that might be impacting the mirroring performance or causing failures. Pay attention to network latency, packet loss, or any unusual network patterns.
+
+Use the following procedure to time `skopeo copy`. 
+
+.Procedure
+
+* Enter the following command to measure the time it takes to perform `skopeo copy`:
++
+[source,terminal]
+----
+$ time { skopeo copy docker://SOURCE_REGISTRY_IMAGE docker://DESTINATION_REGISTRY/REPOSITPRY/IMAGE:TAG }
+----
++
+.Example output
++
+[source,terminal]
+----
+Getting image source signatures
+Copying blob 4182b7568f06 skipped: already exists
+Copying blob 4182b7568f06 skipped: already exists
+Copying blob b7f76d1d9088 skipped: already exists
+Copying blob ede3648667b7 skipped: already exists
+Copying blob 021495d3c262 done
+Copying blob 335fbccacdd3 done
+Copying blob 4c70e3d931b6 done
+Copying config d9f6ca2777 done
+Writing manifest to image destination
+Storing signatures
+
+real    6m19.291s
+user    0m58.207s
+sys     0m40.666s
+----
