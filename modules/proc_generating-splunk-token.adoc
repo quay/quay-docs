@@ -1,0 +1,66 @@
+:_content-type: PROCEDURE
+[id="proc_generating-splunk-token"]
+= Generating a Splunk token
+
+Use one of the following procedures to create a bearer token for Splunk.
+
+[id="proc_generating-splunk-token-ui"]
+== Generating a Splunk token using the Splunk UI
+
+Use the following procedure to create a bearer token for Splunk using the Splunk UI.
+
+.Prerequisites
+
+* You have installed Splunk and created a username.
+
+.Procedure
+
+. On the Splunk UI, navigate to *Settings* -> *Tokens*.
+
+. Click *Enable Token Authentication*.
+
+. Ensure that *Token Authentication* is enabled by clicking *Token Settings* and selecting *Token Authentication* if necessary.
+
+. Optional: Set the expiration time for your token. This defaults at 30 days.
+
+. Click *Save*.
+
+. Click *New Token*.
+
+. Enter information for *User* and *Audience*.
+
+. Optional: Set the *Expiration* and *Not Before* information.
+
+. Click *Create*. Your token appears in the *Token* box. Copy the token immediately.
++
+[IMPORTANT]
+====
+If you close out of the box before copying the token, you must create a new token. The token in its entirety is not available after closing the *New Token* window.
+====
+
+[id="proc_generating-splunk-token-cli"]
+== Generating a Splunk token using the CLI
+
+Use the following procedure to create a bearer token for Splunk using the CLI.
+
+.Prerequisites
+
+* You have installed Splunk and created a username.
+
+.Procedure
+
+. In your CLI, enter the following `CURL` command to enable token authentication, passing in your Splunk username and password:
++
+[source,terminal]
+----
+$ curl -k -u <username>:<password> -X POST <scheme>://<host>:<port>/services/admin/token-auth/tokens_auth -d disabled=false
+----
+
+. Create a token by entering the following `CURL` command, passing in your Splunk username and password.
++
+[source,terminal]
+----
+$ curl -k -u <username>:<password> -X POST <scheme>://<host>:<port>/services/authorization/tokens?output_mode=json --data name=<username> --data audience=Users --data-urlencode expires_on=+30d
+----
+
+. Save the generated bearer token.
