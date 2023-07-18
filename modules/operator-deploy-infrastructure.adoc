@@ -1,17 +1,16 @@
-:_content-type: PROCEDURE
 [id="operator-deploy-infrastructure"]
-= Deploying Quay on infrastructure nodes
+= Deploying {productname} on infrastructure nodes
 
-By default, `Quay` related pods are placed on arbitrary worker nodes when using the {productname} Operator to deploy the registry. The {ocp} documentation shows how to use machine sets to configure nodes to only host infrastructure components. For more information, see link:https://docs.openshift.com/container-platform/4.13/machine_management/creating-infrastructure-machinesets.html[Creating infrastructure machine sets]. 
+By default, `Quay` related pods are placed on arbitrary worker nodes when using the {productname} Operator to deploy the registry. For more information about how to use machine sets to configure nodes to only host infrastructure components, see link:https://docs.openshift.com/container-platform/4.13/machine_management/creating-infrastructure-machinesets.html[Creating infrastructure machine sets]. 
 
-If you are not using {ocp} `MachineSet` resources to deploy infra nodes, the following sections shows you how to manually label and tain nodes for infrastructure purposes. After you have configured your infrastructure nodes, either manually or by using machine sets, you can control the placement of `Quay` pods on these nodes using node selectors and tolerations. 
+If you are not using {ocp} machine set resources to deploy infra nodes, the section in this document shows you how to manually label and taint nodes for infrastructure purposes. After you have configured your infrastructure nodes either manually or use machines sets, you can control the placement of `Quay` pods on these nodes using node selectors and tolerations. 
 
-[id="label-taint-nodes-for-infrastructure-use"]
+[id="labeling-taint-nodes-for-infrastructure-use"]
 == Labeling and tainting nodes for infrastructure use
 
-Use the following procedure to label and taint nodes for infrastructure use. 
+Use the following procedure to label and tain nodes for infrastructure use. 
 
-. In the following example cluster, there are three master nodes and six worker nodes. For example:
+. Enter the following command to reveal the master and worker nodes. In this example, there are three master nodes and six worker nodes.
 +
 [source,terminal]
 ----
@@ -34,7 +33,7 @@ user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal   Ready    worker   3h22m �
 user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal   Ready    worker   3h21m   v1.20.0+ba45583
 ----
 
-. Label the last three worker nodes for infrastructure use:
+. Enter the following commands to label the three worker nodes for infrastructure use:
 +
 [source,terminal]
 ----
@@ -51,14 +50,14 @@ $ oc label node --overwrite user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal nod
 $ oc label node --overwrite user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal node-role.kubernetes.io/infra=
 ----
 
-. Enter the following command to list the nodes in the cluster. The last three worker nodes should have the added role `infra`. For example:
+. Now, when listing the nodes in the cluster, the last three worker nodes have the `infra` role. For example:
 +
 [source,terminal]
 ----
 $ oc get nodes
 ----
 +
-.Example output
+.Example
 +
 [source,terminal]
 ----
@@ -74,7 +73,7 @@ user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal   Ready    infra,worker   4
 user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal   Ready    infra,worker   4h6m    v1.20.0+ba4558
 ----
 
-. When an `infra` node is assigned as a worker, there is a chance that user workloads could get inadvertently assigned to an `infra` node. To avoid this, you can apply a tain to the infra node, and then add tolerations for the pods that you want to control. For example:
+. When a worker node is assigned the `infra` role, there is a chance that user workloads could get inadvertently assigned to an infra node. To avoid this, you can apply a taint to the infra node, and then add tolerations for the pods that you want to control. For example:
 +
 [source,terminal]
 ----
@@ -91,35 +90,35 @@ $ oc adm taint nodes user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal node-role.
 $ oc adm taint nodes user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal node-role.kubernetes.io/infra:NoSchedule
 ----
 
-[id="creating-project-with-node-selector"]
-== Creating a project with node selector and toleration
+[id="creating-project-node-selector-toleration"]
+== Creating a project with node selector and tolerations
 
-Use the following procedure to create a `Project` resource with node selector and toleration. 
+Use the following procedure to create a project with node selector and tolerations. 
 
 [NOTE]
 ====
-If you have already deployed {productname} using the Operator, remove the installed Operator and any specific namespace(s) you created for the deployment.
+If you have already deployed {productname} using the Operator, remove the installed Operator and any specific namespaces that you created for the deployment. 
 ====
 
-.Procedure 
+.Procedure
 
-. Create a `Project` resource, specifying a node selector and toleration as shown in the following example:
+. Create a project resource, specifying a node selector and toleration. For example:
 +
-[source,yaml]
+.quay-registry.yaml
+[source,terminal]
 ----
 kind: Project
 apiVersion: project.openshift.io/v1
 metadata:
-  name: quay-registry
-  annotations:
-    openshift.io/node-selector: 'node-role.kubernetes.io/infra='
-    scheduler.alpha.kubernetes.io/defaultTolerations: >-
-      [{"operator": "Exists", "effect": "NoSchedule", "key":
-      "node-role.kubernetes.io/infra"}
-      ]
+  name: quay-registry
+  annotations:
+    openshift.io/node-selector: 'node-role.kubernetes.io/infra='
+    scheduler.alpha.kubernetes.io/defaultTolerations: >-
+      [{"operator": "Exists", "effect": "NoSchedule", "key":
+      "node-role.kubernetes.io/infra"}]
 ----
 
-. Use the `oc apply` command to create the `Project` resource:
+. Enter the following command to create the project:
 +
 [source,terminal]
 ----
@@ -133,16 +132,14 @@ $ oc apply -f quay-registry.yaml
 project.project.openshift.io/quay-registry created
 ----
 
-Subsequent resources created in the `quay-registry` namespace should now be scheduled on the dedicated infrastructure nodes.
+Subsequent resources created in the `quay-registry` namespace should now be scheduled on the dedicated infrastructure nodes. 
 
-[id="installing-quay-operator-in-namespace"]
+[id="installing-quay-operator-namespace"]
 == Installing the {productname} Operator in the namespace 
 
-Use the following procedure to install the {productname} Operator in the namesapce. 
+Use the following procedure to install the {productname} Operator in the namespace. 
 
-.Procedure
-
-* When installing the {productname} Operator, specify the appropriate project namespace explicitly. In this example, it is `quay-registry`. This results in the Operator pod itself landing on one of the three infrastructure nodes:
+* To install the {productname} Operator in a specific namespace, you must explicitly specify the appropriate project namespace, as in the following command. In this example, we are using `quay-registry`. Ths results in the Operator pod landing on one of the three infrastructure nodes. For example:
 +
 [source,terminal]
 ----
@@ -157,14 +154,12 @@ NAME                                    READY   STATUS    R
 quay-operator.v3.4.1-6f6597d8d8-bd4dp   1/1     Running   0          30s   10.131.0.16   user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal 
 ----
 
-[id="creating-the-registry"]
+[id="creating-registry"]
 == Creating the {productname} registry
 
 Use the following procedure to create the {productname} registry. 
 
-.Procedure 
-
-. Create the registry as outlined in Creating a project with node selector and toleration and wait for the deployment to be marked as `Ready`. When you list the `Quay` pods, you should now see that they have only been scheduled on the three nodes that you have labelled for infrastructure purposes. For example:
+* Enter the following command to create the {productname} registry. Then, wait for the deployment to be marked as `ready`. In the following example, you should see that they have only been scheduled on the three nodes that you have labelled for infrastructure purposes. 
 +
 [source,terminal]
 ----

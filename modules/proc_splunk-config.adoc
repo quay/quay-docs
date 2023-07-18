@@ -1,0 +1,66 @@
+:_content-type: PROCEDURE
+[id="proc_splunk-config"]
+= Configuring {productname} to use Splunk
+
+Use the following procedure to configure {productname} to use Splunk.
+
+.Prerequisites
+
+* You have installed Splunk and created a username.
+* You have generated a Splunk bearer token.
+
+.Procedure
+
+. Open your {productname} `config.yaml` file and add the following configuration fields:
++
+[source,yaml]
+----
+---
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+    producer: splunk
+    splunk_config:
+        host: http://<user_name>.remote.csb <1>
+        port: 8089 <2>
+        bearer_token: <bearer_token> <3>
+        url_scheme: <http/https> <4>
+        verify_ssl: False <5>
+        index_prefix: <splunk_log_index_name> <6>
+        ssl_ca_path: <location_to_ssl-ca-cert.pem> <7>
+---
+----
+<1> String. The Splunk cluster endpoint.
+<2> Integer. The Splunk management cluster endpoint port. Differs from the Splunk GUI hosted port. Can be found on the Splunk UI under *Settings* -> *Server Settings* -> *General Settings*.
+<3> String. The generated bearer token for Splunk.
+<4> String. The URL scheme for access the Splunk service. If Splunk is configured to use TLS/SSL, this must be `https`.
+<5> Boolean. Whether to enable TLS/SSL. Defaults to `true`.
+<6> String. The Splunk index prefix. Can be a new, or used, index. Can be created from the Splunk UI.
+<7> String. The relative container path to a single `.pem` file containing a certificate authority (CA) for TLS/SSL validation.
+
+. If you are configuring `ssl_ca_path`, you must configure the SSL/TLS certificate so that {productname} will trust it. 
+
+.. If you are using a standalone deployment of {productname}, SSL/TLS certificates can be provided by placing the certificate file inside of the `extra_ca_certs` directory, or inside of the relative container path and specified by `ssl_ca_path`. 
+
+.. If you are using the {productname} Operator, create a config bundle secret, including the certificate authority (CA) of the Splunk server. For example:
++
+[source,terminal]
+----
+$ oc create secret generic --from-file config.yaml=./config_390.yaml --from-file extra_ca_cert_splunkserver.crt=./splunkserver.crt config-bundle-secret
+----
++
+Specify the `conf/stack/extra_ca_certs/splunkserver.crt` file in your `config.yaml`. For example:
++
+[source,yaml]
+----
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+    producer: splunk
+    splunk_config:
+        host: ec2-12-345-67-891.us-east-2.compute.amazonaws.com
+        port: 8089
+        bearer_token: eyJra
+        url_scheme: https
+        verify_ssl: true
+        index_prefix: quay123456
+        ssl_ca_path: conf/stack/splunkserver.crt 
+----
