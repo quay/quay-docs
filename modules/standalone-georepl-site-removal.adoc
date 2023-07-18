@@ -1,0 +1,105 @@
+:_content-type: PROCEDURE
+[id="standalone-georepl-site-removal"]
+= Removing a geo-replicated site from your standalone {productname} deployment
+
+By using the following procedure, {productname} administrators can remove sites in a geo-replicated setup. 
+
+.Prerequisites 
+
+* You have configured {productname} geo-replication with at least two sites, for example, `usstorage` and `eustorage`. 
+* Each site has its own Organization, Repository, and image tags. 
+
+.Procedure
+
+. Sync the blobs between all of your defined sites by running the following command:
++
+[source,terminal]
+----
+$ python -m util.backfillreplication
+----
++
+[WARNING]
+====
+Prior to removing storage engines from your {productname} `config.yaml` file, you *must* ensure that all blobs are synced between all defined sites. Complete this step before proceeding. 
+====
+
+. In your {productname} `config.yaml` file for site `usstorage`, remove the `DISTRIBUTED_STORAGE_CONFIG` entry for the `eustorage` site. 
+
+. Enter the following command to obtain a list of running containers:
++
+[source,terminal]
+----
+$ podman ps
+----
++
+.Example output
++
+[source,terminal]
+----
+CONTAINER ID  IMAGE                                                                     COMMAND         CREATED         STATUS             PORTS                                        NAMES
+92c5321cde38  registry.redhat.io/rhel8/redis-5:1                                        run-redis       11 days ago     Up 11 days ago     0.0.0.0:6379->6379/tcp                       redis
+4e6d1ecd3811  registry.redhat.io/rhel8/postgresql-13:1-109                              run-postgresql  33 seconds ago  Up 34 seconds ago  0.0.0.0:5432->5432/tcp                       postgresql-quay
+d2eadac74fda  registry-proxy.engineering.redhat.com/rh-osbs/quay-quay-rhel8:v3.9.0-131  registry        4 seconds ago   Up 4 seconds ago   0.0.0.0:80->8080/tcp, 0.0.0.0:443->8443/tcp  quay
+----
+
+. Enter the following command to execute a shell inside of the PostgreSQL container:
++
+[source,terminal]
+----
+$ podman exec -it postgresql-quay -- /bin/bash
+----
+
+. Enter psql by running the following command:
++
+[source,terminal]
+----
+bash-4.4$ psql
+----
+
+. Enter the following command to reveal a list of sites in your geo-replicated deployment:
++
+[source,terminal]
+----
+quay=# select * from imagestoragelocation;
+----
++
+.Example output
++
+[source,terminal]
+----
+ id |       name
+----+-------------------
+  1 | usstorage
+  2 | eustorage
+----
+
+. Enter the following command to exit the postgres CLI to re-enter bash-4.4:
++
+[source,terminal]
+----
+\q
+----
+
+. Enter the following command to permanently remove the `eustorage` site:
++
+[IMPORTANT]
+====
+The following action cannot be undone. Use with caution.
+====
++
+[source,terminal]
+----
+bash-4.4$ python -m util.removelocation eustorage
+----
++
+.Example output
++
+[source,terminal]
+----
+WARNING: This is a destructive operation. Are you sure you want to remove eustorage from your storage locations? [y/n] y
+Deleted placement 30
+Deleted placement 31
+Deleted placement 32
+Deleted placement 33
+Deleted location eustorage
+----
