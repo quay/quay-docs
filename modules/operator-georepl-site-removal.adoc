@@ -1,0 +1,73 @@
+:_content-type: PROCEDURE
+[id="operator-georepl-site-removal"]
+= Removing a geo-replicated site from your {productname} Operator deployment
+
+By using the following procedure, {productname} administrators can remove sites in a geo-replicated setup. 
+
+.Prerequisites 
+
+* You are logged into {ocp}.
+* You have configured {productname} geo-replication with at least two sites, for example, `usstorage` and `eustorage`. 
+* Each site has its own Organization, Repository, and image tags. 
+
+.Procedure 
+
+. Sync the blobs between all of your defined sites by running the following command:
++
+[source,terminal]
+----
+$ python -m util.backfillreplication
+----
++
+[WARNING]
+====
+Prior to removing storage engines from your {productname} `config.yaml` file, you *must* ensure that all blobs are synced between all defined sites. Complete this step before proceeding. 
+====
+
+. In your {productname} `config.yaml` file for site `usstorage`, remove the `DISTRIBUTED_STORAGE_CONFIG` entry for the `eustorage` site. 
+
+. Enter the following command to identify your `Quay` application pods:
++
+[source,terminal]
+----
+$ oc get pod -n <quay_namespace>
+----
++
+.Example output
++
+[source,terminal]
+----
+quay390usstorage-quay-app-5779ddc886-2drh2
+quay390eustorage-quay-app-66969cd859-n2ssm
+----
+
+. Enter the following command to open an interactive shell session in the `usstorage` pod:
++
+[source,terminal]
+----
+$ oc rsh quay390usstorage-quay-app-5779ddc886-2drh2
+----
+
+. Enter the following command to permanently remove the `eustorage` site:
++
+[IMPORTANT]
+====
+The following action cannot be undone. Use with caution.
+====
++
+[source,terminal]
+----
+sh-4.4$ python -m util.removelocation eustorage
+----
++
+.Example output
++
+[source,terminal]
+----
+WARNING: This is a destructive operation. Are you sure you want to remove eustorage from your storage locations? [y/n] y
+Deleted placement 30
+Deleted placement 31
+Deleted placement 32
+Deleted placement 33
+Deleted location eustorage
+----
