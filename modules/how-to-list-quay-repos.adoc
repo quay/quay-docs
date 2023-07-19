@@ -1,0 +1,88 @@
+:_content-type: CONCEPT
+[id="how-to-list-quay-repos"]
+= Listing more than 100 {productname} repositories using next_page
+
+When using the `curl` command to list {productname} repositories, you might encounter a limitation where only the first 100 repositories are displayed.
+
+To overcome the limitation and retrieve more than 100 repositories, the `next_page` token needs to be utilized. The `next_page` token allows you to fetch the next set of repositories.
+
+Use the following procedure to list more than 100 repositories. 
+
+.Procedure 
+
+. Enter the following `curl` command to retrieve the first 100 records along with the `next_page` token:
++
+[source,terminal]
+----
+# curl -X GET -H "Authorization: Bearer ${TOKEN}" "https://${URL}/api/v1/repository?namespace=${ORGANIZATION}" | jq '.' | head -20
+----
++
+.Example output
++
+[source,terminal]
+----
+100 15092  100 15092    0     0  49320      0 --:--:-- --:--:-- --:--:-- 49159
+{
+  "repositories": [
+    {
+      "namespace": "redhat",
+      "name": "repo1",
+      "description": "description",
+      "is_public": true,
+      "kind": "image",
+      "state": "NORMAL",
+      "is_starred": false
+    },
+    {
+      "namespace": "redhat",
+      "name": "repo2",
+      "description": "description",
+      "is_public": true,
+      "kind": "image",
+      "state": "NORMAL",
+      "is_starred": false
+    },
+...
+gAAAAABhC5BunFXqUYIni1MZ_eXO8NL_TQEVzPEwpcUlnTMChM0YaNBiZwApkIllW5hpg8ARSBsuFg==     <---- next_page token
+----
+
+. Use the `next_page` token obtained from the previous command to list more than 100 repositories. For example:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer Dz7hPQ..." "http://quay.example.com/api/v1/repository?namespace=redhat&next_page=gAAAAABhC7A...SBsuFg== " | jq '.' | head -20
+----
++
+.Example output
++
+[source,terminal]
+----
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                             Dload  Upload   Total   Spent    Left  Speed
+100 15200  100 15200    0     0  51351      0 --:--:-- --:--:-- --:--:-- 51351
+{
+  "repositories": [
+    {
+      "namespace": "redhat",
+      "name": "repo101",
+      "description": "description",
+      "is_public": true,
+      "kind": "image",
+      "state": "NORMAL",
+      "is_starred": false
+    },
+    {
+      "namespace": "redhat",
+      "name": "repo102",
+      "description": "description",
+      "is_public": true,
+      "kind": "image",
+      "state": "NORMAL",
+      "is_starred": false
+     }, ]
+----
+
+
+
+
+
