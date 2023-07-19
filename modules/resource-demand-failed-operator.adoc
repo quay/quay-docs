@@ -1,0 +1,56 @@
+:_content-type: CONCEPT
+[id="resource-demand-failed-operator"]
+= How can I handle failed {productname} Operator deployments caused by resource demand? 
+
+The {productname} Operator deploys the following pods with default resource requests shown below. Default resource requests can be too large for smaller clusters, and might cause issues during rolling updates or even initial rollout. 
+
+[source,terminal]
+----
+NAME                                          READY   STATUS      RESTARTS   AGE
+quay-operator.v3.6.2-d88c4f74b-7s8t7          1/1     Running     0          4m22s
+subquay-clair-app-79f96d69dc-j7dzh            1/1     Running     0          2m35s
+subquay-clair-app-79f96d69dc-n9svj            1/1     Running     0          2m3s
+subquay-clair-postgres-cc4fdf4b7-hjv9m        1/1     Running     0          2m51s
+subquay-quay-app-766f64b84d-grkqv             1/1     Running     0          2m35s
+subquay-quay-app-766f64b84d-m4bps             1/1     Running     0          2m35s
+subquay-quay-app-upgrade-wp9vd                0/1     Completed   0          2m44s
+subquay-quay-config-editor-6c84649df8-v2zhz   1/1     Running     0          2m35s
+subquay-quay-database-78bf9dd579-gjfvm        1/1     Running     0          2m33s
+subquay-quay-mirror-b9c7657b6-7tptr           1/1     Running     0          2m11s
+subquay-quay-mirror-b9c7657b6-phcfh           1/1     Running     0          2m11s
+subquay-quay-postgres-init-lp8fv              0/1     Completed   0          2m36s
+subquay-quay-redis-6c65bdc497-hsgfg           1/1     Running     0          3m31s
+
+1.clair-app Requests x 2 (instances):
+      cpu:      2
+      memory:   2Gi
+2. clair-postgres :
+Requests:
+      cpu:     500m
+      memory:  2Gi
+3. quay.app x 2 (instances) :
+Requests:
+      cpu:      2
+      memory:   8Gi
+4. quay-database : 
+Requests:
+      cpu:     500m
+      memory:  2Gi
+5. quay-mirror x 2  (instances):
+Requests:
+      cpu:     500m
+      memory:  512Mi
+6. redis
+Requests:
+      cpu:        500m
+      memory:     1Gi
+----
+
+Resource limitation and requests cannot be lowered, however, you can disable the `horizontalpodautoscaling` components in the `QuayRegistry` custom resource definition (CRD) and use the `override` feature to set the replica count to `1`. This lowers the required resources. 
+
+[NOTE]
+====
+Using a single replica is prone to cause registry outages because the pod might get restarted during updates, {productname} configuration updates, node maintenance events, or unexpected node downtime.
+====
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.8/html-single/manage_red_hat_quay/index#scale_down_your_red_hat_quay_deployment[Scaling down your {productname} deployment].
