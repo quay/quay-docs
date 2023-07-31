@@ -1,53 +1,12 @@
 :_content-type: CONCEPT
 [id="authentication-troubleshooting-issues"]
-= Troubleshooting {productname} authentication and authorization issues
+= Troubleshooting {productname} authentication and authorization issues for specific users
 
-Use the following procedure to troubleshoot authentication and authorization issues. 
+Use the following procedure to troubleshoot authentication and authorization issues for specific users. 
 
 .Procedure 
 
-. Run your {productname} deployment in debug mode. For more information, see "Running {productname} in debug mode".
-
-. Examine the authentication provider logs.
-
-.. If you are using the {productname} Operator, enter the following command:
-+
-[source,terminal]
-----
-$ oc logs <quay_pod_name> &> quay.logs
-----
-
-.. If you are on a standalone {productname} deployment, enter the following command:
-+
-[source,terminal]
-----
-$ podman logs <quay_container> &> quay.logs
-----
-+
-.Example output
-+
-[source,terminal]
-----
-...
-gunicorn-web stdout | 2023-01-20 15:41:52,071 [205] [DEBUG] [app] Starting request: urn:request:0d88de25-03b0-4cf9-b8bc-87f1ac099429 (/oauth2/azure/callback) {'X-Forwarded-For': '174.91.79.124'}
-...
-----
-
-. Review the external authentication configuration from your {productname} `config.yaml` file. 
-
-.. If you are using the {productname} Operator, enter the following command to exec in the `Quay` pod:
-+
-[source,terminal]
-----
-$ oc exec -it <quay_pod_name> -- cat /conf/stack/config.yaml
-----
-
-.. If you are on a standalone {productname} deployment, enter the following command to exec into the `Quay` container:
-+
-[source,terminal]
-----
-$ podman exec -it <quay_container> cat /conf/stack/config.yaml
-----
+. Exec into the {productname} pod or container. For more information, see "Interacting with the {productname} database".
 
 . Enter the following command to show all users for external authentication:
 +
@@ -89,8 +48,3 @@ testuser1  | testuser1@gmail.com
 testuser2  | testuser2@redhat.com
 (3 rows)
 ----
-
-[role="_additional-resources"]
-.Additional resources
-
-For more information, see link:https://access.redhat.com/articles/7018074[Troubleshooting Quay authentication].
