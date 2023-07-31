@@ -2,124 +2,30 @@
 [id="storage-troubleshooting-issues"]
 = Troubleshooting {productname} object storage issues
 
-Use the following procedure to troubleshoot {productname} object storage issues 
+Use the following options to troubleshoot {productname} object storage issues.
 
 .Procedure 
 
-. Enter the following command to see what object storage is used:
+* Enter the following command to see what object storage is used:
 +
 [source,terminal]
 ----
 $ oc get quayregistry quay-registry-name -o yaml   
 ----
 
-. Ensure that the object storage you are using is officially supported by {productname} by checking the link:https://access.redhat.com/articles/4067991[tested integrations] page.
+* Ensure that the object storage you are using is officially supported by {productname} by checking the link:https://access.redhat.com/articles/4067991[tested integrations] page.
 
-. Enable debug mode. For more information, see "Running {productname} in debug mode". 
+* Enable debug mode. For more information, see "Running {productname} in debug mode". 
 
-. Examine storage-related logs in your container or pod to reveal relevant error messages or warning related to object storage.
+* Check your object storage configuration in your `config.yaml` file. Ensure that it is accurate and matches the settings provided by your object storage provider. You can check information like access credentials, endpoint URLs, bucket and container names, and other relevant configuration parameters. 
 
-.. If you are running {productname} on {ocp}, enter the following command:
-+
-[source,terminal]
-----
-$ oc logs <quay_pod_name> &> quay.logs
-----
+* Ensure that {productname} has network connectivity to the object storage endpoint. Check the network configurations to ensure that there are no restrictions blocking the communication between {productname} and the object storage endpoint. 
 
-.. If you are running a standalone deployment of {productname}, enter the following command:
-+
-[source,terminal]
-----
-$ podman logs quay-container &> quay.logs
-----
-
-. Check your object storage configuration in your `config.yaml` file. Ensure that it is accurate and matches the settings provided by your object storage provider. You can check information like access credentials, endpoint URLs, bucket and container names, and other relevant configuration parameters. 
-
-.. If you are running {productname} on {ocp}, enter the following command:
-+
-[source,terminal]
-----
-$ oc exec -it quay-pod-name -- cat /conf/stack/config.yaml
-----
-+
-.Example output
-+
-[source,yaml]
-----
-DISTRIBUTED_STORAGE_CONFIG:
-local_us:
-- RHOCSStorage
-- access_key: redacted
-  bucket_name: lht-quay-datastore-68fff7b8-1b5e-46aa-8110-c4b7ead781f5
-  hostname: s3.openshift-storage.svc.cluster.local
-  is_secure: true
-  port: 443
-  secret_key: redacted
-  storage_path: /datastorage/registry
-DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
-- local_us
-DISTRIBUTED_STORAGE_PREFERENCE:
-- local_us
-----
-
-.. If you are running a standalone deployment of {productname}, enter the following command:
-+
-[source,terminal]
-----
-$ podman exec -it quay-container cat /conf/stack/config.yaml
-----
-+
-.Example output
-+
-[source,yaml]
-----
-DISTRIBUTED_STORAGE_CONFIG:
-local_us:
-- RHOCSStorage
-- access_key: redacted
-  bucket_name: lht-quay-datastore-68fff7b8-1b5e-46aa-8110-c4b7ead781f5
-  hostname: s3.openshift-storage.svc.cluster.local
-  is_secure: true
-  port: 443
-  secret_key: redacted
-  storage_path: /datastorage/registry
-DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
-- local_us
-DISTRIBUTED_STORAGE_PREFERENCE:
-- local_us
-----
-
-. Ensure that {productname} has network connectivity to the object storage endpoint. Check the network configurations to ensure that there are no restrictions blocking the communication between {productname} and the object storage endpoint. 
-
-.. Enter the following `curl` command from inside of your `Quay` container or pod to check the connection to the s3 endpoint:
-+
-[source,terminal]
-----
-$ curl -kv http://s3.hostname.com:port
-----
-
-.. Enter the following command to perform health checks from inside of the `Quay` pod or container:
-+
-[source,terminal]
-----
-$ curl http://localhost:8080/health/instance
-----
-+
-[source,terminal]
-----
-$ curl http://localhost:8080/health/endtoend
-----
-
-.. Optional. If `FEATURE_STORAGE_PROXY` is enabled, check to see if its download URL is accessible. This can be found in the {productname} debug logs. For example:
+* If `FEATURE_STORAGE_PROXY` is enabled in your `config.yaml` file, check to see if its download URL is accessible. This can be found in the {productname} debug logs. For example:
 +
 [source,terminal]
 ----
 $ curl -vvv "https://QUAY_HOSTNAME/_storage_proxy/dhaWZKRjlyO......Kuhc=/https/quay.hostname.com/quay-test/datastorage/registry/sha256/0e/0e1d17a1687fa270ba4f52a85c0f0e7958e13d3ded5123c3851a8031a9e55681?AWSAccessKeyId=xxxx&Signature=xxxxxx4%3D&Expires=1676066703"
 ----
 
-. Try access the object storage service outside of {productname} to determine if the issue is specific to your deployment, or the underlying object storage. You can use command line tools like `aws`, `gsutil`, or `s3cmd` provided by the object storage provider to perform basic operations like listing buckets, containers, or uploading and downloading objects. This might help you isolate the problem. 
-
-[role="_additional-resources"]
-.Additional resources
-
-For more information, see link:https://access.redhat.com/articles/7018076[Troubleshooting Quay Storage].
+* Try access the object storage service outside of {productname} to determine if the issue is specific to your deployment, or the underlying object storage. You can use command line tools like `aws`, `gsutil`, or `s3cmd` provided by the object storage provider to perform basic operations like listing buckets, containers, or uploading and downloading objects. This might help you isolate the problem. 

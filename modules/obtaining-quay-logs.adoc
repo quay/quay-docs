@@ -1,0 +1,96 @@
+:_content-type: PROCEDURE
+[id="obtaining-quay-logs"]
+= Logging information for {productname}
+
+Obtaining log information using can be beneficial in various ways for managing, monitoring, and troubleshooting applications running in containers or pods. Some of the reasons why obtaining log information is valuable include the following: 
+
+* *Debugging and Troubleshooting*: Logs provide insights into what's happening inside the application, allowing developers and system administrators to identify and resolve issues. By analyzing log messages, one can identify errors, exceptions, warnings, or unexpected behavior that might occur during the application's execution.
+
+* *Performance Monitoring*: Monitoring logs helps to track the performance of the application and its components. Monitoring metrics like response times, request rates, and resource utilization can help in optimizing and scaling the application to meet the demand.
+
+* *Security Analysis*: Logs can be essential in auditing and detecting potential security breaches. By analyzing logs, suspicious activities, unauthorized access attempts, or any abnormal behavior can be identified, helping in detecting and responding to security threats.
+
+* *Tracking User Behavior*: In some cases, logs can be used to track user activities and behavior. This is particularly important for applications that handle sensitive data, where tracking user actions can be useful for auditing and compliance purposes.
+
+* *Capacity Planning*: Log data can be used to understand resource utilization patterns, which can aid in capacity planning. By analyzing logs, one can identify peak usage periods, anticipate resource needs, and optimize infrastructure accordingly.
+
+* *Error Analysis*: When errors occur, logs can provide valuable context about what happened leading up to the error. This can help in understanding the root cause of the issue and facilitating the debugging process.
+
+* *Verification of Deployment*: Logging during the deployment process can help verify if the application is starting correctly and if all components are functioning as expected.
+
+* *Continuous Integration/Continuous Deployment (CI/CD)*: In CI/CD pipelines, logging is essential to capture build and deployment statuses, allowing teams to monitor the success or failure of each stage.
+
+[id="obtaining-log-information-quay"]
+== Obtaining log information for {productname}
+
+Log information can be obtained for all types of {productname} deployments, including geo-replication deployments, standalone deployments, and Operator deployments. Log information can also be obtained for mirrored repositories. It can help you troubleshoot authentication and authorization issues, and object storage issues. After you have obtained the necessary log information, you can search the link:https://access.redhat.com/knowledgebase[Red Hat Knowledgebase] for a solution, or file a support ticket with the Red Hat Support team. 
+
+Use the following procedure to obtain logs for your {productname} deployment. 
+
+.Procedure 
+
+* If you are using the {productname} Operator on {ocp}, enter the following command to view the logs:
++
+[source,terminal]
+----
+$ oc logs <quay_pod_name>
+----
+
+* If you are on a standalone {productname} deployment, enter the following command:
++
+[source,terminal]
+----
+$ podman logs <quay_container_name>
+----
++
+.Example output
++
+[source,terminal]
+----
+...
+gunicorn-web stdout | 2023-01-20 15:41:52,071 [205] [DEBUG] [app] Starting request: urn:request:0d88de25-03b0-4cf9-b8bc-87f1ac099429 (/oauth2/azure/callback) {'X-Forwarded-For': '174.91.79.124'}
+...
+----
+
+[id="obtaining-verbose-container-pod-logs"]
+== Examining verbose logs
+
+{productname} does not have verbose logs, however, with the following procedures, you can obtain a detailed status check of your database pod or container. 
+
+.Procedure
+
+. Enter the following commands to examine verbose database logs.
+
+.. If you are using the {productname} Operator on {ocp}, enter the following commands:
++
+[source,terminal]
+----
+$ oc logs <quay_pod_name> --previous 
+----
++
+[source,terminal]
+----
+$ oc logs <quay_pod_name> --previous -c <container_name>
+----
++
+[source,terminal]
+----
+$ oc cp <quay_pod_name>:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host
+----
+
+.. If you are using a standalone deployment of {productname}, enter the following commands:
++
+[source,terminal]
+----
+$ podman logs <quay_container_name> --previous
+----
++
+[source,terminal]
+----
+$ podman logs <quay_container_name> --previous -c <container_name>
+----
++
+[source,terminal]
+----
+$ podman cp <quay_container_name>:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host
+----
