@@ -1,0 +1,159 @@
+:_content-type: PROCEDURE
+[id="obtaining-quay-config-information"]
+= Configuration information for {productname}
+
+Checking a configuration YAML can help identify and resolve various issues related to the configuration of {productname}. Checking the configuration YAML can help you address the following issues:
+
+* *Incorrect Configuration Parameters*: If the database is not functioning as expected or is experiencing performance issues, your configuration parameters could be at fault. By checking the configuration YAML, administrators can ensure that all the required parameters are set correctly and match the intended settings for the database.
+
+* *Resource Limitations*: The configuration YAML might specify resource limits for the database, such as memory and CPU limits. If the database is running into resource constraints or experiencing contention with other services, adjusting these limits can help optimize resource allocation and improve overall performance.
+
+* *Connectivity Issues*: Incorrect network settings in the configuration YAML can lead to connectivity problems between the application and the database. Ensuring that the correct network configurations are in place can resolve issues related to connectivity and communication.
+
+* *Data Storage and Paths*: The configuration YAML may include paths for storing data and logs. If the paths are misconfigured or inaccessible, the database may encounter errors while reading or writing data, leading to operational issues.
+
+* *Authentication and Security*: The configuration YAML may contain authentication settings, including usernames, passwords, and access controls. Verifying these settings is crucial for maintaining the security of the database and ensuring only authorized users have access.
+
+* *Plugin and Extension Settings*: Some databases support extensions or plugins that enhance functionality. Issues may arise if these plugins are misconfigured or not loaded correctly. Checking the configuration YAML can help identify any problems with plugin settings.
+
+* *Replication and High Availability Settings*: In clustered or replicated database setups, the configuration YAML may define replication settings and high availability configurations. Incorrect settings can lead to data inconsistency and system instability.
+
+* *Backup and Recovery Options*: The configuration YAML might include backup and recovery options, specifying how data backups are performed and how data can be recovered in case of failures. Validating these settings can ensure data safety and successful recovery processes.
+
+By checking your configuration YAML, {productname} administrators can detect and resolve these issues before they cause significant disruptions to the application or service relying on the database.
+
+[id="obtaining-configuration-information-quay"]
+== Obtaining configuration information for {productname}
+
+Configuration information can be obtained for all types of {productname} deployments, include standalone, Operator, and geo-replication deployments. Obtaining configuration information can help you resolve issues with authentication and authorization, your database, object storage, and repository mirroring. After you have obtained the necessary configuration information, you can update your `config.yaml` file, search the link:https://access.redhat.com/knowledgebase[Red Hat Knowledgebase] for a solution, or file a support ticket with the Red Hat Support team. 
+
+.Procedure 
+
+. To obtain configuration information on {productname} Operator deployments, you can use `oc exec`, `oc cp`, or `oc rsync`. 
+
+.. To use the `oc exec` command, enter the following command:
++
+[source,terminal]
+----
+$ oc exec -it <quay_pod_name> -- cat /conf/stack/config.yaml
+----
++
+This command returns your `config.yaml` file directly to your terminal. 
+
+.. To use the `oc copy` command, enter the following commands:
++
+[source,terminal]
+----
+$ oc cp <quay_pod_name>:/conf/stack/config.yaml /tmp/config.yaml
+----
++
+To display this information in your terminal, enter the following command:
++
+[source,terminal]
+----
+$ cat /tmp/config.yaml
+----
+
+.. To use the `oc rsync` command, enter the following commands:
++
+[source,terminal]
+----
+oc rsync <quay_pod_name>:/conf/stack/ /tmp/local_directory/
+----
++
+To display this information in your terminal, enter the following command:
++
+[source,terminal]
+----
+$ cat /tmp/local_directory/config.yaml
+----
++
+.Example output
++
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+local_us:
+- RHOCSStorage
+- access_key: redacted
+  bucket_name: lht-quay-datastore-68fff7b8-1b5e-46aa-8110-c4b7ead781f5
+  hostname: s3.openshift-storage.svc.cluster.local
+  is_secure: true
+  port: 443
+  secret_key: redacted
+  storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+- local_us
+DISTRIBUTED_STORAGE_PREFERENCE:
+- local_us
+----
+
+. To obtain configuration information on standalone {productname} deployments, you can use `podman cp` or `podman exec`. 
+
+.. To use the `podman copy` command, enter the following commands:
++
+[source,terminal]
+----
+$ podman cp <quay_container_id>:/conf/stack/config.yaml /tmp/local_directory/
+----
++
+To display this information in your terminal, enter the following command:
++
+[source,terminal]
+----
+$ cat /tmp/local_directory/config.yaml
+----
+
+.. To use `podman exec`, enter the following commands:
++
+[source,terminal]
+----
+$ podman exec -it <quay_container_id> cat /conf/stack/config.yaml
+----
++
+.Example output
++
+[source,yaml]
+----
+BROWSER_API_CALLS_XHR_ONLY: false
+ALLOWED_OCI_ARTIFACT_TYPES:
+    application/vnd.oci.image.config.v1+json:
+        - application/vnd.oci.image.layer.v1.tar+zstd
+    application/vnd.sylabs.sif.config.v1+json:
+        - application/vnd.sylabs.sif.layer.v1+tar
+AUTHENTICATION_TYPE: Database
+AVATAR_KIND: local
+BUILDLOGS_REDIS:
+    host: quay-server.example.com
+    password: strongpassword
+    port: 6379
+DATABASE_SECRET_KEY: 05ee6382-24a6-43c0-b30f-849c8a0f7260
+DB_CONNECTION_ARGS: {}
+---
+----
+
+[id="obtaining-db-config-info"]
+== Obtaining database configuration information
+
+You can obtain configuration information about your database by using the following procedure. 
+
+[WARNING]
+====
+Interacting with the PostgreSQL database is potentially destructive. It is highly recommended that you perform the following procedure with the help of a {productname} Support Specialist. 
+====
+
+.Procedure 
+
+* If you are using the {productname} Operator on {ocp}, enter the following command:
++
+[source,terminal]
+----
+$ oc exec -it <database_pod> -- cat /var/lib/pgsql/data/userdata/postgresql.conf    
+----
+
+* If you are using a standalone deployment of {productname}, enter the following command:
++
+[source,terminal]
+----
+$ podman exec -it <database_container> cat /var/lib/pgsql/data/userdata/postgresql.conf
+----
