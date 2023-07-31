@@ -2,8 +2,9 @@
 [id="database-troubleshooting-issues"]
 = Troubleshooting {productname} database issues
 
-Use the following procedures to troubleshoot the PostgreSQL database. 
+Use the following procedures to troubleshoot the PostgreSQL database.
 
+////
 [id="checking-deployment-type"]
 == Checking the type of deployment
 
@@ -31,51 +32,70 @@ $ oc get pods
 ----
 $ podman ps -a
 ----
+////
 
-[id="examining-container-pod-logs"]
-== Examining the database container or pod logs
+[id="interact-with-database"]
+== Interacting with the {productname} database
 
-Use the following procedure to check the status of the database pod or container.
+Use the following procedure to interact with the PostgreSQL database. 
+
+[WARNING]
+====
+Interacting with the PostgreSQL database is potentially destructive. It is highly recommended that you perform the following procedure with the help of a {productname} Support Specialist. 
+====
+
+[NOTE]
+====
+Interacting with the PostgreSQL database can also be used to troubleshoot authorization and authentication issues. 
+====
+
+.Procedure 
+
+. Exec into the {productname} database.
+
+.. Enter the following commands to exec into the {productname} database pod on {ocp}:
++
+[source,terminal]
+----
+$ oc exec -it <quay_database_pod> -- psql
+----
+
+.. Enter the following command to exec into the {productname} database on a standalone deployment: 
++
+[source,terminal]
+----
+$ sudo podman exec -it <quay_container_name> /bin/bash
+----
+
+. Enter the PostgreSQL shell.
++
+[WARNING]
+====
+Interacting with the PostgreSQL database is potentially destructive. It is highly recommended that you perform the following procedure with the help of a {productname} Support Specialist. 
+====
+
+.. If you are using the {productname} Operator, enter the following command to enter the PostgreSQL shell:
++
+[source,terminal]
+----
+$ oc rsh <quay_pod_name> psql -U your_username -d your_database_name
+----
+
+.. If you are on a standalone {productname} deployment, enter the following command to enter the PostgreSQL shell:
++
+[source,terminal]
+----
+bash-4.4$ psql -U your_username -d your_database_name
+----
+
+[id="troubleshooting-crashloop-backoff-state"]
+== Troubleshooting crashloopbackoff states
+
+Use the following procedure to troueblshoot `crashloopbackoff` states.
 
 .Procedure
 
-. Enter the following command to examine the database logs. Note that the {productname} does not have verbose logs, so all commands must be entered.
-
-.. If you are using the {productname} Operator on {ocp}, enter the following command:
-+
-[source,terminal]
-----
-$ oc logs pod-name --previous 
-----
-+
-[source,terminal]
-----
-$ oc logs pod-name --previous -c <container_name>
-----
-+
-[source,terminal]
-----
-$ oc cp pod-name:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host
-----
-
-.. If you are using a standalone deployment of {productname}, enter the following command:
-+
-[source,terminal]
-----
-$ podman logs <container_name> --previous
-----
-+
-[source,terminal]
-----
-$ podman logs <container_name> --previous -c <container_name>
-----
-+
-[source,terminal]
-----
-$ podman cp <database_container>:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host
-----
-
-. Optional. If your container or pod is in a `crashloopbackoff` state, you can enter the following commands.
+. If your container or pod is in a `crashloopbackoff` state, you can enter the following commands.
 
 .. Enter the following command to scale down the {productname} Operator:
 +
@@ -93,6 +113,11 @@ deployment.apps/<quay_database> scaled
 ----
 
 .. Enter the following command to edit the {productname} database:
++
+[WARNING]
+====
+Interacting with the PostgreSQL database is potentially destructive. It is highly recommended that you perform the following procedure with the help of a {productname} Support Specialist. 
+====
 +
 [source,terminal]
 ----
@@ -166,63 +191,6 @@ $ oc exec -it _quay_pod_name_ -- curl -v telnet://<database_pod_name>:5432
 $ podman exec -it <quay_container_name >curl -v telnet://<database_container_name>:5432
 ----
 
-[id="check-database-configuration"]
-== Checking the database configuration
-
-Use the following procedure to check the database configuration
-
-.Procedure
-
-. Check the database configuration.
-
-.. On {ocp} and at the container level.
-
-... If you are using the {productname} Operator on {ocp}, enter the following command:
-+
-[source,terminal]
-----
-$ oc exec -it <quay_pod_name> -- cat /conf/stack/config.yaml
-----
-
-... If you are using a standalone deployment of {productname}, enter the following command:
-+
-[source,terminal]
-----
-$ podman exec -it <quay_pod-name> cat /conf/stack/config.yaml
-----
-
-.. On the PostgreSQL level.
-
-... If you are using the {productname} Operator on {ocp}, enter the following command:
-+
-[source,terminal]
-----
-$ oc exec -it <database_pod> -- cat /var/lib/pgsql/data/userdata/postgresql.conf    
-----
-
-... If you are using a standalone deployment of {productname}, enter the following command:
-+
-[source,terminal]
-----
-$ podman exec -it <database_container> cat /var/lib/pgsql/data/userdata/postgresql.conf
-----
-
-.. If your container or pod is in a `crashloopbackoff` or `error` state.
-
-... If you are using the {productname} Operator on {ocp}, enter the following command:
-+
-[source,terminal]
-----
-$ oc get secret -n <quay_project> <quay_config_secret> -o "jsonpath={$.data['config\.yaml']}" | base64 -d  &> quay-config.yaml
-----
-
-... If you are using a standalone deployment of {productname}, enter the following command:
-+
-[source,terminal]
-----
-$ cat $QUAY/conf/config.yaml
-----
-
 [id="check-resource-allocation"]
 == Checking resource allocation
 
@@ -231,20 +199,6 @@ Use the following procedure to check resource allocation.
 .Procedure 
 
 . Obtain a list of running containers.
-
-.. If you are using the {productname} Operator on {ocp}, enter the following command:
-+
-[source,terminal]
-----
-$ oc get pods
-----
-
-.. If you are using a standalone deployment of {productname}, enter the following command:
-+
-[source,terminal]
-----
-$ podman ps
-----
 
 . Monitor disk usage of your {productname} deployment. 
 
@@ -264,67 +218,31 @@ $ podman exec -it <quay_database_conatiner_name> df -ah
 
 . Monitor other resource usage. 
 
-.. Enter the following command to check the status of a specific pod:
+.. Enter the following command to check resource allocation on a {productname} Operator deployment:
++
+[source,terminal]
+----
+$ oc adm top pods
+----
+
+.. Enter the following command to check the status of a specific pod on a standalone deployment of {productname}:
 +
 [source,terminal]
 ----
 $ podman pod stats <pod_name>
 ----
 
-.. Enter the following command to check the status of a specific container:
+.. Enter the following command to check the status of a specific container on a standalone deployment of {productname}:
 +
 [source,terminal]
 ----
 $ podman stats <container_name>
 ----
 +
-The following information is returned from other command:
+The following information is returned:
 +
 * *CPU %*. The percentage of CPU usage by the container since the last measurement. This value represents the container's share of the available CPU resources.
 * *MEM USAGE / LIMIT*. The current memory usage of the container followed by its memory limit. The values are displayed in the format `current_usage / memory_limit`. For example, `300.4MiB / 7.795GiB` indicates that the container is currently using 300.4 megabytes of memory out of a limit of 7.795 gigabytes.
 * *MEM %*. The percentage of memory usage by the container in relation to its memory limit.
 * *NET I/O*. The network I/O (input/output) statistics of the container. It displays the amount of data transmitted and received by the container over the network. The values are displayed in the format: `transmitted_bytes / received_bytes`.
 * *BLOCK I/O*. The block I/O (input/output) statistics of the container. It represents the amount of data read from and written to the block devices (for example, disks) used by the container. The values are displayed in the format `read_bytes / written_bytes`.
-
-[id="interact-with-database"]
-== Interacting with the {productname} database
-
-Use the following procedure to interact with the PostgreSQL database. 
-
-.Procedure 
-
-. Exec into the {productname} database.
-
-.. Enter the following commands to exec into the {productname} database pod on {ocp}:
-+
-[source,terminal]
-----
-$ oc exec -it <quay_database_pod> -- psql
-----
-
-.. Enter the following command to exec into the {productname} database on a standalone deployment: 
-+
-[source,terminal]
-----
-$ podman stats <container_name>
-----
-
-. Enter the following command to reveal a list of all databases stored, along with their respective sizes:
-+
-[source,terminal]
-----
-postgres=# \l+
-----
-
-. Enter the following command to connect to the PostgreSQL database:
-+
-[source,terminal]
-----
-postgres=# \c <quay_database_name>;        
-----
-
-
-[role="_additional-resources"]
-.Additional resources
-
-For more information, see link:https://access.redhat.com/articles/7018075[Troubleshooting Quay Database].
