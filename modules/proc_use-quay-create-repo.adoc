@@ -1,77 +1,130 @@
-[[use-quay-create-repo]]
+
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: CONCEPT
+[id="use-quay-create-repo"]
 = Creating a repository
-A repository provides a central location for storing a related set of container images. There are two ways to create a repository in {productname}: via a push (from `docker` or `podman`) and via the {productname} UI. These are essentially the same, whether you are using Quay.io or your own instance of {productname}.
 
-[[creating-an-image-repository-via-the-ui]]
-== Creating an image repository via the UI
+A repository provides a central location for storing a related set of container images. There are two ways to create a repository in 
+ifeval::["{context}" == "quay-io"]
+{quayio}:
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}:
+endif::[] 
+by pushing an image with the relevant `docker` or `podman` command, or by using the
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[] 
+UI. Using either method has the same outcome.
 
-To create a repository in the {productname} UI under a user account:
-. Log in to the user account through the web UI.
-. Click the + icon in the top right of the header on the home page (or
-other page related to the user) and choose New Repository, as shown in
-the following figure:
+[id="creating-an-image-repository-via-the-ui"]
+== Creating an image repository by using the UI
+
+Use the following procedure to create a repository using the
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[] 
+UI. 
+
+.Procedure 
+
+. Log in to your user account through the web UI.
+
+. On the 
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[] 
+landing page, click *Create New Repository*. Alternatively, you can click the *+* icon -> *New Repository*. For example:
 +
 image:repo-create.png[Create a new repository for a user.]
 
-. On the Create New Repository page that appears
+. On the *Create New Repository* page:
 
-  * Add the new repository name to your user name
+.. Append a *Repository Name* to your username or to the Organization that you wish to use. 
 
-  * Click Repository Description and type a description of the repository
+.. Optional. Click *Click to set repository description* to add a description of the repository. 
 
-  * In Repository Visibility, select whether you want the repository to be public or private
+.. Click *Public* or *Private* depending on your needs. 
 
-  * Click the Create Repository button.
+.. Optional. Select the desired repository initialization. 
 
-The new repository is created, starting out empty. A docker pull command you
-could use to pull an image from this repository (minus the image name) appears
-on the screen.
+. Click *Create Private Repository* to create a new, empty repository. 
 
-To create a repository in the {productname} UI under an organization:
+[id="creating-an-image-repository-via-docker"]
+== Creating an image repository by using the CLI
 
-. Log in as a user that has Admin or Write permission to the organization.
-. From the Repositories view, select the organization name from the right
-column under Users and Organizations. The page for the organization appears, similar to the page shown in Figure 2.x:
-. Click +Create New Repository in the upper-right part of the page.
-. On the Create New Repository page that appears:
-  * Add the new repository name to the organization name
-  * Click Repository Description and type a description of the repository
-  * In Repository Visibility, select whether you want the repository to be public or private
-  * Click the Create Repository button.
+With the proper credentials, you can push an image to a repository using either Docker or Podman that does not yet exist in your 
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[] 
+instance. In turn, this creates said repository. 
 
-The new repository is created, starting out empty. A docker pull command you could use to
-pull an image from this repository (minus the image name) appears on the screen.
+Use the following procedure to create an image repository by pushing an image. Podman or Docker commands are acceptable. 
 
+.Procedure
 
-[[creating-an-image-repository-via-docker]]
-== Creating an image repository via docker or podman
-
-Assuming you have the proper credentials, pushing an image to a repository
-that does not yet exist in your {productname} instance will create that
-repository as it pushes the image to that repository. Either the `docker` or
-`podman` commands will work for these examples.
-
-. Tag the image: With an image available from `docker` or `podman` on your local
-system, tag that image with the new repository name and image name. Here are
-examples for pushing images to Quay.io or your own {productname} setup (for
-example, reg.example.com). For the examples, replace namespace with your
-{productname} user name or organization and repo_name with the name of the
-repository you want to create:        
+. Pull a sample page from an example registry. For example:
 +
-```
-# sudo podman tag myubi-minimal quay.io/namespace/repo_name
-# sudo podman tag myubi-standard reg.example.com/namespace/repo_name
-```
-
-. Push to the appropriate registry. For example:             
+[source,terminal]
+----
+$ sudo podman pull busybox
+----
 +
-```
-# sudo podman push quay.io/namespace/repo_name
-# sudo podman push reg.example.com/namespace/repo_name
-```
+.Example output
++
+[source,terminal]
+----
+Trying to pull docker.io/library/busybox...
+Getting image source signatures
+Copying blob 4c892f00285e done
+Copying config 22667f5368 done
+Writing manifest to image destination
+Storing signatures
+22667f53682a2920948d19c7133ab1c9c3f745805c14125859d20cede07f11f9
+----
 
+. Tag the image on your local system with the new repository and image name. For example:
++
+[source,terminal]
+----
+sudo podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
+----
+
+. Push the image to the {productname} registry. Following this step, you can use your browser to see the tagged image in your repository. 
++ 
+[source,terminal]
+----
+$ sudo podman push --tls-verify=false quay-server.example.com/quayadmin/busybox:test
+----
++
+.Example output
++
+[source,terminal]
+----
+Getting image source signatures
+Copying blob 6b245f040973 done
+Copying config 22667f5368 done
+Writing manifest to image destination
+Storing signatures
+----
++
 [NOTE]
 ====
-To create an application repository, follow the same procedure you did
-for creating a container image repository.
+To create an *Application* repository, follow the same procedure you did for creating a container image repository.
 ====

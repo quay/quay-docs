@@ -1,16 +1,52 @@
-[[use-quay-view-export-logs]]
+[id="use-quay-view-export-logs"]
 = Viewing and exporting logs
 
-Activity logs are gathered for all repositories and namespaces (users and
-organizations) in {productname}. There are multiple ways of accessing
-log files, including:
+Activity logs are gathered for all repositories and namespace in
+ifeval::["{context}" == "quay-io"]
+{quayio}.
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}.
+endif::[]
 
-* Viewing logs through the web UI
-* Exporting logs so they can be saved externally.
-* Accessing log entries via the API
+Viewing usage logs of 
+ifeval::["{context}" == "quay-io"]
+{quayio}.
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}.
+endif::[]
+can provide valuable insights and benefits for both operational and security purposes. Usage logs might reveal the following information:
 
-To access logs, you must have Admin privilege to the selected repository
-or namespace.
+*Monitoring and Performance Analysis*: Usage logs can help you monitor the performance of your container registry. By analyzing logs, you can identify patterns in usage, peak times, and potential bottlenecks. This information can guide resource allocation and optimization efforts.
+
+*Resource Planning*: Usage logs can provide data on the number of image pulls, pushes, and overall traffic to your registry. This information is crucial for capacity planning and ensuring that your registry infrastructure can handle the load effectively.
+
+*User Activity*: Logs can help you track user activity, showing which users are accessing and interacting with images in the registry. This can be useful for auditing, understanding user behavior, and managing access controls.
+
+*Usage Patterns*: By studying usage patterns, you can gain insights into which images are popular, which versions are frequently used, and which images are rarely accessed. This information can help prioritize image maintenance and cleanup efforts.
+
+*Security Auditing*: Usage logs enable you to track who is accessing images and when. This is crucial for security auditing, compliance, and investigating any unauthorized or suspicious activity.
+
+*Troubleshooting*: When issues arise, usage logs can help you troubleshoot problems by providing information about specific requests, errors, and patterns leading up to the issue.
+
+*Image Lifecycle Management*: Logs can reveal which images are being pulled, pushed, and deleted. This information is essential for managing image lifecycles, including deprecating old images and ensuring that only authorized images are used.
+
+*Compliance and Regulatory Requirements*: Many industries have compliance requirements that mandate tracking and auditing of access to sensitive resources. Usage logs can help you demonstrate compliance with such regulations.
+
+*Identifying Abnormal Behavior*: Unusual or abnormal patterns in usage logs can indicate potential security breaches or malicious activity. Monitoring these logs can help you detect and respond to security incidents more effectively.
+
+*Trend Analysis*: Over time, usage logs can provide trends and insights into how your registry is being used. This can help you make informed decisions about resource allocation, access controls, and image management strategies.
+
+*Performance Optimization*: Usage logs can reveal slow or frequently accessed images, allowing you to optimize the distribution of your images and improve overall registry performance.
+
+There are multiple ways of accessing log files:
+
+* Viewing logs through the web UI.
+* Exporting logs so that they can be saved externally. 
+* Accessing log entries using the API. 
+
+To access logs, you must have administrative privileges for the selected repository or namespace. 
 
 [NOTE]
 ====
@@ -19,61 +55,75 @@ To gather more results that that, you must use the log exporter feature
 described in this chapter.
 ====
 
-[[use-quay-view-logs]]
-== Viewing logs
-To view log entries for a repository or namespace from the web UI, do the
-following:
+[id="use-quay-view-logs"]
+== Viewing logs using the UI
 
-. Select a repository or namespace (organization or user) for which you
-have Admin privileges.
-. Select the Usage Logs icon from the left column. A Usage Logs screen
-appears, like the one shown in the following figure:
+Use the following procedure to view log entries for a repository or namespace using the web UI.
+
+.Procedure 
+
+. Navigate to a repository or namespace for which you are an administrator of.
+
+. In the navigation pane, select *Usage Logs*. 
 +
 image:logs.png[View usage logs]
 
-. From the Usage Logs page, you can:
-  * Set the date range for viewing log entries by adding dates to the From and to boxes. By default, the most recent one week of log entries is displayed.
-  * Type a string into the Filter Logs box to display log entries that container the given string.
-  * Toggle the arrow to the left of any log entry to see more or less text associated with that log entry.
+. Optional. On the usage logs page:
 
-[[use-quay-export-logs]]
+.. Set the date range for viewing log entries by adding dates to the *From* and *to* boxes. By default, the UI shows you the most recent week of log entries. 
+
+.. Type a string into the *Filter Logs* box to display log entries that of the specified keyword. For example, you can type `delete` to filter the logs to show deleted tags.  
+
+.. Under *Description*, toggle the arrow of a log entry to see more, or less, text associated with a specific log entry. 
+
+[id="use-quay-export-logs"]
 == Exporting repository logs
-To be able to grab a larger number of log files and save them outside of the {productname} database, you can use the Export Logs feature. Here are a few things you should know about using Export Logs:
+
+You can obtain a larger number of log files and save them outside of the {productname} database by using the *Export Logs* feature. This feature has the following benefits and constraints: 
 
 * You can choose a range of dates for the logs you want to gather from a repository.
 
-* You can request that the logs be sent to you via an email attachment or directed to a callback URL.
+* You can request that the logs be sent to you by an email attachment or directed to a callback URL.
 
-* You need Admin privilege to the repository or namespace to export logs
+* To export logs, you must be an administrator of the repository or namespace. 
 
-* A maximum of 30 days of log data can be exported at a time
+* A maximum of 30 days of log data can be exported at a time. 
 
-* Export Logs only gathers log data that was previously produced. It does not stream logging data.
+* Export logs only gathers log data that was previously produced. It does not stream logging data. 
 
-* Your {productname} instance must be configured for external storage for this feature (local storage will not work).
+ifeval::["{context}" == "use-quay"]
+* Your {productname} instance must be configured for external storage for this feature. Local storage does not work for exporting logs. 
+endif::[]
 
-* Once the logs are gathered and available, you should immediately copy that data if you want to save it. By default, the data expires in an hour.
+* When logs are gathered and made available to you, you should immediately copy that data if you want to save it. By default, the data expires after one hour. 
 
-To use the Export Logs feature:
+Use the following procedure to export logs.
 
-. Select a repository for which you have Admin privileges.
-. Select the Usage Logs icon from the left column. A Usage Logs screen appears.
-. Choose the From and to date range of the log entries you want to gather.
-. Select the Export Logs button. An Export Usage Logs pop-up appears, as shown
+.Procedure 
+
+. Select a repository for which you have administrator privileges. 
+
+. In the navigation pane, select *Usage Logs*. 
+
+. Optional. If you want to specify specific dates, enter the range in the *From* and *to* boxes. 
+
+. Click the *Export Logs* button. An Export Usage Logs pop-up appears, as shown
 +
 image:export-usage-logs.png[Enter email or callback URL to receive exported logs]
 
-. Enter the email address or callback URL you want to receive the exported
-logs. For the callback URL, you could use a URL to a place such as webhook.site.
-. Select Start Logs Export. This causes {productname} to begin gathering the
-selected log entries. Depending on the amount of logging data being gathered,
-this can take anywhere from one minute to an hour to complete.
-. When the log export is completed you will either:
-  - Receive an email, alerting you to the availability of your requested exported
-log entries.
-  - See a successful status of your log export request from the webhook URL. A
-link to the exported data will be available for you to select to download the logs.
+. Enter an email address or callback URL to receive the exported log. For the callback URL, you can use a URL to a specified domain, for example, <webhook.site>. 
 
-Keep in mind that the URL points to a location in your {productname} external
-storage and is set to expire within an hour. So make sure you copy the exported
-logs before that expiration time if you intend to keep them.
+. Select *Start Logs Export* to start the process for gather the selected log entries. Depending on the amount of logging data being gathered, this can take anywhere from a few minutes to several hours to complete. 
+
+. When the log export is completed, the one of following two events happen: 
++
+* An email is received, alerting you to the available of your requested exported log entries. 
+
+* A successful status of your log export request from the webhook URL is returned. Additionally, a link to the exported data is made available for you to delete to download the logs. 
+
+ifeval::["{context}" == "use-quay"]
+[NOTE]
+====
+The URL points to a location in your {productname} external storage and is set to expire within one hour. Make sure that you copy the exported logs before the expiration time if you intend to keep your logs.
+====
+endif::[]

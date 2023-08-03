@@ -1,144 +1,277 @@
+:_content-type: CONCEPT
+[id="working-with-tags"]
 = Working with tags
 
-Tags provide a way to identify the version of an image, as well as
-offering a means of naming the same image in different ways.
-Besides an image's version, an image tag can identify its uses (such as devel,
-testing, or prod) or the fact that it is the most recent version (latest).
+An _image tag_ refers to a label or identifier assigned to a specific version or variant of a container image. Container images are typically composed of multiple layers that represent different parts of the image. Image tags are used to differentiate between different versions of an image or to provide additional information about the image.
 
-From the *Tags* tab of an image repository, you can view, modify, add, move, delete, and
-see the history of tags. You also can fetch command-lines you can use to
-download (pull) a specific image (based on its name and tag) using different commands.
+Image tags have the following benefits:
 
-[[viewing-and-modifying-tags]]
+* *Versioning and Releases*: Image tags allow you to denote different versions or releases of an application or software. For example, you might have an image tagged as _v1.0_ to represent the initial release and _v1.1_ for an updated version. This helps in maintaining a clear record of image versions.
+
+* *Rollbacks and Testing*: If you encounter issues with a new image version, you can easily revert to a previous version by specifying its tag. This is particularly helpful during debugging and testing phases.
+
+* *Development Environments*: Image tags are beneficial when working with different environments. You might use a _dev_ tag for a development version, _qa_ for quality assurance testing, and _prod_ for production, each with their respective features and configurations.
+
+* *Continuous Integration/Continuous Deployment (CI/CD)*: CI/CD pipelines often utilize image tags to automate the deployment process. New code changes can trigger the creation of a new image with a specific tag, enabling seamless updates.
+
+* *Feature Branches*: When multiple developers are working on different features or bug fixes, they can create distinct image tags for their changes. This helps in isolating and testing individual features.
+
+* *Customization*: You can use image tags to customize images with different configurations, dependencies, or optimizations, while keeping track of each variant.
+
+* *Security and Patching*: When security vulnerabilities are discovered, you can create patched versions of images with updated tags, ensuring that your systems are using the latest secure versions.
+
+* *Dockerfile Changes*: If you modify the Dockerfile or build process, you can use image tags to differentiate between images built from the previous and updated Dockerfiles.
+
+Overall, image tags provide a structured way to manage and organize container images, enabling efficient development, deployment, and maintenance workflows.
+
+[id="viewing-and-modifying-tags"]
 == Viewing and modifying tags
 
-The tags of a repository can be viewed and modified in the tags panel of
-the repository page, found by clicking on the *Tags* tab.
+To view image tags on
+ifeval::["{context}" == "quay-io"]
+{quayio},
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname},
+endif::[]
+navigate to a repository and click on the *Tags* tab. For example:
+
+.View and modify tags from your repository
 image:tag-operations.png[View and modify tags from your repository]
 
-[[adding-a-new-tag-to-a-tagged-image]]
-=== Adding a new tag to a tagged image
+[id="adding-a-new-tag-to-image"]
+=== Adding a new image tag to an image
 
-A new tag can be added to a tagged image by clicking on the gear icon next to
-the tag and choosing `Add New Tag`. {productname} will confirm the addition of
-the new tag to the image.
+You can add a new tag to an image in
+ifeval::["{context}" == "quay-io"]
+{quayio}.
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}.
+endif::[]
 
-[[moving-a-tag]]
-=== Moving a tag
+.Procedure
 
-Moving a tag to a different image is accomplished by performing the same
-operation as adding a new tag, but giving an existing tag name. {productname}
-will confirm that you want the tag moved, rather than added.
+. Click the *Settings*, or _gear_, icon next to the tag and clicking *Add New Tag*. 
 
-[[deleting-a-tag]]
-=== Deleting a tag
+. Enter a name for the tag, then, click *Create Tag*.
++
+The new tag is now listed on the *Repository Tags* page. 
 
-A specific tag and all its images can be deleted by clicking on the tag's gear icon
-and choosing `Delete Tag`. This will delete the tag and any images unique
-to it. Images will not be deleted until no tag references them either
-directly or indirectly through a parent child relationship.
+[id="moving-a-tag"]
+=== Moving an image tag
 
-[[viewing-tag-history-and-going-back-in-time]]
-=== Viewing tag history and going back in time
+You can move a tag to a different image if desired. 
 
-[[viewing-tag-history]]
+.Procedure
+
+* Click the *Settings*, or _gear_, icon next to the tag and clicking *Add New Tag* and enter an existing tag name.
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[]
+confirms that you want the tag moved instead of added. 
+
+[id="deleting-a-tag"]
+=== Deleting an image tag
+
+Deleting an image tag effectively removes that specific version of the image from the registry. Users might delete image tags for the following reasons:
+
+* *Security Vulnerabilities*: If a specific image tag is found to contain security vulnerabilities or issues, it's recommended to delete that tag to prevent its accidental use. This ensures that users will not inadvertently deploy containers with known security flaws.
+
+
+* *Version Cleanup*: Over time, as you release newer versions of an application, older tags might become obsolete. Deleting older tags can help keep your registry organized and prevent confusion among users about which version to use.
+
+* *Storage Management*: Container images can consume significant storage space, especially if you have multiple versions with different tags. Deleting unused or outdated tags helps free up storage resources in the registry.
+
+* *Misconfigured or Deprecated Tags*: Sometimes, tags might be misconfigured or deprecated. For example, if a tag was accidentally created with incorrect content, you might want to delete it to avoid confusion.
+
+* *Releases and Rollbacks*: When you've released a newer version of an image and verified its stability, you might decide to delete tags corresponding to older, less stable versions.
+
+* *Regulatory Compliance*: Depending on your industry or regulatory requirements, you might have policies that dictate the retention and deletion of certain image versions.
+
+* *Tag Mistakes*: Mistakes can happen, and you might accidentally create a tag with incorrect content or naming conventions. Deleting such tags helps maintain consistency and accuracy in your image repository.
+
+* *Namespace Cleanup*: If you're using a shared registry with multiple teams or projects, you might want to periodically clean up old tags to avoid clutter and confusion.
+
+* *Versioning Cleanup*: If you use tags for versioning, like "v1," "v2," etc., you might want to delete older versions that are no longer relevant.
+
+* *Optimize Pulls*: By having fewer tags, users can quickly identify and pull the correct version without having to sift through many outdated options.
+
+To delete an image tag, use the following procedure.
+
+.Procedure 
+
+. Navigate to the *Tags* page of a repository. 
+
+. Click *Delete Tag*. This deletes the tag and any images unique to it. 
++
+[NOTE]
+====
+Deleting an image tag can be reverted based on the amount of time allotted assigned to the _time machine_ feature. For more information, see "Reverting tag changes". 
+====
+
+[id="viewing-tag-history"]
 ==== Viewing tag history
 
-To view the image history for a tag, click on the `View Tags History` menu
-item located under the `Actions` menu. The page shown will display each
-image to which the tag pointed in the past and when it pointed to that
-image.
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[]
+offers a comprehensive history of images and their respective image tags. 
 
-[[going-back-in-time]]
-==== Going back in time
+.Procedure
 
-To revert the tag to a previous image, find the history line where your
-desired image was overwritten, and click on the Restore link.
+* Navigate to the *Tag History* page of a repository to view the image tag history. 
 
-[[fetching-images-and-tags]]
+[id="going-back-in-time"]
+==== Reverting tag changes 
+
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[]
+offers a comprehensive _time machine_ feature that allows older images tags to remain in the repository for set periods of time so that they can revert changes made to tags. This feature allows users to revert tag changes, like tag deletions. 
+
+.Procedure
+
+. Navigate to the *Tag History* page of a repository. 
+
+. Find the point in the timeline which image tags were changed or removed. Next, click the option under *Revert* to restore a tag to its image, or click the option under *Permanently Delete* to permanently delete the image tag. 
+
+[id="fetching-images-and-tags"]
 === Fetching an image by tag or digest
-From the *Tags* tab, you can view different ways of pulling images from the clients
-that are ready to use those images.
 
-. Select a particular repository/image
-. Select Tags in the left column
-. Select the Fetch Tag icon for a particular image/tag combination
-. When the Fetch Tag pop-up appears, select the Image format box to
-see a drop-down menu that shows different ways that are
-available to pull the image. The selections offer full command lines
-for pulling a specific container image to the local system:
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[]
+offers multiple ways of pulling images using Docker and Podman clients. 
 
-image:image-fetch.png[Get commands for fetching images in different ways]
+.Procedure 
 
-You can select to pull a regular of an image by tag name or by digest name using the *docker* command.
-. Choose the type of pull you want, then select `Copy Command`.
-The full command-line is copied into your clipboard.
-These two commands show a *docker pull* by tag and by digest:
+. Navigate to the *Tags* page of a repository.
 
-```
-docker pull quay.io/cnegus/whatever:latest
-docker pull quay.io/cnegus/whatever@sha256:e02231a6aa8ba7f5da3859a359f99d77e371cb47e643ce78e101958782581fb9
-```
+. Under *Manifest*, click the *Fetch Tag* icon. 
 
-Paste the command into a command-line shell on a system that has the
-*docker* command and service available, and press Enter.
-At this point, the container image is ready to run on your local system.
+. When the popup box appears, users are presented with the following options:
++
+* Podman Pull (by tag)
+* Docker Pull (by tag)
+* Podman Pull (by digest)
+* Docker Pull (by digest)
++
+Selecting any one of the four options returns a command for the respective client that allows users to pull the image. 
 
-On RHEL and Fedora systems, you can
-substitute *podman* for *docker* to pull and run the selected image.
+. Click *Copy Command* to copy the command, which can be used on the command-line interface (CLI). For example:
++
+[source,terminal]
+----
+$ podman pull quay-server.example.com/quayadmin/busybox:test2
+----
 
-[[tag-expiration]]
+[id="tag-expiration"]
 == Tag Expiration
 
-Images can be set to expire from a {productname} repository at a chosen date and time using a feature called `tag expiration`.
-Here are a few things to know about about tag expiration:
+Image can be set to expire from a
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[]
+repository at a chosen date and time using the _tag expiration_ feature. This feature includes the following characteristics: 
 
-* When a tag expires, the tag is deleted from the repository. If it is the last tag for a specific image, the image is set to be deleted.
+* When an image tag expires, it is deleted from the repository. If it is the last tag for a specific image, the image is also set to be deleted. 
 
-* Expiration is set on a per-tag basis, not for a repository on the whole.
+* Expiration is set on a per-tag basis. It is not set for a repository as a whole. 
 
-* When a tag expires or is deleted, it is not immediately removed from the registry.
-The value of Time Machine (in User settings) defines when the deleted tag is actually removed
-and garbage collected. By default, that value is 14 days. Up until that time, a tag can be repointed to an expired or deleted image.
+* After a tag is expired or deleted, it is not immediately removed from the registry. This is contingent upon the allotted time designed in the _time machine_ feature, which defines when the tag is permanently deleted, or garbage collected. By default, this value is set at _14 days_, however the administrator can adjust this time to one of multiple variables. Up until the point that garbage collection occurs, tags changes can be reverted. 
 
-* The {productname} superuser has no special privilege related to deleting expired images from user repositories.
-There is no central mechanism for the superuser to gather information and act on user repositories.
-It is up to the owners of each repository to manage expiration and ultimate deletion of their images.
+ifeval::["{context}" ==! "use-quay"]
+The {productname} superuser has no special privilege related to deleting expired images from user repositories. There is no central mechanism for the superuser to gather information and act on user repositories. It is up to the owners of each repository to manage expiration and the deletion of their images. 
+endif::[]
 
-Tag expiration can be set in different ways:
+Tag expiration can be set up in one of two ways: 
 
-* By setting the `quay.expires-after=` LABEL in the Dockerfile when the image is created.
-This sets a time to expire from when the image is built.
+* By setting the `quay.expires-after=` LABEL in the Dockerfile when the image is created. This sets a time to expire from when the image is built.
 
-* By choosing the expiration date from the EXPIRES column for the repository tag and selecting a specific date and time to expire.
-
-The following figure shows the Options entry for changing tag expiration and the EXPIRES field for when the tag expires.
-Hover over the EXPIRES field to see the expiration date and time that is currently set.
-
+* By selecting an expiration date on the
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[]
+UI. For example:
++
 image:tag-expires-ui.png[Change tag expiration under the Options icon or from the EXPIRES column]
 
+[id="setting-tag-from-dockerfile"]
 === Setting tag expiration from a Dockerfile
 
-Adding a label like `quay.expires-after=20h` via the Dockerfile LABEL command will cause a tag to automatically expire
-after the time indicated.
-The time values could be something like `1h`, `2d`, `3w` for hours, days, and weeks, respectively, from the time the image is built.
+Adding a label, for example, `quay.expires-after=20h` by using the `docker label` command causes a tag to automatically expire after the time indicated. The following values for hours, days, or weeks are accepted:
 
+* `1h`
+* `2d`
+* `3w`
+
+Expiration begins from the time that the image is built. 
+
+[id="setting-tag-expiration"]
 === Setting tag expiration from the repository
 
-On the Repository Tag page there is a UI column titled *EXPIRES* that indicates when a tag will expire.
-Users can set this by clicking on the time that it will expire or by clicking the Settings button (gear icon) on the right and choosing `Change Expiration`.
+Tag expiration can be set on the 
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+{productname}
+endif::[]
+UI.
 
-Choose the date and time when prompted and select `Change Expiration`.
-The tag will be set to be deleted from the repository when the expiration time is reached.
+.Procedure 
 
-[[security-scanning]]
+. Navigate to a repository and click *Tags* in the navigation pane. 
+
+. Click the *Settings*, or _gear_ icon, for an image tag and select *Change Expiration*. 
+
+. Select the date and time when prompted, and select *Change Expiration*. The tag is set to be deleted from the repository when the expiration time is reached. 
+
+[id="security-scanning"]
 == Security scanning
 
-By clicking the on the vulnerability or fixable count next to a tab you
-can jump into the security scanning information for that tag. There you
-can find which CVEs your image is susceptible to, and what remediation
-options you may have available.
+By default
+Tag expiration can be set on the 
+ifeval::["{context}" == "quay-io"]
+{quayio} comes equipped with Clair security scanner. 
+endif::[]
+ifeval::["{context}" ==! "use-quay"]
+Clair security scanner is not enabled for {productname}. To enable Clair, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/vulnerability_reporting_with_clair_on_red_hat_quay/testing-clair-with-quay[Clair on {productname}].
+endif::[]
 
-Keep in mind that image scanning only lists vulnerabilities found by the Clair image scanner.
-What each user does about the vulnerabilities that are uncovered is completely up to that user.
-The {productname} superuser does not act on those vulnerabilities found.
+.Procedure 
+
+. Navigate to a repository and click *Tags* in the navigation pane. 
+
+. Under *Security Scan*, click *See Child Manifests* to see the list of manifests in extended view.
+
+. Click a relevant link under *See Child Manifests*, for example, *1 Unknown* to be redirected to the *Security Scanner* page. 
+
+. The *Security Scanner* page provides information for the tag, such as which CVEs the image is susceptible to, and what remediation options you might have available. 
+
+[NOTE]
+====
+Image scanning only lists vulnerabilities found by Clair security scanner. What users do about the vulnerabilities are uncovered is up to said user. 
+ifeval::["{context}" ==! "use-quay"]
+{productname} superusers do not act on found vulnerabilities. 
+endif::[]
+====
