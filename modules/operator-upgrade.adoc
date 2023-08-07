@@ -293,6 +293,68 @@ spec:
 . After the `quay-app` pod is marked as *Running*, you can reach your {productname} registry. 
 
 
+[id="upgrading-postgresql-databases"]
+=== Updating {productname} from 3.8 -> 3.9
+
+When updating {productname} 3.8 -> 3.9, the Operator automatically upgrades the existing PostgreSQL databases for Clair and {productname} from version 10 to version 13. 
+
+[IMPORTANT]
+====
+* This upgrade is irreversible. It is highly recommended that you upgrade to PostgreSQL 13. PostgreSQL 10 had its final release on November 10, 2022 and is no longer supported. For more information, see the link:https://www.postgresql.org/support/versioning/[PostgreSQL Versioning Policy]. 
+* By default, {productname} is configured to remove old persistent volume claims (PVCs) from PostgreSQL 10. To disable this setting and backup old PVCs, you must set `POSTGRES_UPGRADE_RETAIN_BACKUP` to `True` in your `config.yaml` file. 
+====
+
+.Prerequisites 
+
+* You have installed {productname} 3.8 on {ocp}. 
+* 100 GB of free, additional storage.
++
+During the upgrade process, additional persistent volume claims (PVCs) are provisioned to store the migrated data. This helps prevent a destructive operation on user data. The upgrade process rolls out PVCs for 50 GB for both the {productname} database upgrade, and the Clair database upgrade. 
+
+.Procedure
+
+. Optional. Back up your old PVCs from PostgreSQL 10 by setting `POSTGRES_UPGRADE_RETAIN_BACKUP` to `True` your `quay-operator` `Subscription` object. For example:
++
+[source,yaml]
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: quay-operator
+  namespace: quay-enterprise
+spec:
+  channel: stable-3.8
+  name: quay-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+  config:
+    env: 
+    - name: POSTGRES_UPGRADE_RETAIN_BACKUP
+      value: "true"
+----
+
+. In the {ocp} Web Console, navigate to *Operators* -> *Installed Operators*. 
+
+. Click on the {productname} Operator. 
+
+. Navigate to the *Subscription* tab. 
+
+. Under *Subscription details* click *Update channel*. 
+
+. Select *stable-3.9* and save the changes. 
+
+. Check the progress of the new installation under *Upgrade status*. Wait until the upgrade status changes to *1 installed* before proceeding. 
+
+. In your {ocp} cluster, navigate to *Workloads* -> *Pods*. Existing pods should be terminated, or in the process of being terminated. 
+
+. Wait for the following pods, which are responsible for upgrading the database and alembic migration of existing data, to spin up: `clair-postgres-upgrade`, `quay-postgres-upgrade`, and `quay-app-upgrade`. 
+
+. After the `clair-postgres-upgrade`, `quay-postgres-upgrade`, and `quay-app-upgrade` pods are marked as *Completed*, the remaining pods for your {productname} deployment spin up. This takes approximately ten minutes. 
+
+. Verify that the `quay-database` and `clair-postgres` pods now use the `postgresql-13` image. 
+
+. After the `quay-app` pod is marked as *Running*, you can reach your {productname} registry. 
+
 [id="upgrade-33-36"]
 === Upgrading directly from 3.3.z or 3.4.z to 3.6
 
