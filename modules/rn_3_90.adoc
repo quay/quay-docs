@@ -92,16 +92,40 @@ For more information, see link:https://access.redhat.com/documentation/en-us/red
 
 ** **FEATURE_SECURITY_SCANNER_NOTIFY_ON_NEW_INDEX**: Whether to allow sending notifications about vulnerabilities for new pushes.
 +
-*Default**: `True`
+**Default**: `True`
 +
 For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/configure_red_hat_quay/index#config-fields-scanner[Security scanner configuration fields].
+
+* The following configuration field has been added to configure whether {productname} automatically removes old persistent volume claims (PVCs) when upgrading from version 3.8 -> 3.9:
+
+** **POSTGRES_UPGRADE_RETAIN_BACKUP**: When set to `True`, persistent volume claims from PostgreSQL 10 are backed up. 
++
+**Default**: `False`
 
 [id="quay-operator-updates"]
 == {productname} Operator
 
 The following updates have been made to the {productname} Operator:
 
-*
+* Currently, the {productname} Operator and Clair use PostgreSQL 10. PostgreSQL 10 had its final release on November 10, 2022 and is no longer supported.
++
+With this release, if your database is managed by the {productnmame} Operator, updating from {productname} 3.8 -> 3.9 automatically handles upgrading PostgreSQL 10 to PostgreSQL 13. 
++
+[IMPORTANT]
+====
+Users with a managed database will be required to upgrade their PostgreSQL database from 10 -> 13.
+====
++
+If you do not want the {productname} Operator to upgrade your PostgreSQL deployment from 10 -> 13, you must set the PostgreSQL parameter to `managed: false` in your `quayregistry.yaml` file. For more information about setting your database to unmanaged, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/configure_red_hat_quay/index#operator-unmanaged-postgres[Using an existing Postgres database].
++
+[IMPORTANT]
+====
+* It is highly recommended that you upgrade to PostgreSQL 13. PostgreSQL 10 had its final release on November 10, 2022 and is no longer supported. For more information, see the link:https://www.postgresql.org/support/versioning/[PostgreSQL Versioning Policy]. 
+====
++
+If you want your PostgreSQL database to match the same version as your {rhel} system, see link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/deploying_different_types_of_servers/using-databases#migrating-to-a-rhel-8-version-of-postgresql_using-postgresql[Migrating to a RHEL 8 version of PostgreSQL] for {rhel-short} 8 or link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html/configuring_and_using_database_servers/using-postgresql_configuring-and-using-database-servers#migrating-to-a-rhel-9-version-of-postgresql_using-postgresql[Migrating to a RHEL 9 version of PostgreSQL] for {rhel-short} 9. 
+
+For more information about the {productname} 3.8 -> 3.9 procedure, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.9/html-single/upgrade_red_hat_quay/index#operator-upgrade[Upgrading the {productname} Operator overview]
 
 [id="notable-changes-39"]
 == {productname} technical changes
