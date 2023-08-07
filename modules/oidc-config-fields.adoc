@@ -1,0 +1,55 @@
+[id="oidc-config-fields"]
+= OIDC configuration fields
+
+.OIDC fields
+|===
+| Field | Type | Description
+| **<string>_LOGIN_CONFIG** +
+(Required) | String | The parent key that holds the OIDC configuration settings. Typically the name of the OIDC provider, for example, `AZURE_LOGIN_CONFIG`, however any arbitrary string is accepted. 
+| **.CLIENT_ID** + 
+(Required) | String | The registered client ID for this {productname} instance. +
+ +
+**Example:** `0e8dbe15c4c7630b6780`
+| **.CLIENT_SECRET** + 
+(Required)  | String | The registered client secret for this {productname} instance. +
+ +
+**Example:** `e4a58ddd3d7408b7aec109e85564a0d153d3e846`
+| **.DEBUGLOG** |Boolean | Whether to enable debugging. 
+| **.LOGIN_BINDING_FIELD** |String | Used when the internal authorization is set to LDAP. {productname} reads this parameter and tries to search through the LDAP tree for the user with this username. If it exists, it automatically creates a link to that LDAP account.
+| **.LOGIN_SCOPES** | Object | Adds additional scopes that {productname} uses to communicate with the OIDC provider. 
+| **. OIDC_ENDPOINT_CUSTOM_PARAMS** | String | Support for custom query parameters on OIDC endpoints. The following endpoints are supported: +
++
+* `authorization_endpoint`
+* `token_endpoint`
+* `user_endpoint`
+| **.OIDC_ISSUER** | String | Allows the user to define the issuer to verify. For example, JWT tokens container a parameter known as `iss` which defines who issued the token. By default, this is read from the `.well-know/openid/configuration` endpoint, which is exposed by every OIDC provider. If this verification fails, there is no login. 
+| **.OIDC_SERVER** +
+(Required) | String | The address of the OIDC server that is being used for authentication. +
+ +
+**Example:** `\https://sts.windows.net/6c878.../`
+| **.PREFERRED_USERNAME_CLAIM_NAME** |String |Sets the preferred username to a parameter from the token.
+| **.SERVICE_ICON** | String | Changes the icon on the login screen.
+
+| **.SERVICE_NAME** +
+(Required) | String | The name of the service that is being authenticated. +
+ +
+**Example:** `Azure AD`
+| **.VERIFIED_EMAIL_CLAIM_NAME** | String | The name of the claim that is used to verify the email address of the user.
+
+|===
+
+[id="oidc-config"]
+== OIDC configuration 
+
+The following example shows a sample OIDC configuration. 
+
+.Example OIDC configuration
+[source,yaml]
+----
+AZURE_LOGIN_CONFIG: <1>
+    CLIENT_ID: <client_id> <2>
+    CLIENT_SECRET: <client_secret> <3>
+    OIDC_SERVER: <oidc_server_address_> <4>
+    SERVICE_NAME: Azure AD <5>
+    VERIFIED_EMAIL_CLAIM_NAME: <verified_email> <6>
+----
