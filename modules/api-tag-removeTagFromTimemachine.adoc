@@ -1,9 +1,9 @@
 
-= changeTag
-Change which image a tag points to or create a new tag.
+= removeTagFromTimemachine
+Updates any expired tags with the matching name and manifest with an expiry outside the time machine window
 
 [discrete]
-== PUT /api/v1/repository/{repository}/tag/{tag}
+== POST /api/v1/repository/{repository}/tag/{tag}/expire
 
 
 
@@ -26,15 +26,17 @@ _required_|The name of the tag|string
 [discrete]
 == Request body schema (application/json)
 
-Makes changes to a specific tag
+Removes tag from the time machine window
 
 [options="header", width=100%, cols=".^3a,.^9a,.^4a"]
 |===
 |Name|Description|Schema
 |**manifest_digest** + 
-_optional_|(If specified) The manifest digest to which the tag should point|
-|**expiration** + 
-_optional_|(If specified) The expiration for the image|
+_optional_|Required if is_alive set to false. If specified, the manifest digest that should be used. Ignored when setting alive to true.|string
+|**include_submanifests** + 
+_optional_|If set to true, expire the sub-manifests as well|boolean
+|**is_alive** + 
+_optional_|If true, set the expiry of the matching alive tag outside the time machine window. If false set the expiry of any expired tags with the same tag and manifest outside the time machine window.|boolean
 |===
 
 
@@ -44,7 +46,7 @@ _optional_|(If specified) The expiration for the image|
 [options="header", width=100%, cols=".^2a,.^14a,.^4a"]
 |===
 |HTTP Code|Description|Schema
-|200|Successful invocation|
+|201|Successful creation|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
