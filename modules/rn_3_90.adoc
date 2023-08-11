@@ -127,11 +127,6 @@ If you want your PostgreSQL database to match the same version as your {rhel} sy
 
 For more information about the {productname} 3.8 -> 3.9 procedure, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/upgrade_red_hat_quay/index#operator-upgrade[Upgrading the {productname} Operator overview]
 
-[id="notable-changes-39"]
-== {productname} technical changes
-
-The following sections provide an overview of notable technical changes for {productname}.
-
 
 [id="known-issues-and-limitations-39"]
 == {productname} 3.9 known issues and limitations
@@ -140,6 +135,18 @@ The following sections note known issues and limitations for {productname} 3.9.
 
 [id="known-issues-39"]
 === Known issues:
+
+[id="upgrading-known-issues"]
+==== Upgrading known issues
+
+There are two known issues when upgrading your {productname} deployment:
+
+* If your {productname} deployment is upgrading from one y-stream to the next, for example, from 3.8.10 -> 3.8.11, you must not switch the upgrade channel from `stable-3.8` to `stable-3.9`. Changing the upgrade channel in the middle of a y-stream upgrade will disallow {productname} from upgrading to 3.9. This is a known issue and will be fixed in a future version of {productname}. 
+
+* When upgrading from {productname} 3.7 to 3.9, you might receive the following error: `pg_dumpall: error: query failed: ERROR:  xlog flush request 1/B446CCD8 is not satisfied --- flushed only to 1/B0013858`. As a workaround to this issue, you can delete the `quayregistry-clair-postgres-upgrade` pod on your {ocp} deployment, which should resolve the issue. 
+
+[id="other-known-issues"]
+==== Other known issues
 
 * Using `conftest pull` commands to obtain policies might return the following error: `Error: download policies: client get: stat /policy/quayregistry-quay-quay-enterprise-847.apps.quaytest-847.qe.devcluster.openshift.com/conftest/policy:latest: no such file or directory`. As a workaround, you can add the `oci://` prefix on your registry host. For example:
 +
@@ -160,6 +167,9 @@ This is a non-issue for proxy organizations employing a soft quota check and can
 
 * When removing a site from your geo-replicated {productname} deployment, you might receive the following error when running `python -m util.removelocation`: `/app/lib/python3.9/site-packages/tzlocal/unix.py:141: SyntaxWarning: "is not" with a literal. Did you mean "!="? while start is not 0: /app/lib/python3.9/site-packages/netaddr/strategy/{}init{}.py:189: SyntaxWarning: "is not" with a literal. Did you mean "!="? if word_sep is not ''`. You can confirm the deletion of your site by entering `y`. The error is a known issue and will be removed in a future version of {productname}.
 
+
+
+
 [id="limitations-39"]
 === {productname} 3.9 limitations
 
@@ -170,7 +180,7 @@ This is a non-issue for proxy organizations employing a soft quota check and can
 
 * Previously, on {productname} Lightweight Directory Access Protocol (LDAP) deployments, there was a bug that disallowed referrals from being used with team synchronization and in other circumstances. With this update, referrals can be turned off globally for {productname} to ensure proper behavior across all components.
 
-* link:https://issues.redhat.com/browse/PROJQUAY-4614[PROJQUAY-4614]. Add  conftest mediatypes to default Quay configuration.
+* link:https://issues.redhat.com/browse/PROJQUAY-4614[PROJQUAY-4614]. Add conftest mediatypes to default Quay configuration.
 * link:https://issues.redhat.com/browse/PROJQUAY-4865[PROJQUAY-4865]. Remove unused dependencies.
 * link:https://issues.redhat.com/browse/PROJQUAY-4957[PROJQUAY-4957]. Limit indexing of manifests that continuously fail.
 * link:https://issues.redhat.com/browse/PROJQUAY-5009[PROJQUAY-5009]. secscan: add api client timeout.
