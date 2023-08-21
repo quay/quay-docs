@@ -18,8 +18,7 @@ In some cases, {productname} supports direct, single-step upgrades from prior (N
 . 3.4.z -> 3.6.z
 . 3.4.z -> 3.7.z
 . 3.5.z -> 3.7.z
-. 3.7.z -> 3.8.z
-. 3.9.z -> 3.9.z
+. 3.7.z -> 3.9.z
 
 //link
 For users wanting to upgrade the {productname} Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrading_quay_by_upgrading_the_quay_operator[Upgrading the {productname} Operator Overview].
@@ -27,7 +26,7 @@ For users wanting to upgrade the {productname} Operator, see link:https://access
 This document describes the steps needed to perform each individual upgrade. Determine your current version and then follow the steps in sequential order, starting with your current version and working up to your desired target version.
 
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_9_z_from_3_8_z[Upgrade to 3.9.z from 3.8.z]
-*link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_9_z_from_3_7_z[Upgrade to 3.9.z from 3.7.z]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_9_z_from_3_7_z[Upgrade to 3.9.z from 3.7.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_8_z_from_3_7_z[Upgrade to 3.8.z from 3.7.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_7_z_from_3_6_z[Upgrade to 3.7.z from 3.6.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_7_z_from_3_5_z[Upgrade to 3.7.z from 3.5.z]
@@ -64,15 +63,100 @@ Images for Quay 3.3.4 and earlier are available from link:https://quay.io[quay.i
 
 == Upgrade to 3.9.z from 3.8.z
 
-If you are upgrading your standalone {productname} deployment from 3.8.z -> 3.9, it is highly recommended that you upgrade PostgreSQL from version 10 -> 13. To upgrade PostgreSQL from 10 -> 13, you must bring down your PostgreSQL 10 database and run a migration script to initiate the process:
+If you are upgrading your standalone {productname} deployment from 3.8.z -> 3.9, it is highly recommended that you upgrade PostgreSQL from version 10 -> 13. To upgrade PostgreSQL from 10 -> 13, you must bring down your PostgreSQL 10 database and run a migration script to initiate the process. 
+
+Use the following procedure to upgrade PostgreSQL from 10 -> 13 on a standalone {productname} deployment. 
+
+.Procedure 
+
+. Enter the following command to scale down the {productname} container:
++
 [source,terminal]
 ----
-$ podman run -d --name postgresql_database \
-    -e POSTGRESQL_MIGRATION_REMOTE_HOST=172.17.0.2 \
-    -e POSTGRESQL_MIGRATION_ADMIN_PASSWORD=remoteAdminP@ssword \
-    [ OPTIONAL_CONFIGURATION_VARIABLES ]
-    rhel8/postgresql-13
+$ sudo podman stop <quay_container_name>
 ----
+
+. Optional. If you are using Clair, enter the following command to stop the Clair container:
++
+[source,terminal]
+----
+$ sudo podman stop <clair_container_id>
+----
+
+. Run the Podman process from SCLOrg's link:https://github.com/sclorg/postgresql-container/tree/master/13#data-migration[Data Migration] procedure, which allows for data migration from a remote PostgreSQL server:
++
+[source,terminal]
+----
+$ sudo podman run -d --name <migration_postgresql_database> <1>
+  -e POSTGRESQL_MIGRATION_REMOTE_HOST=172.17.0.2 \ <2>
+  -e POSTGRESQL_MIGRATION_ADMIN_PASSWORD=remoteAdminP@ssword \
+  -v </host/data/directory:/var/lib/pgsql/data:Z> <3>
+  [ OPTIONAL_CONFIGURATION_VARIABLES ]
+  rhel8/postgresql-13
+----
++
+<1> The name of your PostgreSQL 13 migration database.
+<2> Your current {productname} PostgreSQL 10 database container IP address. Can obtained by running the following command: `sudo podman inspect -f "{{.NetworkSettings.IPAddress}}" postgresql-quay`. 
+<3> You must specify a different volume mount point than the one from your initial PostgreSQL 10 deployment, and modify the access control lists for said directory. For example:
++
+[source,terminal]
+----
+$ mkdir -p /host/data/directory
+----
++
+[source,terminal]
+----
+$ setfacl -m u:26:-wx /host/data/directory
+----
++
+This prevents data from being overwritten by the new container.
+
+. Optional. If you are using Clair, repeat the previous step for the Clair PostgreSQL database container.
+
+. Stop the PostgreSQL 10 container:
++
+[source,terminal]
+----
+$ sudo podman stop <postgresql_container_name>
+----
+
+. After completing the PostgreSQL migration, run the PostgreSQL 13 container, using the new data volume mount from Step 3, for example, `</host/data/directory:/var/lib/postgresql/data>`:
++
+[source,terminal]
+----
+$ sudo podman run -d --rm --name postgresql-quay \
+  -e POSTGRESQL_USER=<username> \
+  -e POSTGRESQL_PASSWORD=<password> \
+ 	-e POSTGRESQL_DATABASE=<quay_database_name> \
+  -e POSTGRESQL_ADMIN_PASSWORD=<admin_password> \
+  -p 5432:5432 \
+  -v </host/data/directory:/var/lib/pgsql/data:Z> \
+    registry.redhat.io/rhel8/postgresql-13:1-109
+----
+
+. Optional. If you are using Clair, repeat the previous step for the Clair PostgreSQL database container.
+
+. Start the {productname} container:
++
+[source,terminal]
+----
+$ sudo podman run -d --rm -p 80:8080 -p 443:8443 --name=quay \
+-v /home/<quay_user>/quay-poc/config:/conf/stack:Z \
+-v /home/<quay_user>/quay-poc/storage:/datastorage:Z \
+{productrepo}/{quayimage}:{productminv}
+----
+
+. Optional. Restart the Clair container, for example:
++
+[source,terminal]
+----
+$ sudo podman run -d --name clairv4 \
+-p 8081:8081 -p 8088:8088 \
+-e CLAIR_CONF=/clair/config.yaml \
+-e CLAIR_MODE=combo \
+registry.redhat.io/quay/clair-rhel8:v3.9.0
+----
+
 For more information, see link:https://github.com/sclorg/postgresql-container/tree/master/13#data-migration[Data Migration].
 
 === Target images
@@ -89,15 +173,6 @@ endif::upstream[]
 == Upgrade to 3.9.z from 3.7.z
 
 If you are upgrading your standalone {productname} deployment from 3.8.z -> 3.9, it is highly recommended that you upgrade PostgreSQL from version 10 -> 13. To upgrade PostgreSQL from 10 -> 13, you must bring down your PostgreSQL 10 database and run a migration script to initiate the process:
-[source,terminal]
-----
-$ podman run -d --name postgresql_database \
-    -e POSTGRESQL_MIGRATION_REMOTE_HOST=172.17.0.2 \
-    -e POSTGRESQL_MIGRATION_ADMIN_PASSWORD=remoteAdminP@ssword \
-    [ OPTIONAL_CONFIGURATION_VARIABLES ]
-    rhel8/postgresql-13
-----
-For more information, see link:https://github.com/sclorg/postgresql-container/tree/master/13#data-migration[Data Migration].
 
 [NOTE]
 ====
@@ -185,7 +260,7 @@ endif::upstream[]
 * **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
 
 == Upgrade to 3.6.z from 3.4.z
-+
+
 [NOTE]
 ====
 {productname} 3.6 supports direct, single-step upgrade from 3.4.z. This exception to the normal, prior minor version-only, upgrade simplifies the upgrade procedure for customers on older releases.
@@ -207,7 +282,7 @@ endif::upstream[]
 * **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
 
 == Upgrade to 3.6.z from 3.3.z
-+
+
 [NOTE]
 ====
 {productname} 3.6 supports direct, single-step upgrade from 3.3.z. This exception to the normal, prior minor version-only, upgrade simplifies the upgrade procedure for customers on older releases.
