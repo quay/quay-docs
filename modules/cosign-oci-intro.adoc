@@ -1,8 +1,8 @@
 :_content-type: CONCEPT
 [id="cosign-oci-intro"]
-= Cosign OCI support with {productname}
+= Cosign OCI support
 
-Cosign is a tool that can be used to sign and verify container images. It uses the ECDSA-P256 signature algorithm and Red Hat's Simple Signing payload format to create public keys that are stored in PKIX files. Private keys are stored as encrypted PEM files.
+Cosign is a tool that can be used to sign and verify container images. It uses the `ECDSA-P256` signature algorithm and Red Hat's Simple Signing payload format to create public keys that are stored in PKIX files. Private keys are stored as encrypted PEM files.
 
 Cosign currently supports the following: 
 
@@ -10,3 +10,106 @@ Cosign currently supports the following:
 * Bring-your-own PKI
 * OIDC PKI
 * Built-in binary transparency and timestamping service
+
+Use the following procedure to directly install Cosign. 
+
+.Prerequisites 
+
+* You have installed Go version 1.16 or later.
+ifeval::["{context}" == "use-quay"]
+* You have set `FEATURE_GENERAL_OCI_SUPPORT` to `true` in your `config.yaml` file. 
+endif::[]
+
+.Procedure 
+
+. Enter the following `go` command to directly install Cosign:
++
+[source,terminal]
+----
+$ go install github.com/sigstore/cosign/cmd/cosign@v1.0.0
+----
++
+.Example output
++
+[source,terminal]
+----
+go: downloading github.com/sigstore/cosign v1.0.0
+go: downloading github.com/peterbourgon/ff/v3 v3.1.0
+----
+
+. Generate a key-value pair for Cosign by entering the following command:
++
+[source,terminal]
+----
+$ cosign generate-key-pair
+----
++
+.Example output
++
+[source,terminal]
+----
+Enter password for private key:
+Enter again:
+Private key written to cosign.key
+Public key written to cosign.pub
+----
+
+. Sign the key-value pair by entering the following command:
++
+ifeval::["{context}" == "quay-io"]
+[source,terminal]
+----
+$ cosign sign -key cosign.key quay.io/user1/busybox:test
+----
+endif::[]
+ifeval::["{context}" == "use-quay"]
+[source,terminal]
+----
+$ cosign sign -key cosign.key quay-server.example.com/user1/busybox:test
+----
+endif::[]
++
+.Example output
++
+[source,terminal]
+----
+Enter password for private key:
+Pushing signature to: quay-server.example.com/user1/busybox:sha256-ff13b8f6f289b92ec2913fa57c5dd0a874c3a7f8f149aabee50e3d01546473e3.sig
+----
++
+If you experience the `error: signing quay-server.example.com/user1/busybox:test: getting remote image: GET https://quay-server.example.com/v2/user1/busybox/manifests/test: UNAUTHORIZED: access to the requested resource is not authorized; map[]` error, which occurs because Cosign relies on `~./docker/config.json` for authorization, you might need to execute the following command:
++
+ifeval::["{context}" == "quay-io"]
+[source,terminal]
+----
+$ podman login --authfile ~/.docker/config.json quay.io
+----
+endif::[]
+ifeval::["{context}" == "use-quay"]
+[source,terminal]
+----
+$ podman login --authfile ~/.docker/config.json quay-server.example.com
+----
+endif::[]
++
+.Example output
++
+[source,terminal]
+----
+Username:
+Password:
+Login Succeeded!
+----
+
+. Enter the following command to see the updated authorization configuration:
++
+[source,terminal]
+----
+$ cat ~/.docker/config.json
+{
+	"auths": {
+		"quay-server.example.com": {
+			"auth": "cXVheWFkbWluOnBhc3N3b3Jk"
+		}
+	}
+----

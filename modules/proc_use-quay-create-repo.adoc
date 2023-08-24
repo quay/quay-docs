@@ -8,21 +8,49 @@
 [id="use-quay-create-repo"]
 = Creating a repository
 
-A repository provides a central location for storing a related set of container images. There are two ways to create a repository in 
+A repository provides a central location for storing a related set of container images. These images can be used to build applications along with their dependencies in a standardized format.
+
+Repositories are organized by namespaces. Each namespace can have multiple repositories. For example, you might have a namespace for your personal projects, one for your company, or one for a specific team within your organization.
+
+ifeval::["{context}" == "quay-io"]
+With a paid plan, {quayio} 
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+provides users with access controls for their repositories. Users can make a repository public, meaning that anyone can pull, or download, the images from it, or users can make it private, restricting access to authorized users or teams. 
+
+ifeval::["{context}" == "quay-io"]
+[NOTE]
+====
+The free tier of {quayio} does not allow for private repositories. You must upgrade to a paid tier of {quayio} to create a private repository. For more information, see "Information about {quayio} pricing".
+====
+endif::[]
+
+There are two ways to create a repository in 
 ifeval::["{context}" == "quay-io"]
 {quayio}:
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}:
-endif::[] 
+endif::[]
 by pushing an image with the relevant `docker` or `podman` command, or by using the
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
-endif::[] 
-UI. Using either method has the same outcome.
+endif::[]
+UI. 
+
+ifeval::["{context}" == "quay-io"]
+If you push an image through the command-line interface (CLI) without first creating a repository on the UI, the created repository is set to *Private*, regardless of the plan you have. 
+
+[NOTE]
+====
+It is recommended that you create a repository on the {quayio} UI before pushing an image. {quayio} checks the plan status and does not allow creation of a private repository if a plan is not active.
+====
+endif::[]
 
 [id="creating-an-image-repository-via-the-ui"]
 == Creating an image repository by using the UI
@@ -31,7 +59,7 @@ Use the following procedure to create a repository using the
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
 endif::[] 
 UI. 
@@ -44,7 +72,7 @@ UI.
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
 endif::[] 
 landing page, click *Create New Repository*. Alternatively, you can click the *+* icon -> *New Repository*. For example:
@@ -66,19 +94,56 @@ image:repo-create.png[Create a new repository for a user.]
 [id="creating-an-image-repository-via-docker"]
 == Creating an image repository by using the CLI
 
-With the proper credentials, you can push an image to a repository using either Docker or Podman that does not yet exist in your 
+With the proper credentials, you can _push_ an image to a repository using either Docker or Podman that does not yet exist in your 
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
-endif::[] 
-instance. In turn, this creates said repository. 
+endif::[]
+instance. Pushing an image refers to the process of uploading a container image from your local system or development environment to a container registry like {quayio}. After pushing an image to {quayio}, a repository is created. 
 
-Use the following procedure to create an image repository by pushing an image. Podman or Docker commands are acceptable. 
+ifeval::["{context}" == "quay-io"]
+If you push an image through the command-line interface (CLI) without first creating a repository on the UI, the created repository is set to *Private*, regardless of the plan you have. 
+
+[NOTE]
+====
+It is recommended that you create a repository on the {quayio} UI before pushing an image. {quayio} checks the plan status and does not allow creation of a private repository if a plan is not active.
+====
+endif::[]
+
+Use the following procedure to create an image repository by pushing an image.
+
+.Prerequisites 
+
+* You have download and installed the `podman` CLI. 
+* You have logged into {quayio}. 
+* You have pulled an image, for example, busybox. 
 
 .Procedure
 
+ifeval::["{context}" == "quay-io"]
+. Pull a sample page from an example registry. For example:
++
+----
+$ podman pull busybox
+----
++
+.Example output
++
+[source,terminal]
+----
+Trying to pull docker.io/library/busybox...
+Getting image source signatures
+Copying blob 4c892f00285e done
+Copying config 22667f5368 done
+Writing manifest to image destination
+Storing signatures
+22667f53682a2920948d19c7133ab1c9c3f745805c14125859d20cede07f11f9
+----
+endif::[]
+
+ifeval::["{context}" == "use-quay"]
 . Pull a sample page from an example registry. For example:
 +
 [source,terminal]
@@ -98,20 +163,38 @@ Writing manifest to image destination
 Storing signatures
 22667f53682a2920948d19c7133ab1c9c3f745805c14125859d20cede07f11f9
 ----
+endif::[]
+
 
 . Tag the image on your local system with the new repository and image name. For example:
 +
+ifeval::["{context}" == "quay-io"]
 [source,terminal]
 ----
-sudo podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
+$ podman tag docker.io/library/busybox quay.io/quayadmin/busybox:test
 ----
+endif::[]
+ifeval::["{context}" == "use-quay"]
+[source,terminal]
+----
+$ sudo podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
+----
+endif::[]
 
-. Push the image to the {productname} registry. Following this step, you can use your browser to see the tagged image in your repository. 
+. Push the image to the registry. Following this step, you can use your browser to see the tagged image in your repository. 
 + 
+ifeval::["{context}" == "quay-io"]
+[source,terminal]
+----
+$ podman push --tls-verify=false quay.io/quayadmin/busybox:test
+----
+endif::[]
+ifeval::["{context}" == "use-quay"]
 [source,terminal]
 ----
 $ sudo podman push --tls-verify=false quay-server.example.com/quayadmin/busybox:test
 ----
+endif::[]
 +
 .Example output
 +
@@ -123,8 +206,3 @@ Copying config 22667f5368 done
 Writing manifest to image destination
 Storing signatures
 ----
-+
-[NOTE]
-====
-To create an *Application* repository, follow the same procedure you did for creating a container image repository.
-====

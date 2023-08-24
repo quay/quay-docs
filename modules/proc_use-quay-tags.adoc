@@ -31,7 +31,7 @@ To view image tags on
 ifeval::["{context}" == "quay-io"]
 {quayio},
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname},
 endif::[]
 navigate to a repository and click on the *Tags* tab. For example:
@@ -46,7 +46,7 @@ You can add a new tag to an image in
 ifeval::["{context}" == "quay-io"]
 {quayio}.
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}.
 endif::[]
 
@@ -69,7 +69,7 @@ You can move a tag to a different image if desired.
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
 endif::[]
 confirms that you want the tag moved instead of added. 
@@ -77,7 +77,10 @@ confirms that you want the tag moved instead of added.
 [id="deleting-a-tag"]
 === Deleting an image tag
 
-Deleting an image tag effectively removes that specific version of the image from the registry. Users might delete image tags for the following reasons:
+Deleting an image tag effectively removes that specific version of the image from the registry. 
+
+////
+Users might delete image tags for the following reasons:
 
 * *Security Vulnerabilities*: If a specific image tag is found to contain security vulnerabilities or issues, it's recommended to delete that tag to prevent its accidental use. This ensures that users will not inadvertently deploy containers with known security flaws.
 
@@ -99,7 +102,7 @@ Deleting an image tag effectively removes that specific version of the image fro
 * *Versioning Cleanup*: If you use tags for versioning, like "v1," "v2," etc., you might want to delete older versions that are no longer relevant.
 
 * *Optimize Pulls*: By having fewer tags, users can quickly identify and pull the correct version without having to sift through many outdated options.
-
+////
 To delete an image tag, use the following procedure.
 
 .Procedure 
@@ -119,7 +122,7 @@ Deleting an image tag can be reverted based on the amount of time allotted assig
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
 endif::[]
 offers a comprehensive history of images and their respective image tags. 
@@ -134,7 +137,7 @@ offers a comprehensive history of images and their respective image tags.
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
 endif::[]
 offers a comprehensive _time machine_ feature that allows older images tags to remain in the repository for set periods of time so that they can revert changes made to tags. This feature allows users to revert tag changes, like tag deletions. 
@@ -143,7 +146,7 @@ offers a comprehensive _time machine_ feature that allows older images tags to r
 
 . Navigate to the *Tag History* page of a repository. 
 
-. Find the point in the timeline which image tags were changed or removed. Next, click the option under *Revert* to restore a tag to its image, or click the option under *Permanently Delete* to permanently delete the image tag. 
+. Find the point in the timeline at which image tags were changed or removed. Next, click the option under *Revert* to restore a tag to its image, or click the option under *Permanently Delete* to permanently delete the image tag. 
 
 [id="fetching-images-and-tags"]
 === Fetching an image by tag or digest
@@ -151,7 +154,7 @@ offers a comprehensive _time machine_ feature that allows older images tags to r
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
 endif::[]
 offers multiple ways of pulling images using Docker and Podman clients. 
@@ -173,19 +176,27 @@ Selecting any one of the four options returns a command for the respective clien
 
 . Click *Copy Command* to copy the command, which can be used on the command-line interface (CLI). For example:
 +
+ifeval::["{context}" == "quay-io"]
+[source,terminal]
+----
+$ podman pull quay.io/quayadmin/busybox:test2
+----
+endif::[]
+ifeval::["{context}" == "use-quay"]
 [source,terminal]
 ----
 $ podman pull quay-server.example.com/quayadmin/busybox:test2
 ----
+endif::[]
 
 [id="tag-expiration"]
 == Tag Expiration
 
-Image can be set to expire from a
+Images can be set to expire from a
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
 endif::[]
 repository at a chosen date and time using the _tag expiration_ feature. This feature includes the following characteristics: 
@@ -194,9 +205,9 @@ repository at a chosen date and time using the _tag expiration_ feature. This fe
 
 * Expiration is set on a per-tag basis. It is not set for a repository as a whole. 
 
-* After a tag is expired or deleted, it is not immediately removed from the registry. This is contingent upon the allotted time designed in the _time machine_ feature, which defines when the tag is permanently deleted, or garbage collected. By default, this value is set at _14 days_, however the administrator can adjust this time to one of multiple variables. Up until the point that garbage collection occurs, tags changes can be reverted. 
+* After a tag is expired or deleted, it is not immediately removed from the registry. This is contingent upon the allotted time designed in the _time machine_ feature, which defines when the tag is permanently deleted, or garbage collected. By default, this value is set at _14 days_, however the administrator can adjust this time to one of multiple options. Up until the point that garbage collection occurs, tags changes can be reverted. 
 
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 The {productname} superuser has no special privilege related to deleting expired images from user repositories. There is no central mechanism for the superuser to gather information and act on user repositories. It is up to the owners of each repository to manage expiration and the deletion of their images. 
 endif::[]
 
@@ -208,7 +219,7 @@ Tag expiration can be set up in one of two ways:
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
 endif::[]
 UI. For example:
@@ -224,7 +235,7 @@ Adding a label, for example, `quay.expires-after=20h` by using the `docker label
 * `2d`
 * `3w`
 
-Expiration begins from the time that the image is built. 
+Expiration begins from the time that the image is pushed to the registry. 
 
 [id="setting-tag-expiration"]
 === Setting tag expiration from the repository
@@ -233,7 +244,7 @@ Tag expiration can be set on the
 ifeval::["{context}" == "quay-io"]
 {quayio}
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname}
 endif::[]
 UI.
@@ -247,22 +258,20 @@ UI.
 . Select the date and time when prompted, and select *Change Expiration*. The tag is set to be deleted from the repository when the expiration time is reached. 
 
 [id="security-scanning"]
-== Security scanning
+== Viewing Clair security scans
 
-By default
-Tag expiration can be set on the 
 ifeval::["{context}" == "quay-io"]
-{quayio} comes equipped with Clair security scanner. 
+{quayio} comes equipped with Clair security scanner. For more information about Clair on {quayio}, see "Clair security scanner."
 endif::[]
-ifeval::["{context}" ==! "use-quay"]
-Clair security scanner is not enabled for {productname}. To enable Clair, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/vulnerability_reporting_with_clair_on_red_hat_quay/testing-clair-with-quay[Clair on {productname}].
+ifeval::["{context}" == "use-quay"]
+Clair security scanner is not enabled for {productname} by default. To enable Clair, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/vulnerability_reporting_with_clair_on_red_hat_quay/testing-clair-with-quay[Clair on {productname}].
 endif::[]
 
 .Procedure 
 
-. Navigate to a repository and click *Tags* in the navigation pane. 
+. Navigate to a repository and click *Tags* in the navigation pane. This page shows the results of the security scan.
 
-. Under *Security Scan*, click *See Child Manifests* to see the list of manifests in extended view.
+. To reveal more information about multi-architecture images, click *See Child Manifests* to see the list of manifests in extended view.
 
 . Click a relevant link under *See Child Manifests*, for example, *1 Unknown* to be redirected to the *Security Scanner* page. 
 
@@ -271,7 +280,7 @@ endif::[]
 [NOTE]
 ====
 Image scanning only lists vulnerabilities found by Clair security scanner. What users do about the vulnerabilities are uncovered is up to said user. 
-ifeval::["{context}" ==! "use-quay"]
+ifeval::["{context}" == "use-quay"]
 {productname} superusers do not act on found vulnerabilities. 
 endif::[]
 ====
