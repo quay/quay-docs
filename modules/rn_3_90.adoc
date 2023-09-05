@@ -1,7 +1,24 @@
 :_content-type: CONCEPT
+[id="rn-3-901"]
+= RHBA-2023:4974 - {productname} 3.9.1 release
+
+Issued 2023-09-05
+
+{productname} release 3.9.1 is now available. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2023:4974[RHBA-2023:4974] advisory.
+
+[id="bug-fixes-391"]
+== Bug fixes
+
+* link:https://issues.redhat.com/browse/PROJQUAY-5581[PROJQUAY-5581]. Should show total quota consumption for user account namespace in UI.
+* link:https://issues.redhat.com/browse/PROJQUAY-5691[PROJQUAY-5691]. CVE-2023-33733 python-reportlab: remote code execution via supplying a crafted PDF file [quay-3.9].
+* link:https://issues.redhat.com/browse/PROJQUAY-5702[PROJQUAY-5702]. CVE-2023-36464 quay-registry-container: pypdf: Possible Infinite Loop when a comment isn't followed by a character [quay-3].
+* link:https://issues.redhat.com/browse/PROJQUAY-5874[PROJQUAY-5874]. CVE-2021-33194 Vulnerabilities in dependency usr/local/bin/pushgateway (gobinary).
+* link:https://issues.redhat.com/browse/PROJQUAY-5925[PROJQUAY-5925]. A lot of quotatotalworker error in quayregistry-quay-config-editor pod log.
+* link:https://issues.redhat.com/browse/PROJQUAY-5914[PROJQUAY-5914]. Bulk update Repo settings in Robot accounts tab.
+* link:https://issues.redhat.com/browse/PROJQUAY-5967[PROJQUAY-5967]. Quay 3.9.1 High Image Vulnerability reported by Redhat ACS.
 
 [id="rn-3-900"]
-= RHBA-2022:3256 - {productname} 3.9.0 release
+= RHBA-2023:3256 - {productname} 3.9.0 release
 
 Issued 2023-08-14
 
@@ -123,6 +140,12 @@ For more information, see link:https://access.redhat.com/documentation/en-us/red
 +
 **Default**: `False`
 
+* The following configuration field has been added to track various events:
+
+** **ACTION_LOG_AUDIT_LOGINS**: When set to `True`, tracks advanced events such as logging into, and out of, the UI, and logging in using Docker for regular users, robot accounts, and for application-specific token accounts.
++
+**Default**: `True`
+
 [id="quay-operator-updates"]
 == {productname} Operator
 
@@ -197,6 +220,21 @@ This is a non-issue for proxy organizations employing a soft quota check and can
 == {productname} bug fixes
 
 * Previously, on {productname} Lightweight Directory Access Protocol (LDAP) deployments, there was a bug that disallowed referrals from being used with team synchronization and in other circumstances. With this update, referrals can be turned off globally for {productname} to ensure proper behavior across all components.
+
+* Previously, only last access timestamps were recorded in {productname}. This issue has been fixed, and now the following timestamps are recorded:
++
+** Login to the {productname} UI. 
+** Logout of the {productname} UI. 
+** Login via Docker CLI (registry API) for regular users. 
+** Login via Docker CLI (Registry API) for robot accounts.
+** Login via Docker CLI (Registry API) for app-specific tokens accounts.
++
+You can disable this timestamp feature by setting `ACTION_LOG_AUDIT_LOGINS` to `false` in your `config.yaml` file. This field is set to `true` by default. 
++
+[NOTE]
+====
+Logout events from the client side (Docker or Podman) are not causing requests to the registry API and are therefore not trackable.
+====
 
 * link:https://issues.redhat.com/browse/PROJQUAY-4614[PROJQUAY-4614]. Add conftest mediatypes to default Quay configuration.
 * link:https://issues.redhat.com/browse/PROJQUAY-4865[PROJQUAY-4865]. Remove unused dependencies.
