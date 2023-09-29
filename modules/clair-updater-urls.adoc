@@ -6,17 +6,32 @@
 [id="clair-updater-urls"]
 = Clair updater URLs
 
-The following are the HTTP hosts and paths that Clair will attempt to talk to in a default configuration. This list is non-exhaustive. Some servers issue redirects and some request URLs are constructed dynamically.
+The default updaters are tracked in `updater/defaults/defaults.go`.
 
-* \https://secdb.alpinelinux.org/
-* \http://repo.us-west-2.amazonaws.com/2018.03/updates/x86_64/mirror.list
-* \https://cdn.amazonlinux.com/2/core/latest/x86_64/mirror.list
-* \https://www.debian.org/security/oval/
-* \https://linux.oracle.com/security/oval/
-* \https://packages.vmware.com/photon/photon_oval_definitions/
-* \https://github.com/pyupio/safety-db/archive/
-* \https://catalog.redhat.com/api/containers/
-* \https://www.redhat.com/security/data/
-* \https://support.novell.com/security/oval/
-* \https://people.canonical.com/~ubuntu-security/oval/
+The following table lists the HTTP hosts and paths that Clair attempts to talk to in a default configuration. This list is non-exhaustive. Some servers issue redirects and some request URLs are constructed dynamically. 
 
+[NOTE]
+====
+If you are using a proxy server in your environment with Clair's updater URLs, you must identify which URL needs to be added to the proxy allowlist to ensure that Clair can access them unimpeded. For more information, see "Information about using Clair in a proxy environment".
+====
+
+[cols="1a,2a,2a",options="header"]
+|===
+|Updater | URLs | Component 
+|`alpine` | * `\https://secdb.alpinelinux.org/` | Alpine Linux SecDB database
+|`aws` | * `\http://repo.us-west-2.amazonaws.com/2018.03/updates/x86_64/mirror.list`
+* `\https://cdn.amazonlinux.com/2/core/latest/x86_64/mirror.list` 
+* `\https://cdn.amazonlinux.com/al2023/core/mirrors/latest/x86_64/mirror.list` | Amazon Web Services (AWS) UpdateInfo
+|`debian` | * `\https://deb.debian.org/`
+* `\https://security-tracker.debian.org/tracker/data/json` | Debian Security Tracker
+|`clair.cvss` | * `\https://nvd.nist.gov/feeds/json/cve/1.1/` | National Vulnerability Database (NVD) feed for Common Vulnerabilities and Exposures (CVE) data in JSON format
+|`oracle` | * `\https://linux.oracle.com/security/oval/com.oracle.elsa-*.xml.bz2` |  Oracle Oval database 
+|`photon` | * `\https://packages.vmware.com/photon/photon_oval_definitions/` | VMware Photon OS oval definitions 
+|`rhel` | * `\https://access.redhat.com/security/cve/`
+* `\https://access.redhat.com/security/data/oval/v2/PULP_MANIFEST` | Red Hat Enterprise Linux (RHEL) Oval database 
+|`rhcc` | * `\https://access.redhat.com/security/data/metrics/cvemap.xml` | Resource Handler Configuration Controller (RHCC) database 
+|`suse` | * `\https://support.novell.com/security/oval/` | SUSE Oval database 
+|`ubuntu` | * `\https://security-metadata.canonical.com/oval/com.ubuntu.*.cve.oval.xml`
+* `\https://api.launchpad.net/1.0/` | Ubuntu Oval Database
+|`osv` | * `\https://osv-vulnerabilities.storage.googleapis.com/` | Open Source Vulnerabilities database
+|===
