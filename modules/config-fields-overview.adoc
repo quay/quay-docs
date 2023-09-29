@@ -18,13 +18,42 @@ $ clair -conf ./path/to/config.yaml -mode matcher
 
 The aforementioned commands each start two Clair nodes using the same configuration file. One runs the indexing facilities, while other runs the matching facilities.
 
+If you are running Clair in `combo` mode, you must supply the indexer, matcher, and notifier configuration blocks in the configuration.
+
+[id="information-using-clair-proxy-environment"]
+== Information about using Clair in a proxy environment
+
 Environment variables respected by the Go standard library can be specified if needed, for example:
 
 * `HTTP_PROXY`
-* `HTTPS_PROXY`
-* `SSL_CERT_DIR`
++
+[source,terminal]
+----
+$ export http://<user_name>:<password>@<proxy_host>:<proxy_port>
+----
+* `HTTPS_PROXY`.
++
+[source,terminal]
+----
+$ export https://<user_name>:<password>@<proxy_host>:<proxy_port>
+----
+* `SSL_CERT_DIR`.
++
+[source,terminal]
+----
+$ export SSL_CERT_DIR=/<path>/<to>/<ssl>/<certificates>
+----
 
-If you are running Clair in `combo` mode, you must supply the indexer, matcher, and notifier configuration blocks in the configuration.
+If you are using a proxy server in your environment with Clair's updater URLs, you must identify which URL needs to be added to the proxy allowlist to ensure that Clair can access them unimpeded. For example, the `osv` updater requires access to `\https://osv-vulnerabilities.storage.googleapis.com` to fetch ecosystem data dumps. In this scenario, the URL must be added to the proxy allowlist. For a full list of updater URLs, see "Clair updater URLs". 
+
+You must also ensure that the standard Clair URLs are added to the proxy allowlist:
+
+* `\https://search.maven.org/solrsearch/select`
+* `\https://catalog.redhat.com/api/containers/`
+* `\https://access.redhat.com/security/data/metrics/repository-to-cpe.json`
+* `\https://access.redhat.com/security/data/metrics/container-name-repos-map.json`
+
+When configuring the proxy server, take into account any authentication requirements or specific proxy settings needed to enable seamless communication between Clair and these URLs. By thoroughly documenting and addressing these considerations, you can ensure that Clair functions effectively while routing its updater traffic through the proxy.
 
 [id="config-fields-clair-reference"]
 == Clair configuration reference
