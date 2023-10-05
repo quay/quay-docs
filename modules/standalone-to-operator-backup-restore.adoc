@@ -1,14 +1,15 @@
-=  Migrating a standalone Quay deployment to a {productname} Operator managed deployment
+:_content-type: REFERENCE
+[id="migrating-standalone-quay-to-operator"]
+= Migrating a standalone {productname} deployment to a {productname} Operator deployment
 
 The following procedures allow you to back up a standalone {productname} deployment and migrate it to the {productname} Operator on OpenShift Container Platform.
 
+[id="backing-up-standalone-deployment"]
 == Backing up a standalone deployment of {productname}
-
-.Prerequisites
 
 .Procedure
 
-. Back up the Quay `config.yaml` of your standalone deployment:
+. Back up the `config.yaml` of your standalone {productname} deployment:
 +
 [source,terminal]
 ----
@@ -16,7 +17,7 @@ $ mkdir /tmp/quay-backup
 $ cp /path/to/Quay/config/directory/config.yaml /tmp/quay-backup
 ----
 
-. Create a backup of the database that your standalone Quay deployment is using:
+. Create a backup of the database that your standalone {productname} deployment is using:
 +
 [source,terminal]
 ----
@@ -32,7 +33,7 @@ $ pg_dump -h DB_HOST -p 5432 -d QUAY_DATABASE_NAME -U QUAY_DATABASE_USER -W -O >
 $ mkdir ~/.aws/
 ----
 
-. Obtain the `access_key` and `secret_key` from the Quay `config.yaml` of your standalone deployment:
+. Obtain the `access_key` and `secret_key` from the `config.yaml` of your standalone deployment:
 +
 [source,terminal]
 ----
@@ -55,7 +56,7 @@ DISTRIBUTED_STORAGE_CONFIG:
           storage_path: /datastorage/registry
 ----
 
-. Store the `access_key` and `secret_key` from the Quay `config.yaml` file in your `~/.aws` directory:
+. Store the `access_key` and `secret_key` from the `config.yaml` file in your `~/.aws` directory:
 +
 [source,terminal]
 ----
@@ -102,18 +103,18 @@ $ aws s3 sync --no-verify-ssl --endpoint-url https://PUBLIC_S3_ENDPOINT:PORT s3:
 +
 [NOTE]
 ====
-The `PUBLIC_S3_ENDPOINT` can be read from the Quay `config.yaml` file under `hostname` in the `DISTRIBUTED_STORAGE_CONFIG`. If the endpoint is insecure, use `http` instead of `https` in the endpoint URL.
+The `PUBLIC_S3_ENDPOINT` can be read from the {productname} `config.yaml` file under `hostname` in the `DISTRIBUTED_STORAGE_CONFIG`. If the endpoint is insecure, use `http` instead of `https` in the endpoint URL.
 ====
 
-Up to this point, you should have a complete backup of all Quay data, blobs, the database, and the `config.yaml` file stored locally. In the following section, you will migrate the standalone deployment backup to {productname} on OpenShift Container Platform.
+Up to this point, you should have a complete backup of all {productname} data, blobs, the database, and the `config.yaml` file stored locally. In the following section, you will migrate the standalone deployment backup to {productname} on OpenShift Container Platform.
 
+[id="using=standalone-content-migrate-ocp"]
 == Using backed up standalone content to migrate to OpenShift Container Platform.
-
 
 .Prerequisites
 
 * Your standalone {productname} data, blobs, database, and `config.yaml` have been backed up.
-* {productname} is deployed on OpenShift Container Platform using the Quay Operator.
+* {productname} is deployed on OpenShift Container Platform using the {productname} Operator.
 * A `QuayRegistry` with all components set to `managed`.
 
 .Procedure
@@ -137,7 +138,7 @@ $ oc scale --replicas=0 deployment quay-operator.v3.6.2 -n openshift-operators
 $ oc scale --replicas=0 deployment QUAY_MAIN_APP_DEPLOYMENT QUAY_MIRROR_DEPLOYMENT
 ----
 
-. Copy the database SQL backup to the Quay PostgreSQL database instance:
+. Copy the database SQL backup to the `Quay` PostgreSQL database instance:
 +
 [source,terminal]
 ----
@@ -229,7 +230,7 @@ Example output:
 You are now connected to database "example-restore-registry-quay-database" as user "postgres".
 ----
 
-. Create a `pg_trmg` extension of your Quay database:
+. Create a `pg_trmg` extension of your `Quay` database:
 +
 [source,terminal]
 ----
@@ -300,7 +301,7 @@ You must manually copy all the LDAP, OIDC and other information and add it to th
 $ oc create secret generic new-custom-config-bundle --from-file=config.yaml=/tmp/quay-backup/config-bundle.yaml
 ----
 
-. Scale up the Quay pods:
+. Scale up the `Quay` pods:
 +
 ----
 $ oc scale --replicas=1 deployment quayregistry-quay-app
@@ -322,7 +323,7 @@ $ oc patch quayregistry QUAY_REGISTRY_NAME --type=merge -p '{"spec":{"configBund
 +
 [NOTE]
 ====
-If Quay returns a `500` internal server error, you might have to update the `location` of your `DISTRIBUTED_STORAGE_CONFIG` to `default`.
+If {productname} returns a `500` internal server error, you might have to update the `location` of your `DISTRIBUTED_STORAGE_CONFIG` to `default`.
 ====
 
 . Create a new AWS `credentials.yaml` in your `/.aws/` directory and include the `access_key` and `secret_key` from the Operator-created `config.yaml` file:
@@ -372,4 +373,4 @@ $ aws s3 sync --no-verify-ssl --endpoint-url https://NOOBAA_PUBLIC_S3_ROUTE /tmp
 $ oc scale –replicas=1 deployment quay-operator.v3.6.4 -n openshift-operators
 ----
 
-The Operator will use the custom configuration bundle provided and will reconcile all secrets and deployments. Your new Quay deployment on OpenShift Container Platform should contain all of the information that the old deployment had. All images should be pull-able.
+The Operator uses the custom configuration bundle provided and reconciles all secrets and deployments. Your new {productname} deployment on {ocp} should contain all of the information that the old deployment had. You should be able to pull all images.
