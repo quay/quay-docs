@@ -6,7 +6,11 @@
 
 * In case of an object storage system failure of one geo-replicating site, that site's {productname} deployment must be shut down so that clients are redirected to the remaining site with intact storage systems by a global load balancer. Otherwise, clients will experience pull and push failures.
 
-* {productname} has no internal awareness of the health or availability of the connected object storage system. If the object storage system of one site becomes unavailable, there will be no automatic redirect to the remaining storage system, or systems, of the remaining site, or sites.
+* {productname} has no internal awareness of the health or availability of the connected object storage system. Users must configure a global load balancer (LB) to monitor the health of your distributed system and to route traffic to different sites based on their storage status.
+
+* To check the status of your geo-replication deployment, you must use the `/health/endtoend` checkpoint, which is used for global health monitoring. You must configure the redirect manually using the `/health/endtoend` endpoint. The `/health/instance` end point only checks local instance health. 
+
+* If the object storage system of one site becomes unavailable, there will be no automatic redirect to the remaining storage system, or systems, of the remaining site, or sites.
 
 * Geo-replication is asynchronous. The permanent loss of a site incurs the loss of the data that has been saved in that sites' object storage system but has not yet been replicated to the remaining sites at the time of failure.
 

@@ -8,7 +8,7 @@ By using the following procedure, {productname} administrators can remove sites 
 
 * You are logged into {ocp}.
 * You have configured {productname} geo-replication with at least two sites, for example, `usstorage` and `eustorage`. 
-* Each site has its own Organization, Repository, and image tags. 
+* Each site has its own Organization, Repository, and image tags.
 
 .Procedure 
 
@@ -21,7 +21,13 @@ $ python -m util.backfillreplication
 +
 [WARNING]
 ====
-Prior to removing storage engines from your {productname} `config.yaml` file, you *must* ensure that all blobs are synced between all defined sites. Complete this step before proceeding. 
+Prior to removing storage engines from your {productname} `config.yaml` file, you *must* ensure that all blobs are synced between all defined sites. 
+
+When running this command, replication jobs are created which are picked up by the replication worker. If there are blobs that need replicated, the script returns UUIDs of blobs that will be replicated. If you run this command multiple times, and the output from the return script is empty, it does not mean that the replication process is done; it means that there are no more blobs to be queued for replication. Customers should use appropriate judgement before proceeding, as the allotted time replication takes depends on the number of blobs detected. 
+
+Alternatively, you could use a third party cloud tool, such as Microsoft Azure, to check the synchronization status.
+
+This step must be completed before proceeding.
 ====
 
 . In your {productname} `config.yaml` file for site `usstorage`, remove the `DISTRIBUTED_STORAGE_CONFIG` entry for the `eustorage` site. 
