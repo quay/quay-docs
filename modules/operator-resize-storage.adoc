@@ -2,26 +2,41 @@
 [id="operator-resize-storage"]
 = Resizing Managed Storage
 
-The {productname} Operator creates default object storage using the defaults provided by Red Hat OpenShift Data Foundation when creating a `NooBaa` object (50 Gib).
+When deploying the {productname} Operator, three distinct persistent volume claims (PVCs) are deployed:
 
-There are two ways to extend `NooBaa` object storage:
+* One for the PostgreSQL 13 registry.
+* One for the Clair PostgreSQL 13 registry.
+* One that uses NooBaa as a backend storage. 
 
-. You can resize an existing persistent volume claim (PVC).
-. You can add more PVCs to a new storage pool.
+[NOTE]
+====
+The connection between {productname} and NooBaa is done through the S3 API and ObjectBucketClaim API in {ocp}. {productname} leverages that API group to create a bucket in NooBaa, obtain access keys, and automatically set everything up. On the backend, or NooBaa, side, that bucket is creating inside of the backing store. As a result, NooBaa PVCs are not mounted or connected to {productname} pods. 
+====
+
+The default size for the PostgreSQL 13 and Clair PostgreSQL 13 PVCs is set to 50 GiB. You can expand storage for these PVCs on the {ocp} console by using the following procedure.
+
+[NOTE]
+====
+The following procedure shares commonality with link:https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.5/html/managing_openshift_container_storage/managing-persistent-volume-claims_rhocs#expanding-persistent-volume-claims_rhocs[Expanding Persistent Volume Claims] on {odf}. 
+====
 
 [id="resizing-noobaa-pvc"]
-== Resizing the NooBaa PVC
+== Resizing PostgreSQL 13 PVCs on {productname}
 
-Use the following procedure to resize the NooBaa PVC.
+Use the following procedure to resize the PostgreSQL 13 and Clair PostgreSQL 13 PVCs.
+
+.Prerequisites 
+
+* You have cluster admin privileges on {ocp}. 
 
 .Procedure
 
 . Log into the {ocp} console and select *Storage* -> *Persistent Volume Claims*.
 
-. Select the `PersistentVolumeClaim` named like `noobaa-default-backing-store-noobaa-pvc-*`.
+. Select the desired `PersistentVolumeClaim` for either PostgreSQL 13 or Clair PostgreSQL 13, for example, `example-registry-quay-postgres-13`.
 
 . From the *Action* menu, select *Expand PVC*.
 
 . Enter the new size of the Persistent Volume Claim and select *Expand*.
-
-After a few minutes (depending on the size of the PVC), the expanded size should reflect in the PVC's *Capacity* field.
++
+After a few minutes, the expanded size should reflect in the PVC's *Capacity* field.
