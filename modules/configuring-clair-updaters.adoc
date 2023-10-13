@@ -1,0 +1,216 @@
+
+[id="configuring-updaters"]
+= Configuring updaters
+
+Updaters can be configured by the `updaters.sets` key in your `clair-config.yaml` file. 
+
+[IMPORTANT]
+====
+If the `sets` field is not populated, it defaults to using all sets.
+====
+
+[NOTE]
+====
+If updaters are being run automatically within the matcher process, which is the default setting, the period for running updaters is configured under the matcher's configuration field.
+====
+
+[id="selecting-updater-sets"]
+== Selecting specific updater sets
+
+Use the following references to select one, or multiple, updaters for your {productname} deployment. 
+
+=== Configuring Clair for multiple updaters
+
+.Multiple specific updaters
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - alpine
+    - aws
+    - osv
+#...
+----
+
+=== Configuring Clair for Alpine 
+
+.Alpine 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - alpine
+#...
+----
+
+=== Configuring Clair for AWS 
+
+.AWS 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - aws
+#...
+----
+
+=== Configuring Clair for Debian 
+
+.Debian 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - debian
+#...
+----
+
+=== Configuring Clair for Clair CVSS 
+
+.Clair CVSS 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - clair.cvss
+#...
+----
+
+=== Configuring Clair for Oracle 
+
+.Oracle 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - oracle
+#...
+----
+
+=== Configuring Clair for Photon 
+.Photon 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - photon
+#...
+----
+
+=== Configuring Clair for SUSE
+
+.SUSE 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - suse
+#...
+----
+
+=== Configuring Clair for Ubuntu
+
+.Ubuntu 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - ubuntu
+#...
+----
+
+=== Configuring Clair for OSV 
+
+.OSV 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - osv
+#...
+----
+
+[id="full-rhel-coverage"]
+== Selecting updater sets for full {rhel} coverage
+
+For full coverage of vulnerabilities in {rhel}, you must use the following updater sets:
+
+* `rhel`. This updater ensures that you have the latest information on the vulnerabilities that affect {rhel-short}.
+* `rhcc`. This updater keeps track of vulnerabilities related to Red hat's container images. 
+* `clair.cvss`. This updater offers a comprehensive view of the severity and risk assessment of vulnerabilities by providing Common Vulnerabilities and Exposures (CVE) scores. 
+* `osv`. This updater focuses on tracking vulnerabilities in open-source software components. This updater is recommended due to how common the use of Java and Go are in {rhel-short} products. 
+
+.{rhel-short} updaters example 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - rhel
+    - rhcc
+    - clair.cvss
+    - osv
+#...
+----
+
+[id="filtering-updater-sets"]
+== Filtering updater sets
+
+To reject an updater from running without disabling an entire set, the `filter` option can be used.
+
+In the following example, the string is interpreted as a Go `regexp` package. This rejects any updater with a name that does not match.
+
+[NOTE]
+====
+This means that an empty string matches any string. It does not mean that it matches no strings.
+====
+
+[source,yaml]
+----
+#...
+updaters:
+  filter: '^$'
+#...
+----
+
+[id="configuring-specific-updaters"]
+== Configuring specific updaters
+
+Configuration for specific updaters can be passed by putting a key underneath the `config` parameter of the `updaters` object. The name of an updater might be constructed dynamically, and users should examine logs to ensure updater names are accurate. The specific object that an updater expects should be covered in the updater's documentation.
+
+In the following example, the `rhel` updater fetches a manifest from a different location:
+
+[source,yaml]
+----
+#...
+updaters:
+  config:
+    rhel:
+      url: https://example.com/mirror/oval/PULP_MANIFEST
+#...
+----
+
+[id="disabling-clair-updater-component-managed-db"]
+== Disabling the Clair Updater component
+
+In some scenarios, users might want to disable the Clair updater component. Disabling updaters is required when running {productname} in a disconnected environment.
+
+In the following example, Clair updaters are disabled:
+
+[source,yaml]
+----
+#...
+matcher:
+  disable_updaters: true
+#...
+----
