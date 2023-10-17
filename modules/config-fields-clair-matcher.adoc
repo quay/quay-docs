@@ -2,7 +2,7 @@
 [id="config-fields-clair-matcher"]
 = Clair matcher configuration fields
 
-The following matcher configuration fields are available for Clair.
+The following table describes the configuration fields for Clair's `matcher` component.
 
 [NOTE]
 ====
@@ -24,7 +24,7 @@ Clair allows for a custom connection pool size. This number directly sets how ma
 
 This parameter will be ignored in a future version. Users should configure this through the connection string.
 
-| **.indexer_addr** | String  | A matcher contacts an indexer to create a `VulnerabilityReport`. The location of this indexer is required.
+| **.indexer_addr** | String  | A matcher contacts an indexer to create a vulnerability report. The location of this indexer is required.
 
 Defaults to `30m`.
 
@@ -36,9 +36,31 @@ Defaults to `30m`.
 
 | **.disable_updaters** | Boolean | Whether to run background updates or not.
 
+Default: `False`
+
 | **.update_retention** | Integer  | Sets the number of update operations to retain between garbage collection cycles. This should be set to a safe MAX value based on database size constraints.
 
 Defaults to `10m`.
 
 If a value of less than `0` is provided, garbage collection is disabled. `2` is the minimum value to ensure updates can be compared to notifications.
 |===
+
+[discrete]
+== Example matcher configuration
+
+.Example matcher configuration
+[source,yaml]
+----
+# ...
+matcher:
+  connstring: >-
+    host=<DB_HOST> port=5432 dbname=<matcher> user=<DB_USER> password=D<B_PASS>
+    sslmode=verify-ca sslcert=/etc/clair/ssl/cert.pem sslkey=/etc/clair/ssl/key.pem
+    sslrootcert=/etc/clair/ssl/ca.pem
+  indexer_addr: http://clair-v4/
+  disable_updaters: false
+  migrations: true
+  period: 6h
+  update_retention: 2
+# ...
+----
