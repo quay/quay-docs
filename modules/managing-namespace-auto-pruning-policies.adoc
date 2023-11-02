@@ -1,0 +1,243 @@
+:_content-type: PROCEDURE
+[id="managing-namespace-auto-pruning-policies"]
+= Managing namespace auto-pruning policies using the {productname} UI
+
+Namespace auto-pruning policies are created using the {productname} UI v2. This can be done after you have configured your {productname} `config.yaml` file to enable the auto-pruning feature.
+
+[NOTE]
+====
+This feature is not available when using the {productname} legacy UI.
+====
+
+[id="configuring-namespace-auto-prune-feature"]
+== Configuring the {productname} namespace auto-pruning feature
+
+Use the following procedure to configure your {productname} `config.yaml` file to enable the namespace auto-pruning feature.
+
+.Procedure 
+
+* In your {productname} `config.yaml` file, add, and set, the `FEATURE_AUTO_PRUNE` environment variable to `True`. For example:
++
+[source,yaml]
+----
+# ...
+FEATURE_AUTO_PRUNE: True
+# ...
+----
+
+[id="creating-policy-v2-ui"]
+== Creating an auto-prune policy using the {productname} v2 UI
+
+Use the following procedure to create an auto-prune policy using the {productname} UI v2.
+
+.Prerequisites 
+
+* You have enabled the `FEATURE_AUTO_PRUNE` feature.
+
+.Procedure 
+
+. Tag three sample images, for example, `busybox`, that will be pushed to the repository with auto-pruning enabled. For example:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test2
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test3
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test4
+----
+
+. Push the three sample images, for example, `busybox`, to the repository with auto-pruning enabled by entering the following commands:
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/quayadmin/busybox:test
+----
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<quayadmin>/busybox:test2
+----
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<quayadmin>/busybox:test3
+----
++
+[source,terminal]
+----
+sudo podman push --tls-verify=false <quay-server.example.com>/<quayadmin>/busybox:test4
+----
+
+. Check that there are four tags in your repository. 
+
+. On the {productname} UI v2, click *Organizations* in the navigation pane. 
+
+. Select the name of an organization that you will apply the auto-pruning feature to, for example, `test_organization`. 
+
+. Click *Settings*. 
+
+. Click *Auto-Prune Policies*. For example:
++
+image:auto-prune-policies-page.png[Auto-Prune Policies page]
+
+. Click the drop down menu and select the desired policy, for example, *By number of tags*. 
+
+. Select the desired number of tags to keep. By default, this is set at *20* tags. For this example, the number of tags to keep is set at *3*.
+
+Click *Save*. The following alert is received: *Successfully updated auto-prune policy*. 
+
+.Verification
+
+* Navigate to the *Tags* page of your repository. After a few minutes, the auto-pruner worker removes tags that no longer fit within the established criteria. In this example, it removes the `busybox:test` tag, and keeps the `busybox:test2`, `busybox:test3`, and `busybox:test4` tag.
++
+After tags are automatically pruned, they go into the {productname} time machine, or the  amount of time, after a tag is deleted, that the tag is accessible before being garbage collected. The expiration time of an image tag is dependent on your organization's settings. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]. 
+
+[id="creating-policy-api"]
+== Creating an auto-prune policy using the {productname} API
+
+You can use {productname} API endpoints to manage auto-pruning policies for an organization. 
+
+.Prerequisites
+
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file. 
+* You have created an OAuth access token. 
+* You have logged into {productname}. 
+
+.Procedure 
+
+. Enter the following `POST` command create a new policy that limits the number of tags allowed in an organization:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer j8mvpgf0rP5wpbS7LCfDaAxE0NZvCmOC123456" -H "Content-Type: application/json" -d '{
+    "method": "number_of_tags",
+    "value": 10
+}' http://<quay-server.example.com>/api/v1/organization/<quayadmin>/autoprunepolicy/
+----
++
+Alternatively, you can can set tags to expire for a specified time after their creation date:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer j8mvpgf0rP5wpbS7LCfDaAxE0NZvCmOC123456" -H "Content-Type: application/json" -d '{
+    "method": "creation_date",
+    "value": "7d"
+}' http://<quay-server.example.com>/api/v1/organization/<quayadmin>/autoprunepolicy/
+----
++
+.Example output
+[source,terminal]
+----
+{"uuid": "73d64f05-d587-42d9-af6d-e726a4a80d6e"}
+----
++
+Attempting to create multiple policies returns the following error:
++
+[source,terminal]
+----
+{"detail": "Policy for this namespace already exists, delete existing to create new policy", "error_message": "Policy for this namespace already exists, delete existing to create new policy", "error_type": "invalid_request", "title": "invalid_request", "type": "http://<quay-server.example.com>/api/v1/error/invalid_request", "status": 400}
+----
+
+. Check your auto-prune policy by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer j8mvpgf0rP5wpbS7LCfDaAxE0NZvCmOC123456" http://<quay-server.example.com>/api/v1/organization/<quayadmin>/autoprunepolicy/
+----
++
+.Example output
++
+[source,terminal]
+----
+{"policies": [{"uuid": "73d64f05-d587-42d9-af6d-e726a4a80d6e", "method": "creation_date", "value": "7d"}]}
+----
+
+. You can delete the auto-prune policy by entering the following command:
++
+[source,terminal]
+----
+$ curl -X DELETE -H "Authorization: Bearer j8mvpgf0rP5wpbS7LCfDaAxE0NZvCmOC123456" http://<quay-server.example.com>/api/v1/organization/<quayadmin>/autoprunepolicy/
+----
+
+[id="creating-policy-api-current-user"]
+== Creating an auto-prune policy for the current user using the API
+
+You can use {productname} API endpoints to manage auto-pruning policies for your account.
+
+[NOTE]
+====
+The use of `/user/` in the following commands represents the user that is currently logged into {productname}.
+====
+
+.Prerequisites
+
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file. 
+* You have created an OAuth access token. 
+* You have logged into {productname}. 
+
+.Procedure 
+
+. Enter the following `POST` command create a new policy that limits the number of tags for the current user:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer j8mvpgf0rP5wpbS7LCfDaAxE0NZvCmOC123456" -H "Content-Type: application/json" -d '{
+    "method": "number_of_tags",
+    "value": 10
+}' http://<quay-server.example.com>/api/v1/user/autoprunepolicy/
+----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859"}
+----
+
+. Check your auto-prune policy by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer j8mvpgf0rP5wpbS7LCfDaAxE0NZvCmOC123456" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859
+----
++
+Alternatively, you can include the UUID:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer j8mvpgf0rP5wpbS7LCfDaAxE0NZvCmOC123456" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859
+{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859", "method": "number_of_tags", "value": 10}
+----
++
+.Example output
++
+[source,terminal]
+----
+{"policies": [{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859", "method": "number_of_tags", "value": 10}]}
+----
+
+. You can delete the auto-prune policy by entering the following command. Note that deleting the policy require the UUID.
++
+[source,terminal]
+----
+$ curl -X DELETE -H "Authorization: Bearer j8mvpgf0rP5wpbS7LCfDaAxE0NZvCmOC123456" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859
+----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859"}
+----
