@@ -64,12 +64,17 @@ $ touch ~/.aws/credentials
 
 . Optional: Check that your `access_key` and `secret_key` are stored:
 +
-[source,yaml]
+[source,text]
 ----
-$ cat > ~/.aws/credentials << EOF
-[default]
-aws_access_key_id = ACCESS_KEY_FROM_QUAY_CONFIG
-aws_secret_access_key = SECRET_KEY_FROM_QUAY_CONFIG
+cat > {rpm-repo-version}.toml <<EOF
+id = "{rpm-repo-version}"
+name = "Red Hat OpenShift Container Platform {ocp-version} for RHEL {op-system-version-major}"
+type = "yum-baseurl"
+url = "https://cdn.redhat.com/content/dist/layered/{rhel-major}/$(uname -m)/rhocp/{ocp-version}/os"
+check_gpg = true
+check_ssl = true
+system = false
+rhsm = true
 EOF
 ----
 +
@@ -339,8 +344,7 @@ $ grep -i DISTRIBUTED_STORAGE_CONFIG -A10 /tmp/quay-backup/operator-quay-config-
 +
 [source,terminal]
 ----
-$ cat > \
-~/.aws/credentials << EOF
+$ cat > ~/.aws/credentials << EOF
 [default]
 aws_access_key_id = ACCESS_KEY_FROM_QUAY_CONFIG
 aws_secret_access_key = SECRET_KEY_FROM_QUAY_CONFIG
@@ -351,29 +355,6 @@ EOF
 ====
 If the `aws cli` does not automatically collect the `access_key` and `secret_key` from the ``~/.aws/credentials file`, you can configure these by running `aws configure` and manually inputting the credentials.
 ====
-+
-[source,terminal]
-----
-$ cat <<EOF > rhocp-4.14.toml
-id = "rhocp-4.14"
-name = "Red Hat OpenShift Container Platform 4.14 for RHEL 9"
-type = "yum-baseurl"
-url = "https://cdn.redhat.com/content/dist/layered/rhel-9/\$(uname -m)/rhocp/4.14/os"
-check_gpg = true
-check_ssl = true
-system = false
-rhsm = true
-EOF
-----
-+
-[source,terminal]
-----
-$ cat << EOF > ~/.aws/credentials
-[default]
-aws_access_key_id = ACCESS_KEY_FROM_QUAY_CONFIG
-aws_secret_access_key = SECRET_KEY_FROM_QUAY_CONFIG
-EOF
-----
 
 . Record the NooBaa's publicly available endpoint:
 +
