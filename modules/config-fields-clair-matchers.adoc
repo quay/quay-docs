@@ -2,31 +2,42 @@
 [id="config-fields-clair-matchers"]
 = Clair matchers configuration fields
 
-The following matchers configuration fields are available for Clair.
+The following table describes the configuration fields for Clair's `matchers` component.
 
 [NOTE]
 ====
 Differs from `matcher` configuration fields.
 ====
 
+.Matchers configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
-| **matchers** | Array of strings | Provides configuration for the in-tree `matchers` and `remotematchers`.
+| **matchers** | Array of strings | Provides configuration for the in-tree `matchers`.
 
-| **.names** | String | A list of string values informing the matcher factory about enabled matchers. If value is set to `null`, the default list of matchers run:
-*alpine*, *aws*, *debian*, *oracle*, *photon*, *clair.cvss*, *rhel*, *rhcc*, *suse*, *ubuntu*, *osv*
+| **.names** | String | A list of string values informing the matcher factory about enabled matchers. If value is set to `null`, the default list of matchers run. The following strings are accepted:
+*alpine-matcher*, *aws-matcher*, *debian-matcher*, *gobin*, *java-maven*, *oracle*, *photon*, *python*, *rhel*, *rhel-container-matcher*, *ruby*, *suse*, *ubuntu-matcher*
 
 | **.config** | String | Provides configuration to a specific matcher.
 
 A map keyed by the name of the matcher containing a sub-object which will be provided to the matchers factory constructor. For example:
 
+|===
+
+[discrete]
+== Example matchers configuration
+
+The following example shows a hypothetical Clair deployment that only requires only the `alpine`, `aws`, `debian`, `oracle` matchers. 
+
+.Example matchers configuration
 [source,yaml]
 ----
-config:
-  python:
-    ignore_vulns:
-      - CVE-XYZ
-      - CVE-ABC
+# ... 
+matchers:
+  names:
+  - "alpine-matcher"
+  - "aws"
+  - "debian"
+  - "oracle"
+# ... 
 ----
-|===
