@@ -2,10 +2,9 @@
 [id="config-fields-clair-notifiers"]
 = Clair notifier configuration fields
 
-The following notifier configuration fields are available for Clair.
+The general notifier configuration fields for Clair are listed below.
 
 [cols="3a,1a,2a",options="header"]
-
 |===
 | Field | Type | Description
 | **notifier** | Object | Provides Clair notifier node configuration.
@@ -23,6 +22,43 @@ The following notifier configuration fields are available for Clair.
 | **.delivery_interval** | String | The frequency at which the notifier attempts delivery of created, or previously failed, notifications.
 
 | **.disable_summary** | Boolean | Controls whether notifications should be summarized to one per manifest.
+|===
+
+[discrete]
+== Example notifier configuration
+
+The following `notifier` snippet is for a minimal configuration. 
+
+.Example notifier configuration
+[source,yaml]
+----
+# ...
+notifier:
+  connstring: >-
+    host=DB_HOST port=5432 dbname=notifier user=DB_USER password=DB_PASS
+    sslmode=verify-ca sslcert=/etc/clair/ssl/cert.pem sslkey=/etc/clair/ssl/key.pem
+    sslrootcert=/etc/clair/ssl/ca.pem
+  indexer_addr: http://clair-v4/
+  matcher_addr: http://clair-v4/
+  delivery_interval: 5s
+  migrations: true
+  poll_interval: 15s
+  webhook:
+    target: "http://webhook/"
+    callback: "http://clair-notifier/notifier/api/v1/notifications"
+    headers: ""
+  amqp: null
+  stomp: null
+# ...
+----
+
+[id="clair-webhook-config-fields"]
+== Clair webhook configuration fields
+
+The following webhook fields are available for the Clair notifier environment.
+
+.Clair webhook fields
+|===
 
 | **.webhook** | Object | Configures the notifier for webhook delivery.
 
@@ -33,7 +69,29 @@ The following notifier configuration fields are available for Clair.
 This will typically be where the Clair notifier is hosted.
 
 | **.webhook.headers** | String | A map associating a header name to a list of values.
+|===
 
+[discrete]
+== Example webhook configuration
+
+.Example webhook configuration
+[source,yaml]
+----
+# ...
+notifier:
+# ...
+  webhook:
+    target: "http://webhook/"
+    callback: "http://clair-notifier/notifier/api/v1/notifications"
+# ...
+----
+
+[id="clair-amqp-config-fields"]
+== Clair amqp configuration fields
+
+The following Advanced Message Queuing Protocol (AMQP) fields are available for the Clair notifier environment.
+
+|===
 | **.amqp** | Object | Configures the notifier for AMQP delivery.
 
 [NOTE]
@@ -73,7 +131,42 @@ Clair also allows `SSL_CERT_DIR`, as documented for the Go `crypto/x509` package
 ====
 
 | **.amqp.tls.key** | String | The filesystem path where a TLS/SSL private key can be read.
+|===
 
+[discrete]
+== Example AMQP configuration
+
+The following example shows a hypothetical AMQP configuration for Clair. 
+
+.Example AMQP configuration
+[source,yaml]
+----
+# ...
+notifier:
+# ...
+  amqp:
+    exchange:
+        name: ""
+        type: "direct"
+        durable: true
+        auto_delete: false
+    uris: ["amqp://user:pass@host:10000/vhost"]
+    direct: false
+    routing_key: "notifications"
+    callback: "http://clair-notifier/notifier/api/v1/notifications"
+    tls:
+     root_ca: "optional/path/to/rootca"
+     cert: "madatory/path/to/cert"
+     key: "madatory/path/to/key"
+# ...
+----
+
+[id="clair-stomp-config-fields"]
+== Clair STOMP configuration fields
+
+The following Simple Text Oriented Message Protocol (STOMP) fields are available for the Clair notifier environment.
+
+|===
 | **.stomp** | Object | Configures the notifier for STOMP delivery.
 
 | **.stomp.direct** | Boolean | If `true`, the notifier delivers individual notifications (not a callback) to the configured STOMP broker.
@@ -105,3 +198,28 @@ Clair also respects `SSL_CERT_DIR`, as documented for the Go `crypto/x509` packa
 
 | **.stomp.user.passcode** | String | The STOMP passcode to connect with.
 |===
+
+[discrete]
+== Example STOMP configuration
+
+The following example shows a hypothetical STOMP configuration for Clair. 
+
+.Example STOMP configuration
+[source,yaml]
+----
+# ...
+notifier:
+# ...
+  stomp:
+    desitnation: "notifications"
+    direct: false
+    callback: "http://clair-notifier/notifier/api/v1/notifications"
+    login:
+      login: "username"
+      passcode: "passcode"
+    tls:
+     root_ca: "optional/path/to/rootca"
+     cert: "madatory/path/to/cert"
+     key: "madatory/path/to/key"
+# ...
+----

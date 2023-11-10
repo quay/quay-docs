@@ -4,34 +4,35 @@
 
 :_content-type: CONCEPT
 [id="clair-updater-urls"]
-= Clair updater URLs
+= Information about Clair updaters
 
-The default updaters are tracked in `updater/defaults/defaults.go`.
+The following table provides details about each Clair updater, including the configuration parameter, a brief description, relevant URLs, and the associated components that they interact with. This list is not exhaustive, and some servers might issue redirects, while certain request URLs are dynamically constructed to ensure accurate vulnerability data retrieval.
 
-The following table lists the HTTP hosts and paths that Clair attempts to talk to in a default configuration. This list is non-exhaustive. Some servers issue redirects and some request URLs are constructed dynamically. 
+For Clair, each updater is responsible for fetching and parsing vulnerability data related to a specific package type or distribution. For example, the Debian updater focuses on Debian-based Linux distributions, while the AWS updater focuses on vulnerabilities specific to Amazon Web Services' Linux distributions. Understanding the package type is important for vulnerability management because different package types might have unique security concerns and require specific updates and patches.
 
 [NOTE]
 ====
-If you are using a proxy server in your environment with Clair's updater URLs, you must identify which URL needs to be added to the proxy allowlist to ensure that Clair can access them unimpeded. For more information, see "Information about using Clair in a proxy environment".
+If you are using a proxy server in your environment with Clair's updater URLs, you must identify which URL needs to be added to the proxy allowlist to ensure that Clair can access them unimpeded. Use the following table to add updater URLs to your proxy allowlist.
 ====
 
-[cols="1a,2a,2a",options="header"]
+.Clair updater information
+[cols="1a,3a,3a,2a",options="header"]
 |===
-|Updater | URLs | Component 
-|`alpine` | * `\https://secdb.alpinelinux.org/` | Alpine Linux SecDB database
-|`aws` | * `\http://repo.us-west-2.amazonaws.com/2018.03/updates/x86_64/mirror.list`
+|Updater |Description  | URLs | Component 
+|`alpine` |The Alpine updater is responsible for fetching and parsing vulnerability data related to packages in Alpine Linux distributions. | * `\https://secdb.alpinelinux.org/` | Alpine Linux SecDB database
+|`aws` | The AWS updater is focused on AWS Linux-based packages, ensuring that vulnerability information specific to Amazon Web Services' custom Linux distributions is kept up-to-date. | * `\http://repo.us-west-2.amazonaws.com/2018.03/updates/x86_64/mirror.list`
 * `\https://cdn.amazonlinux.com/2/core/latest/x86_64/mirror.list` 
 * `\https://cdn.amazonlinux.com/al2023/core/mirrors/latest/x86_64/mirror.list` | Amazon Web Services (AWS) UpdateInfo
-|`debian` | * `\https://deb.debian.org/`
+|`debian` |The Debian updater is essential for tracking vulnerabilities in packages associated with Debian-based Linux distributions.  | * `\https://deb.debian.org/`
 * `\https://security-tracker.debian.org/tracker/data/json` | Debian Security Tracker
-|`clair.cvss` | * `\https://nvd.nist.gov/feeds/json/cve/1.1/` | National Vulnerability Database (NVD) feed for Common Vulnerabilities and Exposures (CVE) data in JSON format
-|`oracle` | * `\https://linux.oracle.com/security/oval/com.oracle.elsa-*.xml.bz2` |  Oracle Oval database 
-|`photon` | * `\https://packages.vmware.com/photon/photon_oval_definitions/` | VMware Photon OS oval definitions 
-|`rhel` | * `\https://access.redhat.com/security/cve/`
+|`clair.cvss`| The Clair Common Vulnerability Scoring System (CVSS) updater focuses on maintaining data about vulnerabilities and their associated CVSS scores. This is not tied to a specific package type but rather to the severity and risk assessment of vulnerabilities in general. | * `\https://nvd.nist.gov/feeds/json/cve/1.1/` | National Vulnerability Database (NVD) feed for Common Vulnerabilities and Exposures (CVE) data in JSON format
+|`oracle` |The Oracle updater is dedicated to Oracle Linux packages, maintaining data on vulnerabilities that affect Oracle Linux systems. | * `\https://linux.oracle.com/security/oval/com.oracle.elsa-*.xml.bz2` |  Oracle Oval database 
+|`photon`|  The Photon updater deals with packages in VMware Photon OS. | * `\https://packages.vmware.com/photon/photon_oval_definitions/` | VMware Photon OS oval definitions 
+|`rhel` |The Red Hat Enterprise Linux (RHEL) updater is responsible for maintaining vulnerability data for packages in Red Hat's Enterprise Linux distribution. | * `\https://access.redhat.com/security/cve/`
 * `\https://access.redhat.com/security/data/oval/v2/PULP_MANIFEST` | Red Hat Enterprise Linux (RHEL) Oval database 
-|`rhcc` | * `\https://access.redhat.com/security/data/metrics/cvemap.xml` | Resource Handler Configuration Controller (RHCC) database 
-|`suse` | * `\https://support.novell.com/security/oval/` | SUSE Oval database 
-|`ubuntu` | * `\https://security-metadata.canonical.com/oval/com.ubuntu.*.cve.oval.xml`
+|`rhcc` | The Red Hat Container Catalog (RHCC) updater is connected to Red Hat's container images. This updater ensures that vulnerability information related to Red Hat's containerized software is kept current. | * `\https://access.redhat.com/security/data/metrics/cvemap.xml` | Resource Handler Configuration Controller (RHCC) database 
+|`suse`| The SUSE updater manages vulnerability information for packages in the SUSE Linux distribution family, including openSUSE, SUSE Enterprise Linux, and others. | * `\https://support.novell.com/security/oval/` | SUSE Oval database 
+|`ubuntu` | The Ubuntu updater is dedicated to tracking vulnerabilities in packages associated with Ubuntu-based Linux distributions. Ubuntu is a popular distribution in the Linux ecosystem. | * `\https://security-metadata.canonical.com/oval/com.ubuntu.*.cve.oval.xml`
 * `\https://api.launchpad.net/1.0/` | Ubuntu Oval Database
-|`osv` | * `\https://osv-vulnerabilities.storage.googleapis.com/` | Open Source Vulnerabilities database
+|`osv` | The Open Source Vulnerability (OSV) updater specializes in tracking vulnerabilities within open source software components. OSV is a critical resource that provides detailed information about security issues found in various open source projects. | * `\https://osv-vulnerabilities.storage.googleapis.com/` | Open Source Vulnerabilities database
 |===
