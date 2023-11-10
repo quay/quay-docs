@@ -2,8 +2,9 @@
 [id="config-fields-clair-updaters"]
 = Clair updaters configuration fields
 
-The following updaters configuration fields are available for Clair.
+The following table describes the configuration fields for Clair's `updaters` component.
 
+.Updaters configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
@@ -11,32 +12,29 @@ The following updaters configuration fields are available for Clair.
 
 | **.sets** | String | A list of values informing the update manager which updaters to run.
 
-If value is set to `null`, the default set of updaters runs the following: *alpine*, *aws*, *debian*, *oracle*, *photon*, *pyupio*, *rhel*, *suse*, *ubuntu*
+If value is set to `null`, the default set of updaters runs the following: *alpine*, *aws*, *clair.cvss*, *debian*, *oracle*, *photon*, *osv*, *rhel*, *rhcc* *suse*, *ubuntu*
 
 If left blank, zero updaters run.
 
 | **.config** | String | Provides configuration to specific updater sets.
 
-A map keyed by the name of the updater set containing a sub-object which will be provided to the updater set's constructor. For example:
+A map keyed by the name of the updater set containing a sub-object which will be provided to the updater set's constructor. For a list of the sub-objects for each updater, see "Advanced updater configuration".
+|===
 
+[discrete]
+== Example updaters configuration
+
+In the following configuration, only the `rhel` set is configured. The `ignore_unpatched` variable, which is specific to the `rhel` updater, is also defined. 
+
+.Example updaters configuration
 [source,yaml]
 ----
-config:
-  ubuntu:
-    security_tracker_url: http://security.url
-    ignore_distributions:
-      - cosmic
-----
-
-| **..ignore_unpatched** | Boolean | Whether to enable reporting of unpatched vulnerabilities. 
-
-**Default:** `false`
-
-[source,terminal]
-----
+# ... 
 updaters:
+  sets:
+    - rhel
   config:
     rhel:
       ignore_unpatched: false
+# ... 
 ----
-|===

@@ -16,12 +16,11 @@ A Clair analysis is broken down into three distinct parts: indexing, matching, a
 [id="clair-indexing-concept"]
 === Indexing
 
-Clair's indexer service is responsible for indexing a manifest. In Clair, manifests are representations of a container image. The indexer service is the component that Clair uses to understand the contents of layers. Clair leverages the fact that Open Container Initiative (OCI) manifests and layers are content addressed to reduce duplicate work.
+Clair's indexer service plays a crucial role in understanding the makeup of a container image. In Clair, container image representations called "manifests." Manifests are used to comprehend the contents of the image's layers. To streamline this process, Clair takes advantage of the fact that Open Container Initiative (OCI) manifests and layers are designed for content addressing, reducing repetitive tasks.
 
-Indexing involves taking a manifest representing a container image and computing its constituent parts. The indexer tries to discover what packages exist in the image, what distribution the image is derived from, and what package repositories are used within the image. When this information is computed, it is persisted into an `IndexReport`.
+During indexing, a manifest that represents a container image is taken and broken down into its essential components. The indexer's job is to uncover the image's contained packages, its origin distribution, and the package repositories it relies on. This valuable information is then recorded and stored within Clair's database. The insights gathered during indexing  serve as the basis for generating a comprehensive vulnerability report. This report can be seamlessly transferred to a matcher node for further analysis and action, helping users make informed decisions about their container images' security.
 
-The `IndexReport` is stored in Clair's database. It can be fed to a `matcher` node to compute the vulnerability report.
-
+////
 [id="content-addressability"]
 ==== Content addressability
 
@@ -32,15 +31,16 @@ For example, consider how many images in a registry might use `ubuntu:artful` as
 In some cases, Clair should re-index a manifest. For example, when an internal component such as a package scanner is updated, Clair performs the analysis with the new package scanner. Clair has enough information to determine that a component has changed and that the `IndexReport` might be different the second time, and as a result it re-indexes the manifest.
 
 A client can track Clair's `index_state` endpoint to understand when an internal component has changed, and can subsequently issue re-indexes. See the Clair API guide to learn how to view Clair's API specification.
+////
 
 [id="clair-matching-concept"]
 === Matching
 
-With Clair, a matcher node is responsible for matching vulnerabilities to a provided `IndexReport`.
+With Clair, a matcher node is responsible for matching vulnerabilities to a provided index report. 
 
-Matchers are responsible for keeping the database of vulnerabilities up to date. Matchers will typically run a set of updaters, which periodically probe their data sources for new content. New vulnerabilities are stored in the database when they are discovered.
+Matchers are responsible for keeping the database of vulnerabilities up to date. Matchers run a set of updaters, which periodically probe their data sources for new content. New vulnerabilities are stored in the database when they are discovered.
 
-The matcher API is designed to be used often. It is designed to always provide the most recent `VulnerabilityReport` when queried. The `VulnerabilityReport` summarizes both a manifest's content and any vulnerabilities affecting the content.
+The matcher API is designed to be used often. It is designed to always provide the most recent vulnerability report when queried. The vulnerability report summarizes both a manifest's content and any vulnerabilities affecting the content.
 
 // See. . . to learn more about how to view the Clair API specification and to work with the matcher API.
 
@@ -63,7 +63,7 @@ Clair uses a notifier service that keeps track of new security database updates 
 When the notifier becomes aware of new vulnerabilities affecting a previously indexed manifest, it uses the configured methods in your `config.yaml` file to issue notifications about the new changes. Returned notifications express the most severe vulnerability discovered because of the change. This avoids creating excessive notifications for the same security database update.
 
 When a user receives a notification, it issues a new request against the matcher to receive an up to date vulnerability report.
-
+////
 The notification schema is the JSON marshalled form of the following types:
 
 [source,json]
@@ -92,6 +92,7 @@ type VulnSummary struct {
     Links          string                  `json:"links"`
 }
 ----
+////
 
 You can subscribe to notifications through the following mechanics:
 
@@ -101,6 +102,7 @@ You can subscribe to notifications through the following mechanics:
 
 Configuring the notifier is done through the Clair YAML configuration file.
 
+////
 [id=webhook-delivery]
 ==== Webhook delivery
 
@@ -153,3 +155,4 @@ The notifier runs in `NOTIFIER_TEST_MODE` until the environment variable is clea
 To delete the notification, you can use the `DELETE` API call. Deleting a notification ID manually cleans up resources in the notifier. If you do not use the `DELETE` API call, the notifier waits a predetermined length of time before clearing delivered notifications from its database.
 
 // For more information on the `DELETE` API call, see. . .
+////
