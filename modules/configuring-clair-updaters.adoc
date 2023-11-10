@@ -1,0 +1,594 @@
+
+[id="configuring-updaters"]
+= Configuring updaters
+
+Updaters can be configured by the `updaters.sets` key in your `clair-config.yaml` file. 
+
+[IMPORTANT]
+====
+* If the `sets` field is not populated, it defaults to using all sets. In using all sets, Clair tries to reach the URL or URLs of each updater. If you are using a proxy environment, you must add these URLs to your proxy allowlist.
+* If updaters are being run automatically within the matcher process, which is the default setting, the period for running updaters is configured under the matcher's configuration field.
+====
+
+[id="selecting-updater-sets"]
+== Selecting specific updater sets
+
+Use the following references to select one, or multiple, updaters for your {productname} deployment. 
+
+[discrete]
+[id="configuring-clair-multiple-updaters"]
+=== Configuring Clair for multiple updaters
+
+.Multiple specific updaters
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - alpine
+    - aws
+    - osv
+#...
+----
+
+[discrete]
+[id="configuring-clair-alpine"]
+=== Configuring Clair for Alpine 
+
+.Alpine config.yaml example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - alpine
+#...
+----
+
+[discrete]
+[id="configuring-clair-aws"]
+=== Configuring Clair for AWS 
+
+.AWS config.yaml example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - aws
+#...
+----
+
+[discrete]
+[id="configuring-clair-debian"]
+=== Configuring Clair for Debian 
+
+.Debian config.yaml example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - debian
+#...
+----
+
+[discrete]
+[id="configuring-clair-clair-cvss"]
+=== Configuring Clair for Clair CVSS 
+
+.Clair CVSS config.yaml example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - clair.cvss
+#...
+----
+
+[discrete]
+[id="configuring-clair-oracle"]
+=== Configuring Clair for Oracle 
+
+.Oracle config.yaml example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - oracle
+#...
+----
+
+[discrete]
+[id="configuring-clair-photon"]
+=== Configuring Clair for Photon 
+.Photon config.yaml example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - photon
+#...
+----
+
+[discrete]
+[id="configuring-clair-suse"]
+=== Configuring Clair for SUSE
+
+.SUSE config.yaml example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - suse
+#...
+----
+
+[discrete]
+[id="configuring-clair-ubuntu"]
+=== Configuring Clair for Ubuntu
+
+.Ubuntu config.yaml example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - ubuntu
+#...
+----
+
+[discrete]
+[id="configuring-clair-osv"]
+=== Configuring Clair for OSV 
+
+.OSV config.yaml example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - osv
+#...
+----
+
+[id="full-rhel-coverage"]
+== Selecting updater sets for full {rhel} coverage
+
+For full coverage of vulnerabilities in {rhel}, you must use the following updater sets:
+
+* `rhel`. This updater ensures that you have the latest information on the vulnerabilities that affect {rhel-short}.
+* `rhcc`. This updater keeps track of vulnerabilities related to Red hat's container images. 
+* `clair.cvss`. This updater offers a comprehensive view of the severity and risk assessment of vulnerabilities by providing Common Vulnerabilities and Exposures (CVE) scores. 
+* `osv`. This updater focuses on tracking vulnerabilities in open-source software components. This updater is recommended due to how common the use of Java and Go are in {rhel-short} products. 
+
+.{rhel-short} updaters example 
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - rhel
+    - rhcc
+    - clair.cvss
+    - osv
+#...
+----
+
+[id="configuring-specific-updaters"]
+== Advanced updater configuration
+
+In some cases, users might want to configure updaters for specific behavior, for example, if you want to allowlist specific ecosystems for the Open Source Vulnerabilities (OSV) updaters. 
+
+Advanced updater configuration might be useful for proxy deployments or air gapped deployments. Configuration for specific updaters in these scenarios can be passed by putting a key underneath the `config` environment variable of the `updaters` object. Users should examine their Clair logs to double-check names.
+
+The following YAML snippets detail the various settings available to some Clair updater
+
+[IMPORTANT]
+====
+For more users, advanced updater configuration is unnecessary.
+====
+
+[discrete]
+=== Configuring the alpine updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - apline
+  config:
+    alpine:
+      url: https://secdb.alpinelinux.org/
+#...
+----
+
+[discrete]
+=== Configuring the debian updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - debian
+  config:
+    debian:
+      mirror_url: https://deb.debian.org/
+      json_url: https://security-tracker.debian.org/tracker/data/json
+#...
+----
+
+[discrete]
+=== Configuring the clair.cvss updater
+
+[source,yaml]
+----
+#...
+updaters:
+  config:
+    clair.cvss:
+      url: https://nvd.nist.gov/feeds/json/cve/1.1/
+#...
+----
+
+[discrete]
+=== Configuring the oracle updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - oracle
+  config:
+    oracle-2023-updater:
+      url:
+        - https://linux.oracle.com/security/oval/com.oracle.elsa-2023.xml.bz2
+    oracle-2022-updater:
+      url:
+        - https://linux.oracle.com/security/oval/com.oracle.elsa-2022.xml.bz2
+#...
+----
+
+[discrete]
+=== Configuring the photon updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - photon
+  config:
+    photon:
+      url: https://packages.vmware.com/photon/photon_oval_definitions/
+#...
+----
+
+[discrete]
+=== Configuring the rhel updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - rhel
+  config:
+    rhel:
+      url: https://access.redhat.com/security/data/oval/v2/PULP_MANIFEST
+      ignore_unpatched: true <1>
+#...
+----
+<1> Boolean. Whether to include information about vulnerabilities that do not have corresponding patches or updates available.
+
+[discrete]
+=== Configuring the rhcc updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - rhcc
+  config:
+    rhcc:
+      url: https://access.redhat.com/security/data/metrics/cvemap.xml
+#...
+----
+
+[discrete]
+=== Configuring the suse updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - suse
+  config:
+    suse:
+      url: https://support.novell.com/security/oval/
+#...
+----
+
+[discrete]
+=== Configuring the ubuntu updater
+
+[source,yaml]
+----
+#...
+updaters:
+  config:
+    ubuntu:
+      url: https://api.launchpad.net/1.0/
+      name: ubuntu
+      force: <1>
+        - name: focal <2>
+          version: 20.04 <3>
+#...
+----
+<1> Used to force the inclusion of specific distribution and version details in the resulting UpdaterSet, regardless of their status in the API response. Useful when you want to ensure that particular distributions and versions are consistently included in your updater configuration.
+<2> Specifies the distribution name that you want to force to be included in the UpdaterSet.
+<3> Specifies the version of the distribution you want to force into the UpdaterSet. 
+
+[discrete]
+=== Configuring the osv updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - osv
+  config:
+    osv:
+      url: https://osv-vulnerabilities.storage.googleapis.com/
+      allowlist: <1>
+        - npm
+        - pypi
+#...
+----
+<1> The list of ecosystems to allow. When left unset, all ecosystems are allowed. Must be lowercase. For a list of supported ecosystems, see the documentation for link:https://ossf.github.io/osv-schema/#affectedpackage-field[defined ecosystems].
+
+[id="disabling-clair-updater-component-managed-db"]
+== Disabling the Clair Updater component
+
+In some scenarios, users might want to disable the Clair updater component. Disabling updaters is required when running {productname} in a disconnected environment.
+
+In the following example, Clair updaters are disabled:
+
+[source,yaml]
+----
+#...
+matcher:
+  disable_updaters: true
+#...
+----
+
+
+////
+
+
+The following sections outline how one might configure specific updaters in Clair when it is being used in a proxy environment. 
+
+[IMPORTANT]
+====
+These are examples, and depending on how your proxy server is configured to route requests might impact how your `clair-config.yaml` file structure is determined. 
+====
+
+[discrete]
+=== Configuring the alpine updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - apline
+  config:
+    alpine:
+      url: https://<my_proxy_server.com>/secdb/alpine/ <1>
+----
+<1> Based on the `alpine` updater URL `\https://secdb.alpinelinux.org/`.
+
+[discrete]
+=== Configuring the aws updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - aws
+  config:
+    aws:
+      url: https://<my_proxy_server.com>/updates/x86_64/mirror.list <1>
+      url: https://<my_proxy_server.com>/core/latest/x86_64/mirror.list <2>
+      url: https://<my_proxy_server.com>/al2023/core/mirrors/latest/x86_64/mirror.list <3>
+----
+<1> Based on the `aws` updater URL `\http://repo.us-west-2.amazonaws.com/2018.03/updates/x86_64/mirror.list`.
+<2> Based on the `aws` updater URL `\https://cdn.amazonlinux.com/2/core/latest/x86_64/mirror.list`.
+<3> Based on the `aws` updater URL `\https://cdn.amazonlinux.com/al2023/core/mirrors/latest/x86_64/mirror.list`.
+
+[discrete]
+=== Configuring the debian updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - debian
+  config:
+    debian:
+      mirror_url: https://<my_proxy_server.com>/debian-archive/ <1>
+      json_url: https://<my_proxy_server.com>/debian-json/ <2>
+----
+<1> Based on the `debian` updater URL `\https://deb.debian.org/`.
+<2> Based on the `debian` updater URL `\https://security-tracker.debian.org/tracker/data/json`.
+
+[discrete]
+=== Configuring the clair.cvss updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  config:
+    clair.cvss:
+      url: https://<my_proxy_server.com>/feeds/json/cve/1.1/ <1>
+----
+<1> Based on the `clair.cvss` updater URL `\https://nvd.nist.gov/feeds/json/cve/1.1/`.
+
+[discrete]
+=== Configuring the oracle updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - oracle
+  config:
+    oracle:
+      url: https://<my_proxy_server.com>/security/oval/com.oracle.elsa-*.xml.bz2 <1>
+#...
+----
+<1> Based on the `oracle` updater URL `\https://linux.oracle.com/security/oval/com.oracle.elsa-*.xml.bz2`.
+
+[discrete]
+=== Configuring the photon updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - photon
+  config:
+    photon:
+      url: https://<my_proxy_server.com>/photon/photon_oval_definitions/ <1>
+#...
+----
+<1> Based on the `photon` updater URL `\https://packages.vmware.com/photon/photon_oval_definitions/`.
+
+
+[discrete]
+=== Configuring the rhel updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - rhel
+  config:
+    rhel:
+      url: https://<my_proxy_server.com>/mirror/oval/PULP_MANIFEST <1>
+      url: https://<my_proxy_server.com>/security/cve/ <2>
+      ignore_unpatched: true <3>
+#...
+----
+<1> Based on the `rhel` updater URL `\https://access.redhat.com/security/data/oval/v2/PULP_MANIFEST`.
+<2> Based on the `rhel` updater URL `\https://access.redhat.com/security/cve/`.
+<3> Boolean. Whether to include information about vulnerabilities that do not have corresponding patches or updates available.
+
+[discrete]
+=== Configuring the rhcc updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - rhcc
+  config:
+    rhcc:
+      url: https://<my_proxy_server.com>/security/data/metrics/cvemap.xml <1>
+#...
+----
+<1> Based on the `rhcc` updater URL `\https://access.redhat.com/security/data/metrics/cvemap.xml`.
+
+[discrete]
+=== Configuring the suse updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - suse
+  config:
+    suse:
+      url: https://<my_proxy_server.com>/security/oval/ <1>
+#...
+----
+<1> Based on the `suse` updater URL `\https://support.novell.com/security/oval/`.
+
+[discrete]
+=== Configuring the ubuntu updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - ubuntu
+  config:
+    ubuntu:
+      - url: https://<my_proxy_server.com>/ubuntu-cve-oval/ <1>
+      - url: https://<my_proxy_server.com>/ubuntu-launchpad-api/ <2>
+      name: ubuntu
+      force: <3>
+        - name: focal <4>
+          version: 20.04 <5>
+#...
+----
+<1> Based on the `ubuntu` updater URL `\https://security-metadata.canonical.com/oval/com.ubuntu.*.cve.oval.xml`.
+<2> Based on the `ubuntu` updater URL `\https://api.launchpad.net/1.0/`.
+<3> Used to force the inclusion of specific distribution and version details in the resulting UpdaterSet, regardless of their status in the API response. Useful when you want to ensure that particular distributions and versions are consistently included in your updater configuration.
+<4> Specifies the distribution name that you want to force to be included in the UpdaterSet. In this case, it's set to `focal` to specify the Ubuntu distribution with the name `focal`.
+<5> Specifies the version of the distribution you want to force into the UpdaterSet. Here, it's set to `20.04` to indicate that the specific version of the `focal` distribution to be included is `20.04`. 
+
+[discrete]
+=== Configuring the osv updater for proxy environments
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - osv
+  config:
+    osv:
+      url: https://<my_proxy_server.com>/osv-vulnerabilities/ <1>
+      allowlist: <2>
+        - npm
+        - PyPI
+#...
+----
+<1> Based on the `osv` updater URL `\https://osv-vulnerabilities.storage.googleapis.com/`.
+<2> The list of ecosystems to allow. When left unset, all ecosystems are allowed. For a list of supported ecosystems, see the documentation for link:https://ossf.github.io/osv-schema/#affectedpackage-field[defined ecosystems].
+
+[id="disabling-clair-updater-component-managed-db"]
+== Disabling the Clair Updater component
+
+In some scenarios, users might want to disable the Clair updater component. Disabling updaters is required when running {productname} in a disconnected environment.
+
+In the following example, Clair updaters are disabled:
+
+[source,yaml]
+----
+#...
+matcher:
+  disable_updaters: true
+#...
+----
+////
