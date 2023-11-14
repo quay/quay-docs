@@ -46,10 +46,25 @@ Alternatively, you can receive the following error if you try to create a robot 
 
 * With this update, a *Default permissions* page has be been added to the v2 UI. This page allows {productname} administrators to set repository permissions. 
 
+[id="clair-gc-manifests"]
+=== Garbage collection of manifests for Clair
+
+Previously, Clair's indexer database was continually growing as it added storage when new manifests and layers were uploaded. This could cause the following issues for {productname} deployments:
+
+* Increased storage requirements
+* Performance issues
+* Increased storage management burden, requiring that administrators would monitor usage and develop a scaling strategy
+
+With this update, a new configuration field, `SECURITY_SCANNER_V4_MANIFEST_CLEANUP`, has been added. When this field is set to `true`, the {productname} garbage collector removes manifests that are not referenced by other tags or manifests. As a result, manifest reports are removed from Clair's database. 
+
 [id="new-quay-config-fields-310"]
 == New {productname} configuration fields
  
 The following configuration fields have been added to {productname} {producty}:
+
+* **SECURITY_SCANNER_V4_MANIFEST_CLEANUP**. When set to `true` the {productname} garbage collector removes manifests that are not referenced by other tags or manifests.
++
+*Default**: `False`
 
 
 [id="quay-operator-updates-310"]
