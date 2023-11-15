@@ -61,6 +61,13 @@ Previously, Clair's indexer database was continually growing as it added storage
 
 With this update, a new configuration field, `SECURITY_SCANNER_V4_MANIFEST_CLEANUP`, has been added. When this field is set to `true`, the {productname} garbage collector removes manifests that are not referenced by other tags or manifests. As a result, manifest reports are removed from Clair's database. 
 
+[id="disamanaginbling-robot-accounts-quay"]
+=== Managing {productname} robot accounts
+
+Prior to {productname} {producty}, all users were able to create robot accounts with unrestricted access. With this release, {productname} administrators can manage robot accounts by disallowing users to create new robot accounts.
+
+For more information, see. . .
+
 [id="new-quay-config-fields-310"]
 == New {productname} configuration fields
  
@@ -70,6 +77,9 @@ The following configuration fields have been added to {productname} {producty}:
 +
 *Default**: `False`
 
+* **ROBOTS_DISALLOW**: When set to `true`, robot accounts are prevented from all interactions, as well as from being created
++
+*Default*: `False`
 
 [id="quay-operator-updates-310"]
 == {productname} Operator
@@ -84,8 +94,32 @@ The following sections note known issues and limitations for {productname} {prod
 [id="known-issues-310"]
 === Known issues:
 
+* Currently, auditing for auto-pruning policy operations, including creating, updating, or deleting policies, is unavailable. This is a known issue and will be fixed in a future release of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6229[*PROJQUAY-6228*])
+
 [id="limitations-310"]
 === {productname} 3.10 limitations
+
+* Robot accounts are mandatory for repository mirroring. Setting the `ROBOTS_DISALLOW` configuration field to `true` breaks mirroring configurations. This will be fixed in a future version of {productname}
+
+////
+
+Additionally, {productname} administrators can add robot accounts to allowlists when disallowing the creation of new robot accounts. This ensures operability of approved robot accounts.
+
+* Robot accounts are mandatory for repository mirroring. Setting the `ROBOTS_DISALLOW` configuration field to `true` without allowlisting supplementary robot accounts will break mirroring configurations. This will be fixed in a future version of {productname}
+
+You must allowlist robot accounts with the `ROBOTS_WHITELIST` variable when managing robot accounts with the `ROBOTS_DISALLOW` field. Use the following reference when managing robot accounts:
++
+[source,yaml]
+----
+ROBOTS_DISALLOW: true
+ROBOTS_WHITELIST: 
+  - quayadmin+robot1
+  - quayadmin+robot2
+  - quayadmin+robot3
+----
++
+For more information, see. . .
+////
 
 [id="bug-fixes-310"]
 == {productname} bug fixes
@@ -103,6 +137,11 @@ Some features available in previous releases have been deprecated or removed. De
 [cols="4,1,1,1",options="header"]
 |===
 |Feature | Quay 3.10 | Quay 3.9 | Quay 3.8
+
+|Disabling robot accounts
+|General Availability
+|-
+|-
 
 |link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.9/html-single/manage_red_hat_quay/index#operator-georepl-site-removal[Single site geo-replication removal]
 |General Availability
