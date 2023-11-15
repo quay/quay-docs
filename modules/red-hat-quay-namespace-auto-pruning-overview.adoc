@@ -1,0 +1,24 @@
+:_content-type: CONCEPT
+[id="red-hat-quay-namespace-auto-pruning-overview"]
+= {productname} namespace auto-pruning overview
+
+{productname} administrators can set up auto-pruning policies on namespaces (both users and organization). This feature allows for image tags to be automatically deleted within a namespace based on specified criteria, which allows allows {productname} organization owners to stay below the storage quota by automatically pruning content.
+ 
+Currently, two policies have been added:
+
+* **Prune images by the number of tags**. For this policy, when the actual number of tags exceeds the desired number of tags, the oldest tags are deleted by their creation date until the desired number of tags is achieved.
+
+* **Prune image tags by creation date**. For this policy, any tags with a creation date older than the given time span, for example, 10 days, are deleted.
+
+After tags are automatically pruned, they go into the {productname} time machine, or the  amount of time, after a tag is deleted, that the tag is accessible before being garbage collected. The expiration time of an image tag is dependent on your organization's settings. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]. 
+
+Users are only have to configure one policy per namespace; this can be done through the {productname} v2 UI. Policies can also be set by using the API endpoints through the command-line interface (CLI). 
+
+[id="prerequisites-limitations-namespace-autopruning"]
+== Prerequisites and limitations for namespace auto-pruning 
+
+The following prerequisites and limitations apply to the namespace auto-pruning feature:
+
+* This feature is not available when using the {productname} legacy UI. You must use the v2 UI to create, view, or modify namespace pruning policies. 
+
+* Namespace auto-pruning is only supported in databases that support the `FOR UPDATE SKIP LOCKED` SQL command.
