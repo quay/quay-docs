@@ -17,7 +17,19 @@ For more information, see the link:https://access.redhat.com/support/policy/upda
 
 The following updates have been made to {productname}.
 
-[id="v2-ui-enhancements-310"]
+[id="3-10-namespace-auto-pruning"]
+=== Namespace auto-pruning
+
+With {productname} 3.10, {productname} administrators can set up auto-pruning policies on namespaces (both users and organization). This feature allows for image tags to be automatically deleted within a namespace based on specified criteria. For this release, two policies have been added:
+
+* Auto-pruning images based on the number of tags.
+* Auto-pruning based on the age of a tag. 
+
+The auto-pruning feature allows {productname} organization owners to stay below the storage quota by automatically pruning content based on one of the aforementioned policies. 
+
+For more information about implementing this feature, see. . . //insert link here. 
+
+[id="3-10-v2-ui-enhancements"]
 === {productname} UI v2 enhancements 
 
 In {productname} 3.8, a new UI was introduced as a technology preview feature. With {productname} 3.10, the following enhancements have been made to the UI v2:
@@ -71,15 +83,24 @@ For more information, see. . .
 [id="new-quay-config-fields-310"]
 == New {productname} configuration fields
  
-The following configuration fields have been added to {productname} {producty}:
+The following configuration fields have been added to {productname} {producty}.
 
 * **SECURITY_SCANNER_V4_MANIFEST_CLEANUP**. When set to `true` the {productname} garbage collector removes manifests that are not referenced by other tags or manifests.
 +
-*Default**: `False`
+*Default*: `False`
 
 * **ROBOTS_DISALLOW**: When set to `true`, robot accounts are prevented from all interactions, as well as from being created
 +
 *Default*: `False`
+
+[id="namespace-auto-pruning-config-fields"]
+== Namespace auto-pruning configuration fields 
+
+The following configuration fields have been added for the auto-pruning feature:
+
+** **FEATURE_AUTO_PRUNE**: When set to `True`, enables functionality related to the auto-pruning of tags. 
++
+*Default:* `False`
 
 [id="quay-operator-updates-310"]
 == {productname} Operator
@@ -92,9 +113,13 @@ The following updates have been made to the {productname} Operator:
 The following sections note known issues and limitations for {productname} {producty}.
 
 [id="known-issues-310"]
-=== Known issues:
+=== {productname} 3.10 known issues
+
+* There is a known issue with the auto-pruning feature when pushing image tags with Cosign signatures. In some scenarios, for example, when each image tag uses a different Cosign key, the auto-pruner worker removes the image signature and only keeps the image tag. This occurs because {productname} considers image tags and the signature as two tags. The expected behavior of this feature is that the auto-pruner should consider the image tag and signature as one item, calculate only the image tag, and when the auto-pruner worker is configured in such a way that the tag is pruned, it also prunes the signature. This will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6380[*PROJQUAY-6380*])
 
 * Currently, auditing for auto-pruning policy operations, including creating, updating, or deleting policies, is unavailable. This is a known issue and will be fixed in a future release of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6229[*PROJQUAY-6228*])
+
+* Currently, the the auto-pruning worker prunes `ReadOnly` and mirror repositories, in addition to normal repositories. `ReadOnly` and mirror repositories should not be pruned automatically. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6235[*PROJQUAY-6235*])
 
 [id="limitations-310"]
 === {productname} 3.10 limitations
@@ -142,6 +167,10 @@ Some features available in previous releases have been deprecated or removed. De
 |General Availability
 |-
 |-
+|Namespace auto-pruning
+|General Availability
+|
+|
 
 |link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.9/html-single/manage_red_hat_quay/index#operator-georepl-site-removal[Single site geo-replication removal]
 |General Availability
