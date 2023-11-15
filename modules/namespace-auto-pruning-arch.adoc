@@ -1,0 +1,76 @@
+:_content-type: CONCEPT
+[id="namespace-auto-pruning-arch"]
+= Namespace auto-pruning architecture
+
+For the namespace auto-pruning feature, two distinct database tables within a database schema were created: one for `namespaceautoprunepolicy` and another for `autoprunetaskstatus`. An auto-prune worker carries out the configured policies. 
+
+[discrete]
+[id="namespaceautoprunepolicy-database-table"]
+== Namespace auto prune policy database table
+
+The `namespaceautoprunepolicy` database table holds the policy configuration for a single namespace. There is only one entry per namespace, but there is support for multiple rows per `namespace_id`. The `policy` field holds the policy details, such as `{method: "creation_date", olderThan: "2w"}` or `{method: "number_of_tags",  numTags: 100}`.
+
+.`namespaceautoprunepolicy` database table
+[cols="1a,1a,1a,1a",options="header"]
+|===
+| Field | Type |Attributes | Description
+
+| `uuid` | character varying (225) | Unique, indexed | Unique identifier for this policy
+
+| `namespace_id` | Integer | Foreign Key |Namespace that the policy falls under
+
+| `policy` | text | JSON | Policy configuration
+|===
+
+[discrete]
+[id="autoprunetaskstatus-database-table"]
+== Auto-prune task status database table
+
+The `autoprunetaskstatus` table registers tasks to be executed by the auto-prune worker. Tasks are executed within the context of a single namespace. Only one task per namespace exists. 
+
+.`autoprunetaskstatus` database table
+[cols="1a,1a,1a,1a",options="header"]
+
+|===
+| Field | Type |Attributes | Description
+| `namespace_id` | Integer | Foreign Key | Namespace that this task belongs to
+
+| `last_ran_ms` | Big Integer (bigint) | Nullable, indexed | Last time that the worker executed the policies for this namespace
+
+| `status` | text | Nullable | Details from the last execution task
+|===
+
+[id="auto-prune-worker"]
+== Auto-prune worker
+
+The following sections detail information about the auto-prune worker. 
+
+[id="auto-prune-task-creation"]
+=== Auto-prune-task-creation
+
+When a new policy is created in the `namespaceautoprunepolicy` database table, a row is also created in the `autoprunetask` table. This is done in the same transaction. The auto-prune worker uses the entry in the `autoprunetask` table to identify which namespace it should execute policies for. 
+
+[id="auto-prune-worker-execution"]
+=== Auto-prune worker execution
+
+The auto-pruning worker is an asynchronous job that executes configured policies. Its workflow is based on values in the `autoprunetask` table. When a task begins, the following occurs: 
+
+* The auto-prune worker starts on a set interval, which defaults at 30 seconds. 
+* The auto-prune worker selects a row from `autoprunetask` with the least, or null, `last_ran_ms` and `FOR UPDATE SKIP LOCKED`. 
+** A null `last_ran_ms` indicates that the task was never ran. 
+** A task that hasn't been ran in he longest amount of time, or has never been run at all, is prioritized. 
+
+* The auto-prune worker obtains the policy configuration from the `namespaceautoprunepolicy` table.
+** If no policy configuration exists, the entry from `autoprunetask` is deleted for this namespace and the procedure stops immediately. 
+
+* The auto-prune worker begins a paginated loop of all repositories under the organization. 
+** The auto-prune worker determines much pruning method to use based on `policy.method`. 
+* The auto-prune worker executes the pruning method with the policy configuration retrieved earlier. 
+** For pruning by the number of tags: the auto-pruner worker gets the number of currently active tags sorted by creation date, and deletes the older tags to the configured number.
+** For pruning by date: the auto-pruner worker gets the active tags older than the specified time span and any tags returned are deleted. 
+
+* The auto-prune worker adds audit logs of the tags deleted.
+
+* The `last_ran_ms` gets updated after a row from `autoprunetask` is selected. 
+
+* The auto-prune worker ends. 
