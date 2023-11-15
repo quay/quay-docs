@@ -1,0 +1,122 @@
+:_content-type: CONCEPT
+[id="disabling-robot-account"]
+= Disabling robot accounts 
+
+{productname} administrators can manage robot accounts by disallowing users to create new robot accounts.
+
+[IMPORTANT]
+====
+Robot accounts are mandatory for repository mirroring. Setting the `ROBOTS_DISALLOW` configuration field to `true` breaks mirroring configurations. Users mirroring repositories should not set `ROBOTS_DISALLOW` to `true` in their `config.yaml` file. This is a known issue and will be fixed in a future release of {productname}.
+====
+
+////
+Additionally, {productname} administrators can add robot accounts to allowlists when disallowing the creation of new robot accounts. This ensures operability of approved robot accounts and a seamless workflow in mirroring configurations.
+
+
+[IMPORTANT]
+====
+Robot accounts are mandatory for repository mirroring. Setting the `ROBOTS_DISALLOW` configuration field to `true` without allowlisting supplementary robot accounts breaks mirroring configurations. You must allowlist robot accounts with the `ROBOTS_WHITELIST` variable when managing robot accounts with the `ROBOTS_DISALLOW` field.
+====
+////
+
+Use the following procedure to disable robot account creation.
+
+.Prerequisites 
+
+* You have created multiple robot accounts. 
+
+.Procedure 
+
+. Update your `config.yaml` field to add the `ROBOTS_DISALLOW` variable, for example:
++
+[source,yaml]
+----
+ROBOTS_DISALLOW: true
+----
+
+. Restart your {productname} deployment.
+
+.Verification: Creating a new robot account
+
+. Navigate to your {productname} repository.
+
+. Click the name of a repository.
+
+. In the navigation pane, click *Robot Accounts*. 
+
+. Click *Create Robot Account*. 
+
+. Enter a name for the robot account, for example, `<organization-name/username>+<robot-name>`.
+
+. Click *Create robot account* to confirm creation. The following message appears: `Cannot create robot account. Robot accounts have been disabled. Please contact your administrator.`
+
+////
+.Verification: Pushing an image with an allowlisted robot account
+
+. On the command-line interface (CLI) log in as one of the allowlisted robot accounts by entering the following command:
++
+[source,terminal]
+----
+$ podman login -u="<org_name>+<robot1>" -p="KETJ6VN0WT8YLLNXUJJ4454ZI6TZJ98NV41OE02PC2IQXVXRFQ1EJ36V12345678" <quay-server.example.com>
+----
+
+. Enter the following command to pull an example image:
++
+[source,terminal]
+----
+$ podman pull busybox
+----
+
+. Tag the image by entering the following command:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<repository_name>/busybox:test
+----
+
+. Push the image by entering the following command:
++
+[source,terminal]
+----
+$ podman push --tls-verify=false <quay-server.example.com>/<repository_name>/busybox:test
+----
++
+.Example output
++
+[source,terminal]
+----
+Getting image source signatures
+Copying blob 702a604e206f skipped: already exists  
+Copying config a416a98b71 done  
+Writing manifest to image destination
+Storing signatures
+----
+////
+
+.Verification: Logging into a robot account
+
+. On the command-line interface (CLI), attempt to log in as one of the robot accounts by entering the following command:
++
+[source,terminal]
+----
+$ podman login -u="<organization-name/username>+<robot-name>" -p="KETJ6VN0WT8YLLNXUJJ4454ZI6TZJ98NV41OE02PC2IQXVXRFQ1EJ36V12345678" <quay-server.example.com>
+----
++
+The following error message is returned:
++
+[source,terminal]
+----
+Error: logging into "<quay-server.example.com>": invalid username/password
+----
+
+. You can pass in the `log-level=debug` flag to confirm that robot accounts have been deactivated:
++
+[source,terminal]
+----
+$ podman login -u="<organization-name/username>+<robot-name>" -p="KETJ6VN0WT8YLLNXUJJ4454ZI6TZJ98NV41OE02PC2IQXVXRFQ1EJ36V12345678" --log-level=debug <quay-server.example.com>
+----
++
+[source,terminal]
+----
+DEBU[0000] error logging into "quay-server.example.com": unable to retrieve auth token: invalid username/password: unauthorized: Robot accounts have been disabled. Please contact your administrator. 
+----
