@@ -1,9 +1,9 @@
 [id="rn-3-900"]
-= RHBA-2023:XXXX - {productname} 3.10.0 release
+= RHBA-2023:7341 - {productname} 3.10.0 release
 
-Issued 2023-XX-XX
+Issued 2023-11-28
 
-{productname} release {producty} is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2023:XXXX[RHBA-2023:XXXX] advisory.
+{productname} release {producty} is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2023:7341[RHBA-2023:7341] advisory.
 
 [id="release-cadence-310"]
 == {productname} release cadence 
@@ -27,14 +27,16 @@ With {productname} 3.10, {productname} administrators can set up auto-pruning po
 
 The auto-pruning feature allows {productname} organization owners to stay below the storage quota by automatically pruning content based on one of the aforementioned policies. 
 
-For more information about implementing this feature, see. . . //insert link here. 
+For more information about implementing this feature, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index?lb_target=stage#red-hat-quay-namespace-auto-pruning-overview[{productname} namespace auto-pruning overview]. 
 
 [id="3-10-v2-ui-enhancements"]
 === {productname} UI v2 enhancements 
 
 In {productname} 3.8, a new UI was introduced as a technology preview feature. With {productname} 3.10, the following enhancements have been made to the UI v2:
 
-* With this update, a *Settings* page has been added. {productname} administrators can edit their preferences, billing information, and set organization types from this page.  
+* With this update, a *Settings* page has been added for {productname} organizations. {productname} administrators can edit their preferences, billing information, and set organization types from this page.
+
+* With this update, a *Settings* page has been added for {productname} repositories. This page must be enabled by setting `UI_V2_REPO_SETTINGS` to `true` in your `config.yaml` file. This page allows users to create and set robot permissions, create events and notifications, set repository visibility, and delete repositories.
 
 * With this update, bulk managing robot account repository access is available on the {productname} v2 UI. Users can now easily add a robot account to multiple repositories using the v2 UI. 
 
@@ -78,23 +80,29 @@ With this update, a new configuration field, `SECURITY_SCANNER_V4_MANIFEST_CLEAN
 
 Prior to {productname} {producty}, all users were able to create robot accounts with unrestricted access. With this release, {productname} administrators can manage robot accounts by disallowing users to create new robot accounts.
 
-For more information, see. . .
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.10/html-single/use_red_hat_quay/index?lb_target=stage#disabling-robot-account[Disabling robot accounts]
 
 [id="new-quay-config-fields-310"]
 == New {productname} configuration fields
  
 The following configuration fields have been added to {productname} {producty}.
 
+[id="clair-gc-manifests-config-field"]
+== Clair garbage collection of manifests configuration field
+
 * **SECURITY_SCANNER_V4_MANIFEST_CLEANUP**. When set to `true` the {productname} garbage collector removes manifests that are not referenced by other tags or manifests.
 +
 *Default*: `False`
+
+[id="disabling-robot-account-config-field"]
+== Disabling robot accounts configuration field
 
 * **ROBOTS_DISALLOW**: When set to `true`, robot accounts are prevented from all interactions, as well as from being created
 +
 *Default*: `False`
 
 [id="namespace-auto-pruning-config-fields"]
-== Namespace auto-pruning configuration fields 
+== Namespace auto-pruning configuration field
 
 The following configuration fields have been added for the auto-pruning feature:
 
@@ -102,10 +110,21 @@ The following configuration fields have been added for the auto-pruning feature:
 +
 *Default:* `False`
 
+[id="v2-ui-repo-settings-config-field"]
+== {productname} v2 UI repository settings configuration field
+
+* **UI_V2_REPO_SETTINGS**: When set to `True`, enables repository settings in the {productname} v2 UI.
++
+*Default:* `False`
+
 [id="quay-operator-updates-310"]
 == {productname} Operator
 
 The following updates have been made to the {productname} Operator:
+
+* The config editor has been removed from the {productname} Operator on {ocp} deployments. 
++
+By default, the config editor was deployed for every `QuayRegistry` instance, which made it difficult to establish an audit trail over the registry's configuration. Anyone with access to the namespace, config editor secret, and config editor route could use the editor to make changes to {productname}'s configuration, and their identity was no logged in the system. Removing the config editor forces all changes through the config bundle property of the `QuayRegistry` resource, which points to a secret, which is then subject to native Kubernetes auditing and logging. 
 
 [id="known-issues-and-limitations-310"]
 == {productname} 3.10 known issues and limitations
@@ -144,10 +163,22 @@ ROBOTS_WHITELIST:
 ----
 +
 For more information, see. . .
-////
+
 
 [id="bug-fixes-310"]
 == {productname} bug fixes
+
+* link:[*PROJQUAY-*]
+* link:[*PROJQUAY-*]
+* link:[*PROJQUAY-*]
+* link:[*PROJQUAY-*]
+* link:[*PROJQUAY-*]
+* link:[*PROJQUAY-*]
+* link:[*PROJQUAY-*]
+* link:[*PROJQUAY-*]
+* link:[*PROJQUAY-*]
+* link:[*PROJQUAY-*]
+////
 
 [id="quay-feature-tracker"]
 == {productname} feature tracker
@@ -163,11 +194,11 @@ Some features available in previous releases have been deprecated or removed. De
 |===
 |Feature | Quay 3.10 | Quay 3.9 | Quay 3.8
 
-|Disabling robot accounts
+|link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.10/html-single/use_red_hat_quay/index?lb_target=stage#disabling-robot-account[Disabling robot accounts]
 |General Availability
 |-
 |-
-|Namespace auto-pruning
+|link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index?lb_target=stage#red-hat-quay-namespace-auto-pruning-overview[{productname} namespace auto-pruning overview]
 |General Availability
 |
 |
