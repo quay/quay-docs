@@ -12,18 +12,21 @@ In general, {productname} supports upgrades from a prior (N-1) minor version onl
 
 This is required to ensure that any necessary database migrations are done correctly and in the right order during the upgrade.
 
-In some cases, {productname} supports direct, single-step upgrades from prior (N-2, N-3) minor versions. This exception to the normal, prior minor version-only, upgrade simplifies the upgrade procedure for customers on older releases. The following upgrade paths are supported:
+In some cases, {productname} supports direct, single-step upgrades from prior (N-2, N-3) minor versions. This exception to the normal, prior minor version-only, upgrade simplifies the upgrade procedure for customers on older releases. The following upgrade paths are supported for {productname} {producty}:
 
-. 3.3.z -> 3.6.z
-. 3.4.z -> 3.6.z
-. 3.4.z -> 3.7.z
-. 3.5.z -> 3.7.z
-. 3.7.z -> 3.9.z
+* 3.7.z -> 3.10.z
+* 3.8.z -> 3.10.z
+* 3.9.z -> 3.10.z
 
-//link
 For users wanting to upgrade the {productname} Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrading_quay_by_upgrading_the_quay_operator[Upgrading the {productname} Operator Overview].
 
 This document describes the steps needed to perform each individual upgrade. Determine your current version and then follow the steps in sequential order, starting with your current version and working up to your desired target version.
+
+//3.10
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_10_z_from_3_9_z[Upgrade to 3.10.z from 3.9.z]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_10_z_from_3_8_z[Upgrade to 3.10.z from 3.9.z]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_10_z_from_3_7_z[Upgrade to 3.10.z from 3.7.z]
+
 
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_9_z_from_3_8_z[Upgrade to 3.9.z from 3.8.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_9_z_from_3_7_z[Upgrade to 3.9.z from 3.7.z]
@@ -53,13 +56,51 @@ The general procedure for a manual upgrade consists of the following steps:
 . Start Clair using the new version of the image.
 . Wait until Clair is ready to accept connections before starting the new version of Quay.
 
-
 == Accessing images
 
 Images for Quay 3.4.0 and later are available from link:https://registry.redhat.io[registry.redhat.io] and
 link:https://registry.access.redhat.com[registry.access.redhat.com], with authentication set up as described in link:https://access.redhat.com/RegistryAuthentication[Red Hat Container Registry Authentication].
 
 Images for Quay 3.3.4 and earlier are available from link:https://quay.io[quay.io], with authentication set up as described in link:https://access.redhat.com/solutions/3533201[Accessing {productname} without a CoreOS login].
+
+== Upgrade to 3.10.z from 3.9.z
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+ifdef::downstream[]
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+endif::downstream[]
+ifdef::upstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::upstream[]
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
+
+== Upgrade to 3.10.z from 3.8.z
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+ifdef::downstream[]
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+endif::downstream[]
+ifdef::upstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::upstream[]
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
+
+== Upgrade to 3.10.z from 3.7.z
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+ifdef::downstream[]
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+endif::downstream[]
+ifdef::upstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::upstream[]
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 == Upgrade to 3.9.z from 3.8.z
 
@@ -159,20 +200,22 @@ registry.redhat.io/quay/clair-rhel8:v3.9.0
 
 For more information, see link:https://github.com/sclorg/postgresql-container/tree/master/13#data-migration[Data Migration].
 
+//updating target images is where you left
+
 === Target images
-* **Quay:** {productrepo}/{quayimage}:{productminv}
+* **Quay:** {productrepo}/{quayimage}:v3.9.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+* **Clair:** {productrepo}/{clairimage}:v3.9.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::upstream[]
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
-* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 == Upgrade to 3.9.z from 3.7.z
 
-If you are upgrading your standalone {productname} deployment from 3.8.z -> 3.9, it is highly recommended that you upgrade PostgreSQL from version 10 -> 13. To upgrade PostgreSQL from 10 -> 13, you must bring down your PostgreSQL 10 database and run a migration script to initiate the process:
+If you are upgrading your standalone {productname} deployment from 3.7.z -> 3.9, it is highly recommended that you upgrade PostgreSQL from version 10 -> 13. To upgrade PostgreSQL from 10 -> 13, you must bring down your PostgreSQL 10 database and run a migration script to initiate the process:
 
 [NOTE]
 ====
@@ -180,67 +223,67 @@ If you are upgrading your standalone {productname} deployment from 3.8.z -> 3.9,
 ====
 
 === Target images
-* **Quay:** {productrepo}/{quayimage}:{productminv}
+* **Quay:** {productrepo}/{quayimage}:v3.9.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+* **Clair:** {productrepo}/{clairimage}:v3.9.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::upstream[]
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
-* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 == Upgrade to 3.8.z from 3.7.z
 
 === Target images
 * **Quay:** {productrepo}/{quayimage}:v3.8.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+* **Clair:** {productrepo}/{clairimage}:v3.8.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::upstream[]
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
-* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 == Upgrade to 3.7.z from 3.6.z
 
 === Target images
 * **Quay:** {productrepo}/{quayimage}:v3.7.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+* **Clair:** {productrepo}/{clairimage}:v3.7.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::upstream[]
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
-* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 == Upgrade to 3.7.z from 3.5.z
 
 === Target images
 * **Quay:** {productrepo}/{quayimage}:v3.7.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+* **Clair:** {productrepo}/{clairimage}:v3.7.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::upstream[]
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
-* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 == Upgrade to 3.7.z from 3.4.z
 
 === Target images
 * **Quay:** {productrepo}/{quayimage}:v3.7.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+* **Clair:** {productrepo}/{clairimage}:v3.7.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::upstream[]
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
-* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 == Upgrade to 3.7.z from 3.3.z
 
@@ -251,13 +294,13 @@ Upgrading to {productname} 3.7 from 3.3. is unsupported. Users must first upgrad
 === Target images
 * **Quay:** {productrepo}/{quayimage}:v3.6.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+* **Clair:** {productrepo}/{clairimage}:v3.6.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::upstream[]
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
-* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 == Upgrade to 3.6.z from 3.4.z
 
@@ -278,8 +321,8 @@ endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::upstream[]
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
-* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 == Upgrade to 3.6.z from 3.3.z
 
@@ -300,8 +343,8 @@ endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
 endif::upstream[]
-* **PostgreSQL:** registry.redhat.io/rhel8/postgresql-13:1-109
-* **Redis:** registry.redhat.io/rhel8/redis-6:1-110)
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
 
 === Swift configuration when upgrading from 3.3.z to 3.6
 
