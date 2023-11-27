@@ -1,32 +1,78 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: CONCEPT
+[id="repository-notifications"]
 = Repository Notifications
 
-Quay supports adding _notifications_ to a repository for various events
-that occur in the repository's lifecycle. To add notifications, click
-the *Settings* tab while viewing a repository and select
-`Create Notification`. From the `When this event occurs`
-field, select the items for which you want to receive notifications:
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+supports adding _notifications_ to a repository for various events
+that occur in the repository's lifecycle. 
 
-image:event-select.png[Create repository notifications]
+[id="creating-notifications"]
+== Creating notifications 
 
-After selecting an event, further configure it by adding how you
-will be notified of that event.
+Use the following procedure to add notifications.
 
-[NOTE]
-====
-Adding notifications requires _repository admin permission_.
-====
+.Prerequisites 
 
-The following are examples of repository events.
+* You have created a repository.
+* You have administrative privileges for the repository. 
 
-[[repository-events]]
-== Repository Events
+.Procedure 
 
-[[repository-push]]
+ifeval::["{context}" == "quay-io"]
+. Navigate to a repository on {quayio}.
+endif::[]
+ifeval::["{context}" == "use-quay"]
+Navigate to a repository on {productname}.
+endif::[]
+
+. In the navigation pane, click *Settings*. 
+
+. In the *Events and Notifications* category, click *Create Notification* to add a new notification for a repository event. You are redirected to a *Create repository notification* page. 
+
+. On the *Create repository notification* page, select the drop-down menu to reveal a list of events. You can select a notification for the following types of events:
++
+* Push to Repository
+* Dockerfile Build Queued
+* Dockerfile Build Started
+* Dockerfile Build Successfully Completed
+* Docker Build Cancelled
+* Package Vulnerability Found
+
+. After you have selected the event type, select the notification method. The following  methods are supported:
++
+* Quay Notification
+* E-mail
+* Webhook POST
+* Flowdock Team Notification
+* HipChat Room Notification
+* Slack Room Notification 
++
+Depending on the method that you choose, you must include additional information. For example, if you select *E-mail*, you are required to include an e-mail address and an optional notification title. 
+
+. After selecting an event and notification method, click *Create Notification*. 
+
+
+[id="repository-events"]
+== Repository events description
+
+The following sections detail repository events. 
+
+[id="repository-push"]
 === Repository Push
 
 A successful push of one or more images was made to the repository:
 
-```
+----
 {
   "name": "repository",
   "repository": "dgangaia/test",
@@ -37,15 +83,19 @@ A successful push of one or more images was made to the repository:
     "latest"
   ]
 }
-```
+----
 
-[[dockerfile-build-queued]]
+[id="dockerfile-build-queued"]
 === Dockerfile Build Queued
 
-Here is a sample response for a Dockerfile build has been queued into the build system.
-The response can differ based on the use of optional attributes.
+The following example is a response from a Dockerfile Build that has been queued into the Build system. 
 
-```
+[NOTE]
+====
+Responses can differ based on the use of optional attributes. 
+====
+
+----
 {
   "build_id": "296ec063-5f86-4706-a469-f0a400bf9df2",
   "trigger_kind": "github",                                                       //Optional
@@ -84,15 +134,19 @@ The response can differ based on the use of optional attributes.
   "manual_user": null,
   "homepage": "https://quay.io/repository/dgangaia/test/build/296ec063-5f86-4706-a469-f0a400bf9df2"
 }
-```
+----
 
-[[dockerfile-build-started]]
-=== Dockerfile Build Started
+[id="dockerfile-build-started"]
+=== Dockerfile Build started
 
-Here is an example of a Dockerfile build being started by the build system.
-The response can differ based on some attributes being optional.
+The following example is a response from a Dockerfile Build that has been queued into the Build system.
 
-```
+[NOTE]
+====
+Responses can differ based on the use of optional attributes. 
+====
+
+----
 {
   "build_id": "a8cc247a-a662-4fee-8dcb-7d7e822b71ba",
   "trigger_kind": "github",                                                     //Optional
@@ -129,20 +183,19 @@ The response can differ based on some attributes being optional.
   },
   "homepage": "https://quay.io/repository/dgangaia/test/build/a8cc247a-a662-4fee-8dcb-7d7e822b71ba"
 }
-```
+----
 
-[[dockerfile-build-successfully-completed]]
-=== Dockerfile Build Successfully Completed
+[id="dockerfile-build-successfully-completed"]
+=== Dockerfile Build successfully completed
 
-Here is a sample response of a Dockerfile build that has been successfully completed by the build system.
+The following example is a response from a Dockerfile Build that has been successfully completed by the Build system. 
 
 [NOTE]
 ====
-This event will occur *simultaneously* with a _Repository Push_
-event for the built image(s)
+This event occurs simultaneously with a _Repository Push_ event for the built image or images. 
 ====
 
-```
+----
 {
   "build_id": "296ec063-5f86-4706-a469-f0a400bf9df2",
   "trigger_kind": "github",                                                       //Optional
@@ -184,14 +237,14 @@ event for the built image(s)
     "quay.io/dgangaia/test@sha256:569e7db1a867069835e8e97d50c96eccafde65f08ea3e0d5debaf16e2545d9d1"
   ]
 }
-```
+----
 
-[[dockerfile-build-failed]]
-=== Dockerfile Build Failed
+[id="dockerfile-build-failed"]
+=== Dockerfile Build failed
 
-A Dockerfile build has failed
+The following example is a response from a Dockerfile Build that has failed. 
 
-```
+----
 {
   "build_id": "5346a21d-3434-4764-85be-5be1296f293c",
   "trigger_kind": "github",                                                       //Optional
@@ -229,15 +282,14 @@ A Dockerfile build has failed
   },
   "homepage": "https://quay.io/repository/dgangaia/test/build/5346a21d-3434-4764-85be-5be1296f293c"
 }
+----
 
-```
+[id="dockerfile-build-cancelled"]
+=== Dockerfile Build cancelled
 
-[[dockerfile-build-cancelled]]
-=== Dockerfile Build Cancelled
+The following example is a response from a Dockerfile Build that has been cancelled.
 
-A Dockerfile build was cancelled
-
-```
+----
 {
   "build_id": "cbd534c5-f1c0-4816-b4e3-55446b851e70",
   "trigger_kind": "github",
@@ -274,15 +326,14 @@ A Dockerfile build was cancelled
   },
   "homepage": "https://quay.io/repository/dgangaia/test/build/cbd534c5-f1c0-4816-b4e3-55446b851e70"
 }
-```
+----
 
-[[vulnerability-detected]]
-=== Vulnerability Detected
+[id="vulnerability-detected"]
+=== Vulnerability detected
 
+The following example is a response from a Dockerfile Build has detected a vulnerability in the repository.
 
-A vulnerability was detected in the repository
-
-```
+----
 {
   "repository": "dgangaia/repository",
   "namespace": "dgangaia",
@@ -300,59 +351,67 @@ A vulnerability was detected in the repository
     "has_fix": true
   }
 }
-```
+----
 
-[[notification-actions]]
-== Notification Actions
+[id="notification-actions"]
+== Notification actions
 
+[id="quay-notification"]
+=== Notifications added
 
-[[quay-notification]]
-=== Quay Notification
+Notifications are added to the *Events and Notifications* section of the *Repository Settings* page. They are also added to the *Notifications* window, which can be found by clicking the _bell_ icon in the navigation pane of
+ifeval::["{context}" == "quay-io"]
+{quayio}.
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}.
+endif::[]
 
-A notification will be added to the Quay.io notification area. The
-notification area can be found by clicking on the bell icon in the top
-right of any Quay.io page.
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+notifications can be setup to be sent to a _User_, _Team_, or the _organization_ as a whole.
 
-Quay.io notifications can be setup to be sent to a _User_, _Team_, or the _organization_ as a whole.
+[id="e-mail"]
+=== E-mail notifications
 
-[[e-mail]]
-=== E-mail
+E-mails are sent to specified addresses that describe the specified event. E-mail addresses must be verified on a _per-repository_ basis. 
 
-An e-mail will be sent to the specified address describing the event
-that occurred.
+[id="webhook-post"]
+=== Webhook POST notifications
 
-[NOTE]
-====
-All e-mail addresses will have to be verified on a
-_per-repository_ basis
-====
+An HTTP `POST` call is made to the specified URL with the event's data. For more information about event data, see "Repository events description". 
 
-[[webhook-post]]
-=== Webhook POST
+When the URL is HTTPS, the call has an SSL client certificate set from
+ifeval::["{context}" == "quay-io"]
+{quayio}.
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}.
+endif::[]
+Verification of this certificate proves that the call originated from 
+ifeval::["{context}" == "quay-io"]
+{quayio}.
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}.
+endif::[]
+Responses with the status code in the `2xx` range are considered successful. Responses with any other status code are considered failures and result in a retry of the webhook notification. 
 
-An HTTP POST call will be made to the specified URL with the event's
-data (see above for each event's data format).
-
-When the URL is HTTPS, the call will have an SSL client certificate set
-from Quay.io. Verification of this certificate will prove the call
-originated from Quay.io. Responses with status codes in the 2xx range
-are considered successful. Responses with any other status codes will be
-considered failures and result in a retry of the webhook notification.
-
-[[flowdock-notification]]
-=== Flowdock Notification
-
+[id="flowdock-notification"]
+=== Flowdock notifications
 
 Posts a message to Flowdock.
 
-[[hipchat-notification]]
-=== Hipchat Notification
-
+[id="hipchat-notification"]
+=== Hipchat notifications
 
 Posts a message to HipChat.
 
-[[slack-notification]]
-=== Slack Notification
-
+[id="slack-notification"]
+=== Slack notifications
 
 Posts a message to Slack.

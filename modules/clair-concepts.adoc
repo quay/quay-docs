@@ -20,6 +20,13 @@ Clair's indexer service plays a crucial role in understanding the makeup of a co
 
 During indexing, a manifest that represents a container image is taken and broken down into its essential components. The indexer's job is to uncover the image's contained packages, its origin distribution, and the package repositories it relies on. This valuable information is then recorded and stored within Clair's database. The insights gathered during indexing  serve as the basis for generating a comprehensive vulnerability report. This report can be seamlessly transferred to a matcher node for further analysis and action, helping users make informed decisions about their container images' security.
 
+ifeval::["{context}" == "quay-io"]
+The `IndexReport` is stored in Clair's database. In {quayio}, it is automatically fed to a `matcher` node to compute the vulnerability report after an image is pushed to a repository. 
+endif::[]
+ifeval::["{context}" == "clair"]
+The `IndexReport` is stored in Clair's database. It can be fed to a `matcher` node to compute the vulnerability report.
+endif::[]
+
 ////
 [id="content-addressability"]
 ==== Content addressability
@@ -30,6 +37,7 @@ For example, consider how many images in a registry might use `ubuntu:artful` as
 
 In some cases, Clair should re-index a manifest. For example, when an internal component such as a package scanner is updated, Clair performs the analysis with the new package scanner. Clair has enough information to determine that a component has changed and that the `IndexReport` might be different the second time, and as a result it re-indexes the manifest.
 
+ifeval::["{context}" == "clair"]
 A client can track Clair's `index_state` endpoint to understand when an internal component has changed, and can subsequently issue re-indexes. See the Clair API guide to learn how to view Clair's API specification.
 ////
 
@@ -40,7 +48,16 @@ With Clair, a matcher node is responsible for matching vulnerabilities to a prov
 
 Matchers are responsible for keeping the database of vulnerabilities up to date. Matchers run a set of updaters, which periodically probe their data sources for new content. New vulnerabilities are stored in the database when they are discovered.
 
-The matcher API is designed to be used often. It is designed to always provide the most recent vulnerability report when queried. The vulnerability report summarizes both a manifest's content and any vulnerabilities affecting the content.
+The matcher API is designed to always provide the most recent vulnerability report when queried. The vulnerability report summarizes both a manifest's content and any vulnerabilities affecting the content.
+
+ifeval::["{context}" == "quay-io"]
+On {quayio}, this interval is set to 6 hours.
+endif::[]
+New vulnerabilities are stored in the database when they are discovered.
+
+ifeval::["{context}" == "clair"]
+The matcher API is designed to be used often. It is designed to always provide the most recent `VulnerabilityReport` when queried. The `VulnerabilityReport` summarizes both a manifest's content and any vulnerabilities affecting the content.
+endif::[]
 
 // See. . . to learn more about how to view the Clair API specification and to work with the matcher API.
 
@@ -56,8 +73,13 @@ To enable CRDA remote matching, see "Enabling CRDA for Clair".
 ////
 
 [id="clair-notifications-concept"]
-=== Notifications
+=== Notifier service
 
+ifeval::["{context}" == "quay-io"]
+By default, the notifier service on {quayio} is disabled. As a result, repository owners cannot setup notifications when new CVEs are reported. However, when CVE databases are updated, which is every 6 hours on {quayio}, new vulnerabilities affecting previously indexed manifests are automatically updated. As a result, manual re-scans are not required, and users can view new CVEs directly on {quayio}. See "Viewing Clair security scans" for more information.
+endif::[]
+
+ifeval::["{context}" == "clair"]
 Clair uses a notifier service that keeps track of new security database updates and informs users if new or removed vulnerabilities affect an indexed manifest.
 
 When the notifier becomes aware of new vulnerabilities affecting a previously indexed manifest, it uses the configured methods in your `config.yaml` file to issue notifications about the new changes. Returned notifications express the most severe vulnerability discovered because of the change. This avoids creating excessive notifications for the same security database update.
@@ -153,6 +175,7 @@ The notifier runs in `NOTIFIER_TEST_MODE` until the environment variable is clea
 ==== Deleting notifications
 
 To delete the notification, you can use the `DELETE` API call. Deleting a notification ID manually cleans up resources in the notifier. If you do not use the `DELETE` API call, the notifier waits a predetermined length of time before clearing delivered notifications from its database.
+endif::[]
 
 // For more information on the `DELETE` API call, see. . .
 ////
