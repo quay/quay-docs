@@ -43,6 +43,133 @@ To update {productname} from one minor version to the next, for example, 3.9 -> 
 
 For `z` stream upgrades, for example, 3.9.1 -> 3.9.2, updates are released in the major-minor channel that the user initially selected during install. The procedure to perform a `z` stream upgrade depends on the `approvalStrategy` as outlined above. If the approval strategy is set to `Automatic`, the {productname} Operator upgrades automatically to the newest `z` stream. This results in automatic, rolling {productname} updates to newer `z` streams with little to no downtime. Otherwise, the update must be manually approved before installation can begin.
 
+[id="config-editor-removal"]
+== Removing config editor objects on {productname} Operator
+
+The config editor has been removed from the {productname} Operator on {ocp} deployments. As a result, the `quay-config-editor` pod no longer deploys, and users cannot check the status of the config editor route. Additionally, the Config Editor Endpoint no longer generates on the {productname} Operator *Details* page. 
+
+Users with existing {productname} Operators who are upgrading from 3.7, 3.8, or 3.9 to {producty} must manually remove the {productname} config editor by removing the `pod`, `deployment`, `route,` `service`, and `secret` objects.
+
+To remove the `deployment`, `route,` `service`, and `secret` objects, use the following procedure. 
+
+.Prerequisites 
+
+* You have deployed {productname} version 3.7, 3.8, or 3.9.
+* You have a valid `QuayRegistry` object.
+
+.Procedure
+
+. Obtain the `quayregistry-quay-config-editor` route object by entering the following command:
++
+[source,terminal]
+----
+$ oc get route
+----
++
+.Example output
++
+[source,terminal]
+----
+---
+quayregistry-quay-config-editor-c866f64c4-68gtb   1/1     Running     0          49m
+---
+----
+
+. Remove the `quayregistry-quay-config-editor` route object by entering the following command:
++
+[source,terminal]
+----
+$ oc delete route quayregistry-quay-config-editor
+----
+
+. Obtain the `quay-quay-config-editor` deployment object by entering the following command:
++
+[source,terminal]
+----
+$ oc get deployment
+----
++
+.Example output
++
+[source,terminal]
+----
+---
+quay-quay-config-editor
+---
+----
+
+. Remove the `quay-quay-config-editor` deployment object by entering the following command:
++
+[source,terminal]
+----
+$ oc delete route quayregistry-quay-config-editor
+----
+
+. Obtain the `quay-quay-config-editor` service object by entering the following command:
++
+[source,terminal]
+----
+$ $ oc get svc | grep config
+----
++
+.Example output
++
+[source,terminal]
+----
+quay-quay-config-editor   ClusterIP   172.30.219.194   <none>        80/TCP                              6h15m 
+----
+
+. Remove the `quay-quay-config-editor` service object by entering the following command:
++
+[source,terminal]
+----
+$ oc delete service quay-quay-config-editor
+----
+
+. Obtain the `quayregistry-quay-config-editor-credentials` secret by entering the following command:
++
+[source,terminal]
+----
+$ oc get secret | grep editor
+----
++
+.Example output
++
+[source,terminal]
+----
+quayregistry-quay-config-editor-credentials-mb8kchfg92   Opaque                2       52m
+----
+
+. Delete the `quayregistry-quay-config-editor-credentials` secret by entering the following command:
++
+[source,terminal]
+----
+$ oc delete secret quayregistry-quay-config-editor-credentials-mb8kchfg92
+----
+
+. Obtain the `quayregistry-quay-config-editor` pod by entering the following command:
++
+[source,terminal]
+----
+$ $ oc get pod
+----
++
+.Example output
++
+[source,terminal]
+----
+---
+quayregistry-quay-config-editor-c866f64c4-68gtb   1/1     Running     0          49m
+---
+----
+
+. Delete the `quayregistry-quay-config-editor` pod by entering the following command:
++
+[source,terminal]
+----
+$ oc delete pod quayregistry-quay-app-6bc4fbd456-8bc9c
+----
+
 ////
 [id="upgrading-postgresql-databases"]
 === Updating {productname} from 3.8 -> 3.9
