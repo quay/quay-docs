@@ -1,85 +1,260 @@
-= Building Dockerfiles
+:_content-type: CONCEPT
+[id="building-dockerfiles"]
+= Building container images
 
-{productname} supports the ability to build
-http://docs.docker.com/reference/builder/[Dockerfiles] on our build
-fleet and push the resulting image to the repository.
+Building container images involves creating a blueprint for a containerized application. Blueprints rely on base images from other public repositories that define how the application should be installed and configured.
 
-[[viewing-and-managing-builds]]
-== Viewing and managing builds
-
-Repository Builds can be viewed and managed by clicking the Builds tab
-in the `Repository View`.
-
-[[manually-starting-a-build]]
-== Manually starting a build
-
-To manually start a repository build, click the `+` icon in the top
-right of the header on any repository page and choose `New Dockerfile
-Build`. An uploaded `Dockerfile`, `.tar.gz`, or an HTTP URL to either
-can be used for the build.
+ifeval::["{context}" == "quay-io"]
 [NOTE]
 ====
-You will not be able to specify the
-Docker build context when manually starting a build.
+Because blueprints rely on images from other public repositories, they might be subject to rate limiting. Consequently, your build _could_ fail. 
 ====
+endif::[]
 
-[[build-triggers]]
-== Build Triggers
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+supports the ability to build Docker and Podman container images. This functionality is valuable for developers and organizations who rely on container and container orchestration.
 
-Repository builds can also be automatically triggered by events such as
-a push to an SCM (GitHub, BitBucket or GitLab) or via
-link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/use_red_hat_quay/#webhook[a call to a webhook].
+ifeval::["{context}" == "quay-io"]
+On {quayio}, this feature works the same across both free, and paid, tier plans.
 
-[[creating-a-new-build-trigger]]
-=== Creating a new build trigger
+[NOTE]
+====
+{quayio} limits the number of simultaneous builds that a single user can submit at one time. 
+====
+endif::[]
 
-To setup a build trigger, click the `Create Build Trigger` button on the
-Builds view page and follow the instructions of the dialog. You will
-need to grant {productname} access to your repositories in order to setup the
-trigger and your account _requires admin access on the SCM repository_.
+[id="build-contexts"]
+== Build contexts
 
-[[manually-triggering-a-build-trigger]]
-=== Manually triggering a build trigger
+When building an image with Docker or Podman, a directory is specified to become the _build context_. This is true for both manual Builds and Build triggers, because the Build that is created by
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+is not different than running `docker build` or `podman build` on your local machine. 
 
-To trigger a build trigger manually, click the icon next to the build
-trigger and choose `Run Now`.
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+Build contexts are always specified in the _subdirectory_ from the Build setup, and fallback to the root of the Build source if a directory is not specified.
 
-[[build-contexts]]
-=== Build Contexts
+When a build is triggered, 
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+Build workers clone the Git repository to the worker machine, and then enter the Build context before conducting a Build. 
 
-When building an image with Docker, a directory is specified to become
-the build context. This holds true for both manual builds and build
-triggers because the builds conducted by {productname} are no different from
-running `docker build` on your own machine.
+For Builds based on `.tar` archives, Build workers extract the archive and enter the Build context. For example:
 
-{productname} build contexts are
-always the specified _subdirectory_ from the build setup and fallback to
-the root of the build source if none is specified. When a build is
-triggered, {productname} build workers clone the git repository to the worker
-machine and enter the build context before conducting a build.
-
-For builds based on tar archives, build workers extract the archive and
-enter the build context. For example:
-
-```
+.Extracted Build archive 
+[source,terminal]
+----
 example
 ├── .git
 ├── Dockerfile
 ├── file
 └── subdir
     └── Dockerfile
-```
+----
 
-Imagine the example above is the directory structure for a GitHub
-repository called "example". If no subdirectory is specified in the
-build trigger setup or while manually starting a build, the build will
-operate in the example directory.
+Imagine that the _Extracted Build archive_ is the directory structure got a Github repository called *example.* If no subdirectory is specified in the Build trigger setup, or when manually starting the Build, the Build operates in the example directory. 
 
-If `subdir` is specified to be the
-subdirectory in the build trigger setup, only the Dockerfile within it
-is visible to the build. This means that you cannot use the `ADD`
-command in the Dockerfile to add `file`, because it is outside of the
-build context.
+If a subdirectory is specified in the Build trigger setup, for example, `subdir`, only the Dockerfile within it is visible to the Build. This means that you cannot use the `ADD` command in the Dockerfile to add `file`, because it is outside of the Build context. 
 
-Unlike the Docker Hub, the Dockerfile is part of the build context on
-{productname}. Thus, it must not appear in the `.dockerignore` file.
+Unlike Docker Hub, the Dockerfile is part of the Build context on
+ifeval::["{context}" == "quay-io"]
+{quayio}.
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}.
+endif::[]
+As a result, it must not appear in the `.dockerignore` file.
+
+[id="understanding-tag-naming-build-triggers"]
+== Tag naming for Build triggers
+
+Custom tags are available for use in
+ifeval::["{context}" == "quay-io"]
+{quayio}.
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}. 
+endif::[]
+
+One option is to include any string of characters assigned as a tag for each built image. Alternatively, you can use the following tag templates on the *Configure Tagging* section of the build trigger to tag images with information from each commit:
+
+image:custom-tagging.png[Configure Tagging]
+
+* *${commit}*: Full SHA of the issued commit
+* *${parsed_ref.branch}*: Branch information (if available)
+* *${parsed_ref.tag}*: Tag information (if available)
+* *${parsed_ref.remote}*: The remote name
+* *${commit_info.date}*: Date when the commit was issued
+* *${commit_info.author.username}*: Username of the author of the commit
+* *${commit_info.short_sha}*: First 7 characters of the commit SHA
+* *${committer.properties.username}*: Username of the committer
+
+This list is not complete, but does contain the most useful options for tagging purposes. You can find the complete tag template schema on link:https://github.com/quay/quay/blob/abfde5b9d2cf7d7145e68a00c9274011b4fe0661/buildtrigger/basehandler.py#L96-L195[this page].
+
+For more information, see link:https://access.redhat.com/solutions/7033393[Set up custom tag templates in build triggers for {productname} and {quayio}]
+
+[id="skipping-source-control-triggered-build"]
+== Skipping a source control-triggered build
+
+To specify that a commit should be ignored by the
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+build system, add the text `[skip build]` or `[build skip]` anywhere in your commit message.
+
+//split following content into new modules 
+
+[id="viewing-and-managing-builds"]
+== Viewing and managing builds
+
+Repository Builds can be viewed and managed on the
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+UI. 
+
+.Procedure 
+
+ifeval::["{context}" == "quay-io"]
+. Navigate to link:quay.io[{quayio}] and select a repository.
+endif::[]
+ifeval::["{context}" == "use-quay"]
+. Navigate to a {productname} repository using the UI.
+endif::[]
+
+. In the navigation pane, select *Builds*. 
+
+[id="starting-a-build"]
+== Creating a new Build
+
+ifeval::["{context}" == "quay-io"]
+By default, {quayio} users can create new Builds out-of-the-box. 
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname} can create new Builds so long as `FEATURE_BUILD_SUPPORT` is set to to `true` in their `config.yaml` file. 
+endif::[]
+
+.Prerequisites
+
+* You have navigated to the *Builds* page of your repository.
+ifeval::["{context}" == "use-quay"]
+* `FEATURE_BUILD_SUPPORT` is set to to `true` in your `config.yaml` file. 
+endif::[]
+
+.Procedure
+
+. On the *Builds* page, click *Start New Build*. Alternatively, you can click the `+` icon to reveal a drop-down menu. 
+
+. When prompted, click *Select File* to upload a Dockerfile or an archive (for example, a `.tar.gz` or `.zip` file) that contains a Dockerfile at the root directory.
+
+. Click *Start Build*.
++
+[NOTE]
+====
+Currently, users cannot specify the Docker build context when manually starting a build.
+====
+
+. You are redirected to the Build, which can be viewed in real-time. Wait for the Dockerfile Build to be completed and pushed. 
+
+. Optional. you can click *Download Logs* to download the logs, or *Copy Logs* to copy the logs. 
+
+. Click the back button to return to the *Repository Builds* page, where you can view the Build History. 
+
+[id="build-trigger"]
+== Build triggers
+
+Build triggers invoke builds whenever the triggered condition is met, for example, a source control push, link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/use_red_hat_quay/#webhook[creating a webhook call], and so on. 
+
+[id="creating-a-build-trigger"]
+=== Creating a Build trigger
+
+Use the following procedure to create a Build trigger. 
+
+.Prerequisites
+
+* You have navigated to the *Builds* page of your repository. 
+
+.Procedure 
+
+. On the *Builds* page, click *Create Build Trigger*. 
+
+. Select the desired platform, for example, Github, BitBucket, Gitlab, or use a custom Git repository. For this example, we are using Github.
+
+. If prompted, confirm access to your account.
+
+. When prompted, select an organization. You can filter namespaces by including text in the *Filter namespaces...* box. Alternatively, you can scroll your namespaces by clicking the directional arrows. If the organization that you are trying to select is not listed, click *Connections wih Quay Container Registry* to request, or grant yourself, access. 
+
+. Click *Continue* after you have selected an organization. 
+
+. When prompted, select a repository. Then, click *Continue*. 
+
+. Configure the trigger by selecting one of the following options:
+
+.. *Trigger for all branches and tags (default1)*. By selecting this option, a container image for each commit across all branches and tags is created. 
+
+.. *Trigger only on branches and tags matching a regular expression*. By selecting this option, only container images for a subset of branches and/or tags are built. 
+
+. Click *Continue*. 
+
+. When prompted, configure the tagging options by selecting one of, or both of, the following options:
++
+* *Tag manifest with the branch or tag name*. When selecting this option, the built manifest the name of the branch or tag for the git commit are tagged.
++
+* *Add `latest` tag if on default branch*. When selecting this option, the built manifest with latest if the build occurred on the default branch for the repository are tagged. 
+
+. Optional. Add a custom tagging template. There are multiple tag templates that you can enter here, including using short SHA IDs, timestamps, author names, committer, and branch names from the commit as tags. For more information, see "Understanding tag naming for Build triggers".
+
+. Click *Continue*.
+
+. When prompted, select the location of the Dockerfile to be built when the trigger is invoked. If the Dockerfile is located at the root of the git repository and named Dockerfile, enter */Dockerfile* as the Dockerfile path.
+
+. Click *Continue*.
+
+. When prompted, select the context for the Docker build. If the Dockerfile is located at the root of the Git repository, enter `/` as the build context directory.
+
+. Check for any verification warnings. If necessary, fix the issues before clicking *Continue*. 
+
+. When prompted with *Ready to go!*, click *Continue*. You are redirected to a confirmation page.
+
+. Save the SSH Public Key, then click *Return to <organization_name>/<repository_name>*. You are redirected to the *Builds* page of your repository. 
+
+. On the *Builds* page, you now have a Build trigger. For example:
++
+image:build-trigger-example.png[Example Build trigger]
+
+[id="manually-triggering-a-build-trigger"]
+=== Manually triggering a Build
+
+Builds can be triggered manually by using the following procedure.
+
+.Procedure
+
+. On the *Builds* page, click the _cog wheel_, or *Options* icon, and select *Run Trigger Now*. 
+
+. When prompted, click the dropdown menu to specify a branch or tag, then click *Start Build*. 
++
+After the build starts, you can see the Build ID on the *Repository Builds* page.

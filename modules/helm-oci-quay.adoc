@@ -1,40 +1,52 @@
 :_content-type: PROCEDURE
 [id="using-helm-charts"]
-= Using Helm charts with {productname}
+= Using Helm charts
 
 Use the following example to download and push an etherpad chart from the Red Hat Community of Practice (CoP) repository.
 
-.Procedure
+.Prerequisites 
 
-. As a {productname} administrators, enable support for Helm by setting `FEATURE_GENERAL_OCI_SUPPORT` to `true` in your `config.yaml` file:
+* You have logged into
+ifeval::["{context}" == "quay-io"]
+{quayio}.
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}.
+endif::[]
+
+.Procedure
+////
+ifeval::["{context}" == "use-quay"]
+. As a {productname} administrator, enable support for Helm by setting `FEATURE_GENERAL_OCI_SUPPORT` to `true` in your `config.yaml` file:
 +
 [source,yaml]
 ----
 FEATURE_GENERAL_OCI_SUPPORT: true
 ----
-
-. Add a chart repository:
+endif::[]
+////
+. Add a chart repository by entering the following command:
 +
 [source,terminal]
 ----
 $ helm repo add redhat-cop https://redhat-cop.github.io/helm-charts
 ----
 
-. Update the information of available charts locally from the chart repository:
+. Enter the following command to update the information of available charts locally from the chart repository:
 +
 [source,terminal]
 ----
 $ helm repo update
 ----
 
-. Download a chart from a repository:
+. Enter the following command to pull a chart from a repository:
 +
 [source,terminal]
 ----
 $ helm pull redhat-cop/etherpad --version=0.0.4 --untar
 ----
 
-. Package the chart into a chart archive:
+. Enter the following command to package the chart into a chart archive:
 +
 [source,terminal]
 ----
@@ -48,19 +60,38 @@ Example output
 Successfully packaged chart and saved it to: /home/user/linux-amd64/etherpad-0.0.4.tgz
 ----
 
-. Log in to your Quay repository using `helm registry login`:
+ifeval::["{context}" == "quay-io"]
+. Log in to {quayio} using `helm registry login`:
++
+[source,terminal]
+----
+$ helm registry login quay.io
+----
+endif::[]
+ifeval::["{context}" == "use-quay"]
+. Log in to {productname} using `helm registry login`:
 +
 [source,terminal]
 ----
 $ helm registry login quay370.apps.quayperf370.perfscale.devcluster.openshift.com
 ----
+endif::[]
 
-. Push the chart to your Quay repository using the `helm push` command:
+. Push the chart to your repository using the `helm push` command:
+ifeval::["{context}" == "quay-io"]
++
+[source,terminal]
+----
+helm push etherpad-0.0.4.tgz oci://quay.io/<organization_name>/helm
+----
+endif::[]
+ifeval::["{context}" == "use-quay"]
 +
 [source,terminal]
 ----
 $ helm push etherpad-0.0.4.tgz oci://quay370.apps.quayperf370.perfscale.devcluster.openshift.com
 ----
+endif::[]
 +
 Example output:
 +
@@ -68,7 +99,6 @@ Example output:
 ----
 Pushed: quay370.apps.quayperf370.perfscale.devcluster.openshift.com/etherpad:0.0.4
 Digest: sha256:a6667ff2a0e2bd7aa4813db9ac854b5124ff1c458d170b70c2d2375325f2451b
-
 ----
 
 . Ensure that the push worked by deleting the local copy, and then pulling the chart from the repository:
@@ -78,10 +108,18 @@ Digest: sha256:a6667ff2a0e2bd7aa4813db9ac854b5124ff1c458d170b70c2d2375325f2451b
 $ rm -rf etherpad-0.0.4.tgz
 ----
 +
+ifeval::["{context}" == "quay-io"]
+[source,terminal]
+----
+$ helm pull oci://quay.io/<organization_name>/helm/etherpad --version 0.0.4
+----
+endif::[]
+ifeval::["{context}" == "use-quay"]
 [source,terminal]
 ----
 $ helm pull oci://quay370.apps.quayperf370.perfscale.devcluster.openshift.com/etherpad --version 0.0.4
 ----
+endif::[]
 +
 Example output:
 +
