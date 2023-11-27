@@ -1,15 +1,63 @@
 :_content-type: CONCEPT
 [id="oci-intro"]
-= Open Container Initiative support and {productname}
+= Open Container Initiative support
 
-Container registries such as {productname} were originally designed to support container images in the Docker image format. To promote the use of additional runtimes apart from Docker, the Open Container Initiative (OCI) was created to provide a standardization surrounding container runtimes and image formats. Most container registries support the OCI standardization as it is based on the link:https://docs.docker.com/registry/spec/manifest-v2-2/[Docker image manifest V2, Schema 2] format.
+Container registries were originally designed to support container images in the Docker image format. To promote the use of additional runtimes apart from Docker, the Open Container Initiative (OCI) was created to provide a standardization surrounding container runtimes and image formats. Most container registries support the OCI standardization as it is based on the link:https://docs.docker.com/registry/spec/manifest-v2-2/[Docker image manifest V2, Schema 2] format.
 
 In addition to container images, a variety of artifacts have emerged that support not just individual applications, but also the Kubernetes platform as a whole. These range from Open Policy Agent (OPA) policies for security and governance to Helm charts and Operators that aid in application deployment.
 
-{productname} is a private container registry that not only stores container images, but supports an entire ecosystem of tooling to aid in the management of containers. Prior to version 3.6, {productname} only supported Helm, which is considered to be the _de facto_ package manager for Kubernetes.
+ifeval::["{context}" == "quay-io"]
+{quayio} 
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+is a private container registry that not only stores container images, but also supports an entire ecosystem of tooling to aid in the management of containers.
+ifeval::["{context}" == "quay-io"]
+{quayio} 
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+strives to be as compatible as possible with the link:https://opencontainers.org/posts/announcements/2021-05-04-oci-dist-spec-v1/[OCI 1.0 _Image and Distribution specifications_], and supports common media types like _Helm charts_ (as long as they pushed with a version of Helm that supports OCI) and a variety of arbitrary media types within the manifest or layer components of container images.
+ifeval::["{context}" == "quay-io"]
+Support for such novel media types differs from previous iterations of {quayio}, when the registry was more strict about accepted media types. Because {quayio} now works with a wider array of media types, including those that were previously outside the scope of its support, it is now more versatile accommodating not only standard container image formats but also emerging or unconventional types.
+endif::[]
+ifeval::["{context}" == "use-quay"]
+Support for such novel media types differs from previous iterations of {productname}, when the registry was more strict about accepted media types. Because {productname} now works with a wider array of media types, including those that were previously outside the scope of its support, it is now more versatile accommodating not only standard container image formats but also emerging or unconventional types.
+endif::[]
 
-Helm simplifies how applications are packaged and deployed. Helm uses a packaging format called _Charts_ which contain the Kubernetes resources representing an application. Charts can be made available for general distribution and consumption in repositories. A Helm repository is an HTTP server that serves an `index.yaml` metadata file and, optionally, a set of packaged charts. Beginning with Helm version 3, support was made available for distributing charts in OCI registries as an alternative to a traditional repository.
+In addition to its expanded support for novel media types, 
+ifeval::["{context}" == "quay-io"]
+{quayio} 
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+ensures compatibility with Docker images, including V2_2 and V2_1 formats. This compatibility with Docker V2_2 and V2_1 images demonstrates 
+ifeval::["{context}" == "quay-io"]
+{quayio}'s 
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}'s'
+endif::[]
+commitment to providing a seamless experience for Docker users. Moreover, 
+ifeval::["{context}" == "quay-io"]
+{quayio} 
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+continues to extend its support for Docker V1 pulls, catering to users who might still rely on this earlier version of Docker images.
+ 
+Support for OCI artifacts are enabled by default. 
+ifeval::["{context}" == "use-quay"]
+Prior to this, OCI media types were enabled under the under the `FEATURE_GENERAL_OCI_SUPPORT` configuration field. 
 
-As an enhance to Helm support, {productname} introduced support for OCI-based artifacts from version 3.6 to include support for cosign, the _ZStandard_ compression scheme, and other OCI media types. Support for Helm and other OCI artifacts are now enabled by default under the `FEATURE_GENERAL_OCI_SUPPORT` configuration field, and can be expanded to other artifact types using the `ALLOWED_OCI_ARTIFACT_TYPES` and `IGNORE_UNKNOWN_MEDIATYPES` fields. 
+[NOTE]
+====
+Because all OCI media types are now enabled by default, use of `FEATURE_GENERAL_OCI_SUPPORT`, `ALLOWED_OCI_ARTIFACT_TYPES`, and `IGNORE_UNKNOWN_MEDIATYPES` is no longer required. 
 
-Because of the addition of `FEATURE_GENERAL_OCI_SUPPORT`, `ALLOWED_OCI_ARTIFACT_TYPES`, and `IGNORE_UNKNOWN_MEDIATYPES`, the `FEATURE_HELM_OCI_SUPPORT` configuration field has been deprecated. This configuration field is no longer supported and will be removed in a future version of {productname}. 
+Additionally, the `FEATURE_HELM_OCI_SUPPORT` configuration field has been deprecated. This configuration field is no longer supported and will be removed in a future version of {productname}. 
+====
+endif::[]
