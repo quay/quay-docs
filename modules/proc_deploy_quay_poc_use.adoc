@@ -1,5 +1,8 @@
+:_content-type: CONCEPT
+[id="use-quay-poc"]
 = Using {productname}
-The following steps allow you to use the interface and create new organizations and repositories , and to search and browse existing repositories. Following step 3, you can use the command line interface to interact with the registry, and to push and pull images. 
+
+The following steps show you how to use the interface and create new organizations and repositories , and to search and browse existing repositories. Following step 3, you can use the command line interface to interact with the registry, and to push and pull images. 
 
 . Use your browser to access the user interface for the {productname} registry at `\http://quay-server.example.com`, assuming you have configured `quay-server.example.com` as your hostname in your `/etc/hosts` file. 
 
@@ -7,19 +10,38 @@ The following steps allow you to use the interface and create new organizations 
 
 . From the command line, log in to the registry:
 +
-....
+[source,terminal]
+----
 $ sudo podman login --tls-verify=false quay-server.example.com
+----
++
+.Example output
++
+[source,terminal]
+----
 Username: quayadmin
 Password: password
 Login Succeeded!
-....
+----
 
-== Push and pull images
+[id="pushing-pulling-images-poc"]
+== Pushing and pulling images on {productname}
+
+Use the following procedure to push and pull images to your {productname} registry.
+
+.Procedure
 
 . To test pushing and pulling images from the {productname} registry, first pull a sample image from an external registry:
 +
-....
+[source,terminal]
+----
 $ sudo podman pull busybox
+----
++
+.Example output
++
+[source,terminal]
+----
 Trying to pull docker.io/library/busybox...
 Getting image source signatures
 Copying blob 4c892f00285e done
@@ -27,45 +49,67 @@ Copying config 22667f5368 done
 Writing manifest to image destination
 Storing signatures
 22667f53682a2920948d19c7133ab1c9c3f745805c14125859d20cede07f11f9
-....
+----
 
-. Use the `podman images` command to see the local copy:
+. Enter the following command to see the local copy of the image:
 +
-....
+[source,terminal]
+----
 $ sudo podman images
+----
++
+.Example output
++
+[source,terminal]
+----
 REPOSITORY                          TAG      IMAGE ID       CREATED         SIZE
 docker.io/library/busybox           latest   22667f53682a   14 hours ago    1.45 MB
-...
-....
+----
 
-. Tag this image, in preparation for pushing it to the {productname} registry:
+. Enter the following command to tag this image, which prepares the image for pushing it to the registry:
 + 
-....
+[source,terminal]
+----
 $ sudo podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
-....
+----
 
-. Next, push the image to the {productname} registry. Following this step, you can use your browser to see the tagged image in your repository. 
-+
-....
+. Push the image to your registry. Following this step, you can use your browser to see the tagged image in your repository. 
++ 
+[source,terminal]
+----
 $ sudo podman push --tls-verify=false quay-server.example.com/quayadmin/busybox:test
+----
++
+.Example output
++
+[source,terminal]
+----
 Getting image source signatures
 Copying blob 6b245f040973 done
 Copying config 22667f5368 done
 Writing manifest to image destination
 Storing signatures
-....
+----
 
 . To test access to the image from the command line, first delete the local copy of the image:
-+
-....
++ 
+[source,terminal]
+----
 $ sudo podman rmi quay-server.example.com/quayadmin/busybox:test
 Untagged: quay-server.example.com/quayadmin/busybox:test
-....
+----
 
 . Pull the image again, this time from your {productname} registry:
-+
-....
++ 
+[source,terminal]
+----
 $ sudo podman pull --tls-verify=false quay-server.example.com/quayadmin/busybox:test
+----
++
+.Example output
++
+[source,terminal]
+----
 Trying to pull quay-server.example.com/quayadmin/busybox:test...
 Getting image source signatures
 Copying blob 6ef22a7134ba [--------------------------------------] 0.0b / 0.0b
@@ -73,4 +117,4 @@ Copying config 22667f5368 done
 Writing manifest to image destination
 Storing signatures
 22667f53682a2920948d19c7133ab1c9c3f745805c14125859d20cede07f11f9
-....
+----
