@@ -1,23 +1,33 @@
 :_content-type: PROCEDURE
 [id="using-v2-ui"]
-= Using the {productname} v2 UI
+= Using the v2 UI
 
+ifeval::["{context}" == "quay-io"]
+The {quayio} v2 UI is enabled by default, and can be toggled on or off at a user's discretion.
+endif::[]
+ifeval::["{context}" == "use-quay"]
 Use the following procedures to configure, and use, the {productname} v2 UI.
+endif::[]
 
 [id="reference-miscellaneous-v2-ui"]
 == v2 user interface configuration
+ifeval::["{context}" == "quay-io"]
+On {quayio}, you can toggle between the current version of the user interface and the new version of the user interface.
+endif::[]
 
+ifeval::["{context}" == "use-quay"]
 With `FEATURE_UI_V2` enabled, you can toggle between the current version of the user interface and the new version of the user interface. 
+endif::[]
 
 [IMPORTANT]
 ====
 * This UI is currently in beta and subject to change. In its current state, users can only create, view, and delete organizations, repositories, and image tags. 
-* When running {productname} in the old UI, timed-out sessions would require that the user input their password again in the pop-up window. With the new UI, users are returned to the main page and required to input their username and password credentials. This is a known issue and will be fixed in a future version of the new UI. 
-* There is a discrepancy in how image manifest sizes are reported between the legacy UI and the new UI. In the legacy UI, image manifests were reported in mebibytes. In the new UI, {productname} uses the standard definition of megabyte (MB) to report image manifest sizes. 
+* When using the old UI, timed-out sessions would require that the user input their password again in the pop-up window. With the new UI, users are returned to the main page and required to input their username and password credentials. This is a known issue and will be fixed in a future version of the new UI. 
+* There is a discrepancy in how image manifest sizes are reported between the legacy UI and the new UI. In the legacy UI, image manifests were reported in mebibytes. The v2 UI uses the standard definition of megabyte (MB) to report image manifest sizes. 
 ====
 
 .Procedure 
-
+ifeval::["{context}" == "use-quay"]
 . In your deployment's `config.yaml` file, add the `FEATURE_UI_V2` parameter and set it to `true`, for example: 
 +
 [source,yaml]
@@ -28,21 +38,29 @@ FEATURE_UI_V2: true
 FEATURE_USER_CREATION: true
 ---
 ----
+endif::[]
 
-. Log in to your {productname} deployment. 
+. Log in to your
+ifeval::["{context}" == "quay-io"]
+{quayio} 
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+deployment. 
 
-. In the navigation pane of your {productname} deployment, you are given the option to toggle between *Current UI* and *New UI*. Click the toggle button to set it to new UI, and then click *Use Beta Environment*, for example: 
+. In the navigation pane of your deployment, you are given the option to toggle between *Current UI* and *New UI*. Click the toggle button to set it to new UI, and then click *Use Beta Environment*, for example: 
 +
 image:38-ui-toggle.png[{productname} v2 UI toggle]
 
 [id="creating-new-organization-v2-ui"]
-=== Creating a new organization in the {productname} v2 UI 
+=== Creating a new organization using the v2 UI 
 
 .Prerequisites 
 
-* You have toggled your {productname} deployment to use the v2 UI. 
+* You have toggled your deployment to use the v2 UI. 
 
-Use the following procedure to create an organization using the {productname} v2 UI.
+Use the following procedure to create an organization using the v2 UI.
 
 .Procedure 
 
@@ -57,9 +75,9 @@ Use the following procedure to create an organization using the {productname} v2
 Now, your example organization should populate under the *Organizations* page. 
 
 [id="deleting-organization-v2"]
-=== Deleting an organization using the {productname} v2 UI
+=== Deleting an organization using the v2 UI
 
-Use the following procedure to delete an organization using the {productname} v2 UI.
+Use the following procedure to delete an organization using the v2 UI.
 
 .Procedure 
 
@@ -86,9 +104,9 @@ You can delete more than one organization at a time by selecting multiple organi
 ====
 
 [id="creating-new-repository-v2"]
-=== Creating a new repository using the {productname} v2 UI
+=== Creating a new repository using the v2 UI
 
-Use the following procedure to create a repository using the {productname} v2 UI.
+Use the following procedure to create a repository using the v2 UI.
 
 .Procedure
 
@@ -103,7 +121,7 @@ Use the following procedure to create a repository using the {productname} v2 UI
 Now, your example repository should populate under the *Repositories* page. 
 
 [id="deleting-repository-v2"]
-=== Deleting a repository using the {productname} v2 UI
+=== Deleting a repository using the v2 UI
 
 .Prerequisites 
 
@@ -111,7 +129,7 @@ Now, your example repository should populate under the *Repositories* page.
 
 .Procedure
 
-. On the *Repositories* page of the {productname} v2 UI, click the name of the image you want to delete, for example, `quay/admin/busybox`. 
+. On the *Repositories* page of the v2 UI, click the name of the image you want to delete, for example, `quay/admin/busybox`. 
 
 . Click the *More Actions* drop-down menu. 
 
@@ -127,9 +145,9 @@ If desired, you could click *Make Public* or *Make Private*.
 . After deletion, you are returned to the *Repositories* page. 
 
 [id="pushing-image-v2"]
-=== Pushing an image to the {productname} v2 UI
+=== Pushing an image to the v2 UI
 
-Use the following procedure to push an image to the {productname} v2 UI.
+Use the following procedure to push an image to the v2 UI.
 
 .Procedure
 
@@ -147,29 +165,29 @@ $ podman pull busybox
 $ podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
 ----
 
-. Push the image to your {productname} registry:
+. Push the image to your registry:
 +
 [source,terminal]
 ----
 $ podman push quay-server.example.com/quayadmin/busybox:test
 ----
 
-. Navigate to the *Repositories* page on the {productname} UI and ensure that your image has been properly pushed. 
+. Navigate to the *Repositories* page on the v2 UI and ensure that your image has been properly pushed. 
 
 . You can check the security details by selecting your image tag, and then navigating to the *Security Report* page. 
 
 [id="deleting-image-v2"]
-=== Deleting an image using the {productname} v2 UI
+=== Deleting an image using the v2 UI
 
-Use the following procedure to delete an image using the{productname} v2 UI.
+Use the following procedure to delete an image using the v2 UI.
 
 .Prerequisites 
 
-* You have pushed an image to your {productname} registry. 
+* You have pushed an image to your registry. 
 
 .Procedure 
 
-. On the *Repositories* page of the {productname} v2 UI, click the name of the image you want to delete, for example, `quay/admin/busybox`. 
+. On the *Repositories* page of the v2 UI, click the name of the image you want to delete, for example, `quay/admin/busybox`. 
 
 . Click the *More Actions* drop-down menu. 
 
@@ -228,13 +246,13 @@ Use the following procedure to create a new team using the {productname} v2 UI.
 * **Collaborators View**. This menu shows repository collaborators. Collaborators are users that do not belong to any team in the organization, but who have direct permissions on one or more repositories belonging to the organization.
 
 [id="creating-robot-account-v2-ui"]
-=== Creating a robot account using the {productname} v2 UI
+=== Creating a robot account using the v2 UI
 
-Use the following procedure to create a robot account using the {productname} v2 UI. 
+Use the following procedure to create a robot account using the v2 UI. 
 
 .Procedure 
 
-. On the {productname} v2 UI, click *Organizations*. 
+. On the v2 UI, click *Organizations*. 
 
 . Click the name of the organization that you will create the robot account for, for example, `test-org`.
 
@@ -321,13 +339,13 @@ Use the following procedure to create default permissions using the {productname
 . Click *Create default permission*. A confirmation box appears, returning the following alert: *Successfully created default permission for creator*.
 
 [id="organization-settings-v2-ui"]
-=== Organization settings for the {productname} v2 UI
+=== Organization settings for the v2 UI
 
-Use the following procedure to alter your organization settings using the {productname} v2 UI. 
+Use the following procedure to alter your organization settings using the v2 UI. 
 
 .Procedure 
 
-. On the {productname} v2 UI, click *Organizations*. 
+. On the v2 UI, click *Organizations*. 
 
 . Click the name of the organization that you will create the robot account for, for example, `test-org`.
 
@@ -345,13 +363,13 @@ Use the following procedure to alter your organization settings using the {produ
 . Click *Save*. 
 
 [id="tag-overview-v2-ui"]
-=== Viewing image tag information using the {productname} v2 UI
+=== Viewing image tag information using the v2 UI
 
-Use the following procedure to view image tag information using the {productname} v2 UI. 
+Use the following procedure to view image tag information using the v2 UI. 
 
 .Procedure 
 
-. On the {productname} v2 UI, click *Repositories*. 
+. On the v2 UI, click *Repositories*. 
 
 . Click the name of a repository, for example, `quayadmin/busybox`. 
 
@@ -378,13 +396,13 @@ Use the following procedure to view image tag information using the {productname
 . Check the box of the tag, or multiple tags, click the *Actions* drop down menu, and then *Delete* to delete the tag. Confirm deletion by clicking *Delete* in the popup box. 
 
 [id="settings-overview-v2-ui"]
-=== Adjusting repository settings using the {productname} v2 UI
+=== Adjusting repository settings using the v2 UI
 
-Use the following procedure to adjust various settings for a repository using the {productname} v2 UI. 
+Use the following procedure to adjust various settings for a repository using the v2 UI. 
 
 .Procedure
 
-. On the {productname} v2 UI, click *Repositories*. 
+. On the v2 UI, click *Repositories*. 
 
 . Click the name of a repository, for example, `quayadmin/busybox`. 
 
@@ -490,8 +508,8 @@ The following error is returned when failing to use the `key=value` format: `Inv
 image:tag-expiration-v2-ui.png[{productname} v2 UI tag expiration]
 
 [id="enabling-legacy-ui"]
-== Enabling the {productname} legacy UI
+== Enabling the legacy UI
 
-. In the navigation pane of your {productname} deployment, you are given the option to toggle between *Current UI* and *New UI*. Click the toggle button to set it to *Current UI*. 
+. In the navigation pane, you are given the option to toggle between *Current UI* and *New UI*. Click the toggle button to set it to *Current UI*. 
 +
 image:38-ui-toggle.png[{productname} v2 UI toggle]
