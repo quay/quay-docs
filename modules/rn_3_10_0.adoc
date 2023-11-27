@@ -124,6 +124,8 @@ The following updates have been made to the {productname} Operator:
 
 * The config editor has been removed from the {productname} Operator on {ocp} deployments. As a result, the `quay-config-editor` pod no longer deploys, and users cannot check the status of the config editor route. Additionally, the Config Editor Endpoint no longer generates on the {productname} Operator *Details* page. 
 +
+Users with existing {productname} Operators who are upgrading from 3.7, 3.8, or 3.9 to {producty} must manually remove the {productname} config editor by removing the `deployment`, `route,` `service`, and `secret` objects. For information about this procedure, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/upgrade_red_hat_quay/index#config-editor-removal[Removing config editor objects on {productname} Operator].
++
 By default, the config editor was deployed for every `QuayRegistry` instance, which made it difficult to establish an audit trail over the registry's configuration. Anyone with access to the namespace, config editor secret, and config editor route could use the editor to make changes to {productname}'s configuration, and their identity was no logged in the system. Removing the config editor forces all changes through the config bundle property of the `QuayRegistry` resource, which points to a secret, which is then subject to native Kubernetes auditing and logging. 
 
 [id="known-issues-and-limitations-310"]
@@ -139,6 +141,12 @@ The following sections note known issues and limitations for {productname} {prod
 * Currently, auditing for auto-pruning policy operations, including creating, updating, or deleting policies, is unavailable. This is a known issue and will be fixed in a future release of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6229[*PROJQUAY-6228*])
 
 * Currently, the the auto-pruning worker prunes `ReadOnly` and mirror repositories, in addition to normal repositories. `ReadOnly` and mirror repositories should not be pruned automatically. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6235[*PROJQUAY-6235*])
+
+* When upgrading the {productname} Operator from versions 3.7, 3.8, or 3.9 to {producty}, users must manually remove the {productname} config editor by removing the `deployment`, `route,` `service`, and `secret` objects. For information about this procedure, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/upgrade_red_hat_quay/index#config-editor-removal[Removing config editor objects on {productname} Operator].
+
+* When creating a new team using the {productname} v2 UI, users are unable to add normal users to the new team while. This only occurs while setting up the new team. As a workaround, you can add users after the team has been created. Robot accounts are unaffected by this issue. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6336[*PROJQUAY-6336*])
+
+* Sometimes, when creating a new default permission setting, the *Create default permission* button is disabled. As a workaround, you can try adjusting the *Applied to* setting in the *Create default permission* wizard. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6341[*PROJQUAY-6341*])
 
 [id="limitations-310"]
 === {productname} 3.10 limitations
