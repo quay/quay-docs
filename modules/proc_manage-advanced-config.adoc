@@ -1,26 +1,25 @@
 :_content-type: CONCEPT
-
 [id="advanced-quay-configuration"]
 = Advanced {productname} configuration
 
-You can configure your {productname} after initial deployment using one of the following interfaces:
+You can configure your {productname} after initial deployment using one of the following methods:
 
-* The {productname} Config Tool. With this tool, a web-based interface for configuring the {productname} cluster is provided when running the `Quay` container in `config` mode. This method is recommended for configuring the {productname} service.
+* *Using the {productname} Config Tool*. With this tool, a web-based interface for configuring the {productname} cluster is provided when running the `Quay` container in `config` mode. This method is recommended for configuring the {productname} service.
 
-* Editing the `config.yaml`. The `config.yaml` file contains most configuration information for the {productname} cluster. Editing the `config.yaml` file directly is possible, but it is only recommended for advanced tuning and performance features that are not available through the Config Tool.
+* *Editing the `config.yaml` file*. The `config.yaml` file contains most configuration information for the {productname} cluster. Editing the `config.yaml` file directly is possible, but it is only recommended for advanced tuning and performance features that are not available through the Config Tool.
 
-* {productname} API. Some {productname} features can be configured through the API.
+* *Using the {productname} API*. Some {productname} features can be configured through the API.
 
 This content in this section describes how to use each of the aforementioned interfaces and how to configure your deployment with advanced features.
 
-[[using-the-config-tool]]
-
+[id="using-the-config-tool"]
 == Using {productname} Config Tool to modify {productname}
 
 The {productname} Config Tool is made available by running a `Quay` container in `config` mode alongside the regular {productname} service.
 
 Use the following sections to run the Config Tool from the {productname} Operator, or to run the Config Tool on host systems from the command line interface (CLI).
 
+////
 [id="running-config-tool-from-quay-operator"]
 === Running the Config Tool from the {productname} Operator
 
@@ -51,6 +50,7 @@ image:configtoolsetup.png[Modify {productname} cluster settings from the Config 
 . When prompted, select *Download Configuration*. This will download a tarball of your new `config.yaml`, as well as any certificates and keys used with your {productname} setup. The `config.yaml` can be used to make advanced changes to your configuration or use as a future reference.
 
 . Select *Go to deployment rollout* -> *Populate the configuration to deployments*. Wait for the {productname} pods to restart for the changes to take effect.
+////
 
 [id="running-config-tool-from-cli"]
 === Running the Config Tool from the command line
@@ -86,7 +86,7 @@ To modify an existing config bundle, you can mount your configuration directory 
 [id="deploying-config-tool-using-tls"]
 === Deploying the config tool using TLS certificates
 
-You can deploy the config tool with secured TLS certificates by passing environment variables to the runtime variable. This ensures that sensitive data like credentials for the database and storage backend are protected.
+You can deploy the config tool with secured SSL/TLS certificates by passing environment variables to the runtime variable. This ensures that sensitive data like credentials for the database and storage backend are protected.
 
 The public and private keys must contain valid Subject Alternative Names (SANs) for the route that you deploy the config tool on.
 
@@ -113,33 +113,56 @@ See the
 link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_api_guide/index[{productname} API Guide] for information on how to access {productname} API.
 
 [id="editing-config-file-to-modify-quay"]
-== Editing the `config.yaml` file to modify {productname}
+== Editing the config.yaml file to modify {productname}
 
-Some advanced configuration features that are not available through the Config Tool can be implemented by editing the `config.yaml` file directly. Available settings are described in the
-link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/manage_red_hat_quay/quay-schema[Schema for {productname} configuration]
+Advanced features that are not available through the {productname} Config Tool can be implemented by editing the `config.yaml` file directly. All configuration fields for {productname} features and settings are available in the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/configure_red_hat_quay/index[{productname} configuration guide]. 
 
-The following examples are settings you can change directly in the `config.yaml` file.
+The following example is one setting that you can change directly in the `config.yaml` file. Use this example as a reference when editing your `config.yaml` file for other features and settings.
 
 [id="add-name-and-company-to-quay-sign-in"]
-=== Add name and company to {productname} sign-in
-By setting the following field, users are prompted for their name and company when they first sign in. This is an optional field, but can provide your with extra data about your {productname} users.
+=== Adding name and company to {productname} sign-in
+
+By setting the `FEATURE_USER_METADATA` field to `true`, users are prompted for their name and company when they first sign in. This is an optional field, but can provide your with extra data about your {productname} users.
+
+Use the following procedure to add a name and a company to the {productname} sign-in page.
+
+.Procedure
+
+. Add, or set, the `FEATURE_USER_METADATA` configuration field to `true` in your `config.yaml` file. For example:
 
 [source,yaml]
 ----
----
+# ...
 FEATURE_USER_METADATA: true
----
+# ...
 ----
 
+. Redeploy {productname}.
+
+. Now, when prompted to log in, users are requested to enter the following information:
++
+image:metadata-request.png[Metadata request]
+
+////
 [id="disable-tls-protocols"]
 === Disable TLS Protocols
-You can change the `SSL_PROTOCOLS` setting to remove SSL protocols that you do not want to support in your {productname} instance. For example, to remove TLS v1 support from the default `SSL_PROTOCOLS:['TLSv1','TLSv1.1','TLSv1.2']`, change it to the following:
+
+You can change the `SSL_PROTOCOLS` setting to remove SSL protocols that you do not want to support in your {productname} instance. By default, {productname} is configured to support `TLSv1`, `TLSv1.1`, and `TLSv1.2`.
+Use the following procedure to remove TLS v1 support from {productname}.
+
+.Procedure
+
+
+
+
+
+to remove TLS v1 support from the default `SSL_PROTOCOLS:['TLSv1','TLSv1.1','TLSv1.2']`, change it to the following:
 
 [source,yaml]
 ----
----
+# ...
 SSL_PROTOCOLS : ['TLSv1.1','TLSv1.2']
----
+# ...
 ----
 
 [id="rate-limit-api-calls"]
@@ -327,3 +350,4 @@ If turning off connection pooling is not enough to prevent hitting the 2k
 database connection limit, you need to take additional steps to deal with
 the problem. If this happens, you might need to increase the maximum database
 connections to better suit your workload.
+////
