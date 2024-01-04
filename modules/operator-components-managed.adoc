@@ -4,7 +4,8 @@
 
 Unless your `QuayRegistry` custom resource specifies otherwise, the {productname} Operator uses defaults for the following managed components:
 
-* **quay:** Holds overrides for the {productname} deployment. For example, environment variables and number of replicas. This component is new as of {productname} 3.7 and cannot be set to unmanaged.
+* **quay:** Holds overrides for deployment of {productname-ocp}, for example, environment variables and number of replicas. This component is new as of {productname} 3.7 and cannot be set to unmanaged.
+
 * **postgres:**  For storing the registry metadata,
 ifeval::["{productname}" == "Red Hat Quay"]
 As of {productname} 3.9, uses a version of PostgreSQL 13 from link:https://www.softwarecollections.org/en/[Software Collections].
@@ -18,13 +19,21 @@ ifeval::["{productname}" == "Project Quay"]
 As of {productname} 3.9, uses an upstream (CentOS) version of PostgreSQL 13. 
 endif::[]
 * **clair:**  Provides image vulnerability scanning.
+
 * **redis:**  Stores live builder logs and the {productname} tutorial. Also includes the locking mechanism that is required for garbage collection.
+
 * **horizontalpodautoscaler:**  Adjusts the number of `Quay` pods depending on memory/cpu consumption.
-* **objectstorage:**  For storing image layer blobs,  utilizes the `ObjectBucketClaim` Kubernetes API which is provided by Noobaa or RHOCS.
+
+* **objectstorage:**  For storing image layer blobs,  utilizes the `ObjectBucketClaim` Kubernetes API which is provided by Noobaa or {odf}.
+
 * **route:**  Provides an external entrypoint to the {productname} registry from outside of {ocp}.
+
 * **mirror:**  Configures repository mirror workers to support optional repository mirroring.
-* **monitoring:** Features include a Grafana dashboard, access to individual metrics, and alerting to notify for frequently restarting Quay pods.
+
+* **monitoring:** Features include a Grafana dashboard, access to individual metrics, and notifications for frequently restarting `Quay` pods.
+
 * **tls:** Configures whether {productname} or {ocp} handles SSL/TLS.
+
 * **clairpostgres:** Configures a managed Clair database. This is a separate database than the PostgreSQL database used to deploy {productname}. 
 
-The {productname} Operator handles any required configuration and installation work needed for {productname} to use the managed components. If the opinionated deployment performed by the {productname} Operator is unsuitable for your environment, you can provide the {productname} Operator with `unmanaged` resources (overrides) as described in the following sections.
+The {productname} Operator handles any required configuration and installation work needed for {productname} to use the managed components. If the opinionated deployment performed by the {productname} Operator is unsuitable for your environment, you can provide the {productname} Operator with `unmanaged` resources, or overrides, as described in the following sections.
