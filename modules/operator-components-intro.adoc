@@ -2,14 +2,23 @@
 [id="operator-components-intro"]
 = {productname} Operator components
 
-{productname} has a significant number of dependencies. These include a database, object storage, Redis, and others. The {productname} Operator manages an opinionated deployment of {productname} and its dependencies on Kubernetes. These dependencies are treated as _components_ and are configured through the `QuayRegistry` API.
+{productname} has many dependencies. These dependencies include a database, object storage, Redis, and others. The {productname} Operator manages an opinionated deployment of {productname} and its dependencies on Kubernetes. These dependencies are treated as _components_ and are configured through the `QuayRegistry` API.
 
-In the `QuayRegistry` custom resource, the `spec.components` field configures components. Each component contains two fields: `kind` (the name of the component), and `managed` (a boolean that addresses whether the component lifecycle is handled by the {productname} Operator). By default, all components are managed and  auto-filled upon reconciliation for visibility:
+In the `QuayRegistry` custom resource, the `spec.components` field configures components. Each component contains two fields: `kind` (the name of the component), and `managed` (a boolean that addresses whether the component lifecycle is handled by the {productname} Operator). 
 
+By default, all components are managed and auto-filled upon reconciliation for visibility:
+
+.Example `QuayRegistry` resource
 [source,yaml]
 ----
-spec:
-  components:
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+  namespace: quay-enterprise
+  spec:
+    configBundleSecret: config-bundle-secret
+    components:
     - kind: quay
       managed: true
     - kind: postgres
