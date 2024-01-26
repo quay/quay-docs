@@ -1,7 +1,13 @@
-== Starting up the supporting services
-Follow these steps to install {productname} on a single system (VM or bare metal).
+:_content-type: ASSEMBLY
+include::modules/attributes.adoc[]
+
+[id="starting-up-supporting-service"]
+= Starting up the supporting services
+
+Follow these steps to install {productname} on a single system, either virtual machine (VM) or bare metal.
 
 . **Install Red Hat Enterprise Linux server**: Install the latest RHEL server. You can do a Minimal install (shell access only) or Server plus GUI (if you want a desktop).
+
 . **Register the System**: Register and subscribe your RHEL server system to Red Hat. See link:https://access.redhat.com/solutions/253273[How to register and subscribe a system...] for details. The following commands register your system and list available subscriptions. Choose an available RHEL server subscription, attach to its poolid, enable rhel-7-server-rpms and rhel-7-server-extras-rpms repositories, and upgrade to the latest software:
 +
 [NOTE]
@@ -11,21 +17,44 @@ so you would need to use the `podman` command instead.
 Because the `--restart` option is not supported by podman, instead of using `--restart`,
 you could set up to use `podman` as a systemd service, as described
 in link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index#starting_containers_with_systemd[Starting containers with systemd].
-
 ====
-
 +
-....
+[source,terminal]
+----
 # subscription-manager register --username=<user_name> --password=<password>
+----
++
+[source,terminal]
+----
 # subscription-manager refresh
+----
++
+[source,terminal]
+----
 # subscription-manager list --available
+----
++
+[source,terminal]
+----
 # subscription-manager attach --pool=<pool_id>
+----
++
+[source,terminal]
+----
 # subscription-manager repos --disable="*"
+----
++
+[source,terminal]
+----
 # subscription-manager repos \
     --enable="rhel-7-server-rpms" \
     --enable="rhel-7-server-extras-rpms"
+----
++
+[source,terminal]
+----
 # yum update -y
-....
+----
 
 ifdef::downstream[]
 . **Add registry.redhat.io authentication**: Set up authentication to registry.redhat.io, so you can pull the `Quay` container, as described in link:https://access.redhat.com/RegistryAuthentication[Red Hat Container Registry Authentication]. Note that this differs from earlier {productname} releases where the images were hosted on quay.io.
