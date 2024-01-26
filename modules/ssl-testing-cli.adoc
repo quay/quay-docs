@@ -1,23 +1,37 @@
-= Testing SSL configuration using the command line
+:_content-type: PROCEDURE
+[id="testing-ssl-tls-configuration-using-cli"]
+= Testing the SSL/TLS configuration using the CLI
 
-* Use the `podman login` command to attempt to log in to the Quay registry with SSL enabled:
+Use the following procedure to test your SSL/TLS configuration using the CLI.
+
+.Procedure 
+
+* Enter the following command to attempt to log in to the {productname} registry with SSL/TLS enabled:
 +
-```
+[source,terminal]
+----
 $ sudo podman login quay-server.example.com
-Username: quayadmin
-Password: 
-
-Error: error authenticating creds for "quay-server.example.com": error pinging docker registry quay-server.example.com: Get "https://quay-server.example.com/v2/": x509: certificate signed by unknown authority
-```
-
-* Podman does not trust self-signed certificates. As a workaround, use the `--tls-verify` option: 
+----
 +
-```
+Example output
++
+[source,terminal]
+----
+Error: error authenticating creds for "quay-server.example.com": error pinging docker registry quay-server.example.com: Get "https://quay-server.example.com/v2/": x509: certificate signed by unknown authority
+----
+
+. Because Podman does not trust self-signed certificates, you must use the `--tls-verify=false` option:
++
+[source,terminal]
+----
 $ sudo podman login --tls-verify=false quay-server.example.com
-Username: quayadmin
-Password: 
-
+----
++
+.Example output
++
+[source,terminal]
+----
 Login Succeeded!
-```
-
-Configuring Podman to trust the root Certificate Authority (CA) is covered in a subsequent section.
+----
++
+In a subsequent section, you will configure Podman to trust the root Certificate Authority.

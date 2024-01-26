@@ -1,24 +1,28 @@
-= Configuring podman to trust the Certificate Authority
+:_content-type: PROCEDURE
+[id="configuring-podman-trust-ca"]
+= Configuring Podman to trust the Certificate Authority
 
-Podman uses two paths to locate the CA file, namely, `/etc/containers/certs.d/` and `/etc/docker/certs.d/`. 
+Podman uses two paths to locate the Certificate Authority (CA) file: `/etc/containers/certs.d/` and `/etc/docker/certs.d/`. Use the following procedure to configure Podman to trust the CA.
 
-* Copy the root CA file to one of these locations, with the exact path determined by the server hostname, and naming the file `ca.crt`:
+.Procedure
+
+. Copy the root CA file to one of `/etc/containers/certs.d/` or `/etc/docker/certs.d/`. Use the exact path determined by the server hostname, and name the file `ca.crt`:
 +
-```
+[source,terminal]
+----
 $ sudo cp rootCA.pem /etc/containers/certs.d/quay-server.example.com/ca.crt
-```
+----
 
-* Alternatively, if you are using Docker, you can copy the root CA file to the equivalent Docker directory:
+. Verify that you no longer need to use the `--tls-verify=false` option when logging in to your {productname} registry:
 +
-```
-$ sudo cp rootCA.pem /etc/docker/certs.d/quay-server.example.com/ca.crt
-```
-
-You should no longer need to use the `--tls-verify=false` option when logging in to the registry:
-```
+[source,terminal]
+----
 $ sudo podman login quay-server.example.com
-
-Username: quayadmin
-Password: 
+----
++
+.Example output
++
+[source,terminal]
+----
 Login Succeeded!
-```
+----
