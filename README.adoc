@@ -1,33 +1,35 @@
-= Documentation for the {productname} product
+= Contributing to Red Hat Quay documentation
 :downstream:
 
 == Repository structure
 
-Structure of this repository:
+The Red Hat Quay repository is structured as follows:
 
-* Books go into a top-level directory. For example: `repo_dir/manage_quay/`.
-* Each book directory has a symlink to the top-level `repo_dir/modules/` directory.
-* A book's TOC is defined in the `master.adoc` file contained within the book's directory.
-* `master.adoc` contains `include` statements to modules (chapters), which are created in the top-level `modules/` directory.
-* `docinfo.xml` in the book's directory contains basic information about the book.
+* Books go into a top-level directory. For example, `repo_dir/manage_quay` or `repo_dir/release_notes`. 
+* Each book directory has a symlink to the top-level `repo_dir/modules` directory. 
+* A book's _table of contents_, or ToC, is defined in the `master.adoc` that is contained within the book's directory. Each directory has its own `master.adoc` file. 
+* The `master.adoc` file contains `include` statements to _modules_, which act as chapters and subchapters. These are created in the top-level `modules/` directory. 
+* The `docinfo.xml` in the book's directory contains basic information about the book, such as the product name, the product version, and the organization name. 
 
-== How do I set up?
+== Setting up your repository for contribution
 
 ifdef::downstream[]
 
-. Get the _Developer_, the _Maintainer_, or the _Owner_ permissions for the https://gitlab.cee.redhat.com/red-hat-quay-documentation/quay-documentation/[downstream repository]. For that, contact a Maintainer or an Owner from this https://gitlab.cee.redhat.com/red-hat-quay-documentation/quay-documentation/-/project_members[list]. Default to contacting Vikram Goyal.
+. For _downstream_ contribution, which is the official Red Hat Quay documentation found on the Red Hat portal, you must obtain _Developer_, _Maintainer_, or _Owner_ permissions for the https://gitlab.cee.redhat.com/red-hat-quay-documentation/quay-documentation/[downstream repository].
++
+To obtain the necessary permissions, contact a Maintainer or Owner from the Gitlab project members https://gitlab.cee.redhat.com/red-hat-quay-documentation/quay-documentation/-/project_members[list]. Default to contacting Steven Smith.
 
 endif::downstream[]
 
-. Fork the  https://github.com/quay/quay-docs[upstream repository] by clicking "Fork".
+. Fork the  https://github.com/quay/quay-docs[upstream repository] by clicking the *Fork* button.
 
 . Clone your fork of the repository to your computer:
 +
 ----
-$ git clone git@github.com:<USERNAME>/quay-docs.git
+$ git clone git@github.com:<username>/quay-docs.git
 ----
 +
-Substitute <USERNAME> with your GitHub user name.
+Substitute `<username>` with your GitHub user name.
 
 . Navigate to the cloned repository:
 +
@@ -54,15 +56,23 @@ endif::downstream[]
 [id="how-do-i-make-a-contribution"]
 == How do I make a contribution?
 
-. Create a new <branch-name> branch based off the `3.0-master` branch and switch to it:
+To contribute to Red Hat Quay documentation, you must create a new feature branch based off of the `master` branch.
+
+. Checkout the `master` branch if you have not already:
++
+----
+$ git checkout master
+----
+
+. Create a new feature branch based off the `master` branch:
 +
 ----
 $ git checkout -b <branch_name> 3.0-master
 ----
 +
-Substitute <branch_name> with a name that reflects the contribution you intend to make.
+Substitute `<branch_name>` with a name that reflects the contribution you intend to make.
 
-. Edit the files and commit them using `git add` and `git commit`.
+. Edit the files and commit them using `git add` and `git commit`. Make your commit in present tense, highlighting the change that you have made.
 
 . Push your commits to your fork of the upstream repository:
 +
@@ -70,37 +80,41 @@ Substitute <branch_name> with a name that reflects the contribution you intend t
 $ git push origin <branch_name>
 ----
 
-. Create a pull request from `<your_fork>/<branch_name>` to `quay/3.0-master`. For that, either:
+. Create a pull request from `<your_fork>/<branch_name>` to `quay/master`. For that, either:
 +
 --
-.. visit the link from the output of the previous step (the link is there after the first push only)
-.. navigate to https://github.com/<YOUR_USERNAME>/quay-docs and use the interface to create the pull request
+.. Visit the link from the output of the previous step. The link is there after the first push only.
+
+.. Navigate to https://github.com/<your_username>/quay-docs. Use the interface to create the pull request
 --
 +
-As you create the pull request, tag one of the repository collaborators and ask them to review the pull request.
+As you create the pull request, tag one of the repository collaborators and ask them to review the pull request. The default contact should be Steven Smith.
 
-. Work together with the reviewer to finish your pull request, then ask them to merge it.
+. Work with the reviewer to finish your pull request. After the suggested changes have been made, the reviewer will merge the pull request.
 
-. Shortly after your pull request is merged into the `3.0-master` branch, your updates will become live in the https://docs.projectquay.io[Project Quay documentation].
+. After your pull request is merged into the `master` branch, your updates will become live in the https://docs.projectquay.io[Project Quay documentation]. Eventually, those changes will end up on the portal. 
 
 == How do I make a contribution to the downstream documentation?
 
-Downstream documentation resides in the `3.0-stage` branch of the https://gitlab.cee.redhat.com/red-hat-quay-documentation/quay-documentation/[downstream repository]. However, Quay documentation is upstream-first. This means that all changes, including downstream-only content, first go to the `3.0-master` branch of the https://github.com/quay/quay-docs[upstream repository]. After that, they are pushed to the `3.0-master` branch of the downstream repository and get merged to the `3.0-stage` branch.
+Like upstream documentation, downstream documentation primarily resides in the `master` branch of the https://gitlab.cee.redhat.com/red-hat-quay-documentation/quay-documentation/[downstream repository]. For most users, the only necessary step is to create a feature branch from the `master` branch.
 
-In other words, to contribute to the downstream documentation:
+To make a contribution to upstream documentation, follow the instructions at <<how-do-i-make-a-contribution>>. Be sure to work with the documentation lead for Red Hat Quay to get the content reviewed, merged, and published on the downstream portal. 
 
-. Make your contribution in the upstream: <<how-do-i-make-a-contribution>>
-. Move it over to the downstream repository: <<how-do-i-keep-the-downstream-repository-and-branch-up-to-date>>
+=== How Red Hat Quay downstream documentation is branched
 
-[id="how-do-i-keep-my-local-3.0-master-up-to-date-with-remote-3.0-master"]
-== How do I keep my local `3.0-master` up-to-date with remote `3.0-master`?
+After you have created and merged a pull request, relevant branches are then reset to match the `master` branch. For example, if the current version of Red Hat Quay is 3.10, then the relevant 3.10 branch (`redhat-3.10`) is reset to match the `master`. branch. This ensures that the most recent content changes are up to date in the most recent version branch. 
 
-As other people push to the `3.0-master` branch in the https://github.com/quay/quay-docs[upstream repository], you need to keep your local `3.0-master` up-to-date. It is optimal to do it regularly, for example, daily.
+After the the most recent branch is reset to match the `master` branch, the `3.0-stage` branch is then reset to match the most recent version branch (for example, `3.0-stage` is reset to match `redhat-3.10`). The reason for this is that the Red Hat Quay `3` version is copied directly from the most recent version of Red Hat Quay. 
 
-. Switch to `3.0-master`:
+[id="how-do-i-keep-my-local-master-up-to-date-with-remote-master"]
+== How do I keep my local `master` up-to-date with remote `master`?
+
+As contributors push and merge pull requests to the `master` branch, you must keep your local `master` branch up to date. Prior to making any changes to the documentation, you should rebase your local `master` branch to match the most recent version of the remote `master` branch. 
+
+. Check out the `master` branch:
 +
 ----
-$ git checkout 3.0-master
+$ git checkout master
 ----
 
 . Fetch the commits that are in the upstream repository but not in your local repository:
@@ -109,17 +123,19 @@ $ git checkout 3.0-master
 $ git fetch upstream
 ----
 
-. Apply the fetched commits to your local `3.0-master`:
+. Apply the fetched commits to your local `master`:
 +
 ----
-$ git rebase upstream/3.0-master
+$ git rebase upstream/master
 ----
 
-== How do I keep my feature branch up-to-date with 3.0-master?
+Now, your local `master` branch is up to date.
 
-As new commits appear on the `3.0-master` branch, your existing feature branch does not automatically incorporate those commits. To prevent your feature branch and `3.0-master` from diverging, you need to manually update your feature branch to `3.0-master`:
+== How do I keep my feature branch up-to-date with the master branch?
 
-. Bring your local `3.0-master` up-to-date with the remote `3.0-master`. <<how-do-i-keep-my-local-3.0-master-up-to-date-with-remote-3.0-master>>
+As new commits appear on the `master` branch, your existing feature branch does not automatically incorporate those commits. To prevent your feature branch and `master` from diverging, you need to manually update your feature branch to the `master` branch:
+
+. Bring your local `master` brnach up-to-date with the remote `master` branch by following the instructions at <<how-do-i-keep-my-local-master-up-to-date-with-remote-master>>.
 
 . Switch to the feature branch that you want to update:
 +
@@ -127,18 +143,18 @@ As new commits appear on the `3.0-master` branch, your existing feature branch d
 $ git checkout <feature_branch>
 ----
 
-. Apply the commits from `3.0-master` to <feature_branch>:
+. Apply the commits from the `master` branch to your `<feature_branch>`:
 +
 ----
-$ git rebase upstream/3.0-master
+$ git rebase upstream/master
 ----
 +
 
-. Push the updated <feature_branch> to your fork of the upstream repository. Since your local <feature_branch> has been updated, it might be incompatible with the remote <feature_branch>, so you need to use the `--force` option:
+. Push the updated `<feature_branch>` to your fork of the upstream repository. Since your local `<feature_branch>` has been updated, it might be incompatible with the remote `<feature_branch>`, so you need to use the `--force` option:
 +
 [IMPORTANT]
 ====
-Never use the `--force` argument when pushing to `3.0-master`.
+Never use the `--force` argument when pushing to `master`.
 ====
 +
 ----
@@ -147,6 +163,7 @@ $ git push --force origin <feature_branch>
 
 ifdef::downstream[]
 
+////
 [id="how-do-i-keep-the-downstream-repository-and-branch-up-to-date"]
 == How do I keep the downstream repository and branch up-to-date?
 
@@ -185,13 +202,12 @@ $ git push downstream
 ----
 
 endif::downstream[]
+////
 
 == How do I make content appear in upstream but not in downstream?
 
-If you need to make a part of content appear only https://docs.projectquay.io[in the upstream documentation]:
+You can make content appear only in the upstream by using the `ifdef::upstream` conditional around the content that you only want to appear upstream. For example: 
 
-* Surround the content with these lines:
-+
 ----
 \ifdef::upstream[]
 <Content that should be in upstream only.>
@@ -201,10 +217,8 @@ If you need to make a part of content appear only https://docs.projectquay.io[in
 ifdef::downstream[]
 == How do I make content appear in downstream but not in upstream?
 
-If you need to make a part of content appear only https://access.redhat.com/documentation/en-us/red_hat_quay/3/[in the downstream documentation]:
+You can make content appear only in the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/[downstream] by using the `ifdef::downstream` conditional around the content that you only want to appear downstream. For example: 
 
-* Surround the content with these lines:
-+
 ----
 \ifdef::downstream[]
 <Content that should be in downstream only.>
