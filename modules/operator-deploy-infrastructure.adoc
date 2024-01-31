@@ -97,32 +97,81 @@ Use the following procedure to create a project with node selector and toleratio
 
 [NOTE]
 ====
-If you have already deployed {productname} using the Operator, remove the installed Operator and any specific namespaces that you created for the deployment. 
+The following procedure can also be completed by removing the installed {productname} Operator and the namespace, or namespaces, used when creating the deployment. Users can then create a new resource with the following annotation.
 ====
 
 .Procedure
 
-. Create a project resource, specifying a node selector and toleration. For example:
+. Enter the following command to edit the namespace where {productname} is deployed, and the following annotation: 
 +
-.quay-registry.yaml
 [source,terminal]
 ----
-kind: Project
-apiVersion: project.openshift.io/v1
-metadata:
-  name: quay-registry
-  annotations:
-    openshift.io/node-selector: 'node-role.kubernetes.io/infra='
-    scheduler.alpha.kubernetes.io/defaultTolerations: >-
-      [{"operator": "Exists", "effect": "NoSchedule", "key":
-      "node-role.kubernetes.io/infra"}]
+$ oc annotate namespace <namespace> openshift.io/node-selector='node-role.kubernetes.io/infra='
+----
++
+Example output
++
+[source,yaml]
+----
+namespace/<namespace> annotated
 ----
 
-. Enter the following command to create the project:
+. Obtain a list of available pods by entering the following command:
 +
 [source,terminal]
 ----
-$ oc apply -f quay-registry.yaml
+$ oc get pods -o wide
+----
++
+.Example output
++
+[source,terminal]
+----
+NAME                                               READY   STATUS      RESTARTS        AGE     IP            NODE                                         NOMINATED NODE   READINESS GATES
+example-registry-clair-app-5744dd64c9-9d5jt        1/1     Running     0               173m    10.130.4.13   stevsmit-quay-ocp-tes-5gwws-worker-c-6xkn7   <none>           <none>
+example-registry-clair-app-5744dd64c9-fg86n        1/1     Running     6 (3h21m ago)   3h24m   10.131.0.91   stevsmit-quay-ocp-tes-5gwws-worker-c-dnhdp   <none>           <none>
+example-registry-clair-postgres-845b47cd88-vdchz   1/1     Running     0               3h21m   10.130.4.10   stevsmit-quay-ocp-tes-5gwws-worker-c-6xkn7   <none>           <none>
+example-registry-quay-app-64cbc5bcf-8zvgc          1/1     Running     1 (3h24m ago)   3h24m   10.130.2.12   stevsmit-quay-ocp-tes-5gwws-worker-a-tk8dx   <none>           <none>
+example-registry-quay-app-64cbc5bcf-pvlz6          1/1     Running     0               3h24m   10.129.4.10   stevsmit-quay-ocp-tes-5gwws-worker-b-fjhz4   <none>           <none>
+example-registry-quay-app-upgrade-8gspn            0/1     Completed   0               3h24m   10.130.2.10   stevsmit-quay-ocp-tes-5gwws-worker-a-tk8dx   <none>           <none>
+example-registry-quay-database-784d78b6f8-2vkml    1/1     Running     0               3h24m   10.131.4.10   stevsmit-quay-ocp-tes-5gwws-worker-c-2frtg   <none>           <none>
+example-registry-quay-mirror-d5874d8dc-fmknp       1/1     Running     0               3h24m   10.129.4.9    stevsmit-quay-ocp-tes-5gwws-worker-b-fjhz4   <none>           <none>
+example-registry-quay-mirror-d5874d8dc-t4mff       1/1     Running     0               3h24m   10.129.2.19   stevsmit-quay-ocp-tes-5gwws-worker-a-k7w86   <none>           <none>
+example-registry-quay-redis-79848898cb-6qf5x       1/1     Running     0               3h24m   10.130.2.11   stevsmit-quay-ocp-tes-5gwws-worker-a-tk8dx   <none>           <none>
+
+----
+
+. Enter the following command to delete the available pods:
++
+[source,terminal]
+----
+$ oc delete pods --selector quay-operator/quayregistry=example-registry -n quay-enterprise
+----
++
+Example output
++
+[source,terminal]
+----
+pod "example-registry-clair-app-5744dd64c9-9d5jt" deleted
+pod "example-registry-clair-app-5744dd64c9-fg86n" deleted
+pod "example-registry-clair-postgres-845b47cd88-vdchz" deleted
+pod "example-registry-quay-app-64cbc5bcf-8zvgc" deleted
+pod "example-registry-quay-app-64cbc5bcf-pvlz6" deleted
+pod "example-registry-quay-app-upgrade-8gspn" deleted
+pod "example-registry-quay-database-784d78b6f8-2vkml" deleted
+pod "example-registry-quay-mirror-d5874d8dc-fmknp" deleted
+pod "example-registry-quay-mirror-d5874d8dc-t4mff" deleted
+pod "example-registry-quay-redis-79848898cb-6qf5x" deleted
+----
++
+After the pods have been deleted, they automatically cycle back up and should be scheduled on the dedicated infrastructure nodes.
+
+////
+. Enter the following command to create the project on infra nodes:
++
+[source,terminal]
+----
+$ oc apply -f <project_name>.yaml
 ----
 +
 .Example output
@@ -131,8 +180,9 @@ $ oc apply -f quay-registry.yaml
 ----
 project.project.openshift.io/quay-registry created
 ----
-
-Subsequent resources created in the `quay-registry` namespace should now be scheduled on the dedicated infrastructure nodes. 
++
+Subsequent resources created in the `<project_name>` namespace should now be scheduled on the dedicated infrastructure nodes. 
+////
 
 [id="installing-quay-operator-namespace"]
 == Installing {productname-ocp} on a specific namespace 
