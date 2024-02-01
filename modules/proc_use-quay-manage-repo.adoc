@@ -186,7 +186,49 @@ ifeval::["{context}" == "quay-io"]
 . Choose a plan for your Organization, selecting either the free plan, or one of the paid plans. 
 endif::[]
 
-. Click *Create Organization* to finalize creation. 
+. Click *Create Organization* to finalize creation.
+
+[id="creating-organization-using-api"]
+==== Creating another Organization by using the API
+
+You can create another Organization by using the API. To do this, you must have created the first Organization by using the UI. You must also have generated an OAuth Access Token.
+
+Use the following procedure to create another Organization by using the {productname} API endpoint. 
+
+.Prerequisites 
+
+* You have already created at least one Organization by using the UI.
+* You have generated an OAuth Access Token. For more information, see "Creating an OAuth Access Token".
+
+.Procedure
+
+. Create a file named `data.json` by entering the following command:
++
+[source,terminal]
+----
+$ touch data.json
+----
+
+. Add the following content to the file, which will be the name of the new Organization:
++
+[source,text]
+----
+{"name":"testorg1"}
+----
+
+. Enter the following command to create the new Organization using the API endpoint, passing in your OAuth Access Token and {productname} registry endpoint:
++
+[source,terminal]
+----
+$ curl -X POST -k -d @data.json -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" http://<quay-server.example.com>/api/v1/organization/
+----
++
+Example output
++
+[source,terminal]
+----
+"Created"
+----
 
 [id="allow-team-access-org-repo"]
 === Adding a team to an organization
