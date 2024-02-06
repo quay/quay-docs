@@ -1,0 +1,38 @@
+:_content-type: CONCEPT
+[id="clair-standalone-upgrade"]
+= Using Clair with an upstream image for {productname}
+
+For most users, independent upgrades of Clair from the current version ({clairproductminv}) are unnecessary. In some cases, however, customers might want to pull an image of Clair from the link:https://quay.io/repository/projectquay/clair[upstream repository] for various reasons, such as for specific bug fixes or to try new features that have not yet been released downstream. You can use the following procedure to run an upstream version of Clair with {productname}.
+
+[IMPORTANT]
+====
+Upstream versions of Clair have not been fully tested for compatibility with {productname}. As a result, this combination might cause issues with your deployment. 
+====
+
+.Procedure
+
+. Enter the following command to stop Clair if it is running:
++
+[source,terminal]
+----
+$ podman stop <clairv4_container_name>
+----
+
+. Navigate to the link:https://quay.io/repository/projectquay/clair[upstream repository], find the version of Clair that you want to use, and pull it to your local machine. For example:
++
+[source,terminal]
+----
+$ podman pull quay.io/projectquay/clair:nightly-2024-02-03
+----
+
+. Start Clair by using the container image, mounting in the configuration from the file you created:
++
+[source,terminal]
+----
+$ podman run -d --name clairv4 \
+-p 8081:8081 -p 8088:8088 \
+-e CLAIR_CONF=/clair/config.yaml \
+-e CLAIR_MODE=combo \
+-v /etc/opt/clairv4/config:/clair:Z \
+quay.io/projectquay/clair:nightly-2024-02-03
+----
