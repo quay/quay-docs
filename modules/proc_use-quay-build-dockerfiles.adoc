@@ -167,22 +167,25 @@ endif::[]
 
 .Procedure
 
-. On the *Builds* page, click *Start New Build*. Alternatively, you can click the `+` icon to reveal a drop-down menu. 
+. On the *Builds* page, click *Start New Build*.
 
-. When prompted, click *Select File* to upload a Dockerfile or an archive (for example, a `.tar.gz` or `.zip` file) that contains a Dockerfile at the root directory.
+. When prompted, click *Upload Dockerfile* to upload a Dockerfile or an archive that contains a Dockerfile at the root directory.
 
 . Click *Start Build*.
 +
 [NOTE]
 ====
-Currently, users cannot specify the Docker build context when manually starting a build.
+* Currently, users cannot specify the Docker build context when manually starting a build.
+* Currently, BitBucket is unsupported on the {productname} v2 UI. 
 ====
 
 . You are redirected to the Build, which can be viewed in real-time. Wait for the Dockerfile Build to be completed and pushed. 
 
 . Optional. you can click *Download Logs* to download the logs, or *Copy Logs* to copy the logs. 
 
-. Click the back button to return to the *Repository Builds* page, where you can view the Build History. 
+. Click the back button to return to the *Repository Builds* page, where you can view the Build History.
++
+image:build-history.png[Build history v2 UI]
 
 [id="build-trigger"]
 == Build triggers
@@ -192,7 +195,12 @@ Build triggers invoke builds whenever the triggered condition is met, for exampl
 [id="creating-a-build-trigger"]
 === Creating a Build trigger
 
-Use the following procedure to create a Build trigger. 
+Use the following procedure to create a Build trigger using a custom Git repository.
+
+[NOTE]
+====
+The following procedure assumes that you have not included Github credentials in your `config.yaml` file.
+====
 
 .Prerequisites
 
@@ -202,45 +210,33 @@ Use the following procedure to create a Build trigger.
 
 . On the *Builds* page, click *Create Build Trigger*. 
 
-. Select the desired platform, for example, Github, BitBucket, Gitlab, or use a custom Git repository. For this example, we are using Github.
+. Select the desired platform, for example, Github, BitBucket, Gitlab, or use a custom Git repository. For this example, we are using a custom Git repository from Github.
 
-. If prompted, confirm access to your account.
-
-. When prompted, select an organization. You can filter namespaces by including text in the *Filter namespaces...* box. Alternatively, you can scroll your namespaces by clicking the directional arrows. If the organization that you are trying to select is not listed, click *Connections wih Quay Container Registry* to request, or grant yourself, access. 
-
-. Click *Continue* after you have selected an organization. 
-
-. When prompted, select a repository. Then, click *Continue*. 
-
-. Configure the trigger by selecting one of the following options:
-
-.. *Trigger for all branches and tags (default1)*. By selecting this option, a container image for each commit across all branches and tags is created. 
-
-.. *Trigger only on branches and tags matching a regular expression*. By selecting this option, only container images for a subset of branches and/or tags are built. 
-
-. Click *Continue*. 
+. Enter a custom Git repository name, for example, `\git@github.com:<username>/<repo>.git`. Then, click *Next*. 
 
 . When prompted, configure the tagging options by selecting one of, or both of, the following options:
 +
 * *Tag manifest with the branch or tag name*. When selecting this option, the built manifest the name of the branch or tag for the git commit are tagged.
 +
 * *Add `latest` tag if on default branch*. When selecting this option, the built manifest with latest if the build occurred on the default branch for the repository are tagged. 
++
+Optionally, you can add a custom tagging template. There are multiple tag templates that you can enter here, including using short SHA IDs, timestamps, author names, committer, and branch names from the commit as tags. For more information, see "Tag naming for Build triggers".
++
+After you have configured tagging, click *Next*.
 
-. Optional. Add a custom tagging template. There are multiple tag templates that you can enter here, including using short SHA IDs, timestamps, author names, committer, and branch names from the commit as tags. For more information, see "Understanding tag naming for Build triggers".
+. When prompted, select the location of the Dockerfile to be built when the trigger is invoked. If the Dockerfile is located at the root of the git repository and named Dockerfile, enter */Dockerfile* as the Dockerfile path. Then, click *Next*. 
 
-. Click *Continue*.
+. When prompted, select the context for the Docker build. If the Dockerfile is located at the root of the Git repository, enter `/` as the build context directory. Then, click *Next*. 
 
-. When prompted, select the location of the Dockerfile to be built when the trigger is invoked. If the Dockerfile is located at the root of the git repository and named Dockerfile, enter */Dockerfile* as the Dockerfile path.
+. Optional. Choose an optional robot account. This allows you to pull a private base image during the build process. If you know that a private base image is not used, you can skip this step. 
 
-. Click *Continue*.
+. Click *Next*. Check for any verification warnings. If necessary, fix the issues before clicking *Finish*. 
 
-. When prompted, select the context for the Docker build. If the Dockerfile is located at the root of the Git repository, enter `/` as the build context directory.
-
-. Check for any verification warnings. If necessary, fix the issues before clicking *Continue*. 
-
-. When prompted with *Ready to go!*, click *Continue*. You are redirected to a confirmation page.
-
-. Save the SSH Public Key, then click *Return to <organization_name>/<repository_name>*. You are redirected to the *Builds* page of your repository. 
+. You are alerted that the trigger has been successfully activated. Note that using this trigger requires the following actions:
+* You must give the following public key read access to the git repository.
+* You must set your repository to `POST` to the following URL to trigger a build.
++
+Save the SSH Public Key, then click *Return to <organization_name>/<repository_name>*. You are redirected to the *Builds* page of your repository. 
 
 . On the *Builds* page, you now have a Build trigger. For example:
 +
@@ -253,8 +249,10 @@ Builds can be triggered manually by using the following procedure.
 
 .Procedure
 
-. On the *Builds* page, click the _cog wheel_, or *Options* icon, and select *Run Trigger Now*. 
+. On the *Builds* page, *Start new build*. 
 
-. When prompted, click the dropdown menu to specify a branch or tag, then click *Start Build*. 
+. When prompted, select *Invoke Build Trigger*.
+
+. Click *Run Trigger Now* to manually start the process. 
 +
 After the build starts, you can see the Build ID on the *Repository Builds* page.
