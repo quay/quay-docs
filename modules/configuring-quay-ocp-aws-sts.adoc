@@ -1,0 +1,81 @@
+[id="configuring-quay-ocp-aws-sts"]
+= Configuring {productname-ocp} to use AWS STS
+
+Use the following procedure to edit your {productname-ocp} `config.yaml` file to use AWS STS.
+
+[NOTE]
+====
+You can also edit and re-deploy your {productname-ocp} `config.yaml` file directly instead of using the {ocp} UI.
+====
+
+.Prerequisites
+
+* You have configured a Role ARN.
+* You have generated a User Access Key.
+* You have generated a User Secret Key. 
+
+.Procedure
+
+. On the *Home* page of your {ocp} deployment, click *Operators* -> *Installed Operators*. 
+
+. Click *Red Hat Quay*. 
+
+. Click *Quay Registry* and then the name of your {productname} registry. 
+
+. Under *Config Bundle Secret*, click the name of your registry configuration bundle, for example, *quay-registry-config-bundle-qet56*. 
+
+. On the configuration bundle page, click *Actions* to reveal a drop-down menu. Then click *Edit Secret*. 
+
+. Update your the `DISTRIBUTED_STORAGE_CONFIG` fields of your `config.yaml` file with the following information:
++
+[source,yaml]
+----
+# ...
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - STSS3Storage
+    - sts_role_arn: <role_arn> <1>
+      s3_bucket: <s3_bucket_name> <2>
+      storage_path: <storage_path> <3> 
+      sts_user_access_key: <s3_user_access_key> <4>
+      sts_user_secret_key: <s3_user_secret_key> <5>
+# ...
+----
+<1> The unique Amazon Resource Name (ARN) required when configuring AWS STS
+<2> The name of your s3 bucket.
+<3> The storage path for data. Usually `/datastorage`.
+<4> The generated AWS S3 user access key required when configuring AWS STS.
+<5> The generated AWS S3 user secret key required when configuring AWS STS.
+
+. Click *Save*.
+
+.Verification
+
+. Tag a sample image, for example, `busybox`, that will be pushed to the repository. For example:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<organization_name>/busybox:test
+----
+
+. Push the sample image by running the following command:
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<organization_name>/busybox:test
+----
+
+. Verify that the push was successful by navigating to the Organization that you pushed the image to in your {productname} registry -> *Tags*. 
+
+. Navigate to the Amazon Web Services (AWS) console and locate your s3 bucket. 
+
+. Click the name of your s3 bucket.
+
+. On the *Objects* page, click *datastorage/*.
+
+. On the *datastorage/* page, the following resources should seen:
++
+* *sha256/*
+* *uploads/* 
++
+These resources indicate that the push was successful, and that AWS STS is properly configured.
