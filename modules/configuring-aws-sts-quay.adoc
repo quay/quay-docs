@@ -1,0 +1,125 @@
+:_content-type: PROCEDURE
+[id="configuring-aws-sts-quay"]
+= Configuring AWS STS for {productname}
+
+Support for Amazon Web Services (AWS) Security Token Service (STS) is available for standalone {productname} deployments and {productname-ocp}. AWS STS is a web service for requesting temporary, limited-privilege credentials for AWS Identity and Access Management (IAM) users and for users that you authenticate, or _federated users_. This feature is useful for clusters using Amazon S3 as an object storage, allowing {productname} to use STS protocols to authenticate with Amazon S3, which can enhance the overall security of the cluster and help to ensure that access to sensitive data is properly authenticated and authorized. 
+
+Configuring AWS STS is a multi-step process that requires creating an AWS IAM user, creating an S3 role, and configuring your {productname} `config.yaml` file to include the proper resources. 
+
+Use the following procedures to configure AWS STS for {productname}. 
+
+[id="creating-am-user"]
+== Creating an IAM user
+
+Use the following procedure to create an IAM user. 
+
+.Procedure
+
+. Log in to the Amazon Web Services (AWS) console and navigate to the Identity and Access Management (IAM) console. 
+
+. In the navigation pane, under *Access management* click *Users*. 
+
+. Click *Create User* and enter the following information:
+
+.. Enter a valid username, for example, `quay-user`. 
+
+.. For *Permissions options*, click *Add user to group*. 
+
+. On the *review and create* page, click *Create user*. You are redirected to the *Users* page.
+
+. Click the username, for example, *quay-user*. 
+
+. Copy the ARN of the user, for example, `arn:aws:iam::123492922789:user/quay-user`.
+
+. On the same page, click the *Security credentials* tab. 
+
+. Navigate to *Access keys*.
+
+. Click *Create access key*. 
+
+. On the *Access key best practices & alternatives* page, click *Command Line Interface (CLI)*, then, check the confirmation box. Then click *Next*. 
+
+. Optional. On the *Set description tag - optional* page, enter a description.
+
+. Click *Create access key*.
+
+. Copy and store the access key and the secret access key.
++
+[IMPORTANT]
+====
+This is the only time that the secret access key can be viewed or downloaded. You cannot recover it later. However, you can create a new access key any time.
+====
+
+. Click *Done*.
+
+[id="creating-s3-role"]
+== Creating an S3 role
+
+Use the following procedure to create an S3 role for AWS STS. 
+
+.Prerequisites
+
+* You have created an IAM user and stored the access key and the secret access key.
+
+.Procedure
+
+. If you are not already, navigate to the IAM dashboard by clicking *Dashboard*. 
+
+. In the navigation pane, click *Roles* under *Access management*. 
+
+. Click *Create role*. 
+
+* Click *Custom Trust Policy*, which shows an editable JSON policy. By default, it shows the following information:
++
+[source,json]
+----
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "Statement1",
+			"Effect": "Allow",
+			"Principal": {},
+			"Action": "sts:AssumeRole"
+		}
+	]
+}
+----
+
+. Under the `Principal` configuration field, add your AWS ARN information. For example:
++
+[source,json]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+   	 {
+   		 "Sid": "Statement1",
+   		 "Effect": "Allow",
+   		 "Principal": {
+   		 	"AWS": "arn:aws:iam::123492922789:user/quay-user"
+   		 },
+   		 "Action": "sts:AssumeRole"
+   	 }
+    ]
+}
+----
+
+. Click *Next*. 
+
+. On the *Add permissions* page, type `AmazonS3FullAccess` in the search box. Check the box to add that policy to the S3 role, then click *Next*. 
+
+. On the *Name, review, and create* page, enter the following information:
+
+.. Enter a role name, for example, `example-role`.
+
+.. Optional. Add a description.
+
+. Click the *Create role* button. You are navigated to the *Roles* page. Under *Role name*, the newly created S3 should be available.
+
+////
+[id="configuring-quay-operator-use-aws-sts"]
+== Configuring the {productname} to use AWS STS
+
+Depending on your deployment type, whether standalone or on {ocp}, you can use one of the following procedures to edit your `config.yaml` file to use AWS STS. 
+////
