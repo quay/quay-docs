@@ -6,6 +6,7 @@ The following YAML shows a sample configuration using AWS S3 storage.
 
 [source,yaml]
 ----
+# ...
 DISTRIBUTED_STORAGE_CONFIG:
   default:
     - S3Storage <1>
@@ -17,5 +18,31 @@ DISTRIBUTED_STORAGE_CONFIG:
 DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
 DISTRIBUTED_STORAGE_PREFERENCE:
     - s3Storage
+# ...
 ----
-<1> The `S3Storage` storage driver should only be used for AWS S3 buckets. Note that this differs from general S3 access, where the RadosGW driver or other storage services can be used. For an example, see "Example B: Using RadosGW with general S3 access". 
+<1> The `S3Storage` storage driver should only be used for AWS S3 buckets. Note that this differs from general S3 access, where the RadosGW driver or other storage services can be used. For an example, see "Example B: Using RadosGW with general S3 access".
+
+[id="config-fields-storage-aws-sts"]
+== AWS STS S3 storage
+
+The following YAML shows an example configuration for using Amazon Web Services (AWS) Security Token Service (STS) with {productname-ocp} configurations. 
+
+[source,yaml]
+----
+# ...
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - STSS3Storage
+    - sts_role_arn: <role_arn> <1>
+      s3_bucket: <s3_bucket_name>
+      storage_path: <storage_path>
+      sts_user_access_key: <s3_user_access_key> <2>
+      sts_user_secret_key: <s3_user_secret_key> <3>
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+# ...
+----
+<1> The unique Amazon Resource Name (ARN). 
+<2> The generated AWS S3 user access key.
+<3> The generated AWS S3 user secret key. 
