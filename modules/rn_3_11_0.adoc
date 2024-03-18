@@ -30,6 +30,15 @@ Support for Amazon Web Services (AWS) Security Token Service (STS) is now offere
 
 * For more information about configuring AWS STS for standalone {productname} deployments, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#configuring-aws-sts-quay[Configuring AWS STS for {productname}]
 
+[id="auto-pruning-enhancements"]
+=== {productname} auto-pruning enhancements
+
+With the release of {productname} 3.10, a new auto-pruning feature was released. With that feature, {productname} administrators could set up auto-pruning policies on namespaces for both users and organizations.
+
+With this release, auto-pruning policies can now be set up on specified repositories. This feature allows for image tags to be automatically deleted within a repository based on specified criteria. Additionally, {productname} administrators can set auto-pruning policies on repositories that they have `admin` privileges for.
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#red-hat-quay-namespace-auto-pruning-overview[{productname} auto-pruning overview].
+
 [id="v2-ui-enhancements-311"]
 === {productname} v2 UI enhancements 
 
@@ -48,6 +57,12 @@ For more information, see link:https://access.redhat.com/documentation/en-us/red
 {productname} Builds are now supported when using the v2 UI. This feature must be enabled prior to building container images by setting `FEATURE_BUILD_SUPPORT: true` in your `config.yaml` file. 
 
 For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/use_red_hat_quay/index#building-dockerfiles[Building container images].
+[id="auto-pruning-repositories-ui"]
+==== Auto-pruning repositories UI
+
+{productname} 3.11 offers users the ability to create auto-pruning policies using the v2 UI.
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#red-hat-quay-namespace-auto-pruning-overview[{productname} auto-pruning overview].
 
 [id="new-quay-config-fields-311"]
 == New {productname} configuration fields
@@ -84,14 +99,31 @@ With this release, users can manually adjust the resource requests on {productna
 This feature allows users to run smaller test clusters, or to request more resources upfront in order to avoid partially degraded `Quay` pods. 
 
 For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#configuring-resources-managed-components[Configuring resources for managed components on {ocp}]
-[id="aws-sts-support-quay-operator-311"]
 
+[id="aws-sts-support-quay-operator-311"]
 === Support for AWS STS on {productname-ocp}
 
 Support for Amazon Web Services (AWS) Security Token Service (STS) is now offered for {productname} deployments on {ocp}. AWS STS is a web service for requesting temporary, limited-privilege credentials for AWS Identity and Access Management (IAM) users and for users that you authenticate, or _federated users_. This feature is useful for clusters using Amazon S3 as an object storage, allowing {productname} to use STS protocols to authenticate with Amazon S3, which can enhance the overall security of the cluster and help to ensure that access to sensitive data is properly authenticated and authorized. 
 
 * For more information about AWS STS for {productname-ocp}, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_operator_features/index#configuring-aws-sts-quay[Configuring AWS STS for {productname-ocp}]
 
+[id="new-api-endpoints-311"]
+== New API endpoints
+
+The following API endpoints have been added to {productname} {producty}:
+
+[id="repository-auto-pruning-policy-endpoint"]
+=== Repository auto-pruning policy endpoints: 
+
+The repository auto-pruning policy feature introduces the following API endpoint:
+
+* `*/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/`
++
+This API endpoint can be used with `POST`, `GET`, and `DELETE` calls to create, see, and delete auto-pruning policies on a repository, respectively. 
+
+* `*/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/`
++
+This API endpoint can be used with `POST`, `GET`, and `DELETE` calls to create, see, and delete auto-pruning policies on a repository for specific users in your organization. Note that you must have `admin` privileges on the repository that you are creating the policy for when using these commands.
 
 [id="known-issues-and-limitations-310"]
 == {productname} 3.11 known issues and limitations
@@ -143,11 +175,17 @@ Some features available in previous releases have been deprecated or removed. De
 |===
 |Feature | Quay 3.11 | Quay 3.10 | Quay 3.9
 
-<<<<<<< HEAD
 | link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#configuring-resources-managed-components[Configuring resources for managed components on {ocp}]
-=======
+|General Availability
+|-
+|-
+
 |link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#configuring-aws-sts-quay[Configuring AWS STS for {productname}], link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_operator_features/index#configuring-aws-sts-quay[Configuring AWS STS for {productname-ocp}]
->>>>>>> 49390971 (Adds procedure for aws sts)
+|General Availability
+|-
+|-
+
+|link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html/manage_red_hat_quay/red-hat-quay-namespace-auto-pruning-overview[{productname} repository auto-pruning]
 |General Availability
 |-
 |-
@@ -162,7 +200,7 @@ Some features available in previous releases have been deprecated or removed. De
 |General Availability
 |-
 
-|link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html/manage_red_hat_quay/red-hat-quay-namespace-auto-pruning-overview[{productname} namespace auto-pruning overview]
+|link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html/manage_red_hat_quay/red-hat-quay-namespace-auto-pruning-overview[{productname} namespace auto-pruning]
 |General Availability
 |General Availability
 |-
