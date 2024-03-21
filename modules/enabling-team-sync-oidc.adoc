@@ -1,0 +1,210 @@
+:_content-type: PROCEDURE
+[id="oidc-team-sync"]
+= Team synchronization for {productname} OIDC deployments
+
+Administrators can leverage an OpenID Connect (OIDC) identity provider that supports group or team synchronization to apply repository permissions to sets of users in {productname}. This allows administrators to avoid having to manually create and sync group definitions between {productname} and the OIDC group.
+
+:_content-type: PROCEDURE
+[id="enabling-oidc-team-sync"]
+== Enabling synchronization for {productname} OIDC deployments
+
+Use the following procedure to enable team synchronization when you {productname} deployment uses an OIDC authenticator.
+
+[IMPORTANT]
+====
+The following procedure does not use a specific OIDC provider. Instead, it provides a general outline of how best to approach team synchronization between an OIDC provider and {productname}. Any OIDC provider can be used to enable team synchronization, however, setup might vary depending on your provider.
+====
+
+.Procedure
+
+. Update your `config.yaml` file with the following information:
++
+[source,yaml]
+----
+AUTHENTICATION_TYPE: OIDC
+# ...
+OIDC_LOGIN_CONFIG:
+  CLIENT_ID: <1>
+  CLIENT_SECRET: <2>
+  OIDC_SERVER: <3>
+  SERVICE_NAME: <4>
+  PREFERRED_GROUP_CLAIM_NAME: <5>
+  LOGIN_SCOPES: [ 'openid', '<example_scope>' ] <6>
+# ...
+FEATURE_TEAM_SYNCING: true <7>
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true <8>
+FEATURE_V2_UI: true
+# ...
+----
+<1> Required. The registered OIDC client ID for this {productname} instance.
+<2> Required. The registered OIDC client secret for this {productname} instance.
+<3>  Required. The address of the OIDC server that is being used for authentication. This URL should be such that a `GET` request to `<OIDC_SERVER>/.well-known/openid-configuration` returns the provider's configuration information. This configuration information is essential for the relying party (RP) to interact securely with the OpenID Connect provider and obtain necessary details for authentication and authorization processes.
+<4> Required. The name of the service that is being authenticated.
+<5> Required. The key name within the OIDC token payload that holds information about the user's group memberships. This field allows the authentication system to extract group membership information from the OIDC token so that it can be used with {productname}.
+<6> Required. Adds additional scopes that {productname} uses to communicate with the OIDC provider. Must include `'openid'`. Additional scopes are optional.
+<7> Required. Whether to allow for team membership to be synced from a backing group in the authentication engine.
+<8> Optional. If enabled, non-superusers can setup team synchronization.
+
+. Restart your {productname} registry. 
+
+[id="setting-up-quay-team-sync"]
+== Setting up your {productname} deployment for team synchronization
+
+. Log in to your {productname} registry via your OIDC provider.
+
+. On the {productname} v2 UI dashboard, click *Create Organization*.
+
+. Enter and Organization name, for example, `test-org`.
+
+. Click the name of the Organization.
+
+. In the navigation pane, click *Teams and membership*. 
+
+. Click *Create new team* and enter a name, for example, `testteam`.
+
+. On the *Create team* pop-up:
+
+.. Optional. Add this team to a repository.
+.. Add a team member, for example, `user1`, by typing in the user's account name.
+.. Add a robot account to this team. This page provides the option to create a robot account.
+
+. Click *Next*.
+
+. On the *Review and Finish* page, review the information that you have provided and click *Review and Finish*. 
+
+. To enable team synchronization for your {productname} OIDC deployment, click *Enable Directory Sync* on the *Teams and membership* page. Note the message in the popup:
++
+[WARNING]
+====
+Please note that once team syncing is enabled, the membership of users who are already part of the team will be revoked. OIDC group will be the single source of truth. This is a non-reversible action. Team's user membership from within Quay will be ready-only.
+====
+
+. In the popup box, enter the name of the group to sync membership with. Then, click *Enable Sync*. 
+
+. You are returned to the *Teams and membership* page. Note that users of this team are removed and are re-added upon logging back in. At this stage, only the robot account is still part of the team.
++
+A banner at the top of the page confirms that the team is synced: 
++
+[source,text]
+----
+This team is synchronized with a group in OIDC and its user membership is therefore read-only.
+----
++
+By clicking the *Directory Synchronization Config* accordion, the OIDC group that your deployment is synchronized with appears.
+
+. Log out of your {productname} registry and continue on to the verification steps.
+
+.Verification
+
+Use the following verification procedure to ensure that `user1` appears as a member of the team.
+
+. Log back in to your {productname} registry.
+
+. Click *Organizations* -> *test-org* -> *test-team* *Teams and memberships*. `user1` now appears as a team member for this team.
+
+.Verification
+
+Use the following procedure to remove `user1` from a group via your OIDC provider, and subsequently remove them from the team on {productname}.
+
+. Navigate to your OIDC provider's administration console.
+
+. Navigate to the *Users* page of your OIDC provider. The name of this page varies depending on your provider.
+
+. Click the name of the user associated with {productname}, for example, `user1`.
+
+. Remove the user from group in the configured identity provider.
+
+. Remove, or unassign, the access permissions from the user.
+
+. Log in to your {productname} registry. 
+
+. Click *Organizations* -> *test-org* -> *test-team* *Teams and memberships*. `user1` has been removed from this team.
+
+////
+[id="setting-up-keycloak-oidc-team-sync"]
+== Setting up Keycloak for OIDC team synchronization
+
+Keycloak is an open source software product to allow single sign-on with identity and access management. It can be leveraged with {productname} as an extra layer of security for your deployment. 
+
+Use the following procedure to setup Keycloak for {productname} team synchronization. 
+
+.Procedure
+
+. Log in to your Keycloak adminstration console. 
+
+. In the navigation pane, click the drop down menu, and then click *Create realm*. 
+
+. Provide a realm name, for example, `quayrealm`. 
+
+. Click *Clients* -> *Create client*. 
+
+. On the *General settings* page:
+
+.. Set the Client type to *OpenID Connect*.
+.. Provide a Client ID, for example, `quaydev`.
+.. Optional. Provide a name for the client.
+.. Optional. Provide a description for the client.
+.. Optional. Specify whether the client is always listed in the Account UI. 
+
+. Click *Next*. 
+
+. On the *Capability config* page:
+
+.. Ensure that *Client authentication* is on.
+.. Optional. Turn *Authorization* on. 
+.. For *Authentication flow*, click *Standard flow* and *Direct access grants*. 
+
+. Click *Next*. 
+
+. On the *Login settings* page:
+
+.. Optional. Provide a Root URL.
+.. Optional. Provide a Home URL. 
+.. Optional. Provide Valid redirect URIs. 
+.. Optional. Provide Valid post logout redirect URIs.
+.. Optional. Provide Web origins. 
+
+. Click *Save*. You are redirected to the *quaydev* *Settings* page. 
+
+. In the navigation pane, click *Realm roles* -> *Create role*. 
+
+. Enter a role name, for example, `test-team-sync`. Then, click *Save*. 
+
+. In the navigation pane, click *Groups* -> *Create a group*. 
+
+. Enter a name for the group, for example, `oidc-sync-test`.
+
+. In the navigation pane, click *Users* -> *Create new user*. 
+
+. Enter a username, for example, `test`.
+
+. Click *Join Groups* and add this user to the `oidc-sync-test` group.
+
+. Click *Create*. 
+
+. In the navigation pane, click *Clients*.
+
+. Click the name of the Client ID created earlier, for example, *quay-dev*. 
+
+. On the *Client details* page, click *Client scopes*.
+
+. Click name of the client scope ID, for example, *quaydev-dedicated*. 
+
+. Click *Configure a new mapper*. This mapper allows groups to be returned from the user information endpoint.
+
+. Select *User Realm Role*. 
+
+. On the *Add mapper* page, provide the following information:
+
+.. Enter a name for the mapper, for example, `group`.
+.. Enter a Token Claim Name, for example, `groupName`. User groups are returned under this key name. It is used in your {productname} configuration.
+.. Click to turn Add to ID token `Off`.
+.. Click to turn Add to access token `Off`.
+.. Ensure that Add to userinfo is `On`.
+
+. Click *Save*. 
+
+
+[id="configuring-oidc-team-synchronization"]
+== Configuring team synchronization for OIDC deployments
+////
