@@ -14,23 +14,31 @@ This is required to ensure that any necessary database migrations are done corre
 
 In some cases, {productname} supports direct, single-step upgrades from prior (N-2, N-3) minor versions. This exception to the normal, prior minor version-only, upgrade simplifies the upgrade procedure for customers on older releases. The following upgrade paths are supported for {productname} {producty}:
 
-* 3.7.z -> 3.10.z
-* 3.8.z -> 3.10.z
-* 3.9.z -> 3.10.z
+* 3.9.z -> 3.11.z
+* 3.10.z -> 3.11.z
+
+[NOTE]
+====
+Upgrading from 3.8.z to 3.11 is unsupported. Users must first upgrade to 3.9 or 3.10, and then upgrade to 3.11.
+====
 
 For users wanting to upgrade the {productname} Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrading_quay_by_upgrading_the_quay_operator[Upgrading the {productname} Operator Overview].
 
 This document describes the steps needed to perform each individual upgrade. Determine your current version and then follow the steps in sequential order, starting with your current version and working up to your desired target version.
 
+//3.11
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_11_z_from_3_10_z[Upgrade to 3.11.z from 3.10.z]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_11_z_from_3_9_z[Upgrade to 3.11.z from 3.9.z]
+
 //3.10
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_10_z_from_3_9_z[Upgrade to 3.10.z from 3.9.z]
-* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_10_z_from_3_8_z[Upgrade to 3.10.z from 3.9.z]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_10_z_from_3_8_z[Upgrade to 3.10.z from 3.8.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_10_z_from_3_7_z[Upgrade to 3.10.z from 3.7.z]
-
 
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_9_z_from_3_8_z[Upgrade to 3.9.z from 3.8.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_9_z_from_3_7_z[Upgrade to 3.9.z from 3.7.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_8_z_from_3_7_z[Upgrade to 3.8.z from 3.7.z]
+////
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_7_z_from_3_6_z[Upgrade to 3.7.z from 3.6.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_7_z_from_3_5_z[Upgrade to 3.7.z from 3.5.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_7_z_from_3_4_z[Upgrade to 3.7.z from 3.4.z]
@@ -46,6 +54,7 @@ ifdef::downstream[]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_1_3_from_3_0_z[Upgrade to 3.1.3 from 3.0.5]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_0_5_from_2_9_5[Upgrade to 3.0.5 from 2.9.5]
 endif::downstream[]
+////
 
 See the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_release_notes/index[{productname} Release Notes] for information on features for individual releases.
 
@@ -63,12 +72,39 @@ link:https://registry.access.redhat.com[registry.access.redhat.com], with authen
 
 Images for Quay 3.3.4 and earlier are available from link:https://quay.io[quay.io], with authentication set up as described in link:https://access.redhat.com/solutions/3533201[Accessing {productname} without a CoreOS login].
 
-== Upgrade to 3.10.z from 3.9.z
+== Upgrade to 3.11.z from 3.10.z
 
 === Target images
 * **Quay:** {productrepo}/{quayimage}:{productminv}
 ifdef::downstream[]
 * **Clair:** {productrepo}/{clairimage}:{productminv}
+endif::downstream[]
+ifdef::upstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::upstream[]
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
+
+== Upgrade to 3.11.z from 3.9.z
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+ifdef::downstream[]
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+endif::downstream[]
+ifdef::upstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::upstream[]
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
+
+
+== Upgrade to 3.10.z from 3.9.z
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:v3.10.0
+ifdef::downstream[]
+* **Clair:** {productrepo}/{clairimage}:v3.10.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
@@ -79,9 +115,9 @@ endif::upstream[]
 == Upgrade to 3.10.z from 3.8.z
 
 === Target images
-* **Quay:** {productrepo}/{quayimage}:{productminv}
+* **Quay:** {productrepo}/{quayimage}:v3.10.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{productminv}
+* **Clair:** {productrepo}/{clairimage}:v3.10.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
@@ -92,9 +128,9 @@ endif::upstream[]
 == Upgrade to 3.10.z from 3.7.z
 
 === Target images
-* **Quay:** {productrepo}/{quayimage}:{productminv}
+* **Quay:** {productrepo}/{quayimage}:v3.10.0
 ifdef::downstream[]
-* **Clair:** {productrepo}/{clairimage}:{productminv}
+* **Clair:** {productrepo}/{clairimage}:v3.10.0
 endif::downstream[]
 ifdef::upstream[]
 * **Clair:** {productrepo}/{clairimage}:{clairproductminv}
@@ -246,6 +282,7 @@ endif::upstream[]
 * **PostgreSQL:** {postgresimage}
 * **Redis:** {redisimage}
 
+////
 == Upgrade to 3.7.z from 3.6.z
 
 === Target images
@@ -473,3 +510,4 @@ include::con_upgrade_v3.adoc[leveloffset=+2]
 
 include::proc_upgrade_v3.adoc[leveloffset=+2]
 endif::downstream[]
+////
