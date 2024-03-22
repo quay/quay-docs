@@ -5,11 +5,11 @@
 The following sections detail _y_ and _z_ stream release information.
 
 [id="rn-3-11-0"]
-== RHBA-2024:XXXX - {productname} 3.11.0 release
+== RHBA-2024:1475 - {productname} 3.11.0 release
 
-Issued xxxx-xx-xx
+Issued 2024-03-28
 
-{productname} release {producty} is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHSA-2024:XXXX[RHSA-2024:XXXX] advisory.
+{productname} release {producty} is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2024:1475[RHBA-2024:1475] advisory.
 
 [id="release-cadence-311"]
 == {productname} release cadence 
@@ -28,7 +28,7 @@ The following updates have been made to {productname}.
 
 Support for Amazon Web Services (AWS) Security Token Service (STS) is now offered for {productname}. AWS STS is a web service for requesting temporary, limited-privilege credentials for AWS Identity and Access Management (IAM) users and for users that you authenticate, or _federated users_. This feature is useful for clusters using Amazon S3 as an object storage, allowing {productname} to use STS protocols to authenticate with Amazon S3, which can enhance the overall security of the cluster and help to ensure that access to sensitive data is properly authenticated and authorized. This feature is also available for {ocp} deployments.
 
-* For more information about configuring AWS STS for standalone {productname} deployments, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#configuring-aws-sts-quay[Configuring AWS STS for {productname}]
+For more information about configuring AWS STS for standalone {productname} deployments, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#configuring-aws-sts-quay[Configuring AWS STS for {productname}]
 
 [id="auto-pruning-enhancements"]
 === {productname} auto-pruning enhancements
@@ -85,6 +85,33 @@ This release allows administrators to leverage an OpenID Connect (OIDC) identity
 
 For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#oidc-team-sync[Team synchronization for {productname} OIDC deployments]
 
+[id="quay-operator-updates-311"]
+== {productname} Operator updates
+
+The following updates have been made to the {productname} Operator:
+
+[id="configurable-resources-managed-components"]
+=== Configurable resource requests for {productname-ocp} managed components
+
+With this release, users can manually adjust the resource requests on {productname-ocp} for the following components that have pods running:
+
+* `quay`
+* `clair`
+* `mirroring`
+* `clairpostgres` 
+* `postgres`
+
+This feature allows users to run smaller test clusters, or to request more resources upfront in order to avoid partially degraded `Quay` pods. 
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#configuring-resources-managed-components[Configuring resources for managed components on {ocp}]
+
+[id="aws-sts-support-quay-operator-311"]
+=== Support for AWS STS on {productname-ocp}
+
+Support for Amazon Web Services (AWS) Security Token Service (STS) is now offered for {productname} deployments on {ocp}. AWS STS is a web service for requesting temporary, limited-privilege credentials for AWS Identity and Access Management (IAM) users and for users that you authenticate, or _federated users_. This feature is useful for clusters using Amazon S3 as an object storage, allowing {productname} to use STS protocols to authenticate with Amazon S3, which can enhance the overall security of the cluster and help to ensure that access to sensitive data is properly authenticated and authorized. 
+
+For more information about AWS STS for {productname-ocp}, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_operator_features/index#configuring-aws-sts-quay[Configuring AWS STS for {productname-ocp}]
+
 [id="new-quay-config-fields-311"]
 == New {productname} configuration fields
  
@@ -107,33 +134,6 @@ For more information, see link:https://access.redhat.com/documentation/en-us/red
 The following configuration field has been added for the team synchronization via OIDC feature:
 
 * *PREFERRED_GROUP_CLAIM_NAME*: The key name within the OIDC token payload that holds information about the user's group memberships.
-
-[id="quay-operator-updates-311"]
-== {productname} Operator
-
-The following updates have been made to the {productname} Operator:
-
-[id="configurable-resources-managed-components"]
-=== Configurtable resource requests for {productname-ocp} managed components
-
-With this release, users can manually adjust the resource requests on {productname-ocp} for the following components that have pods running:
-
-* `quay`
-* `clair`
-* `mirroring`
-* `clairpostgres` 
-* `postgres`
-
-This feature allows users to run smaller test clusters, or to request more resources upfront in order to avoid partially degraded `Quay` pods. 
-
-For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#configuring-resources-managed-components[Configuring resources for managed components on {ocp}]
-
-[id="aws-sts-support-quay-operator-311"]
-=== Support for AWS STS on {productname-ocp}
-
-Support for Amazon Web Services (AWS) Security Token Service (STS) is now offered for {productname} deployments on {ocp}. AWS STS is a web service for requesting temporary, limited-privilege credentials for AWS Identity and Access Management (IAM) users and for users that you authenticate, or _federated users_. This feature is useful for clusters using Amazon S3 as an object storage, allowing {productname} to use STS protocols to authenticate with Amazon S3, which can enhance the overall security of the cluster and help to ensure that access to sensitive data is properly authenticated and authorized. 
-
-* For more information about AWS STS for {productname-ocp}, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_operator_features/index#configuring-aws-sts-quay[Configuring AWS STS for {productname-ocp}]
 
 [id="new-api-endpoints-311"]
 == New API endpoints
@@ -158,14 +158,101 @@ This API endpoint can be used with `POST`, `GET`, and `DELETE` calls to create, 
 
 The following sections note known issues and limitations for {productname} {producty}.
 
-[id="known-issues-311"]
-=== {productname} 3.11
+[id="dark-mode-ui-v2-known-issues"]
+=== {productname} v2 UI dark mode known issue
 
+If you are using the the automatic mode selection, which chooses between light or dark modes depending on the user's browser preference, your operating system appearance is overridden by the browser website appearance setting. If you find that the device-based theme is not working as expect, check your browser appearance setting. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6903[*PROJQUAY-6903*])
 
-[id="limitations-311"]
-=== {productname} 3.11 limitations
+[id="oidc-team-sync-known-issues"]
+=== {productname} OIDC team synchronization known issues
 
+[id="unable-set-password-user-settings-page"]
+==== Unable to set user passwords via the *User Settings* page
+
+There is a known issue when {productname} uses OIDC as the authentication type with Microsoft Entra ID (previously Azure Active Directory).
+
+After logging in to {productname}, users are unable to set a password via the *User Settings* page. This is necessary for authentication when using Docker/Podman CLI to perform image push or pull operations to the registry.
+
+As a workaround, you can use Docker CLI and App Token as credentials when authenticating via OIDC. These tokens, alongside robot tokens, serve as an alternative to passwords and are considered the prescribed method for providing access to {productname} when authenticating via OIDC.
+
+For more information, see link:https://issues.redhat.com/browse/PROJQUAY-6754[*PROJQUAY-6754*].
+
+[id="team-sync-removal-known-issue"]
+==== Unable to sync change when OIDC user is removed from OIDC
+
+Currently, when an OIDC user is removed from their OIDC provider, the user is not removed from the team on {productname}. Consequently, they are still have to use the robot account token and app token to push and pull images from the registry. The expected behavior is that, when removed from the OIDC group, they, and their related tokens, should be removed from the {productname}. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6842[*PROJQUAY-6842*]).
+
+[id="entra-id-team-sync-known-issue"]
+==== Object ID must be used when OIDC provider is Microsoft Entra ID
+
+When using Microsoft Entra ID as your OIDC provider, {productname} administrators must input the *Object ID* of the OIDC group instead of the group name. The v2 UI does not currently alert users that Microsoft Entra ID users must input the Object ID of the OIDC group. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6917[*PROJQUAY-6917*])
+
+[id="v2-ui-known-issues-311"]
+=== {productname} v2 UI known issues
+
+The {productname} team is aware of the following known issues on the v2 UI:
+
+* link:https://issues.redhat.com/browse/PROJQUAY-6910[*PROJQUAY-6910*]. The new UI can't group and stack the chart on usage logs
+* link:https://issues.redhat.com/browse/PROJQUAY-6909[*PROJQUAY-6909*]. The new UI can't toggle the visibility of the chart on usage log
+* link:https://issues.redhat.com/browse/PROJQUAY-6904[*PROJQUAY-6904*]. "Permanently delete" tag should not be restored on new UI
+* link:https://issues.redhat.com/browse/PROJQUAY-6899[*PROJQUAY-6899*]. The normal user can not delete organization in new UI when enable FEATURE_SUPERUSERS_FULL_ACCESS
+* link:https://issues.redhat.com/browse/PROJQUAY-6892[*PROJQUAY-6892*]. The new UI should not invoke not required stripe and status page
+* link:https://issues.redhat.com/browse/PROJQUAY-6884[*PROJQUAY-6884*]. The new UI should show the tip of slack Webhook URL when creating slack notification
+* link:https://issues.redhat.com/browse/PROJQUAY-6882[*PROJQUAY-6882*]. The new UI global readonly super user can't see all organizations and image repos
+* link:https://issues.redhat.com/browse/PROJQUAY-6881[*PROJQUAY-6881*]. The new UI can't show all operation types in the logs chart
+* link:https://issues.redhat.com/browse/PROJQUAY-6861[*PROJQUAY-6861*]. The new UI "Last Modified" of organization always show N/A after target organization's setting is updated
+* link:https://issues.redhat.com/browse/PROJQUAY-6860[*PROJQUAY-6860*]. The new UI update the time machine configuration of organization show NULL in usage logs
+* link:https://issues.redhat.com/browse/PROJQUAY-6859[*PROJQUAY-6859*]. Thenew UI remove image repo permission show "undefined" for organization name in audit logs
+* link:https://issues.redhat.com/browse/PROJQUAY-6854[*PROJQUAY-6854*]. "Device-based theme" doesn't work as design in Firefox
+* link:https://issues.redhat.com/browse/PROJQUAY-6852[*PROJQUAY-6852*]. "Tag manifest with the branch or tag name" option in build trigger setup wizard should be checked by default.
+* link:https://issues.redhat.com/browse/PROJQUAY-6832[*PROJQUAY-6832*]. The new UI should validate the OIDC group name when enable OIDC Directory Sync
+* link:https://issues.redhat.com/browse/PROJQUAY-6831[*PROJQUAY-6831*]. The new UI should not show invited tab when the team is configured sync from OIDC group
+* link:https://issues.redhat.com/browse/PROJQUAY-6830[*PROJQUAY-6830*]. The new UI should show the sync icon when the team is configured sync team members from OIDC Group
+* link:https://issues.redhat.com/browse/PROJQUAY-6829[*PROJQUAY-6829*]. The new UI team member added to team sync from OIDC group should be audited in Organization logs page
+* link:https://issues.redhat.com/browse/PROJQUAY-6825[*PROJQUAY-6825*]. Build cancel operation log can not be displayed correctly in new UI
+* link:https://issues.redhat.com/browse/PROJQUAY-6812[*PROJQUAY-6812*]. The new UI the "performer by" is NULL of build image in logs page
+* link:https://issues.redhat.com/browse/PROJQUAY-6810[*PROJQUAY-6810*]. The new UI should highlight the tag name with tag icon in logs page
+* link:https://issues.redhat.com/browse/PROJQUAY-6808[*PROJQUAY-6808*]. The new UI can't click the robot account to show credentials in logs page
+* link:https://issues.redhat.com/browse/PROJQUAY-6807[*PROJQUAY-6807*]. The new UI can't see the operations types in log page when quay is in dark mode
+* link:https://issues.redhat.com/browse/PROJQUAY-6770[*PROJQUAY-6770*]. The new UI build image by uploading Docker file should support .tar.gz or .zip
+* link:https://issues.redhat.com/browse/PROJQUAY-6769[*PROJQUAY-6769*]. The new UI should not display message "Trigger setup has already been completed" after build trigger setup completed
+* link:https://issues.redhat.com/browse/PROJQUAY-6768[*PROJQUAY-6768*]. The new UI can't navigate back to current image repo from image build
+* link:https://issues.redhat.com/browse/PROJQUAY-6767[*PROJQUAY-6767*]. The new UI can't download build logs
+* link:https://issues.redhat.com/browse/PROJQUAY-6758[*PROJQUAY-6758*]. The new UI should display correct operation number when hover over different operation type
+* link:https://issues.redhat.com/browse/PROJQUAY-6757[*PROJQUAY-6757*]. The new UI usage log should display the tag expiration time as date format
+//* link:[**].
+
+[id="upgrading-38-311-limitation"]
+=== Upgrading {productname-ocp} 3.8 directly to 3.11 limitation
+
+Upgrading {productname-ocp} from 3.8 to 3.11 does not work. Users must upgrade from {productname-ocp} from 3.8 to 3.9 or 3.10, and then proceed with the upgrade to 3.11. 
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/upgrade_red_hat_quay/index#upgrade_overview[Upgrade {productname}].
+
+[id="configurable-resource-limitation"]
+=== Configurable resource request limitation
+
+Attempting to set resource limitations for the `Quay` pod too low results in the pod being unable to boot up with the following statuses returned: `OOMKILLED` and `CrashLoopBackOff`. Resource limitations can not be set lower than the minimum requirement, which can be found on the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#configuring-resources-managed-components[Configuring resources for managed components on {ocp}] page.
 ////
+
+[id="tag-expiration-known-issue"]
+=== Tag expiration behavior
+
+The following behavior was observed when setting expiration time on a tag that is *older* than two years. This is not a known issue, but is instead the default behavior. This will be changed in a future version of {productname} due to the potential issues that could arise for some users.
+
+When setting expiration time on a tag that is *older* than two years, the tag is expired immediately and subsequently garbage collected. It does not end up in the time machine, and is deleted from the registry. This issue occurs because, by default, the `LABELED_EXPIRATION_MAXIMUM` parameter is set to `104w`, or two years.
+
+As a temporary workaround, you can increase the default value of the `LABELED_EXPIRATION_MAXIMUM` parameter in your `config.yaml` file. For example:
+
+[source,yaml]
+----
+# ...
+LABELED_EXPIRATION_MAXIMUM: 156w
+# ...
+----
+
+By increasing the value of this field to, for example, `156w` (three years), it is possible to set the expiration time for a tag that is up to 3 years old. For example, if a tag is created on March 25, 2021, the expiration date of the tag can be set up to March 24, 2024. The expiration date of the tag could not be set to later than this date, for example, July 2024, because it is over three years from when the tag was first created. 
+
 
 Additionally, {productname} administrators can add robot accounts to allowlists when disallowing the creation of new robot accounts. This ensures operability of approved robot accounts.
 
@@ -185,9 +272,32 @@ ROBOTS_WHITELIST:
 For more information, see. . .
 ////
 
+[id="notable-technical-changes"]
+== Notable technical changes
+
+The following technical changes have been made to {productname} in 3.11.
+
+[id="removal-support-pgbouncer"]
+=== Removal of support for PgBouncer
+
+{productname} no longer supports PgBouncer.
+
 [id="bug-fixes-311"]
 == {productname} bug fixes
 
+* link:https://issues.redhat.com/browse/PROJQUAY-6586[*PROJQUAY-6586*]. Big layer upload fails on Ceph/RADOS driver.
+* link:https://issues.redhat.com/browse/PROJQUAY-6648[*PROJQUAY-6648*]. Application token Docker/Podman login command fails on windows.
+* link:https://issues.redhat.com/browse/PROJQUAY-6673[*PROJQUAY-6673*]. Apply IGNORE_UNKNOWN_MEDIATYPE to child manifests in manifest lists.
+* link:https://issues.redhat.com/browse/PROJQUAY-6619[*PROJQUAY-6619*]. Duplicate scrollbars in various UI screens.
+* link:https://issues.redhat.com/browse/PROJQUAY-6235[*PROJQUAY-6235*]. mirror and readonly repositories should not be pruned.
+* link:https://issues.redhat.com/browse/PROJQUAY-6243[*PROJQUAY-6243*]. Unable to edit repository description on Quay.io.
+* link:https://issues.redhat.com/browse/PROJQUAY-5793[*PROJQUAY-5793*]. Next page button in tags view does not work correctly when the repo contains manifests and manifests lists.
+* link:https://issues.redhat.com/browse/PROJQUAY-6442[*PROJQUAY-6442*]. new ui: Breadcrumb for teams page.
+* link:https://issues.redhat.com/browse/PROJQUAY-6247[*PROJQUAY-6247*]. [New UI] Menu item naming convention doesn't follow "First Letter Capital" style.
+* link:https://issues.redhat.com/browse/PROJQUAY-6261[*PROJQUAY-6261*]. Throw Robot Account exist error when entering existing robot account.
+* link:https://issues.redhat.com/browse/PROJQUAY-6577[*PROJQUAY-6577*]. Quay operator does not render proper Clair config.yaml if customization is applied.
+* link:https://issues.redhat.com/browse/PROJQUAY-6699[*PROJQUAY-6699*]. Broken links in Red hat Quay operator description.
+* link:https://issues.redhat.com/browse/PROJQUAY-6841[*PROJQUAY-6841*]. Unable to upload dockerfile for build with 405.
 
 [id="quay-feature-tracker"]
 == {productname} feature tracker
