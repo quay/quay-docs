@@ -7,7 +7,7 @@ The following sections detail _y_ and _z_ stream release information.
 [id="rn-3-11-0"]
 == RHBA-2024:1475 - {productname} 3.11.0 release
 
-Issued 2024-03-28
+Issued 2024-04-02
 
 {productname} release {producty} is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2024:1475[RHBA-2024:1475] advisory.
 
@@ -70,9 +70,10 @@ For more information, see link:https://access.redhat.com/documentation/en-us/red
 
 {productname} Builds are now supported when using the v2 UI. This feature must be enabled prior to building container images by setting `FEATURE_BUILD_SUPPORT: true` in your `config.yaml` file. 
 
-For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/use_red_hat_quay/index#building-dockerfiles[Building container images].
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/use_red_hat_quay/index#starting-a-build[Creating a new build].
+
 [id="auto-pruning-repositories-ui"]
-==== Auto-pruning repositories UI
+==== Auto-pruning repositories v2 UI
 
 {productname} 3.11 offers users the ability to create auto-pruning policies using the v2 UI.
 
@@ -120,7 +121,7 @@ The following configuration fields have been added to {productname} {producty}.
 [id="aws-s3-sts-configuration-fields"]
 === Configuration fields for AWS S3 STS deployments
 
-The following configuration fields have been added when configuring AWS STS for {productname}. These fields are included when configuring AWS S3 storage for your deployment.  
+The following configuration fields have been added when configuring AWS STS for {productname}. These fields are used when configuring AWS S3 storage for your deployment.  
 
 * *.sts_role_arn*. The unique Amazon Resource Name (ARN) required when configuring AWS STS for {productname}.
 * *.sts_user_access_key*. The generated AWS S3 user access key required when configuring AWS STS for {productname}. 
@@ -158,11 +159,6 @@ This API endpoint can be used with `POST`, `GET`, and `DELETE` calls to create, 
 
 The following sections note known issues and limitations for {productname} {producty}.
 
-[id="dark-mode-ui-v2-known-issues"]
-=== {productname} v2 UI dark mode known issue
-
-If you are using the the automatic mode selection, which chooses between light or dark modes depending on the user's browser preference, your operating system appearance is overridden by the browser website appearance setting. If you find that the device-based theme is not working as expect, check your browser appearance setting. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6903[*PROJQUAY-6903*])
-
 [id="oidc-team-sync-known-issues"]
 === {productname} OIDC team synchronization known issues
 
@@ -180,12 +176,25 @@ For more information, see link:https://issues.redhat.com/browse/PROJQUAY-6754[*P
 [id="team-sync-removal-known-issue"]
 ==== Unable to sync change when OIDC user is removed from OIDC
 
-Currently, when an OIDC user is removed from their OIDC provider, the user is not removed from the team on {productname}. Consequently, they are still have to use the robot account token and app token to push and pull images from the registry. The expected behavior is that, when removed from the OIDC group, they, and their related tokens, should be removed from the {productname}. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6842[*PROJQUAY-6842*]).
+Currently, when an OIDC user is removed from their OIDC provider, the user is not removed from the team on {productname}. Consequently, they are still have to use the robot account token and app token to push and pull images from the registry. The expected behavior is that, when removed from the OIDC group, they, and their related tokens, should be removed from the {productname}. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6842[*PROJQUAY-6842*])
 
 [id="entra-id-team-sync-known-issue"]
 ==== Object ID must be used when OIDC provider is Microsoft Entra ID
 
 When using Microsoft Entra ID as your OIDC provider, {productname} administrators must input the *Object ID* of the OIDC group instead of the group name. The v2 UI does not currently alert users that Microsoft Entra ID users must input the Object ID of the OIDC group. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6917[*PROJQUAY-6917*])
+
+[id="upgrading-38-311-limitation"]
+=== Upgrading {productname-ocp} 3.8 directly to 3.11 limitation
+
+Upgrading {productname-ocp} from 3.8 to 3.11 does not work. Users must upgrade from {productname-ocp} from 3.8 to 3.9 or 3.10, and then proceed with the upgrade to 3.11. 
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/upgrade_red_hat_quay/index#upgrade_overview[Upgrade {productname}].
+
+[id="configurable-resource-limitation"]
+=== Configurable resource request limitation
+
+Attempting to set resource limitations for the `Quay` pod too low results in the pod being unable to boot up with the following statuses returned: `OOMKILLED` and `CrashLoopBackOff`. Resource limitations can not be set lower than the minimum requirement, which can be found on the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#configuring-resources-managed-components[Configuring resources for managed components on {ocp}] page.
+
 
 [id="v2-ui-known-issues-311"]
 === {productname} v2 UI known issues
@@ -220,19 +229,13 @@ The {productname} team is aware of the following known issues on the v2 UI:
 * link:https://issues.redhat.com/browse/PROJQUAY-6767[*PROJQUAY-6767*]. The new UI can't download build logs
 * link:https://issues.redhat.com/browse/PROJQUAY-6758[*PROJQUAY-6758*]. The new UI should display correct operation number when hover over different operation type
 * link:https://issues.redhat.com/browse/PROJQUAY-6757[*PROJQUAY-6757*]. The new UI usage log should display the tag expiration time as date format
+
+[id="dark-mode-ui-v2-known-issues"]
+==== {productname} v2 UI dark mode known issue
+
+If you are using the the automatic mode selection, which chooses between light or dark modes depending on the user's browser preference, your operating system appearance is overridden by the browser website appearance setting. If you find that the device-based theme is not working as expect, check your browser appearance setting. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6903[*PROJQUAY-6903*])
 //* link:[**].
 
-[id="upgrading-38-311-limitation"]
-=== Upgrading {productname-ocp} 3.8 directly to 3.11 limitation
-
-Upgrading {productname-ocp} from 3.8 to 3.11 does not work. Users must upgrade from {productname-ocp} from 3.8 to 3.9 or 3.10, and then proceed with the upgrade to 3.11. 
-
-For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/upgrade_red_hat_quay/index#upgrade_overview[Upgrade {productname}].
-
-[id="configurable-resource-limitation"]
-=== Configurable resource request limitation
-
-Attempting to set resource limitations for the `Quay` pod too low results in the pod being unable to boot up with the following statuses returned: `OOMKILLED` and `CrashLoopBackOff`. Resource limitations can not be set lower than the minimum requirement, which can be found on the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#configuring-resources-managed-components[Configuring resources for managed components on {ocp}] page.
 
 ////
 
@@ -281,10 +284,12 @@ The following technical changes have been made to {productname} in 3.11.
 [id="removal-support-pgbouncer"]
 === Removal of support for PgBouncer
 
-{productname} no longer supports PgBouncer.
+{productname} 3.11 does not support PgBouncer.
 
 [id="bug-fixes-311"]
 == {productname} bug fixes
+
+The following issues were fixed with {productname} 3.11:
 
 * link:https://issues.redhat.com/browse/PROJQUAY-6586[*PROJQUAY-6586*]. Big layer upload fails on Ceph/RADOS driver.
 * link:https://issues.redhat.com/browse/PROJQUAY-6648[*PROJQUAY-6648*]. Application token Docker/Podman login command fails on windows.
