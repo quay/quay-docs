@@ -2,156 +2,21 @@
 [id="configuring-oidc-authentication"]
 = Configuring OIDC for {productname}
 
-Configuring OpenID Connect (OIDC) for {productname} can provide several benefits to your {productname} deployment. For example, OIDC allows users to authenticate to {productname} using their existing credentials from an OIDC provider, such as link:https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.0[Red Hat Single Sign-On], Google, Github, Microsoft, or others. Other benefits of OIDC include centralized user management, enhanced security, and single sign-on (SSO). Overall, OIDC configuration can simplify user authentication and management, enhance security, and provide a seamless user experience for {productname} users.
+Configuring OpenID Connect (OIDC) for {productname} can provide several benefits to your deployment. For example, OIDC allows users to authenticate to {productname} using their existing credentials from an OIDC provider, such as link:https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.0[Red Hat Single Sign-On], Google, Github, Microsoft, or others. Other benefits of OIDC include centralized user management, enhanced security, and single sign-on (SSO). Overall, OIDC configuration can simplify user authentication and management, enhance security, and provide a seamless user experience for {productname} users.
 
-The following procedures show you how to configure Red Hat Single Sign-On and Microsoft Entra ID. Collectively, these procedures include configuring OIDC on the {productname} Operator, and on standalone deployments by using the {productname} config tool.
+The following procedures show you how to configure Microsoft Entra ID on a standalone deployment of {productname}, and how to configure Red Hat Single Sign-On on an Operator-based deployment of {productname}. These procedures are interchangeable depending on your deployment type.
 
 [NOTE]
 ====
 By following these procedures, you will be able to add any OIDC provider to {productname}, regardless of which identity provider you choose to use. 
 ====
 
-[id="configuring-red-hat-sso-oidc"]
-== Configuring Red Hat Single Sign-On for {productname}
-
-Based on the Keycloak project, Red Hat Single Sign-On (RH-SSO) is an open source identity and access management (IAM) solution provided by Red Hat. RH-SSO allows organizations to manage user identities, secure applications, and enforce access control policies across their systems and applications. It also provides a unified authentication and authorization framework, which allows users to log in one time and gain access to multiple applications and resources without needing to re-authenticate. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.0[Red Hat Single Sign-On]. 
-
-By configuring Red Hat Single Sign-On on {productname}, you can create a seamless authentication integration between {productname} and other application platforms like {ocp}. 
-
-[id="configuring-red-hat-sso-using-config-tool"]
-=== Configuring the Red Hat Single Sign-On Operator for the {productname} Operator
-
-Use the following procedure to configure Red Hat Single Sign-On for the {productname} Operator on {ocp}. 
-
-.Prerequisites 
-
-* You have configured Red Hat Single Sign-On for the {productname} Operator. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.6/html-single/server_installation_and_configuration_guide/index#operator[Red Hat Single Sign-On Operator]. 
-* You have configured TLS/SSL for your {productname} deployment _and_ for Red Hat Single Sign-On. 
-* You have generated a single Certificate Authority (CA) and uploaded it to your Red Hat Single Sign-On Operator _and_ to your {productname} configuration.  
-* You are logged into your {ocp} cluster. 
-* You have installed the OpenShift CLI (`oc`). 
-
-.Procedure 
-
-. Navigate to the Red Hat Single Sign-On *Admin Console*.
-
-.. On the {ocp} *Web Console*, navigate to *Network* -> *Route*. 
-
-.. Select the *Red Hat Single Sign-On* project from the drop-down list. 
-
-.. Find the Red Hat Single Sign-On *Admin Console* in the *Routes* table. 
-
-. Select the Realm that you will use to configure {productname}. 
-
-. Click *Clients* under the *Configure* section of the navigation panel, and then click the *Create* button to add a new OIDC for {productname}. 
-
-. Enter the following information. 
-+
-* **Client ID:** `quay-enterprise`
-* **Client Protocol:** `openid-connect`
-* **Root URL:** `https://<quay endpoint>/`
-
-. Click *Save*. This results in a redirect to the *Clients* setting panel. 
-
-. Navigate to *Access Type* and select *Confidential*. 
-
-. Navigate to *Valid Redirect URIs*. You must provide three redirect URIs. The value should be the fully qualified domain name of the {productname} registry appended with `/oauth2/redhatsso/callback`. For example: 
-+
-* `https://<quay_endpoint>/oauth2/redhatsso/callback`
-* `https://<quay_endpoint>/oauth2/redhatsso/callback/attach`
-* `https://<quay_endpoint>/oauth2/redhatsso/callback/cli`
-
-. Click *Save* and navigate to the new *Credentials* setting. 
-
-. Copy the value of the Secret. 
-
-[id="configuring-quay-operator-use-redhat-sso"]
-=== Configuring the {productname} Operator to use Red Hat Single Sign-On
-
-Use the following procedure to configure Red Hat Single Sign-On with the {productname} Operator. 
-
-.Prerequisites 
-
-* You have configured the Red Hat Single Sign-On Operator for the {productname} Operator.
-
-.Procedure 
-
-. Enter the {productname} config editor tool by navigating to *Operators* -> *Installed Operators*. Click *Red Hat Quay* -> *Quay Registry*. Then, click the name of your {productname} registry, and the URL listed with *Config Editor Endpoint*.
-
-. Upload a custom SSL/TLS certificate to your {ocp} deployment. 
-
-.. Navigate to the {productname} config tool UI. 
-
-.. Under *Custom SSL Certificates*, click *Select file* and upload your custom SSL/TLS certificates. 
-
-.. Reconfigure your {productname} deployment.
-
-. Scroll down to the *External Authorization (OAuth)* section.
-
-. Click *Add OIDC Provider*.
-
-. When prompted, enter `redhatsso`. 
-
-. Enter the following information:
-
-* *OIDC Server:* The fully qualified domain name (FQDN) of the Red Hat Single Sign-On instance, appended with `/auth/realms/` and the Realm name. You must include the forward slash at the end, for example, `\https://sso-redhat.example.com//auth/realms/<keycloak_realm_name>/`.
-* *Client ID:* The client ID of the application that is being reistered with the identity provider, for example, `quay-enterprise`.
-* *Client Secret:* The Secret from the *Credentials* tab of the `quay-enterprise` OIDC client settings.
-* *Service Name:* The name that is displayed on the {productname} login page, for example, `Red hat Single Sign On`.
-* *Verified Email Address Claim:* The name of the claim that is used to verify the email address of the user.
-* *Login Scopes:* The scopes to send to the OIDC provider when performing the login flow, for example, `openid`. After configuration, you must click *Add*. 
-
-. Scroll down and click *Validate Configuration Changes*. Then, click *Restart Now* to deploy the {productname} Operator with OIDC enabled. 
-
-
-[id="configuring-azuread-oidc"]
-== Configuring Microsoft Entra ID OIDC for {productname}
+[id="configuring-entra-oidc"]
+== Configuring Microsoft Entra ID OIDC on a standalone deployment of {productname}
 
 By integrating Microsoft Entra ID authentication with {productname}, your organization can take advantage of the centralized user management and security features offered by Microsoft Entra ID. Some features include the ability to manage user access to {productname} repositories based on their Microsoft Entra ID roles and permissions, and the ability to enable multi-factor authentication and other security features provided by Microsoft Entra ID.
 
 Azure Active Directory (Microsoft Entra ID) authentication for {productname} allows users to authenticate and access {productname} using their Microsoft Entra ID credentials.
-
-[id="configuring-azuread-using-config-tool"]
-=== Configuring Microsoft Entra ID by using the {productname} config tool
-
-The following procedure configures Microsoft Entra ID for {productname} using the config tool.
-
-.Procedure
-
-. Enter the {productname} config editor tool.
-
-.. If you are running a standalone {productname} deployment, you can enter the following command:
-+
-[subs="verbatim,attributes"]
-----
-$ sudo podman run --rm -it --name quay_config -p 80:8080 -p 443:8443 {productrepo}/{quayimage}:{productminv} config secret
-----
-+
-Use your browser to navigate to the user interface for the configuration tool and log in.
-
-.. If you are on the {productname} Operator, navigate to *Operators* -> *Installed Operators*. Click *Red Hat Quay* -> *Quay Registry*. Then, click the name of your {productname} registry, and the URL listed with *Config Editor Endpoint*.
-
-. Scroll down to the *External Authorization (OAuth)* section.
-
-. Click *Add OIDC Provider*.
-
-. When prompted, enter the ID for the ODIC provider.
-+
-[NOTE]
-====
-Your OIDC server must end with `/`.
-====
-
-. After the ODIC provider has been added, {productname} lists three callback URLs that must be registered on Azure. These addresses allow Azure to direct back to {productname} after authentication is confirmed. For example:
-
-* `\https://QUAY_HOSTNAME/oauth2/<name_of_service>/callback`
-* `\https://QUAY_HOSTNAME/oauth2/<name_of_service>/callback/attach`
-* `\https://QUAY_HOSTNAME/oauth2/<name_of_service>/callback/cli`
-
-. After all required fields have been set, validate your settings by clicking *Validate Configuration Changes*. If any errors are reported, continue editing your configuration until the settings are valid and {productname} can connect to your database and Redis servers.
-
-[id="configuring-azuread-updating-config-yaml"]
-=== Configuring Microsoft Entra ID by updating the {productname} config.yaml file
 
 Use the following procedure to configure Microsoft Entra ID by updating the {productname} `config.yaml` file directly.
 
@@ -163,19 +28,21 @@ Use the following procedure to configure Microsoft Entra ID by updating the {pro
 * If your system has a firewall in use, or proxy enabled, you must whitelist all Azure API endpoints for each Oauth application that is created. Otherwise, the following error is returned: `x509: certificate signed by unknown authority`.
 ====
 
-. Add the following information to your {productname} `config.yaml` file:
+. Use the following reference and update your `config.yaml` file with your desired OIDC provider's credentials:
 +
 [source,yaml]
 ----
+# ...
 AZURE_LOGIN_CONFIG: <1>
     CLIENT_ID: <client_id> <2>
     CLIENT_SECRET: <client_secret> <3>
     OIDC_SERVER: <oidc_server_address_> <4>
     SERVICE_NAME: Microsoft Entra ID <5>
     VERIFIED_EMAIL_CLAIM_NAME: <verified_email> <6>
+# ...
 ----
-<1> The parent key that holds the OIDC configuration settings. In this example, the parent key used is `AZURE_LOGIN_CONFIG`, however, the string `AZURE` can be replaced with any arbitrary string based on your specific needs, for example `ABC123`.However, the following strings are not accepted: `GOOGLE`, `GITHUB`. These strings are reserved for their respecitve identity platforms and require a specific `config.yaml` entry contingent upon when platform you are using.
-<2> The client ID of the application that is being reistered with the identity provider. 
+<1> The parent key that holds the OIDC configuration settings. In this example, the parent key used is `AZURE_LOGIN_CONFIG`, however, the string `AZURE` can be replaced with any arbitrary string based on your specific needs, for example `ABC123`.However, the following strings are not accepted: `GOOGLE`, `GITHUB`. These strings are reserved for their respective identity platforms and require a specific `config.yaml` entry contingent upon when platform you are using.
+<2> The client ID of the application that is being registered with the identity provider. 
 <3> The client secret of the application that is being registered with the identity provider.
 <4> The address of the OIDC server that is being used for authentication. In this example, you must use `sts.windows.net` as the issuer identifier. Using `https://login.microsoftonline.com` results in the following error: `Could not create provider for AzureAD. Error: oidc: issuer did not match the issuer returned by provider, expected "https://login.microsoftonline.com/73f2e714-xxxx-xxxx-xxxx-dffe1df8a5d5" got "https://sts.windows.net/73f2e714-xxxx-xxxx-xxxx-dffe1df8a5d5/"`. 
 <5> The name of the service that is being authenticated.
