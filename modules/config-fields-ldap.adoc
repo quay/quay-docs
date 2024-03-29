@@ -55,42 +55,56 @@ This field requires that your `AUTHENTICATION_TYPE` is set to `LDAP`.
 [id="ldap-config-field-reference"]
 == LDAP configuration references
 
-Use the following references to update your `config.yaml` file with the desired configuration field. 
+Use the following references to update your `config.yaml` file with the desired LDAP settings. 
 
 [id="reference-ldap-user"]
 === Basic LDAP configuration
 
+Use the following reference for a basic LDAP configuration.
+
 [source,yaml]
 ----
 ---
-AUTHENTICATION_TYPE: LDAP
+AUTHENTICATION_TYPE: LDAP <1>
 ---
-LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
-LDAP_ADMIN_PASSWD: ABC123
-LDAP_ALLOW_INSECURE_FALLBACK: false
-LDAP_BASE_DN:
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com <2>
+LDAP_ADMIN_PASSWD: ABC123 <3>
+LDAP_ALLOW_INSECURE_FALLBACK: false <4>
+LDAP_BASE_DN: <5>
     - o=<organization_id>
     - dc=<example_domain_component>
     - dc=com
-LDAP_EMAIL_ATTR: mail
-LDAP_UID_ATTR: uid
-LDAP_URI: ldaps://<ldap_url_domain_name>
-LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=<domain_name>,dc=com)
-LDAP_USER_RDN:
+LDAP_EMAIL_ATTR: mail <6>
+LDAP_UID_ATTR: uid <7>
+LDAP_URI: ldap://<example_url>.com <8>
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=<domain_name>,dc=com) <9>
+LDAP_USER_RDN: <10>
     - ou=<example_organization_unit>
     - o=<organization_id>
     - dc=<example_domain_component>
     - dc=com
 ----
+<1> Required. Must be set to `LDAP`.
+<2> Required. The admin DN for LDAP authentication.
+<3> Required. The admin password for LDAP authentication.
+<4> Required. Whether to allow SSL/TLS insecure fallback for LDAP authentication.
+<5> Required. The base DN for LDAP authentication.
+<6> Required. The email attribute for LDAP authentication.
+<7> Required. The UID attribute for LDAP authentication.
+<8> Required. The LDAP URI.
+<9> Required. The user filter for LDAP authentication.
+<10> Required. The user RDN for LDAP authentication.
 
 [id="reference-ldap-restricted-user"]
 === LDAP restricted user configuration
 
+Use the following reference for an LDAP restricted user configuration.
+
 [source,yaml]
 ----
----
+# ...
 AUTHENTICATION_TYPE: LDAP
----
+# ...
 LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
 LDAP_ADMIN_PASSWD: ABC123
 LDAP_ALLOW_INSECURE_FALLBACK: false
@@ -102,23 +116,27 @@ LDAP_EMAIL_ATTR: mail
 LDAP_UID_ATTR: uid
 LDAP_URI: ldap://<example_url>.com
 LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
-LDAP_RESTRICTED_USER_FILTER: (<filterField>=<value>)
+LDAP_RESTRICTED_USER_FILTER: (<filterField>=<value>) <1>
 LDAP_USER_RDN:
     - ou=<example_organization_unit>
     - o=<organization_id>
     - dc=<example_domain_component>
     - dc=com
----
+# ...
 ----
+<1> Configures specified users as restricted users.
 
 [id="reference-ldap-super-user"]
-=== LDAP superuser configuration reference 
+=== LDAP superuser configuration reference
+
+Use the following reference for an LDAP superuser configuration.
+
 
 [source,yaml]
 ----
----
+# ...
 AUTHENTICATION_TYPE: LDAP
----
+# ...
 LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
 LDAP_ADMIN_PASSWD: ABC123
 LDAP_ALLOW_INSECURE_FALLBACK: false
@@ -130,10 +148,12 @@ LDAP_EMAIL_ATTR: mail
 LDAP_UID_ATTR: uid
 LDAP_URI: ldap://<example_url>.com
 LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
-LDAP_SUPERUSER_FILTER: (<filterField>=<value>)
+LDAP_SUPERUSER_FILTER: (<filterField>=<value>) <1>
 LDAP_USER_RDN:
     - ou=<example_organization_unit>
     - o=<organization_id>
     - dc=<example_domain_component>
     - dc=com
+# ...
 ----
+<1> Configures specified users as superusers.
