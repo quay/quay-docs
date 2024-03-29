@@ -24,8 +24,9 @@ When {productname} is configured for LDAP, LDAP-authenticated users are automati
 [id="setup-ldap-configuration"]
 == Configuring LDAP for {productname}
 
-Use the following procedure to configure LDAP for your {productname} deployment. 
+You can configure LDAP for {productname} by updating your `config.yaml` file directly and restarting your deployment. Use the following procedure as a reference when configuring LDAP for {productname}.
 
+////
 .Procedure
 
 . You can use the {productname} config tool to configure LDAP.
@@ -100,32 +101,45 @@ image:authentication-ldap-ssl.png[LDAP server SSL]
 +
 If you upload an SSl/TLS certificate, you must provide an _ldaps://_ prefix, for example, `LDAP_URI: ldaps://ldap_provider.example.org`. 
 
-. Alternatively, you can update your `config.yaml` file directly to include all relevant information. For example:
+////
+
+. Update your `config.yaml` file directly to include the following relevant information:
 +
 [source,yaml]
 ----
----
-AUTHENTICATION_TYPE: LDAP
----
-LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
-LDAP_ADMIN_PASSWD: ABC123
-LDAP_ALLOW_INSECURE_FALLBACK: false
-LDAP_BASE_DN:
+# ...
+AUTHENTICATION_TYPE: LDAP <1>
+# ...
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com <2>
+LDAP_ADMIN_PASSWD: ABC123 <3>
+LDAP_ALLOW_INSECURE_FALLBACK: false <4>
+LDAP_BASE_DN: <5>
     - o=<organization_id>
     - dc=<example_domain_component>
     - dc=com
-LDAP_EMAIL_ATTR: mail
-LDAP_UID_ATTR: uid
-LDAP_URI: ldap://<example_url>.com
-LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=<domain_name>,dc=com)
-LDAP_USER_RDN:
+LDAP_EMAIL_ATTR: mail <6>
+LDAP_UID_ATTR: uid <7>
+LDAP_URI: ldap://<example_url>.com <8>
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=<domain_name>,dc=com) <9>
+LDAP_USER_RDN: <10>
     - ou=<example_organization_unit>
     - o=<organization_id>
     - dc=<example_domain_component>
     - dc=com
+# ...
 ----
+<1> Required. Must be set to `LDAP`.
+<2> Required. The admin DN for LDAP authentication.
+<3> Required. The admin password for LDAP authentication.
+<4> Required. Whether to allow SSL/TLS insecure fallback for LDAP authentication.
+<5> Required. The base DN for LDAP authentication.
+<6> Required. The email attribute for LDAP authentication.
+<7> Required. The UID attribute for LDAP authentication.
+<8> Required. The LDAP URI.
+<9> Required. The user filter for LDAP authentication.
+<10> Required. The user RDN for LDAP authentication.
 
-. After you have added all required LDAP fields, click the *Save Configuration Changes* button to validate the configuration. All validation must succeed before proceeding. Additional configuration can be performed by selecting the *Continue Editing* button.
+. After you have added all required LDAP fields, save the changes and restart your {productname} deployment.
 
 [id="ldap-restricted-users-enabling"]
 == Enabling the LDAP_RESTRICTED_USER_FILTER configuration field
@@ -145,9 +159,9 @@ Use the following procedure to enable LDAP restricted users on your {productname
 +
 [source,yaml]
 ----
----
+# ...
 AUTHENTICATION_TYPE: LDAP
----
+# ...
 LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
 LDAP_ADMIN_PASSWD: ABC123
 LDAP_ALLOW_INSECURE_FALLBACK: false
@@ -159,13 +173,15 @@ LDAP_EMAIL_ATTR: mail
 LDAP_UID_ATTR: uid
 LDAP_URI: ldap://<example_url>.com
 LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
-LDAP_RESTRICTED_USER_FILTER: (<filterField>=<value>)
+LDAP_RESTRICTED_USER_FILTER: (<filterField>=<value>) <1>
 LDAP_USER_RDN:
     - ou=<example_organization_unit>
     - o=<organization_id>
     - dc=<example_domain_component>
     - dc=com
+# ...
 ----
+<1> Configures specified users as restricted users.
 
 . Start, or restart, your {productname} deployment. 
 
@@ -189,9 +205,9 @@ Use the following procedure to enable LDAP superusers on your {productname} depl
 +
 [source,yaml]
 ----
----
+# ...
 AUTHENTICATION_TYPE: LDAP
----
+# ...
 LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
 LDAP_ADMIN_PASSWD: ABC123
 LDAP_ALLOW_INSECURE_FALLBACK: false
@@ -203,13 +219,15 @@ LDAP_EMAIL_ATTR: mail
 LDAP_UID_ATTR: uid
 LDAP_URI: ldap://<example_url>.com
 LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
-LDAP_SUPERUSER_FILTER: (<filterField>=<value>)
+LDAP_SUPERUSER_FILTER: (<filterField>=<value>) <1>
 LDAP_USER_RDN:
     - ou=<example_organization_unit>
     - o=<organization_id>
     - dc=<example_domain_component>
     - dc=com
+# ...
 ----
+<1> Configures specified users as superusers.
 
 . Start, or restart, your {productname} deployment. 
 
