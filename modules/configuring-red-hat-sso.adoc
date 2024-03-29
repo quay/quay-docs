@@ -1,0 +1,95 @@
+[id="configuring-red-hat-sso-oidc"]
+= Configuring Red Hat Single Sign-On for {productname}
+
+Based on the Keycloak project, Red Hat Single Sign-On (RH-SSO) is an open source identity and access management (IAM) solution provided by Red Hat. RH-SSO allows organizations to manage user identities, secure applications, and enforce access control policies across their systems and applications. It also provides a unified authentication and authorization framework, which allows users to log in one time and gain access to multiple applications and resources without needing to re-authenticate. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.0[Red Hat Single Sign-On]. 
+
+By configuring Red Hat Single Sign-On on {productname}, you can create a seamless authentication integration between {productname} and other application platforms like {ocp}. 
+
+[id="configuring-red-hat-sso-using-config-tool"]
+== Configuring the Red Hat Single Sign-On Operator for use with the {productname} Operator
+
+Use the following procedure to configure Red Hat Single Sign-On for the {productname} Operator on {ocp}. 
+
+.Prerequisites 
+
+* You have set up the Red Hat Single Sign-On Operator. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.6/html-single/server_installation_and_configuration_guide/index#operator[Red Hat Single Sign-On Operator]. 
+* You have configured link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploying_the_red_hat_quay_operator_on_openshift_container_platform/operator-config-cli#operator-custom-ssl-certs-config-bundle[SSL/TLS for your {productname-ocp} deployment] _and_ for Red Hat Single Sign-On. 
+* You have generated a single Certificate Authority (CA) and uploaded it to your Red Hat Single Sign-On Operator _and_ to your {productname} configuration.  
+
+.Procedure 
+
+. Navigate to the Red Hat Single Sign-On *Admin Console*.
+
+.. On the {ocp} *Web Console*, navigate to *Network* -> *Route*. 
+
+.. Select the *Red Hat Single Sign-On* project from the drop-down list. 
+
+.. Find the Red Hat Single Sign-On *Admin Console* in the *Routes* table. 
+
+. Select the Realm that you will use to configure {productname}. 
+
+. Click *Clients* under the *Configure* section of the navigation panel, and then click the *Create* button to add a new OIDC for {productname}. 
+
+. Enter the following information. 
++
+* **Client ID:** `quay-enterprise`
+* **Client Protocol:** `openid-connect`
+* **Root URL:** `\https://<quay_endpoint>/`
+
+. Click *Save*. This results in a redirect to the *Clients* setting panel. 
+
+. Navigate to *Access Type* and select *Confidential*. 
+
+. Navigate to *Valid Redirect URIs*. You must provide three redirect URIs. The value should be the fully qualified domain name of the {productname} registry appended with `/oauth2/redhatsso/callback`. For example: 
++
+* `\https://<quay_endpoint>/oauth2/redhatsso/callback`
+* `\https://<quay_endpoint>/oauth2/redhatsso/callback/attach`
+* `\https://<quay_endpoint>/oauth2/redhatsso/callback/cli`
+
+. Click *Save* and navigate to the new *Credentials* setting. 
+
+. Copy the value of the Secret.
+
+[id="configuring-quay-operator-use-redhat-sso"]
+=== Configuring the {productname} Operator to use Red Hat Single Sign-On
+
+Use the following procedure to configure Red Hat Single Sign-On with the {productname} Operator. 
+
+.Prerequisites 
+
+* You have set up the Red Hat Single Sign-On Operator. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.6/html-single/server_installation_and_configuration_guide/index#operator[Red Hat Single Sign-On Operator]. 
+* You have configured link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html/deploying_the_red_hat_quay_operator_on_openshift_container_platform/operator-config-cli#operator-custom-ssl-certs-config-bundle[SSL/TLS for your {productname-ocp} deployment] _and_ for Red Hat Single Sign-On. 
+* You have generated a single Certificate Authority (CA) and uploaded it to your Red Hat Single Sign-On Operator _and_ to your {productname} configuration.
+
+.Procedure 
+
+. Edit your {productname} `config.yaml` file by navigating to *Operators* -> *Installed Operators* -> *Red Hat Quay* -> *Quay Registry* -> *Config Bundle Secret*. Then, click *Actions* -> *Edit Secret*. Alternatively, you can update the `config.yaml` file locally.
+
+. Add the following information to your {productname-ocp} `config.yaml` file:
++
+[source,yaml]
+----
+# ...
+RHSSO_LOGIN_CONFIG: <1>
+  CLIENT_ID: <client_id> <2>
+  CLIENT_SECRET: <client_secret> <3>
+  OIDC_SERVER: <oidc_server_url> <4>
+  SERVICE_NAME: <service_name> <5>
+  SERVICE_ICON: <service_icon> <6>
+  VERIFIED_EMAIL_CLAIM_NAME: <example_email_address> <7>
+  PREFERRED_USERNAME_CLAIM_NAME: <preferred_username> <8>
+  LOGIN_SCOPES: <9>
+    - 'openid'
+# ...
+----
+<1> The parent key that holds the OIDC configuration settings. In this example, the parent key used is `AZURE_LOGIN_CONFIG`, however, the string `AZURE` can be replaced with any arbitrary string based on your specific needs, for example `ABC123`.However, the following strings are not accepted: `GOOGLE`, `GITHUB`. These strings are reserved for their respective identity platforms and require a specific `config.yaml` entry contingent upon when platform you are using.
+<2> The client ID of the application that is being registered with the identity provider, for example, `quay-enterprise`.
+<3> The Client Secret from the *Credentials* tab of the `quay-enterprise` OIDC client settings.
+<4> The fully qualified domain name (FQDN) of the Red Hat Single Sign-On instance, appended with `/auth/realms/` and the Realm name. You must include the forward slash at the end, for example, `\https://sso-redhat.example.com//auth/realms/<keycloak_realm_name>/`.
+<5> The name that is displayed on the {productname} login page, for example, `Red hat Single Sign On`.
+<6> Changes the icon on the login screen. For example, `/static/img/RedHat.svg`.
+<7> The name of the claim that is used to verify the email address of the user.
+<8> The name of the claim that is used to verify the email address of the user.
+<9> The scopes to send to the OIDC provider when performing the login flow, for example, `openid`.
+
+. Restart your {productname-ocp} deployment with Red Hat Single Sign-On enabled. 
