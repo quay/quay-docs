@@ -3,53 +3,65 @@
 
 [NOTE]
 ====
-To configure action log storage for Elasticsearch, you must provide your own Elasticsearch stack, as it is not included with {productname} as a customizable component.
+To configure action log storage for Elasticsearch, you must provide your own Elasticsearch stack; it is not included with {productname} as a customizable component.
 ====
 
-Enabling Elasticsearch logging can be done during {productname} deployment or post-deployment using the configuration tool. The resulting configuration is stored in the `config.yaml` file. When configured, usage log access continues to be provided through the web UI for repositories and organizations.
+Enabling Elasticsearch logging can be done during {productname} deployment or post-deployment by updating your `config.yaml` file. When configured, usage log access continues to be provided through the web UI for repositories and organizations.
 
 Use the following procedure to configure action log storage for Elasticsearch:
 
 .Procedure
 
 . Obtain an Elasticsearch account.
-. Open the {productname} Config Tool (either during or after {productname} deployment).
-. Scroll to the *Action Log Storage Configuration* setting and select
-*Elasticsearch*. The following figure shows the Elasticsearch settings
-that appear:
-+
-image:elasticsearch_action_logs.png[Choose Elasticsearch to view settings to store logs]
 
-. Fill in the following information for your Elasticsearch instance:
+. Update your {productname} `config.yaml` file to include the following information:
 +
-* **Elasticsearch hostname**: The hostname or IP address of the system providing
-the Elasticsearch service.
-* **Elasticsearch port**: The port number providing the Elasticsearch service on the host
-you just entered. Note that the port must be accessible from all systems
-running the {productname} registry. The default is TCP port 9200.
-* **Elasticsearch access key**: The access key needed to gain access to the Elastic search
-service, if required.
-* **Elasticsearch secret key**: The secret key needed to gain access to the Elastic search
-service, if required.
-* **AWS region**: If you are running on AWS, set the AWS region (otherwise, leave it blank).
-* **Index prefix**: Choose a prefix to attach to log entries.
-* **Logs Producer**: Choose either Elasticsearch (default) or Kinesis to direct logs to
+[source,yaml]
+----
+# ...
+LOGS_MODEL: elasticsearch <1>
+LOGS_MODEL_CONFIG:
+    producer: elasticsearch <2>
+    elasticsearch_config:
+        host: http://<host.elasticsearch.example>:<port> <3>
+        port: 9200 <4>
+        access_key: <access_key> <5>
+        secret_key: <secret_key> <6>
+        use_ssl: True <7>
+        index_prefix: <logentry> <8> 
+        aws_region: <us-east-1> <9>
+# ...
+----
+<1> The method for handling log data.
+<2> Choose either Elasticsearch or Kinesis to direct logs to
 an intermediate Kinesis stream on AWS. You need to set up your own pipeline to
-send logs from Kinesis to Elasticsearch (for example, Logstash). The following figure
-shows additional fields you would need to fill in for Kinesis:
-+
-image:kinesis_producer.png[On AWS optionally set up an intermediate Kinesis stream]
+send logs from Kinesis to Elasticsearch, for example, Logstash.
+<3> The hostname or IP address of the system providing
+the Elasticsearch service.
+<4> The port number providing the Elasticsearch service on the host
+you just entered. Note that the port must be accessible from all systems
+running the {productname} registry. The default is TCP port `9200`.
+<5> The access key needed to gain access to the Elasticsearch
+service, if required.
+<6> The secret key needed to gain access to the Elasticsearch
+service, if required.
+<7>  Whether to use SSL/TLS for Elasticsearch. Defaults to `True`.
+<8> Choose a prefix to attach to log entries.
+<9> If you are running on AWS, set the AWS region (otherwise, leave it blank).
 
-. If you chose Elasticsearch as the Logs Producer, no further configuration is needed.
-If you chose Kinesis, fill in the following:
+. Optional. If you are using Kinesis as your logs producer, you must include the following fields in your `config.yaml` file:
 +
-* **Stream name**: The name of the Kinesis stream.
-* **AWS access key**: The name of the AWS access key needed to gain access to the Kinesis stream, if required.
-* **AWS secret key**: The name of the AWS secret key needed to gain access to the Kinesis stream, if required.
-* **AWS region**: The AWS region.
+[source,yaml]
+----
+    kinesis_stream_config:
+        stream_name: <kinesis_stream_name> <1>
+        access_key: <aws_access_key> <2>
+        secret_key: <aws_secret_key> <3>
+        aws_region: <aws_region> <4>
+----
+<1> The name of the Kinesis stream.
+<2> The name of the AWS access key needed to gain access to the Kinesis stream, if required.
+<3> The name of the AWS secret key needed to gain access to the Kinesis stream, if required.
+<4> The AWS region.
 
-. When you are done, save the configuration. The configuration tool checks your settings.
-If there is a problem connecting to the Elasticsearch or Kinesis services,
-you will see an error and have the opportunity to continue editing. Otherwise,
-logging will begin to be directed to your Elasticsearch configuration after the
-cluster restarts with the new configuration.
+. Save your `config.yaml` file and restart your {productname} deployment.
