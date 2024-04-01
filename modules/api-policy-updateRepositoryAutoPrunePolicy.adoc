@@ -1,13 +1,13 @@
 
-= createOrganizationAutoPrunePolicy
-Creates an auto-prune policy for the organization
+= updateRepositoryAutoPrunePolicy
+Updates the auto-prune policy for the repository
 
 [discrete]
-== POST /api/v1/organization/{orgname}/autoprunepolicy/
+== PUT /api/v1/repository/{repository}/autoprunepolicy/{policy_uuid}
 
 
 
-**Authorizations: **oauth2_implicit (**org:admin**)
+**Authorizations: **oauth2_implicit (**repo:admin**)
 
 
 [discrete]
@@ -16,8 +16,10 @@ Creates an auto-prune policy for the organization
 [options="header", width=100%, cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**orgname** + 
-_required_|The name of the organization|string
+|path|**policy_uuid** + 
+_required_|The unique ID of the policy|string
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
 |===
 
 
@@ -30,9 +32,9 @@ The policy configuration that is to be applied to the user namespace
 |===
 |Name|Description|Schema
 |**method** + 
-_required_|The method to use for pruning tags (number_of_tags, creation_date)|string
+_optional_|The method to use for pruning tags (number_of_tags, creation_date)|string
 |**value** + 
-_required_|The value to use for the pruning method (number of tags e.g. 10, time delta e.g. 7d (7 days))|
+_optional_|The value to use for the pruning method (number of tags e.g. 10, time delta e.g. 7d (7 days))|
 |===
 
 
@@ -42,7 +44,7 @@ _required_|The value to use for the pruning method (number of tags e.g. 10, time
 [options="header", width=100%, cols=".^2a,.^14a,.^4a"]
 |===
 |HTTP Code|Description|Schema
-|201|Successful creation|
+|200|Successful invocation|
 |400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
 |401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
 |403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
