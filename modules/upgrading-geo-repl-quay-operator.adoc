@@ -84,9 +84,33 @@ quayregistry-quay-redis-84f888776f-hhgms           1/1     Running     0        
 Do not execute the following step until the {productname} UI is available. Do not upgrade the {productname} registry on System B and on System C until the UI is available on System A.
 ====
 
-. After confirming that the update has properly worked on System A, initiate the {productname} upgrade on System B and on System C. The Operator upgrade results in an upgraded {productname} installation, and the pods are restarted.
+. Confirm that the update has properly worked on System A, initiate the {productname} upgrade on System B and on System C. The Operator upgrade results in an upgraded {productname} installation, and the pods are restarted.
 +
 [NOTE]
 ====
 Because the database schema is correct for the new y-stream installation, the new pods on System B and on System C should quickly start.
 ====
+
+. After updating, revert the changes made in step 1 of this procedure by removing `overrides` for the components. For example:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: true <1>
+    - kind: quay
+      managed: true
+    - kind: clair
+      managed: true
+    - kind: mirror
+      managed: true
+    …
+----
+<1> If the `horizontalpodautoscaler` resource was set to `true` before the upgrade procedure, or if you want {productname} to scale in case of a resource shortage, set it to `true`.
