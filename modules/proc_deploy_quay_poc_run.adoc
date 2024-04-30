@@ -8,15 +8,46 @@ After you have configured your {productname} deployment, you can deploy it using
 
 * The {productname} database is running.
 * The Redis server is running.
-* You have generated a valid configuration file.
-* You have stopped the `Quay` container that was running the configuration editor.
 
-[id="preparing-configuration-folder"]
-== Preparing the configuration folder
+[id="preparing-configuration-file"]
+== Creating the YAML configuration file
 
-Use the following procedure to prepare your {productname} configuration folder.
+Use the following procedure to deploy {productname} locally.
 
-.Procedure
+.Procedure 
+
+. Enter the following command to create a minimal `config.yaml` file that is used to deploy the {productname} container:
++
+[source,terminal]
+----
+$ touch config.yaml
+----
+
+. Copy and paste the following YAML configuration into the `config.yaml` file:
++
+[source,yaml]
+----
+BUILDLOGS_REDIS:
+    host: quay-server.example.com
+    password: strongpassword
+    port: 6379
+DATABASE_SECRET_KEY: a8c2744b-7004-4af2-bcee-e417e7bdd235
+DB_URI: postgresql://quayuser:quaypass@quay-server.example.com:5432/quay
+DISTRIBUTED_STORAGE_CONFIG:
+    default:
+        - LocalStorage
+        - storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+SECRET_KEY: e9bd34f4-900c-436a-979e-7530e5d74ac8
+SERVER_HOSTNAME: quay-server.example.com
+SETUP_COMPLETE: true
+USER_EVENTS_REDIS:
+    host: quay-server.example.com
+    password: strongpassword
+    port: 6379
+----
 
 . Create a directory to copy the {productname} configuration bundle to:
 +
@@ -25,25 +56,11 @@ Use the following procedure to prepare your {productname} configuration folder.
 $ mkdir $QUAY/config
 ----
 
-. Copy the generated {productname} configuration bundle to the directory:
+. Copy the {productname} configuration file to the directory:
 +
 [source,terminal]
 ----
-$ cp ~/Downloads/quay-config.tar.gz ~/config
-----
-
-. Change into the directory:
-+
-[source,terminal]
-----
-$ cd $QUAY/config
-----
-
-. Unpack the {productname} configuration bundle:
-+
-[source,terminal]
-----
-$ tar xvf quay-config.tar.gz
+$ cp ~/Downloads/quay-config.tar.gz $QUAY/config
 ----
 
 [id="preparing-local-storage"]
