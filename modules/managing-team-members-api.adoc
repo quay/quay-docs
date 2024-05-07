@@ -1,0 +1,71 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: PROCEDURE
+[id="managing-team-members-api"]
+= Managing team members and repository permissions by using the API
+
+Use the following procedures to add a member to a team (by direct invite or by email), or to remove a member from a team.
+
+.Procedure
+
+* Enter the following command to add or invite a member to an existing team:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <your_access_token>" \
+  "quay-server.example.com/api/v1/organization/<organization_name>/team/<team_name>/members/<member_name>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"name": "testuser", "kind": "user", "is_robot": false, "avatar": {"name": "testuser", "hash": "d51d17303dc3271ac3266fb332d7df919bab882bbfc7199d2017a4daac8979f0", "color": "#5254a3", "kind": "user"}, "invited": false}
+----
+
+* Enter the following command to remove a member of a team:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer <your_access_token>" \
+  "quay-server.example.com/api/v1/organization/<organization_name>/team/<team_name>/members/<member_name>"
+----
++
+This command does not an output in the CLI. To ensure that a member has been deleted, you can enter the `GET /api/v1/organization/{orgname}/team/{teamname}/members` command and ensure that the member is not returned in the output.
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <your_access_token>" \
+  "quay-server.example.com/api/v1/organization/<organization_name>/team/<team_name>/members"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"name": "owners", "members": [{"name": "quayadmin", "kind": "user", "is_robot": false, "avatar": {"name": "quayadmin", "hash": "b28d563a6dc76b4431fc7b0524bbff6b810387dac86d9303874871839859c7cc", "color": "#17becf", "kind": "user"}, "invited": false}, {"name": "test-org+test", "kind": "user", "is_robot": true, "avatar": {"name": "test-org+test", "hash": "aa85264436fe9839e7160bf349100a9b71403a5e9ec684d5b5e9571f6c821370", "color": "#8c564b", "kind": "robot"}, "invited": false}], "can_edit": true}
+----
+
+* You can enter the following command to invite a user, by email address, to an existing team:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <your_access_token>" \
+  "quay-server.example.com/api/v1/organization/<organization_name>/team/<team_name>/invite/<email>"
+----
+
+* You can enter the following command to delete the invite of an email address to join a team. For example: 
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer <your_access_token>" \
+  "quay-server.example.com/api/v1/organization/<organization_name>/team/<team_name>/invite/<email>"
+----
