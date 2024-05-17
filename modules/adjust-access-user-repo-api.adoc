@@ -1,0 +1,60 @@
+
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: CONCEPT
+[id="adjust-access-user-repo-api"]
+= Adjusting access settings for a repository by using the API
+
+Use the following procedure to adjust access settings for a user or robot account for a repository by using the API.
+
+.Prerequisites
+
+* You have created a user account or robot account.
+
+. Enter the following command to change the permissions of a user:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "admin"}' \
+  https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository>/permissions/user/<username>
+----
++
+.Example output
++
+[source,terminal]
+----
+{"role": "admin", "name": "quayadmin+test", "is_robot": true, "avatar": {"name": "quayadmin+test", "hash": "ca9afae0a9d3ca322fc8a7a866e8476dd6c98de543decd186ae090e420a88feb", "color": "#8c564b", "kind": "robot"}}
+----
+
+. To delete the current permission, you can enter the following command:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/repository/busybox/permissions/user/quayadmin
+----
++
+This command does not return any output in the CLI. Instead, you can check that the permissions were deleted by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository>/permissions/user/<username>/
+----
++
+.Example output
++
+[source,terminal]
+----
+{"message":"User does not have permission for repo."}
+----
