@@ -1,0 +1,59 @@
+
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+:_content-type: CONCEPT
+[id="deleting-robot-account-api"]
+= Deleting a robot account using the {productname} API
+
+Use the following procedure to delete a robot account using the {productname} API.
+
+.Procedure
+
+. Enter the following command to delete a robot account for an organization using the `DELETE /api/v1/organization/{orgname}/robots/{robot_shortname}` endpoint:
++
+[source,terminal]
+----
+curl -X DELETE \
+  -H "Authorization: Bearer lfV4lVf9qRsyoFnrgEno1umIOrsdp8lPyMnfUDYY" \
+  "quay-server.example.com/api/v1/organization/<organization_name>/robots/<robot_shortname>"
+----
+
+. The CLI does not return information when deleting a robot account with the API. To confirm deletion, you can check the {productname} UI, or you can enter the following command to see if details are returned for the robot account:
++
+[source,terminal]
+----
+$ curl -X GET   -H "Authorization: Bearer <bearer_token>"   "https://<quay-server.example.com>/api/v1/organization/<organization_name>/<robot_shortname>"
+----
++
+Example output
++
+[source,terminal]
+----
+{"robots": []}
+----
+
+* Enter the following command to delete a robot account for the current user with the `DELETE /api/v1/user/robots/{robot_shortname}` endpoint:
++
+[source,terminal]
+----
+curl -X DELETE \
+  -H "Authorization: Bearer lfV4lVf9qRsyoFnrgEno1umIOrsdp8lPyMnfUDYY" \
+  "quay-server.example.com/api/v1/user/robots/<robot_shortname>"
+----
+. The CLI does not return information when deleting a robot account for the current user with the API. To confirm deletion, you can check the {productname} UI, or you can enter the following command to see if details are returned for the robot account:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer lfV4lVf9qRsyoFnrgEno1umIOrsdp8lPyMnfUDYY" \
+  "quay-server.example.com/api/v1/user/robots/<robot_shortname>"
+----
++
+Example output
++
+[source,terminal]
+----
+{"message":"Could not find robot with specified username"}
+----
