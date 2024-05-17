@@ -1,0 +1,82 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: PROCEDURE
+[id="default-permissions-api"]
+= Managing default permissions by using the API
+
+Use the following procedures to manage default permissions using the {productname} API.
+
+.Procedure
+
+. Enter the following command to create a default permission:
++
+[source,terminal]
+----
+$ curl -X POST   -H "Authorization: Bearer <bearer_token>"   -H "Content-Type: application/json"   --data '{
+    "role": "<admin_read_or_write>",
+    "delegate": {
+      "name": "<username>",
+      "kind": "user"
+    },
+    "activating_user": {
+      "name": "<robot_name>"
+    }
+  }'   https://<quay-server.example.com>/api/v1/organization/<organization_name>/prototypes
+----
++
+.Example output
++
+[source,terminal]
+----
+{"activating_user": {"name": "test-org+test", "is_robot": true, "kind": "user", "is_org_member": true, "avatar": {"name": "test-org+test", "hash": "aa85264436fe9839e7160bf349100a9b71403a5e9ec684d5b5e9571f6c821370", "color": "#8c564b", "kind": "robot"}}, "delegate": {"name": "testuser", "is_robot": false, "kind": "user", "is_org_member": false, "avatar": {"name": "testuser", "hash": "f660ab912ec121d1b1e928a0bb4bc61b15f5ad44d5efdc4e1c92a25e99b8e44a", "color": "#6b6ecf", "kind": "user"}}, "role": "admin", "id": "977dc2bc-bc75-411d-82b3-604e5b79a493"}
+----
+
+. Enter the following command to update a default permission, for example, if you want to change the permission type. You must include the ID that was returned when you created the policy.
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "role": "write"
+  }' \
+  https://<quay-server.example.com>/api/v1/organization/<organization_name>/prototypes/<prototypeid>
+----
++
+.Example output
++
+[source,terminal]
+----
+{"activating_user": {"name": "test-org+test", "is_robot": true, "kind": "user", "is_org_member": true, "avatar": {"name": "test-org+test", "hash": "aa85264436fe9839e7160bf349100a9b71403a5e9ec684d5b5e9571f6c821370", "color": "#8c564b", "kind": "robot"}}, "delegate": {"name": "testuser", "is_robot": false, "kind": "user", "is_org_member": false, "avatar": {"name": "testuser", "hash": "f660ab912ec121d1b1e928a0bb4bc61b15f5ad44d5efdc4e1c92a25e99b8e44a", "color": "#6b6ecf", "kind": "user"}}, "role": "write", "id": "977dc2bc-bc75-411d-82b3-604e5b79a493"}
+----
+
+. You can delete the permission by entering the following command:
++
+[source,terminal]
+----
+curl -X DELETE \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/organization/<organization_name>/prototypes/<prototype_id>
+----
++
+This command does not return an output. Instead, you can obtain a list of all permissions by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/organization/<organization_name>/prototypes
+----
++
+.Example output
++
+[source,terminal]
+----
+{"prototypes": []}
+----

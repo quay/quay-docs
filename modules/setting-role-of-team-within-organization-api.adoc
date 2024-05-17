@@ -1,0 +1,49 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: PROCEDURE
+
+[id="setting-role-of-team-within-organization-api"]
+= Setting the role of a team within an organization by using the API
+
+Use the following procedure to view and set the role a team within an organization using the API.
+
+.Procedure
+
+. Enter the following command to return a list of repository permissions for the organization's team. Note that your team must have been added to a repository for this command to return information.
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <your_access_token>" \
+  "quay-server.example.com/api/v1/organization/<organization_name>/team/<team_name>/permissions"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"permissions": [{"repository": {"name": "api-repo", "is_public": true}, "role": "admin"}]}
+----
+
+. You can create or update a team within an organization to have a specified role of *admin*, *member*, or *creator*. For example:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <your_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "role": "<role>"
+  }' \
+  "quay-server.example.com/api/v1/organization/<organization_name>/team/<team_name>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"name": "testteam", "description": "", "can_view": true, "role": "creator", "avatar": {"name": "testteam", "hash": "827f8c5762148d7e85402495b126e0a18b9b168170416ed04b49aae551099dc8", "color": "#ff7f0e", "kind": "team"}, "new_team": false}
+----
