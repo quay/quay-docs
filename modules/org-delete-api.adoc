@@ -1,0 +1,41 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_content-type: CONCEPT
+[id="org-delete-api"]
+= Deleting an organization by using the {productname} API
+
+Use the following procedure to delete an organization using the {productname} API. 
+
+.Prerequisites 
+
+* You have link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token[Created an OAuth access token].
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file.
+
+.Procedure
+
+. Enter the following command to delete an organization using the `DELETE /api/v1/organization/{orgname}` endpoint:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer lfV4lVf9qRsyoFnrgEno1umIOrsdp8lPyMnfUDYY" \
+  "https://<quay-server.example.com>/api/v1/organization/<organization_name>"
+----
+
+. The CLI does not return information when deleting an organization from the CLI. To confirm deletion, you can check the {productname} UI, or you can enter the following command to see if details are returned for the deleted organization:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer lfV4lVf9qRsyoFnrgEno1umIOrsdp8lPyMnfUDYY" \
+  "<quay-server.example.com>/api/v1/organization/<organization_name>"
+----
++
+Example output
++
+[source,terminal]
+----
+{"detail": "Not Found", "error_message": "Not Found", "error_type": "not_found", "title": "not_found", "type": "http://<quay-server.example.com>/api/v1/error/not_found", "status": 404}
+----
