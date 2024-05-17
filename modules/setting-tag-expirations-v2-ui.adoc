@@ -1,0 +1,82 @@
+:_content-type: CONCEPT
+[id="setting-tag-expirations-v2-ui"]
+= Setting tag expirations
+
+Image tags can be set to expire from a
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+repository at a chosen date and time using the _tag expiration_ feature. This feature includes the following characteristics: 
+
+* When an image tag expires, it is deleted from the repository. If it is the last tag for a specific image, the image is also set to be deleted. 
+
+* Expiration is set on a per-tag basis. It is not set for a repository as a whole. 
+
+* After a tag is expired or deleted, it is not immediately removed from the registry. This is contingent upon the allotted time designed in the _time machine_ feature, which defines when the tag is permanently deleted, or garbage collected. By default, this value is set at _14 days_, however the administrator can adjust this time to one of multiple options. Up until the point that garbage collection occurs, tags changes can be reverted. 
+
+ifeval::["{context}" == "use-quay"]
+The {productname} superuser has no special privilege related to deleting expired images from user repositories. There is no central mechanism for the superuser to gather information and act on user repositories. It is up to the owners of each repository to manage expiration and the deletion of their images. 
+endif::[]
+
+Tag expiration can be set up in one of two ways: 
+
+* By setting the `quay.expires-after=` label in the Dockerfile when the image is created. This sets a time to expire from when the image is built.
+
+* By selecting an expiration date on the
+ifeval::["{context}" == "quay-io"]
+{quayio}
+endif::[]
+ifeval::["{context}" == "use-quay"]
+{productname}
+endif::[]
+UI. For example:
++
+image:tag-expires-ui.png[Change tag expiration under the Options icon or from the EXPIRES column]
+
+Setting tag expirations can help automate the cleanup of older or unused tags, helping to reduce storage space.
+
+[id="setting-tag-expiration-using-ui"]
+== Setting tag expiration from a repository
+
+.Procedure
+
+. On the {productname} v2 UI dashboard, click *Repositories* in the navigation pane. 
+
+. Click the name of a repository that has image tags.
+
+. Click the menu kebab for an image and select *Change expiration*. 
+
+. Optional. Alternatively, you can bulk add expiration dates by clicking the box of multiple tags, and then select *Actions* -> *Set expiration*. 
+
+. In the *Change Tags Expiration* window, set an expiration date, specifying the day of the week, month, day of the month, and year. For example, `Wednesday, November 15, 2023`. Alternatively, you can click the calendar button and manually select the date. 
+
+. Set the time, for example, `2:30 PM`. 
+
+. Click *Change Expiration* to confirm the date and time. The following notification is returned: `Successfully set expiration for tag test to Nov 15, 2023, 2:26 PM`. 
+
+. On the {productname} v2 UI *Tags* page, you can see when the tag is set to expire. For example:
++
+image:tag-expiration-v2-ui.png[{productname} v2 UI tag expiration]
+
+[id="setting-tag-expiration-from-dockerfile"]
+== Setting tag expiration from a Dockerfile
+
+You can add a label, for example, `quay.expires-after=20h` to an image tag by using the `docker label` command to cause the tag to automatically expire after the time that is indicated. The following values for hours, days, or weeks are accepted:
+
+* `1h`
+* `2d`
+* `3w`
+
+Expiration begins from the time that the image is pushed to the registry. 
+
+.Procedure 
+
+* Enter the following `docker label` command to add a label to the desired image tag. The label should be in the format `quay.expires-after=20h` to indicate that the tag should expire after 20 hours. Replace 20h with the desired expiration time. For example:
++
+[source,terminal]
+----
+$ docker label quay.expires-after=20h quay-server.example.com/quayadmin/<image>:<tag>
+----

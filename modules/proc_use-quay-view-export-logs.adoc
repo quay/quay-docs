@@ -1,3 +1,4 @@
+:_content-type: PROCEDURE
 [id="use-quay-view-export-logs"]
 = Viewing and exporting logs
 
@@ -52,82 +53,3 @@ A maximum of 100 log results are available at a time via the API.
 To gather more results that that, you must use the log exporter feature
 described in this chapter.
 ====
-
-[id="use-quay-view-logs"]
-== Viewing logs using the UI
-
-Use the following procedure to view log entries for a repository or namespace using the web UI.
-
-.Procedure 
-
-. Navigate to a repository or namespace for which you are an administrator of.
-
-. In the navigation pane, select *Usage Logs*. 
-+
-image:logs.png[View usage logs]
-
-. Optional. On the usage logs page:
-
-.. Set the date range for viewing log entries by adding dates to the *From* and *to* boxes. By default, the UI shows you the most recent week of log entries. 
-
-.. Type a string into the *Filter Logs* box to display log entries that of the specified keyword. For example, you can type `delete` to filter the logs to show deleted tags.  
-
-.. Under *Description*, toggle the arrow of a log entry to see more, or less, text associated with a specific log entry. 
-
-[id="use-quay-export-logs"]
-== Exporting repository logs
-
-ifeval::["{context}" == "quay-io"]
-You can obtain a larger number of log files and save them outside of {quayio} by using the *Export Logs* feature. This feature has the following benefits and constraints: 
-endif::[]
-
-ifeval::["{context}" == "use-quay"]
-You can obtain a larger number of log files and save them outside of the {productname} database by using the *Export Logs* feature. This feature has the following benefits and constraints: 
-endif::[]
-
-* You can choose a range of dates for the logs you want to gather from a repository.
-
-* You can request that the logs be sent to you by an email attachment or directed to a callback URL.
-
-* To export logs, you must be an administrator of the repository or namespace. 
-
-* 30 days worth of logs are retained for all users.
-
-* Export logs only gathers log data that was previously produced. It does not stream logging data. 
-
-ifeval::["{context}" == "use-quay"]
-* Your {productname} instance must be configured for external storage for this feature. Local storage does not work for exporting logs. 
-endif::[]
-
-* When logs are gathered and made available to you, you should immediately copy that data if you want to save it. By default, the data expires after one hour. 
-
-Use the following procedure to export logs.
-
-.Procedure 
-
-. Select a repository for which you have administrator privileges. 
-
-. In the navigation pane, select *Usage Logs*. 
-
-. Optional. If you want to specify specific dates, enter the range in the *From* and *to* boxes. 
-
-. Click the *Export Logs* button. An Export Usage Logs pop-up appears, as shown
-+
-image:export-usage-logs.png[Enter email or callback URL to receive exported logs]
-
-. Enter an email address or callback URL to receive the exported log. For the callback URL, you can use a URL to a specified domain, for example, <webhook.site>. 
-
-. Select *Start Logs Export* to start the process for gather the selected log entries. Depending on the amount of logging data being gathered, this can take anywhere from a few minutes to several hours to complete. 
-
-. When the log export is completed, the one of following two events happens: 
-+
-* An email is received, alerting you to the available of your requested exported log entries. 
-
-* A successful status of your log export request from the webhook URL is returned. Additionally, a link to the exported data is made available for you to delete to download the logs. 
-
-ifeval::["{context}" == "use-quay"]
-[NOTE]
-====
-The URL points to a location in your {productname} external storage and is set to expire within one hour. Make sure that you copy the exported logs before the expiration time if you intend to keep your logs.
-====
-endif::[]

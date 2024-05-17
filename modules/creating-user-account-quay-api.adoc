@@ -1,0 +1,52 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+// Needs updated when v2 UI panel is available
+
+:_content-type: CONCEPT
+[id="creating-user-account-quay-api"]
+= Creating a user account by using the {productname} API
+
+Use the following procedure to create a new user for your {productname} repository using the API.
+
+.Prerequisites
+
+* You are logged into your {productname} deployment as a superuser.
+* You have link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token[Created an OAuth access token].
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file.
+
+.Procedure
+
+. Enter the following command to create a new user using the `POST /api/v1/superuser/users/` endpoint:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <bearer_token>" -H "Content-Type: application/json" -d '{
+  "username": "newuser",
+  "email": "newuser@example.com"
+}' "https://<quay-server.example.com>/api/v1/superuser/users/"
+----
++
+Example output
++
+[source,terminal]
+----
+{"username": "newuser", "email": "newuser@example.com", "password": "IJWZ8TIY301KPFOW3WEUJEVZ3JR11CY1", "encrypted_password": "9Q36xF54YEOLjetayC0NBaIKgcFFmIHsS3xTZDLzZSrhTBkxUc9FDwUKfnxLWhco6oBJV1NDBjoBcDGmsZMYPt1dSA4yWpPe/JKY9pnDcsw="}
+----
+
+. Navigate to your {productname} registry endpoint, for example, `quay-server.example.com` and login with the username and password generated from the API call. In this scenario, the username is `newuser` and the password is `IJWZ8TIY301KPFOW3WEUJEVZ3JR11CY1`.
+
+. Optional. You can obtain a list of all users, including superusers, by using the `GET /api/v1/superuser/users/` endpoint:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <bearer_token>" "https://<quay-server.example.com>/api/v1/superuser/users/"
+----
++
+Example output
++
+[source,terminal]
+----
+{"users": [{"kind": "user", "name": "quayadmin", "username": "quayadmin", "email": "quay@quay.com", "verified": true, "avatar": {"name": "quayadmin", "hash": "b28d563a6dc76b4431fc7b0524bbff6b810387dac86d9303874871839859c7cc", "color": "#17becf", "kind": "user"}, "super_user": true, "enabled": true}, {"kind": "user", "name": "newuser", "username": "newuser", "email": "newuser@example.com", "verified": true, "avatar": {"name": "newuser", "hash": "f338a2c83bfdde84abe2d3348994d70c34185a234cfbf32f9e323e3578e7e771", "color": "#9edae5", "kind": "user"}, "super_user": false, "enabled": true}]}
+----
