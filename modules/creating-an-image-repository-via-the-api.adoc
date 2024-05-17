@@ -1,0 +1,39 @@
+
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_content-type: CONCEPT
+[id="creating-an-image-repository-via-the-api"]
+= Creating a repository by using the API
+
+Use the following procedure to create an image repository using the {productname} API.
+
+.Prerequisites 
+
+* You have link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token[Created an OAuth access token].
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file.
+
+.Procedure
+
+. Enter the following command to create a repository using the `POST /api/v1/repository` endpoint:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "repository": "<new_repository_name>",
+    "visibility": "<public>",
+    "description": "<This is a description of the new repository>."
+  }' \
+  "https://quay-server.example.com/api/v1/repository"
+----
++
+Example output
++
+[source,terminal]
+----
+{"namespace": "quayadmin", "name": "<new_repository_name>", "kind": "image"}
+----
