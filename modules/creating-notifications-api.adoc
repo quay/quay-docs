@@ -1,0 +1,92 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: CONCEPT
+[id="managing-notifications-api"]
+= Managing notifications by using the API
+
+Use the following procedure to add notifications.
+
+.Prerequisites 
+
+* You have created a repository.
+* You have administrative privileges for the repository.
+
+.Procedure
+
+. Enter the following `POST /api/v1/repository/{repository}/notification` command to create a notification on your repository:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "event": "<event>",
+    "method": "<method>",
+    "config": {
+      "<config_key>": "<config_value>"
+    },
+    "eventConfig": {
+      "<eventConfig_key>": "<eventConfig_value>"
+    }
+  }' \
+  https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>/notification/
+----
++
+This command does not return output in the CLI. Instead, you can enter the following `GET /api/v1/repository/{repository}/notification/{uuid}` command to obtain information about the repository notification:
++
+[source,terminal]
+----
+{"uuid": "240662ea-597b-499d-98bb-2b57e73408d6", "title": null, "event": "repo_push", "method": "quay_notification", "config": {"target": {"name": "quayadmin", "kind": "user", "is_robot": false, "avatar": {"name": "quayadmin", "hash": "b28d563a6dc76b4431fc7b0524bbff6b810387dac86d9303874871839859c7cc", "color": "#17becf", "kind": "user"}}}, "event_config": {}, "number_of_failures": 0}
+----
+
+. You can test your repository notification by entering the following `POST /api/v1/repository/{repository}/notification/{uuid}/test` command:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  https://<quay-server.example.com>/api/v1/repository/<repository>/notification/<uuid>/test
+----
++
+.Example output
++
+[source,terminal]
+----
+{}
+----
+
+. You can reset repository notification failures to 0 by entering the following `POST /api/v1/repository/{repository}/notification/{uuid}` command:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  https://<quay-server.example.com>/api/v1/repository/<repository>/notification/<uuid>
+----
+
+. Enter the following `DELETE /api/v1/repository/{repository}/notification/{uuid}` command to delete a repository notification:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer <bearer_token>" \
+  https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>/notification/<uuid>
+----
++
+This command does not return output in the CLI. Instead, you can enter the following `GET /api/v1/repository/{repository}/notification/{uuid}` command to retrieve a list of all notifications:
++
+[source,terminal]
+----
+$ curl -X GET  -H "Authorization: Bearer <bearer_token>"   -H "Accept: application/json"  https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>/notification/
+----
++
+.Example output
++
+[source,terminal]
+----
+{"notifications": []}
+----
