@@ -1,0 +1,84 @@
+:_content-type: CONCEPT
+[id="adding-managing-labels-api"]
+= Adding and managing labels by using the API
+
+{productname} administrators can add and manage labels for tags with the API by using the following procedure.
+
+.Procedure
+
+. Use the `GET /api/v1/repository/{repository}/manifest/{manifestref}` command to retrieve the details of a specific manifest in a repository:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/repository/<repository>/manifest/<manifestref>
+----
+
+. Use the `GET /api/v1/repository/{repository}/manifest/{manifestref}/labels` command to retrieve a list of labels for a specific manifest:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/repository/<repository>/manifest/<manifestref>/labels
+----
++
+.Example output
++
+[source,terminal]
+----
+{"labels": [{"id": "e9f717d2-c1dd-4626-802d-733a029d17ad", "key": "org.opencontainers.image.url", "value": "https://github.com/docker-library/busybox", "source_type": "manifest", "media_type": "text/plain"}, {"id": "2d34ec64-4051-43ad-ae06-d5f81003576a", "key": "org.opencontainers.image.version", "value": "1.36.1-glibc", "source_type": "manifest", "media_type": "text/plain"}]}
+----
+
+. Use the `GET /api/v1/repository/{repository}/manifest/{manifestref}/labels/{labelid}` command to obtain information about a specific manifest:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/repository/<repository>/manifest/<manifestref>/labels/<label_id>
+----
++
+.Example output
++
+[source,terminal]
+----
+{"id": "e9f717d2-c1dd-4626-802d-733a029d17ad", "key": "org.opencontainers.image.url", "value": "https://github.com/docker-library/busybox", "source_type": "manifest", "media_type": "text/plain"}
+----
+
+. You can add an additional label to a manifest in a given repository with the `POST /api/v1/repository/{repository}/manifest/{manifestref}/labels` command. For example:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "key": "<key>",
+    "value": "<value>",
+    "media_type": "<media_type>"
+  }' \
+  https://<quay-server.example.com>/api/v1/repository/<repository>/manifest/<manifestref>/labels
+----
++
+.Example output
++
+[source,terminal]
+----
+{"label": {"id": "346593fd-18c8-49db-854f-4cb1fb76ff9c", "key": "example-key", "value": "example-value", "source_type": "api", "media_type": "text/plain"}}
+----
+
+. You can delete a label using the `DELETE /api/v1/repository/{repository}/manifest/{manifestref}/labels/{labelid}` command:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer <bearer_token>" \
+  https://<quay-server.example.com>/api/v1/repository/<repository>/manifest/<manifestref>/labels/<labelid>
+----
++
+This command does not return output in the CLI. You can use one of the commands above to ensure that it was successfully removed.
