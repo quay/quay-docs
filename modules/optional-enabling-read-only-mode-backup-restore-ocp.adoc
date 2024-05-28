@@ -1,0 +1,295 @@
+:_content-type: PROCEDURE
+[id="optional-enabling-read-only-mode-backup-restore-ocp"]
+= Optional: Enabling read-only mode for {productname-ocp}
+
+Enabling read-only mode for your {productname-ocp} deployment allows you to manage the registry's operations. Administrators can enable read-only mode to restrict write access to the registry, which helps ensure data integrity, mitigate risks during maintenance windows, and provide a safeguard against unintended modifications to registry data. It also helps to ensure that your {productname} registry remains online and available to serve images to users. 
+
+When backing up and restoring, you are required to scale down your {productname-ocp} deployment. This results in service unavailability during the backup period which, in some cases, might be unacceptable. Enabling read-only mode ensures service availability during the backup and restore procedure for {productname-ocp} deployments.
+
+.Prerequisites 
+
+* If you are using {rhel} 7.x:
+** You have enabled the Red Hat Software Collections List  (RHSCL).
+** You have installed Python 3.6.
+** You have downloaded the `virtualenv` package.
+** You have installed the `git` CLI.
+
+* If you are using {rhel} 8:
+** You have installed Python 3 on your machine.
+** You have downloaded the `python3-virtualenv` package.
+** You have installed the `git` CLI.
+
+* You have cloned the `https://github.com/quay/quay.git` repository.
+* You have installed the `oc` CLI.
+* You have access to the cluster with `cluster-admin` privileges.
+
+[id="creating-service-keys-quay-ocp"]
+== Creating service keys for {productname-ocp}
+
+{productname} uses service keys to communicate with various components. These keys are used to sign completed requests, such as requesting to scan images, login, storage access, and so on.
+
+.Procedure
+
+. Enter the following command to obtain a list of {productname} pods:
++
+[source,terminal]
+----
+$ oc get pods -n <namespace>
+----
++
+Example output
++
+[source,terminal]
+----
+example-registry-clair-app-7dc7ff5844-4skw5           0/1     Error                    0             70d
+example-registry-clair-app-7dc7ff5844-nvn4f           1/1     Running                  0             31d
+example-registry-clair-app-7dc7ff5844-x4smw           0/1     ContainerStatusUnknown   6 (70d ago)   70d
+example-registry-clair-app-7dc7ff5844-xjnvt           1/1     Running                  0             60d
+example-registry-clair-postgres-547d75759-75c49       1/1     Running                  0             70d
+example-registry-quay-app-76c8f55467-52wjz            1/1     Running                  0             70d
+example-registry-quay-app-76c8f55467-hwz4c            1/1     Running                  0             70d
+example-registry-quay-app-upgrade-57ghs               0/1     Completed                1             70d
+example-registry-quay-database-7c55899f89-hmnm6       1/1     Running                  0             70d
+example-registry-quay-mirror-6cccbd76d-btsnb          1/1     Running                  0             70d
+example-registry-quay-mirror-6cccbd76d-x8g42          1/1     Running                  0             70d
+example-registry-quay-redis-85cbdf96bf-4vk5m          1/1     Running                  0             70d
+----
+
+. Open a remote shell session to the `Quay` container by entering the following command:
++
+[source,terminal]
+----
+$ oc rsh example-registry-quay-app-76c8f55467-52wjz
+----
+
+. Enter the following command to create the necessary service keys:
++
+[source,terminal]
+----
+sh-4.4$ python3 tools/generatekeypair.py quay-readonly
+----
++
+Example output
++
+[source,terminal]
+----
+Writing public key to quay-readonly.jwk
+Writing key ID to quay-readonly.kid
+Writing private key to quay-readonly.pem
+----
+
+[id="adding-keys-postgresql-database"]
+== Adding keys to the PostgreSQL database
+
+Use the following procedure to add your service keys to the PostgreSQL database.
+
+.Prerequistes
+
+* You have created the service keys.
+
+.Procedure
+
+. Enter the following command to enter your {productname} database environment:
++
+[source,terminal]
+----
+$ oc rsh example-registry-quay-app-76c8f55467-52wjz psql -U <database_username> -d <database_name>
+----
+
+. Display the approval types and associated notes of the `servicekeyapproval` by entering the following command:
++
+[source,terminal]
+----
+quay=# select * from servicekeyapproval;
+----
++
+Example output
++
+[source,terminal]
+----
+ id | approver_id |          approval_type           |       approved_date        | notes 
+----+-------------+----------------------------------+----------------------------+-------
+  1 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:47:48.181347 | 
+  2 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:47:55.808087 | 
+  3 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:49:04.27095  | 
+  4 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:49:05.46235  | 
+  5 |           1 | ServiceKeyApprovalType.SUPERUSER | 2024-05-07 04:05:10.296796 | 
+...
+----
+
+. Add the service key to your {productname} database by entering the following query:
++
+[source,terminal]
+----
+quay=# INSERT INTO servicekey 
+  (name, service, metadata, kid, jwk, created_date, expiration_date)
+  VALUES ('quay-readonly',
+           'quay',
+           '{}',
+           '{<contents_of_.kid_file>}',
+           '{<contents_of_.jwk_file>}',
+           '{<created_date_of_read-only>}',
+           '{<expiration_date_of_read-only>}');
+----
++
+Example output
++
+[source,terminal]
+----
+INSERT 0 1
+----
+
+. Next, add the key approval with the following query:
++
+[source,terminal]
+----
+quay=# INSERT INTO servicekeyapproval ('approval_type', 'approved_date', 'notes')
+  VALUES ("ServiceKeyApprovalType.SUPERUSER", "CURRENT_DATE",
+           {include_notes_here_on_why_this_is_being_added});
+----
++
+Example output
++
+[source,terminal]
+----
+INSERT 0 1
+----
+
+. Set the `approval_id` field on the created service key row to the `id` field from the created service key approval. You can use the following `SELECT` statements to get the necessary IDs:
++
+[source,terminal]
+----
+UPDATE servicekey 
+SET approval_id = (SELECT id FROM servicekeyapproval WHERE approval_type = 'ServiceKeyApprovalType.SUPERUSER')
+WHERE name = 'quay-readonly';
+----
++
+[source,terminal]
+----
+UPDATE 1
+----
+
+[id="quay-ocp-readonly"]
+== Configuring read-only mode {productname-ocp}
+
+After the service keys have been created and added to your PostgreSQL database, you must restart the `Quay` container on your {ocp} deployment.
+
+[IMPORTANT]
+====
+Deploying {productname-ocp} in read-only mode requires you to modify the secrets stored inside of your {ocp} cluster. It is highly recommended that you create a backup of the secret prior to making changes to it. 
+====
+
+.Prerequisites
+
+* You have created the service keys and added them to your PostgreSQL database.
+
+.Procedure
+
+. Enter the following command to read the secret name of your {productname-ocp} deployment:
++
+[source,terminal]
+----
+$ oc get deployment -o yaml <quay_main_app_deployment_name>
+----
+
+. Use the `base64` command to encode the `quay-readonly.kid` and `quay-readonly.pem` files:
++
+[source,terminal]
+----
+$ base64 -w0 quay-readonly.kid
+----
++
+Example output
++
+[source,terminal]
+----
+ZjUyNDFm...
+----
++
+[source,terminal]
+----
+$ base64 -w0 quay-readonly.pem 
+----
++
+Example output
++
+[source,terminal]
+----
+LS0tLS1CRUdJTiBSU0E...
+----
+
+. Obtain the current configuration bundle and secret by entering the following command:
++
+[source,terminal]
+----
+$ oc get secret quay-config-secret-name -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d -w0 > config.yaml
+----
+
+. Edit the `config.yaml` file and add the following information:
++
+[source,yaml]
+----
+# ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...
+----
+
+. Save the file and `base64` encode it by running the following command:
++
+[source,terminal]
+----
+$ base64 -w0 quay-config.yaml
+----
+
+. Scale down the {productname} Operator pods to `0`. This ensures that the Operator does not reconcile the secret after editing it.
++
+[source,terminal]
+----
+$ oc scale --replicas=0 deployment quay-operator -n openshift-operators
+----
+
+. Edit the secret to include the new content:
++
+[source,terminal]
+----
+$ oc edit secret quay-config-secret-name -n quay-namespace
+----
++
+[source,yaml]
+----
+# ...
+data:
+  "quay-readonly.kid": "ZjUyNDFm..."
+  "quay-readonly.pem": "LS0tLS1CRUdJTiBSU0E..."
+  "config.yaml": "QUNUSU9OX0xPR19..."
+# ...
+----
++
+With your {productname-ocp} deployment on read-only mode, you can safely manage your registry's operations and perform such actions as backup and restore.
+
+[id="scaling-up-quay-ocp-read-only-deployment"]
+=== Scaling up the {productname-ocp} from a read-only deployment
+
+When you no longer want {productname-ocp} to be in read-only mode, you can scale the deployment back up and remove the content added from the secret.
+
+.Procedure
+
+. Edit the `config.yaml` file and remove the following information:
++
+[source,yaml]
+----
+# ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...
+----
+
+. Scale the {productname} Operator back up by entering the following command:
++
+[source,terminal]
+----
+oc scale --replicas=1 deployment quay-operator -n openshift-operators
+----
