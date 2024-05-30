@@ -1,31 +1,75 @@
+:_content-type: PROCEDURE
 [id="enable-storage-replication-standalone"]
-
-= Enable storage replication - standalone Quay
+= Enabling storage replication for standalone {productname}
 
 Use the following procedure to enable storage replication on {productname}. 
 
 .Procedure 
 
-. In your {productname} config editor, locate the *Registry Storage* section. 
+. Update your `config.yaml` file to include the storage engines to which data will be replicated. You must list all storage engines to be used:
++
+[source,yaml]
+----
+# ...
+FEATURE_STORAGE_REPLICATION: true
+# ...
+DISTRIBUTED_STORAGE_CONFIG:
+    usstorage:
+        - RHOCSStorage
+        - access_key: <access_key>
+          bucket_name: <example_bucket>
+          hostname: my.noobaa.hostname
+          is_secure: false
+          port: "443"
+          secret_key: <secret_key>
+          storage_path: /datastorage/registry
+    eustorage:
+        - S3Storage
+        - host: s3.amazon.com
+          port: "443"
+          s3_access_key: <access_key>
+          s3_bucket: <example bucket>
+          s3_secret_key: <secret_key>
+          storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - usstorage
+    - eustorage
+# ...
+----
 
-. Click *Enable Storage Replication*. 
-
-. Add each of the storage engines to which data will be replicated. All storage engines to be used must be listed. 
-
-. If complete replication of all images to all storage engines is required, click *Replicate to storage engine by default* under each storage engine configuration. This ensures that all images are replicated to that storage engine. 
+. Optional. If complete replication of all images to all storage engines is required, you can replicate images to the storage engine by manually setting the `DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS` field. This ensures that all images are replicated to that storage engine. For example:
++
+[source,yaml]
+----
+# ...
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+    - usstorage
+    - eustorage
+# ...
+----
 +
 [NOTE]
 ====
 To enable per-namespace replication, contact {productname} support. 
 ====
 
-. When finished, click *Save Configuration Changes*. The configuration changes will take effect after {productname} restarts. 
+. After adding storage and enabling *Replicate to storage engine by default* for geo-replication, you must sync existing image data across all storage. To do this, you must execute into the container by running the following command:
++
+[source,terminal]
+----
+$ podman exec -it <container_id>
+----
 
-. After adding storage and enabling *Replicate to storage engine by default* for geo-replication, you must sync existing image data across all storage. To do this, you must `oc exec` (alternatively, `docker exec` or `kubectl exec`) into the container and enter the following commands:
+. To sync the content after adding new storage, enter the following commands:
 +
 [source,terminal]
 ----
 # scl enable python27 bash
+----
++
+[source,terminal]
+----
 # python -m util.backfillreplication
 ----
 +
