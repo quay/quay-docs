@@ -26,7 +26,7 @@ Use the following procedure to update {productname} and the {productname} and Cl
 ====
 * This upgrade is irreversible. It is highly recommended that you upgrade to PostgreSQL 13. PostgreSQL 10 had its final release on November 10, 2022 and is no longer supported. For more information, see the link:https://www.postgresql.org/support/versioning/[PostgreSQL Versioning Policy]. 
 * If your {productname} and Clair databases are managed by the Operator, the database upgrades for each component must succeed for the 3.9.0 upgrade to be successful. If either of the database upgrades fail, the entire {productname} version upgrade fails. This behavior is expected. 
-* By default, {productname} is configured to remove old persistent volume claims (PVCs) from PostgreSQL 10. To disable this setting and backup old PVCs, you must set `POSTGRES_UPGRADE_RETAIN_BACKUP` to `True` in your `quay-operator` `Subscription` object.
+* By default, {productname} is configured to save old persistent volume claims (PVCs) from PostgreSQL 10. To disable this setting and remove old PVCs, you must set `POSTGRES_UPGRADE_DELETE_BACKUP` to `True` in your `quay-operator` `Subscription` object.
 ====
 
 .Prerequisites 
@@ -38,7 +38,7 @@ During the upgrade process, additional persistent volume claims (PVCs) are provi
 
 .Procedure
 
-. Optional. Back up your old PVCs from PostgreSQL 10 by setting `POSTGRES_UPGRADE_RETAIN_BACKUP` to `True` your `quay-operator` `Subscription` object. For example:
+. Optional. Back up your old PVCs from PostgreSQL 10 by setting `POSTGRES_UPGRADE_DELETE_BACKUP` to `false` your `quay-operator` `Subscription` object. For example:
 +
 [source,yaml]
 ----
@@ -54,9 +54,10 @@ spec:
   sourceNamespace: openshift-marketplace
   config:
     env: 
-    - name: POSTGRES_UPGRADE_RETAIN_BACKUP
-      value: "true"
+    - name: POSTGRES_UPGRADE_DELETE_BACKUP <1>
+      value: "false"
 ----
+<1> When set to `true`, removes old PVCs after upgrading.
 
 . In the {ocp} Web Console, navigate to *Operators* -> *Installed Operators*. 
 
@@ -88,7 +89,7 @@ Use the following procedure to update {productname} and the {productname} and Cl
 [IMPORTANT]
 ====
 * This upgrade is irreversible. It is highly recommended that you upgrade to PostgreSQL 13. PostgreSQL 10 had its final release on November 10, 2022 and is no longer supported. For more information, see the link:https://www.postgresql.org/support/versioning/[PostgreSQL Versioning Policy]. 
-* By default, {productname} is configured to remove old persistent volume claims (PVCs) from PostgreSQL 10. To disable this setting and backup old PVCs, you must set `POSTGRES_UPGRADE_RETAIN_BACKUP` to `True` in your `quay-operator` `Subscription` object.
+* By default, {productname} is configured to save old persistent volume claims (PVCs) from PostgreSQL 10. To disable this setting and remove old PVCs, you must set `POSTGRES_UPGRADE_DELETE_BACKUP` to `True` in your `quay-operator` `Subscription` object.
 ====
 
 .Prerequisites 
@@ -141,11 +142,11 @@ spec:
   sourceNamespace: openshift-marketplace
   config:
     env: 
-    - name: POSTGRES_UPGRADE_RETAIN_BACKUP <2>
-      value: "true"
+    - name: POSTGRES_UPGRADE_DELETE_BACKUP <2>
+      value: "false"
 ----
 <1> Specify the value you obtained in the previous step for the `spec.channel` parameter. 
-<2> Optional. Back up your old PVCs from PostgreSQL 10 by setting `POSTGRES_UPGRADE_RETAIN_BACKUP` to `True` your `quay-operator` `Subscription` object.
+<2> Optional. Back up your old PVCs from PostgreSQL 10 by setting `POSTGRES_UPGRADE_DELETE_BACKUP` to `false` your `quay-operator` `Subscription` object.
 
 . Enter the following command to apply the configuration:
 +
