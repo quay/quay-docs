@@ -1,0 +1,234 @@
+:_content-type: CONCEPT
+[id="understanding-action-logs]
+= Understanding usage logs
+
+By default, usage logs are stored in the {productname} database. They are exposed through the web UI, on the organization and repository levels, and in the *Superuser Admin Panel*.  
+
+Database logs capture a wide ranges of events in {productname}, such as the changing of account plans, user actions, and general operations. Log entries include information such as the action performed (`kind_id`), the user who performed the action (`account_id` or `performer_id`), the timestamp (`datetime`), and other relevant data associated with the action (`metadata_json`).
+
+[id="viewing-database-logs"]
+== Viewing database logs
+
+The following procedure shows you how to view repository logs that are stored in a PostgreSQL database.
+
+.Prerequisites
+
+* You have administrative privileges.
+* You have installed the `psql` CLI tool.
+
+.Procedure
+
+. Enter the following command to log in to your {productname} PostgreSQL database:
++
+[source,terminal]
+----
+$ psql -h <quay-server.example.com> -p 5432 -U <user_name> -d <database_name>
+----
++
+.Example output
++
+[source,terminal]
+----
+psql (16.1, server 13.7)
+Type "help" for help.
+----
+
+. Optional. Enter the following command to display the tables list of your PostgreSQL database:
++
+[source,terminal]
+----
+quay=> \dt
+----
++
+.Example output
++
+[source,terminal]
+----
+                   List of relations
+ Schema |            Name            | Type  |  Owner   
+--------+----------------------------+-------+----------
+ public | logentry                   | table | quayuser
+ public | logentry2                  | table | quayuser
+ public | logentry3                  | table | quayuser
+ public | logentrykind               | table | quayuser
+...
+----
+
+. You can enter the following command to return a list of `repository_ids` that are required to return log information:
++
+[source,terminal]
+----
+quay=> SELECT id, name FROM repository;
+----
++
+.Example output
++
+[source,terminal]
+----
+ id |        name         
+----+---------------------
+  3 | new_repository_name
+  6 | api-repo
+  7 | busybox
+...
+----
+
+. Enter the following command to use the `logentry3` relation to show log information about one of your repositories:
++
+[source,terminal]
+----
+SELECT * FROM logentry3 WHERE repository_id = <repository_id>;
+----
++
+.Example output
++
+[source,terminal]
+----
+ id | kind_id | account_id | performer_id | repository_id | datetime | ip |    metadata_json
+                 
+ 59 | 14 | 2 | 1 | 6 | 2024-05-13 15:51:01.897189 | 192.168.1.130 | {"repo": "api-repo", "namespace": "test-org"}
+----
++
+In the above example, the following information is returned:
++
+[source,terminal]
+----
+{
+  "log_data": {
+    "id": 59 <1>
+    "kind_id": "14", <2>
+    "account_id": "2", <3>
+    "performer_id": "1", <4>
+    "repository_id": "6", <5>
+    "ip": "192.168.1.100", <6>
+    "metadata_json": {"repo": "api-repo", "namespace": "test-org"} <7>
+    "datetime": "2024-05-13 15:51:01.897189" <8>
+  }
+}
+----
+<1> The unique identifier for the log entry.
+<2> The action that was done. In this example, it was `14`. The key, or table, in the following section shows you that this `kind_id` is related to the creation of a repository.
+<3> The account that performed the action.
+<4> The performer of the action.
+<5> The repository that the action was done on. In this example, `6` correlates to the `api-repo` that was discovered in Step 3.
+<6> The IP address where the action was performed.
+<7> Metadata information, including the name of the repository and its namespace.
+<8> The time when the action was performed.
+
+[id="log-entry-kind-ids"]
+== Log entry kind_ids
+
+The following table represents the `kind_ids` associated with {productname} actions. 
+
+[cols="1,3,6", options="header"]
+|===
+|kind_id |Action |Description
+
+|1 |account_change_cc |Change of credit card information.
+|2 |account_change_password |Change of account password.
+|3 |account_change_plan |Change of account plan.
+|4 |account_convert |Account conversion.
+|5 |add_repo_accesstoken |Adding an access token to a repository.
+|6 |add_repo_notification |Adding a notification to a repository.
+|7 |add_repo_permission |Adding permissions to a repository.
+|8 |add_repo_webhook |Adding a webhook to a repository.
+|9 |build_dockerfile |Building a Dockerfile.
+|10 |change_repo_permission |Changing permissions of a repository.
+|11 |change_repo_visibility |Changing the visibility of a repository.
+|12 |create_application |Creating an application.
+|13 |create_prototype_permission |Creating permissions for a prototype.
+|14 |create_repo |Creating a repository.
+|15 |create_robot |Creating a robot (service account or bot).
+|16 |create_tag |Creating a tag.
+|17 |delete_application |Deleting an application.
+|18 |delete_prototype_permission |Deleting permissions for a prototype.
+|19 |delete_repo |Deleting a repository.
+|20 |delete_repo_accesstoken |Deleting an access token from a repository.
+|21 |delete_repo_notification |Deleting a notification from a repository.
+|22 |delete_repo_permission |Deleting permissions from a repository.
+|23 |delete_repo_trigger |Deleting a repository trigger.
+|24 |delete_repo_webhook |Deleting a webhook from a repository.
+|25 |delete_robot |Deleting a robot.
+|26 |delete_tag |Deleting a tag.
+|27 |manifest_label_add |Adding a label to a manifest.
+|28 |manifest_label_delete |Deleting a label from a manifest.
+|29 |modify_prototype_permission |Modifying permissions for a prototype.
+|30 |move_tag |Moving a tag.
+|31 |org_add_team_member |Adding a member to a team.
+|32 |org_create_team |Creating a team within an organization.
+|33 |org_delete_team |Deleting a team within an organization.
+|34 |org_delete_team_member_invite |Deleting a team member invitation.
+|35 |org_invite_team_member |Inviting a member to a team in an organization.
+|36 |org_remove_team_member |Removing a member from a team.
+|37 |org_set_team_description |Setting the description of a team.
+|38 |org_set_team_role |Setting the role of a team.
+|39 |org_team_member_invite_accepted |Acceptance of a team member invitation.
+|40 |org_team_member_invite_declined |Declining of a team member invitation.
+|41 |pull_repo |Pull from a repository.
+|42 |push_repo |Push to a repository.
+|43 |regenerate_robot_token |Regenerating a robot token.
+|44 |repo_verb |Generic repository action (specifics might be defined elsewhere).
+|45 |reset_application_client_secret |Resetting the client secret of an application.
+|46 |revert_tag |Reverting a tag.
+|47 |service_key_approve |Approving a service key.
+|48 |service_key_create |Creating a service key.
+|49 |service_key_delete |Deleting a service key.
+|50 |service_key_extend |Extending a service key.
+|51 |service_key_modify |Modifying a service key.
+|52 |service_key_rotate |Rotating a service key.
+|53 |setup_repo_trigger |Setting up a repository trigger.
+|54 |set_repo_description |Setting the description of a repository.
+|55 |take_ownership |Taking ownership of a resource.
+|56 |update_application |Updating an application.
+|57 |change_repo_trust |Changing the trust level of a repository.
+|58 |reset_repo_notification |Resetting repository notifications.
+|59 |change_tag_expiration |Changing the expiration date of a tag.
+|60 |create_app_specific_token |Creating an application-specific token.
+|61 |revoke_app_specific_token |Revoking an application-specific token.
+|62 |toggle_repo_trigger |Toggling a repository trigger on or off.
+|63 |repo_mirror_enabled |Enabling repository mirroring.
+|64 |repo_mirror_disabled |Disabling repository mirroring.
+|65 |repo_mirror_config_changed |Changing the configuration of repository mirroring.
+|66 |repo_mirror_sync_started |Starting a repository mirror sync.
+|67 |repo_mirror_sync_failed |Repository mirror sync failed.
+|68 |repo_mirror_sync_success |Repository mirror sync succeeded.
+|69 |repo_mirror_sync_now_requested |Immediate repository mirror sync requested.
+|70 |repo_mirror_sync_tag_success |Repository mirror tag sync succeeded.
+|71 |repo_mirror_sync_tag_failed |Repository mirror tag sync failed.
+|72 |repo_mirror_sync_test_success |Repository mirror sync test succeeded.
+|73 |repo_mirror_sync_test_failed |Repository mirror sync test failed.
+|74 |repo_mirror_sync_test_started |Repository mirror sync test started.
+|75 |change_repo_state |Changing the state of a repository.
+|76 |create_proxy_cache_config |Creating proxy cache configuration.
+|77 |delete_proxy_cache_config |Deleting proxy cache configuration.
+|78 |start_build_trigger |Starting a build trigger.
+|79 |cancel_build |Cancelling a build.
+|80 |org_create |Creating an organization.
+|81 |org_delete |Deleting an organization.
+|82 |org_change_email |Changing organization email.
+|83 |org_change_invoicing |Changing organization invoicing.
+|84 |org_change_tag_expiration |Changing organization tag expiration.
+|85 |org_change_name |Changing organization name.
+|86 |user_create |Creating a user.
+|87 |user_delete |Deleting a user.
+|88 |user_disable |Disabling a user.
+|89 |user_enable |Enabling a user.
+|90 |user_change_email |Changing user email.
+|91 |user_change_password |Changing user password.
+|92 |user_change_name |Changing user name.
+|93 |user_change_invoicing |Changing user invoicing.
+|94 |user_change_tag_expiration |Changing user tag expiration.
+|95 |user_change_metadata |Changing user metadata.
+|96 |user_generate_client_key |Generating a client key for a user.
+|97 |login_success |Successful login.
+|98 |logout_success |Successful logout.
+|99 |permanently_delete_tag |Permanently deleting a tag.
+|100 |autoprune_tag_delete |Auto-pruning tag deletion.
+|101 |create_namespace_autoprune_policy |Creating namespace auto-prune policy.
+|102 |update_namespace_autoprune_policy |Updating namespace auto-prune policy.
+|103 |delete_namespace_autoprune_policy |Deleting namespace auto-prune policy.
+|104 |login_failure |Failed login attempt.
+|===
+
+
+
