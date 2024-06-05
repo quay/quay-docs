@@ -8,7 +8,7 @@ Administrators can leverage an OpenID Connect (OIDC) identity provider that supp
 [id="enabling-oidc-team-sync"]
 == Enabling synchronization for {productname} OIDC deployments
 
-Use the following procedure to enable team synchronization when you {productname} deployment uses an OIDC authenticator.
+Use the following procedure to enable team synchronization when your {productname} deployment uses an OIDC authenticator.
 
 [IMPORTANT]
 ====
@@ -30,9 +30,10 @@ OIDC_LOGIN_CONFIG:
   SERVICE_NAME: <4>
   PREFERRED_GROUP_CLAIM_NAME: <5>
   LOGIN_SCOPES: [ 'openid', '<example_scope>' ] <6>
+  OIDC_DISABLE_USER_ENDPOINT: false <7>
 # ...
-FEATURE_TEAM_SYNCING: true <7>
-FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true <8>
+FEATURE_TEAM_SYNCING: true <8>
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true <9>
 FEATURE_UI_V2: true
 # ...
 ----
@@ -42,8 +43,9 @@ FEATURE_UI_V2: true
 <4> Required. The name of the service that is being authenticated.
 <5> Required. The key name within the OIDC token payload that holds information about the user's group memberships. This field allows the authentication system to extract group membership information from the OIDC token so that it can be used with {productname}.
 <6> Required. Adds additional scopes that {productname} uses to communicate with the OIDC provider. Must include `'openid'`. Additional scopes are optional.
-<7> Required. Whether to allow for team membership to be synced from a backing group in the authentication engine.
-<8> Optional. If enabled, non-superusers can setup team synchronization.
+<7> Whether to allow or disable the `/userinfo` endpoint. If using Azure Entra ID, set this field to `true`. Defaults to `false`.
+<8> Required. Whether to allow for team membership to be synced from a backing group in the authentication engine.
+<9> Optional. If enabled, non-superusers can setup team synchronization.
 
 . Restart your {productname} registry. 
 
