@@ -1,0 +1,62 @@
+:_content-type: PROCEDURE
+[id="use-quay-export-logs-api"]
+= Exporting logs by using the API
+
+Detailed logs can be exported to a callback URL or to an email address.
+
+.Procedure
+
+. Use the `POST /api/v1/user/exportlogs` endpoint to export logs for the current user:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+        "starttime": "<MM/DD/YYYY>",
+        "endtime": "<MM/DD/YYYY>",
+        "callback_email": "your.email@example.com"
+      }' \
+  "http://<quay-server.example.com>/api/v1/user/exportlogs"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"export_id": "6a0b9ea9-444c-4a19-9db8-113201c38cd4"}
+----
+
+. Use the `POST /api/v1/organization/{orgname}/exportlogs` endpoint to export logs for an Organization:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+        "starttime": "<MM/DD/YYYY>",
+        "endtime": "<MM/DD/YYYY>",
+        "callback_email": "org.logs@example.com"
+      }' \
+  "http://<quay-server.example.com>/api/v1/organization/{orgname}/exportlogs"
+----
+
+. Use the `POST /api/v1/repository/{repository}/exportlogs` endpoint to export logs for a repository:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+        "starttime": "2024-01-01",
+        "endtime": "2024-06-18",
+        "callback_url": "http://your-callback-url.example.com"
+      }' \
+  "http://<quay-server.example.com>/api/v1/repository/{repository}/exportlogs"
+----
