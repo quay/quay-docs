@@ -1,0 +1,35 @@
+:_content-type: PROCEDURE
+[id="deleting-tags-api"]
+= Deleting an image by using the API
+
+You can delete an old image tag by using the API.
+
+.Procedure
+
+. You can delete an image tag by using the `DELETE /api/v1/repository/{repository}/tag/{tag}` command:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer <bearer_token>" \
+  https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>/tag/<tag>
+----
++
+This command does not return output in the CLI. Continue on to the next step to return a list of tags.
+
+. To see a list of tags after deleting a tag, you can use the `GET /api/v1/repository/{repository}/tag/` command. For example:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+   https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>/tag
+----
++
+.Example output
++
+[source,terminal]
+----
+{"tags": [{"name": "test", "reversion": false, "start_ts": 1716324069, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 21 May 2024 20:41:09 -0000"}, {"name": "example", "reversion": false, "start_ts": 1715698131, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 14 May 2024 14:48:51 -0000"}, {"name": "example", "reversion": false, "start_ts": 1715697708, "end_ts": 1715698131, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 14 May 2024 14:41:48 -0000", "expiration": "Tue, 14 May 2024 14:48:51 -0000"}, {"name": "test", "reversion": false, "start_ts": 1715695488, "end_ts": 1716324069, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 14 May 2024 14:04:48 -0000", "expiration": "Tue, 21 May 2024 20:41:09 -0000"}, {"name": "test", "reversion": false, "start_ts": 1715631517, "end_ts": 1715695488, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Mon, 13 May 2024 20:18:37 -0000", "expiration": "Tue, 14 May 2024 14:04:48 -0000"}], "page": 1, "has_additional": false}
+----
