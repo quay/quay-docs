@@ -2,7 +2,7 @@
 [id="managing-namespace-auto-pruning-policies"]
 = Managing auto-pruning policies using the {productname} UI
 
-Auto-pruning policies are created using the {productname} v2 UI. This can be done after you have configured your {productname} `config.yaml` file to enable the auto-pruning feature and the v2 UI.
+All auto-pruning policies, with the exception of a registry-wide auto pruning policy, are created using the {productname} v2 UI. This can be done after you have configured your {productname} `config.yaml` file to enable the auto-pruning feature and the v2 UI.
 
 [NOTE]
 ====
@@ -29,10 +29,101 @@ FEATURE_AUTO_PRUNE: true
 # ...
 ----
 
-[id="creating-policy-v2-ui"]
-== Creating an auto-prune policy for a namespace using the {productname} v2 UI
+[id="creating-registry-wide-auto-pruning-policy"]
+== Creating a registry-wide auto-pruning policy
 
-Use the following procedure to create an auto-prune policy for a namespace using the {productname} v2 UI.
+Registry-wide auto-pruning policies can be configured on new and existing organizations. This feature saves {productname} administrators time, effort, and storage by enforcing registry-wide rules.
+
+{productname} administrators must enable this feature by updating their `config.yaml` file through the inclusion of `DEFAULT_NAMESPACE_AUTOPRUNE_POLICY` configuration field, and one of `number_of_tags` or `creation_date` methods. Currently, this feature cannot be enabled by using the v2 UI or the API. 
+
+Use the following procedure to create an auto-prune policy for your {productname} registry.
+
+.Prerequisites
+
+* You have enabled the `FEATURE_AUTO_PRUNE` feature.
+
+.Procedure
+
+. Update your `config.yaml` file to add the `DEFAULT_NAMESPACE_AUTOPRUNE_POLICY` configuration field:
+
+.. To set the policy method to remove the oldest tags by their creation date until the number of tags provided is left, use the `number_of_tags` method:
++
+[source,yaml]
+----
+# ...
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: number_of_tags
+  value: 2 <1>
+# ...
+----
+<1> In this scenario, two tags remain.
+
+.. To set the policy method to remove tags with a creation date older than the provided time span, for example, `5d`, use the `creation_date` method:
++
+[source,yaml]
+----
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: creation_date
+  value: 5d
+----
+
+. Restart your {productname} deployment.
+
+. Optional. If you need to tag and push images to test this feature:
+
+.. Tag four sample images that will be pushed to a {productname} registry. For example:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test2
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test3
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test4
+----
+
+.. Push the four sample images to the registry with auto-pruning enabled by entering the following commands:
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/quayadmin/busybox:test
+----
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<quayadmin>/busybox:test2
+----
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<quayadmin>/busybox:test3
+----
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<quayadmin>/busybox:test4
+----
+
+. Check that there are four tags in the registry that you pushed the images to. 
+
+. By default, the auto-pruner worker at the registry level runs every 24 hours. After 24 hours, the two oldest image tags are removed, leaving the `test3` and `test4` tags if you followed these instructions. Check your {productname} organization to ensure that the two oldest tags were removed.
+
+
+[id="creating-policy-v2-ui"]
+== Creating an auto-prune policy for an organization by using the {productname} v2 UI
+
+Use the following procedure to create an auto-prune policy for an organization using the {productname} v2 UI.
 
 .Prerequisites 
 
@@ -109,7 +200,7 @@ image:auto-prune-policies-page.png[Auto-Prune Policies page]
 After tags are automatically pruned, they go into the {productname} time machine, or the  amount of time after a tag is deleted that the tag is accessible before being garbage collected. The expiration time of an image tag is dependent on your organization's settings. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]. 
 
 [id="creating-policy-api"]
-== Creating an auto-prune policy for a namespace using the {productname} API
+== Creating an auto-prune policy for a namespace by using the {productname} API
 
 You can use {productname} API endpoints to manage auto-pruning policies for an namespace. 
 
@@ -171,7 +262,7 @@ $ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.e
 ----
 
 [id="creating-policy-api-current-user"]
-== Creating an auto-prune policy for a namespace for the current user using the API
+== Creating an auto-prune policy for a namespace for the current user by using the API
 
 You can use {productname} API endpoints to manage auto-pruning policies for your account.
 
