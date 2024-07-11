@@ -1,27 +1,24 @@
 :_content-type: CONCEPT
-= Using the {productname} API
 [id="using-the-api"]
+= Using the {productname} API
 
 // Module included in the following assemblies:
 //
 // <List assemblies here, each on a new line>
 
-{productname} provides a full link:https://oauth.net/2/[OAuth 2], RESTful API that:
+{productname} provides a full link:https://oauth.net/2/[OAuth 2], RESTful API. [OAuth 2] RESTful API provides the following benefits:
 
-* Is available from endpoints of each {productname} instance from the URL
-https://<yourquayhost>/api/v1
+* It is available from endpoint `/api/v1` endpoint of your {productname} host. For example, `\https://<quay-server.example.com>/api/v1`.
 
-* Lets you connect to endpoints, via a browser, to get, delete, post, and put {productname} settings
-by enabling the Swagger UI
+* It allows users to connect to endpoints through their browser to `GET`, `POST`, `DELETE`, and `PUT` {productname} settings by enabling the Swagger UI.
 
-* Can be accessed by applications that make API calls and use OAuth tokens
+* It can be accessed by applications that make API calls and use OAuth tokens.
 
-* Sends and receives data as JSON
+* It sends and receives data as JSON. 
 
-The following text describes how to access the {productname} API and
-use it to view and modify setting in your {productname} cluster.
-The next section lists and describes API endpoints.
+The following section describes how to access the {productname} API so that it can be used with your deployment. 
 
+[id="accessing-quay-io-api"]
 == Accessing the Quay API from Quay.io
 If you don't have your own {productname} cluster running yet,
 you can explore the {productname} API available from Quay.io
@@ -104,6 +101,86 @@ Use the following procedure to create an OAuth access token.
 This is the only opportunity to copy and save the access token. It cannot be reobtained after leaving this page. 
 ====
 
+[id="reassigning-oauth-access-token"]
+== Reassigning an OAuth access token
+
+Organization administrators can assign OAuth API tokens to be created by other user's with specific permissions. This allows the audit logs to be reflected accurately when the token is used by a user that has no organization administrative permissions to create an OAuth API token.
+
+[NOTE]
+====
+The following procedure only works on the current {productname} UI. It is not currently implemented in the {productname} v2 UI.
+====
+
+.Prerequisites
+
+* You are logged in as a user with organization administrative privileges, which allows you to assign an OAuth API token.
++
+[NOTE]
+====
+OAuth API tokens are used for authentication and not authorization. For example, the user that you are assigning the OAuth token to must have the `Admin` team role to use administrative API endpoints. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#creating-an-image-repository-via-docker[Managing access to repositories].
+====
+
+.Procedure
+
+. Optional. If not already, update your {productname} `config.yaml` file to include the `FEATURE_ASSIGN_OAUTH_TOKEN: true` field:
++
+[source,yaml]
+----
+# ...
+FEATURE_ASSIGN_OAUTH_TOKEN: true
+# ...
+----
+
+. Optional. Restart your {productname} registry.
+
+. Log in to your {productname} registry as an organization administrator.
+
+. Click the name of the organization in which you created the OAuth token for.
+
+. In the navigation pane, click *Applications*.
+
+. Click the proper application name.
+
+. In the navigation pane, click *Generate Token*.
+
+. Click *Assign another user* and enter the name of the user that will take over the OAuth token.
+
+. Check the boxes for the desired permissions that you want the new user to have. For example, if you only want the new user to be able to create repositories, click *Create Repositories*.
++
+[IMPORTANT]
+====
+Permission control is defined by the team role within an organization and must be configured regardless of the options selected here. For example, the user that you are assigning the OAuth token to must have the `Admin` team role to use administrative API endpoints. 
+
+Solely checking the *Super User Access* box does not actually grant the user this permission. Superusers must be configured via the `config.yaml` file _and_ the box must be checked here.
+====
+
+. Click *Assign token*. A popup box appears that confirms authorization with the following message and shows you the approved permissions:
++
+[source,text]
+----
+This will prompt user <username> to generate a token with the following permissions:
+repo:create
+----
+
+. Click *Assign token* in the popup box. You are redirected to a new page that displays the following message:
++
+[source,text]
+----
+Token assigned successfully
+----
+
+.Verification
+
+. After reassigning an OAuth token, the assigned user must accept the token to receive the bearer token, which is required to use API endpoints. Request that the assigned user logs into the {productname} registry.
+
+. After they have logged in, they must click their username under *Users and Organizations*.
+
+. In the navigation pane, they must click *External Logins And Applications*.
+
+. Under *Authorized Applications*, they must confirm the application by clicking *Authorize Application*. They are directed to a new page where they must reconfirm by clicking *Authorize Application*.
+
+. They are redirected to a new page that reveals their bearer token. They must save this bearer token, as it cannot be viewed again.
+
 == Accessing your Quay API from a web browser
 
 By enabling Swagger, you can access the API for your own {productname} instance through a web browser.
@@ -136,6 +213,8 @@ BROWSER_API_CALLS_XHR_ONLY: false
 You can use the `curl` command to GET, PUT, POST, or DELETE settings via the API
 for your {productname} cluster. Replace `<token>` with the OAuth access token you
 created earlier to get or change settings in the following examples.
+
+////
 
 === Get superuser information
 
@@ -522,3 +601,4 @@ $ curl -X POST
   -H "Content-Type: application/json"
   --data '{"is_enabled": true, "external_reference": "quay.io/minio/mc", "external_registry_username": "username", "external_registry_password": "password", "external_registry_config": {"unsigned_images":true, "verify_tls": false, "proxy": {"http_proxy": "http://proxy.tld", "https_proxy": "https://proxy.tld", "no_proxy": "domain"}}, "sync_interval": 600, "sync_start_date": "2021-08-06T11:11:39Z", "root_rule": {"rule_kind": "tag_glob_csv", "rule_value": [ "*" ]}, "robot_username": "orga+robot"}' https://${quay_registry}/api/v1/repository/${orga}/${repo}/mirror | jq
 ----
+////
