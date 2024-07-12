@@ -1,0 +1,48 @@
+:_content-type: REFERENCE
+[id="config-updates-312"]
+= Configuration updates for {productname} 3.12
+
+The following sections detail new configuration fields added in {productname} 3.12.
+
+[id="registry-auto-prune-configuration-fields"]
+== Registry auto-pruning configuration fields
+
+The following configuration fields have been added to {productname} auto-pruning feature:
+
+.Registry auto-pruning configuration fields
+|===
+| Fields |Type |Description
+|*DEFAULT_NAMESPACE_AUTOPRUNE_POLICY* | Object | The default organization-wide auto-prune policy.
+
+|{nbsp}{nbsp}{nbsp} *.method: number_of_tags* | Object | The option specifying the number of tags to keep. 
+
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *method: number_of_tags*, denotes the number of tags to keep. +
+
+For example, to keep two tags, specify `2`.
+
+|{nbsp}{nbsp}{nbsp} *.creation_date* | Object | The option specifying the duration of which to keep tags. 
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | The number denoting how long to keep tags. +
+
+Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`). Must include a valid integer. For example, to keep tags for one year, specify `1y`.
+
+|*AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD* |Integer | The period in which the auto-pruner worker runs at the registry level. By default, it is set to run one time per day (one time per 24 hours). Value must be in seconds.
+
+|===
+
+.Example registry auto-prune policy by number of tags
+[source,yaml]
+----
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: number_of_tags
+  value: 10 <1>
+----
+<1> In this scenario, ten tags remain.
+
+.Example registry auto-prune policy by creation date
+[source,yaml]
+----
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: creation_date
+  value: 1y
+----
+
