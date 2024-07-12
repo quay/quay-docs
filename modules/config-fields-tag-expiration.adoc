@@ -32,16 +32,33 @@ The following tag expiration configuration fields are available with {productnam
 
 | *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES* |Integer | The interval, in minutes, that defines the frequency to re-run notifications for expiring images. +
  +
- **Default:** `300`
+**Default:** `300`
+
+|*DEFAULT_NAMESPACE_AUTOPRUNE_POLICY* | Object | The default organization-wide auto-prune policy.
+
+|{nbsp}{nbsp}{nbsp} *.method: number_of_tags* | Object | The option specifying the number of tags to keep. 
+
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *method: number_of_tags*, denotes the number of tags to keep. +
+
+For example, to keep two tags, specify `2`.
+
+|{nbsp}{nbsp}{nbsp} *.creation_date* | Object | The option specifying the duration of which to keep tags. 
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *creation_date*, denotes how long to keep tags. +
+
+Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`). Must include a valid integer. For example, to keep tags for one year, specify `1y`.
+
+|*AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD* |Integer | The period in which the auto-pruner worker runs at the registry level. By default, it is set to run one time per day (one time per 24 hours). Value must be in seconds.
+
 |===
 
 [id="example-config-fields-tag-expiration"]
 == Example tag expiration configuration
 
-The following YAML shows a sample tag expiration configuration: 
+The following YAML example shows you a sample tag expiration configuration.
 
-[source,terminal]
+[source,yaml]
 ----
+# ...
 DEFAULT_TAG_EXPIRATION: 2w
 TAG_EXPIRATION_OPTIONS:
     - 0s
@@ -49,4 +66,31 @@ TAG_EXPIRATION_OPTIONS:
     - 1w
     - 2w
     - 4w
+# ...
+----
+
+[id="example-auto-prune-policy-registry"]
+== Registry-wide auto-prune policies examples
+
+The following YAML examples show you registry-wide auto-pruning examples by both number of tags and creation date.
+
+.Example registry auto-prune policy by number of tags
+[source,yaml]
+----
+# ...
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: number_of_tags
+  value: 10 <1>
+# ...
+----
+<1> In this scenario, ten tags remain.
+
+.Example registry auto-prune policy by creation date
+[source,yaml]
+----
+# ...
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: creation_date
+  value: 1y
+# ...
 ----
