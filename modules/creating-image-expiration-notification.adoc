@@ -1,0 +1,83 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: CONCEPT
+[id="creating-image-expiration-notification"]
+= Creating an image expiration notification
+
+Image expiration event triggers can be configured to notify users through email, Slack, webhooks, and so on, and can be configured at the repository level. Triggers can be set for images expiring in any amount of days, and can work in conjunction with the auto-pruning feature.
+
+Image expiration notifications can be set by using the {productname} v2 UI or by using the `createRepoNotification` API endpoint.
+
+.Prerequisites
+
+* `FEATURE_GARBAGE_COLLECTION: true` is set in your `config.yaml` file.
+* Optional. `FEATURE_AUTO_PRUNE: true` is set in your `config.yaml` file.
+
+.Procedure
+
+. On the {productname} v2 UI, click *Repositories*.
+
+. Select the name of a repository.
+
+. Click *Settings* -> *Events and notifications*. 
+
+. Click *Create notification*. The *Create notification* popup box appears.
+
+. Click the *Select event...* box, then click *Image expiry trigger*.
+
+. In the *When the image is due to expiry in days* box, enter the number of days before the image's expiration when you want to receive an alert. For example, use `1` for 1 day.
+
+. In the *Select method...* box, click one of the following:
++
+* E-mail
+* Webhook POST
+* Flowdock Team Notification
+* HipChat Room Notification
+* Slack Notification 
+
+. Depending on which method you chose, include the necessary data. For example, if you chose *Webhook POST*, include the `Webhook URL`. 
+
+. Optional. Provide a *POST JSON body template*.
+
+. Optional. Provide a *Title* for your notification.
+
+. Click *Submit*. You are returned to the *Events and notifications* page, and the notification now appears.
+
+. Optional. You can set the `NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES` variable in your config.yaml file. with this field set, if there are any expiring images notifications will be sent automatically. By default, this is set to `300`, or 5 hours, however it can be adjusted as warranted.
++
+[source,yaml]
+----
+NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES: 300 <1>
+----
+<1> By default, this field is set to `300`, or 5 hours.
+
+.Verification
+
+. Click the menu kebab -> *Test Notification*. The following message is returned:
++
+[source,text]
+----
+Test Notification Queued
+A test version of this notification has been queued and should appear shortly
+----
+
+. Depending on which method you chose, check your e-mail, webhook address, Slack channel, and so on. The information sent should look similar to the following example:
++
+[source,json]
+----
+{
+  "repository": "sample_org/busybox",
+  "namespace": "sample_org",
+  "name": "busybox",
+  "docker_url": "quay-server.example.com/sample_org/busybox",
+  "homepage": "http://quay-server.example.com/repository/sample_org/busybox",
+  "tags": [
+    "latest",
+    "v1"
+  ],
+  "expiring_in": "1 days"
+}
+----
