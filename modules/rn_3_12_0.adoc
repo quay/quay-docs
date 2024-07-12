@@ -48,6 +48,17 @@ Image expiration event triggers can be configured to notify users through email,
 
 For more information, see https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/index#creating-image-expiration-notification[Creating an image expiration notification].
 
+[id="auto-pruning-enhancements"]
+=== {productname} auto-pruning enhancements
+
+With the release of {productname} 3.10, a new auto-pruning feature was released. With that feature, {productname} administrators could set up auto-pruning policies on namespaces for both users and organizations so that image tags were automatically deleted based on specified criteria. In {productname} 3.11, this feature was enhanced so that auto-pruning policies could be set up on specified repositories. 
+
+With this release, default auto-pruning policies can now be set up at the registry level. Default auto-pruning policies set up at the registry level can be configured on new and existing organizations. This feature saves {productname} administrators time, effort, and storage by enforcing registry-wide rules.
+
+{productname} administrators must enable this feature by updating their `config.yaml` file through the inclusion of `DEFAULT_NAMESPACE_AUTOPRUNE_POLICY` configuration field, and one of `number_of_tags` or `creation_date` methods. Currently, this feature cannot be enabled by using the v2 UI or the API. 
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#red-hat-quay-namespace-auto-pruning-overview[{productname} auto-pruning overview].
+
 [id="quay-operator-updates-312"]
 == {productname} Operator updates
 
@@ -75,6 +86,36 @@ The following configuration field has been added for reassigning OAuth access to
 The following configuration field has been added to enhance {productname} notifications:
 
 * *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES*: The interval, in minutes, that defines the frequency to re-run notifications for expiring images. By default, this field is set to notify {productname} users of events happening every 5 hours.
+
+[id="registry-auto-prune-configuration-fields"]
+=== Registry auto-pruning configuration fields
+
+The following configuration fields have been added to {productname} auto-pruning feature:
+
+* *DEFAULT_NAMESPACE_AUTOPRUNE_POLICY*: The default organization-wide auto-prune policy. 
+** *.method: number_of_tags*: When setting an auto-prune policy for a registry with the `number_of_tags` configuration field, the oldest tags are deleted by their creation date until the desired number of tags is achieved. 
+** *.value: <integer>*: When used with *method: number_of_tags*, denotes the number of tags to keep.
+
+** *.method: creation_date*: When setting an auto-prune policy for a registry with the `creation_date` configuration field, any tags with a creation date older than the given time span, for example, 10 days, are deleted. Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`) and include a valid integer, for example, `1y`.
+** *.value: <integer>*: When used with *creation_date*, denotes how long to keep tags.
+
+* *AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD*: The period in which the auto-pruner worker runs at the registry level. By default, it is set to run one time per day (one time per 24 hours). Value must be in seconds. 
+
+.Example registry auto-prune policy by number of tags
+[source,yaml]
+----
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: number_of_tags
+  value: 10
+----
+
+.Example registry auto-prune policy by creation date
+[source,yaml]
+----
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: creation_date
+  value: 1y
+----
 
 [id="new-api-endpoints-311"]
 == New API endpoints
