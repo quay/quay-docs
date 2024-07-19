@@ -49,7 +49,7 @@ of the endpoint. Open an endpoint, enter any required parameters
 button to query or change settings associated with a Quay.io endpoint.
 
 [id="creating-oauth-access-token"]
-== Creating an OAuth access token
+== Creating a v1 OAuth access token
 
 OAuth access tokens are credentials that allow you to access protected resources in a secure manner. With {productname}, you must create an OAuth access token before you can access the API endpoints of your organization. 
 
@@ -100,6 +100,52 @@ Use the following procedure to create an OAuth access token.
 ====
 This is the only opportunity to copy and save the access token. It cannot be reobtained after leaving this page. 
 ====
+
+[id="creating-v2-oauth-access-token"]
+== Creating an OCI referrers OAuth access token
+
+In some cases, you might want to create an OCI referrers OAuth access token. This token is used to list OCI referrers of a manifest under a repository.
+
+.Procedure
+
+. Update your `config.yaml` file to include the `FEATURE_REFERRERS_API: true` field. For example:
++
+[source,yaml]
+----
+# ...
+FEATURE_REFERRERS_API: true
+# ...
+----
+
+. Enter the following command to Base64 encode your credentials:
++
+[source,terminal]
+----
+$ echo -n '<username>:<password>' | base64
+----
++
+.Example output
++
+[source,terminal]
+----
+abcdeWFkbWluOjE5ODlraWROZXQxIQ==
+----
+
+. Enter the following command to use the base64 encoded string and modify the URL endpoint to your {productname} server:
++
+[source,terminal]
+----
+$ curl --location '<quay-server.example.com>/v2/auth?service=<quay-server.example.com>&scope=repository:quay/listocireferrs:pull,push' --header 'Authorization: Basic <base64_username:password_encode_token>' -k | jq
+----
++
+.Example output
++
+[source,terminal]
+----
+{
+  "token": "eyJhbGciOiJSUzI1NiIsImtpZCI6Ijl5RWNtWmdiZ0l6czBBZW16emhTMHM1R0g2RDJnV2JGUTdUNGZYand4MlUiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJxdWF5IiwiYXVkIjoicXVheS1zZXJ2ZXIuZXhhbXBsZS5jb20iLCJuYmYiOjE3MjEzMzAzNDYsImlhdCI6MTcyMTMzMDM0NiwiZXhwIjoxNzIxMzMzOTQ2LCJzdWIiOiJxdWF5YWRtaW4iLCJhY2Nlc3MiOlt7InR5cGUiOiJyZXBvc2l0b3J5IiwibmFtZSI6InF1YXkvbGlzdG9jaXJlZmVycnMiLCJhY3Rpb25zIjpbXX1dLCJjb250ZXh0Ijp7InZlcnNpb24iOjIsImVudGl0eV9raW5kIjoidXNlciIsImVudGl0eV9yZWZlcmVuY2UiOiJkZjI1M2QyNC0zZWUwLTRkODItOTcxYi1hZGYxMWYyNzBlM2IiLCJraW5kIjoidXNlciIsInVzZXIiOiJxdWF5YWRtaW4iLCJjb20uYXBvc3RpbGxlLnJvb3RzIjp7InF1YXkvbGlzdG9jaXJlZmVycnMiOiIkZGlzYWJsZWQifSwiY29tLmFwb3N0aWxsZS5yb290IjoiJGRpc2FibGVkIn19.sBR765ea-E41b2SfiIS36qoOmIZ6DEn9hvsCq3cszn6umlnKiBkc1jq6O1KlxtIhPdf8m8-xtLMJakxkKST4mJg5CHR5WG2AVExuT6nCHg9KuzOZTkafMJeUzC4lxRsrdgKXyGUaYONOALf6bW_IebSIOOVt55m83-KVz5NMHSov9VmQlPCfGnWS3pq3bG-nUaLhGRuSKc1EoGgnKlULNr9gAgzwBmB7-MGioP7NL5_IQtrbjFyBdckQuJcpcwNK78gb8MQIwI-e6WMvBT94pQkdD6bibo6zpFayFKSc6PsoO4Z4PjiON6vnD4kqEpX6rw5Yj7unv4RKjA_iHG-BoQ"
+}
+----
 
 [id="reassigning-oauth-access-token"]
 == Reassigning an OAuth access token
