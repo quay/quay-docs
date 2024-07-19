@@ -5,11 +5,11 @@
 The following sections detail _y_ and _z_ stream release information.
 
 [id="rn-3-12-0"]
-== RHBA-2024:xxxx - {productname} 3.12.0 release
+== RHBA-2024:4525 - {productname} 3.12.0 release
 
-Issued 2024-06-xx
+Issued 2024-07-23
 
-{productname} release {producty} is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2024:xxxx[RHBA-2024:xxxx] advisory. For the most recent compatibility matrix, see link:https://access.redhat.com/articles/4067991[Quay Enterprise 3.x Tested Integrations].
+{productname} release {producty} is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2024:4525[RHBA-2024:4525] advisory. For the most recent compatibility matrix, see link:https://access.redhat.com/articles/4067991[Quay Enterprise 3.x Tested Integrations].
 
 [id="release-cadence-312"]
 == {productname} release cadence 
@@ -66,10 +66,27 @@ With this release, default auto-pruning policies can now be set up at the regist
 
 For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#red-hat-quay-namespace-auto-pruning-overview[{productname} auto-pruning overview].
 
-[id="quay-operator-updates-312"]
-== {productname} Operator updates
+[id="oci-compliance-updates"]
+=== Open Container Initiative 1.1 implementation
 
-The following updates have been made to the {productname} Operator.
+{productname} now supports the Open Container Initiative (OCI) 1.1 distribution spec version 1.1. Key highlights of this update include support for the following areas:
+
+* Enhanced capabilities for handling various types of artifacts, which provides better flexibility and compliance with OCI 1.1.
+* Introduction of new reference types, which allows more descriptive referencing of artifacts.
+* Introduction of the _referrers API_, which aids in the retrieval and management of referrers, which helps improve container image management.
+* Enhance UI to better visualize referrers, which makes it easier for users to track and manage dependencies.
+
+* For more information about OCI spec 1.1, see link:https://github.com/opencontainers/distribution-spec/tree/v1.1.0-rc1?tab=readme-ov-file#oci-distribution-specification[OCI Distribution Specification].
+
+* For more information about OCI support and {productname}, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/index#oci-intro[Open Container Initiative support].
+
+[id="v2-ui-enhancement"]
+=== {productname} v2 UI enhancements
+
+[id="robot-account-creation-enhancement"]
+==== Robot account creation enhancement
+
+* When creating a robot account with the {productname} v2 UI, administrators can now specify that the kubernetes runtime use a secret only for a specific organization or repository. This option can be selected by clicking the name of your robot account on the v2 UI, and then clicking the *Kubernetes* tab.
 
 [id="new-quay-config-fields-312"]
 == New {productname} configuration fields
@@ -120,10 +137,84 @@ DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
   value: 1y
 ----
 
-[id="new-api-endpoints-311"]
-== New API endpoints
+[id="image-vulnerability-notification-field"]
+=== Vulnerability detection notification configuration field
 
-The following API endpoints have been added to {productname} {producty}.
+The following configuration field has been added to notify users on detected vulnerabilities based on security level:
+
+* *NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX*: Set minimal security level for new notifications on detected vulnerabilities. Avoids creation of large number of notifications after first index. If not defined, defaults to `High`.
+
+.Example image vulnerability notification YAML
+[source,yaml]
+----
+NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX: High
+----
+
+[id="oci-referrers-api-configuration-field"]
+=== OCI referrers API configuration field
+
+The following configuration field allows users to list OCI referrers of a manifest under a repository by using the v2 API:
+
+* *FEATURE_REFERRERS_API*: Enables OCI 1.1's referrers API.
+
+.Example OCI referrers enablement YAML
+[source,yaml]
+----
+# ...
+FEATURE_REFERRERS_API: true
+# ...
+----
+
+[id="disable-strict-logging-configuration-field"]
+=== Disable strict logging configuration field
+
+When set to `True`, the following configuration field allows you to use any registry action when you are unable to write to the audit log:
+
+* *ALLOW_WITHOUT_STRICT_LOGGING*: True
+
+.Example strict logging YAML
+[source,yaml]
+----
+# ...
+ALLOW_WITHOUT_STRICT_LOGGING: True
+# ...
+----
+
+[id="new-api-endpoints-312"]
+== API endpoint enhancements
+
+[id="new-changeorgquota-createorgquota-endpoints"]
+=== New changeOrganizationQuota and createOrganizationQuota endpoints:
+
+The following optional API field has been added to the `changeOrganizationQuota` and `createOrganizationQuota` endpoints:
+
+|===
+|Name|Description|Schema
+
+|**limits** + 
+_optional_|Human readable storage capacity of the organization. Accepts SI units like Mi, Gi, or Ti, as well as non-standard units like GB or MB. Must be mutually exclusive with `limit_bytes`.|string
+|===
+
+Use this field to set specific limits when creating or changing an organization's quote limit. For more information about these endpoints, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#changeorganizationquota[changeOrganizationQuota] and link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#createorganizationquota[createOrganizationQuota].
+
+[id="new-referrer-endpoints"]
+=== New referrer API endpoint
+
+The following API endpoint allows use to obtain referrer artifact information:
+
+|===
+|Type|Name|Description|Schema
+|path|**orgname** + 
+_required_|The name of the organization|string
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**referrers** + 
+_required_| Looks up the OCI referrers of a manifest under a repository.|string
+|**manifest_digest** + 
+_required_|The digest of the manifest|string
+|===
+
+To use this field, you must generate a v2 API OAuth token and set `FEATURE_REFERRERS_API: true` in your `config.yaml` file. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#creating-v2-oauth-access-token[Creating an OCI referrers OAuth access token].
 
 [id="known-issues-and-limitations-312"]
 == {productname} 3.12 known issues and limitations
@@ -146,10 +237,8 @@ The {productname} team is aware of the following known issues on the v2 UI:
 * link:https://issues.redhat.com/browse/PROJQUAY-6861[*PROJQUAY-6861*]. The new UI "Last Modified" of organization always show N/A after target organization's setting is updated
 * link:https://issues.redhat.com/browse/PROJQUAY-6860[*PROJQUAY-6860*]. The new UI update the time machine configuration of organization show NULL in usage logs
 * link:https://issues.redhat.com/browse/PROJQUAY-6859[*PROJQUAY-6859*]. Thenew UI remove image repo permission show "undefined" for organization name in audit logs
-* link:https://issues.redhat.com/browse/PROJQUAY-6854[*PROJQUAY-6854*]. "Device-based theme" doesn't work as design in Firefox
 * link:https://issues.redhat.com/browse/PROJQUAY-6852[*PROJQUAY-6852*]. "Tag manifest with the branch or tag name" option in build trigger setup wizard should be checked by default.
 * link:https://issues.redhat.com/browse/PROJQUAY-6832[*PROJQUAY-6832*]. The new UI should validate the OIDC group name when enable OIDC Directory Sync
-* link:https://issues.redhat.com/browse/PROJQUAY-6831[*PROJQUAY-6831*]. The new UI should not show invited tab when the team is configured sync from OIDC group
 * link:https://issues.redhat.com/browse/PROJQUAY-6830[*PROJQUAY-6830*]. The new UI should show the sync icon when the team is configured sync team members from OIDC Group
 * link:https://issues.redhat.com/browse/PROJQUAY-6829[*PROJQUAY-6829*]. The new UI team member added to team sync from OIDC group should be audited in Organization logs page
 * link:https://issues.redhat.com/browse/PROJQUAY-6825[*PROJQUAY-6825*]. Build cancel operation log can not be displayed correctly in new UI
@@ -187,6 +276,11 @@ Some features available in previous releases have been deprecated or removed. De
 [cols="4,1,1,1",options="header"]
 |===
 |Feature | Quay 3.12 | Quay 3.11 | Quay 3.10
+
+|link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/index#oci-intro[Open Container Initiative 1.1 support].
+|General Availability
+|-
+|-
 
 |link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#reassigning-oauth-access-token[Reassigning an OAuth access token]
 |General Availability
