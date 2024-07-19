@@ -17,6 +17,10 @@
 | **LOGS_MODEL_CONFIG** | Object |  Logs model config for action logs.
 |===
 
+[id="elasticsearch-log-configuration-fields"]
+=== Elasticsearch configuration fields 
+
+The following fields are available when configuring Elasticsearch for {productname}.
 
 * **LOGS_MODEL_CONFIG** [object]: Logs model config for action logs.
 ** **elasticsearch_config** [object]: Elasticsearch cluster configuration.
@@ -61,8 +65,14 @@
 *** **bootstrap_servers** [array]: List of Kafka brokers to bootstrap the client from.
 *** **max_block_seconds** [number]: Max number of seconds to block during a `send()`, either because the buffer is full or metadata unavailable.
 **** **Example**: `10`
+
+[id="splunk-configuration-fields"]
+=== Splunk configuration fields
+
+The following fields are available when configuring Splunk for {productname}.
+
 //splunk
-** **producer** [string]: `splunk`
+** **producer** [string]: `splunk`. Use when configuring Splunk.
 ** **splunk_config** [object]: Logs model configuration for Splunk action logs or the Splunk cluster configuration.
 *** **host** [string]: Splunk cluster endpoint.
 *** **port** [integer]: Splunk management cluster endpoint port.
@@ -70,6 +80,58 @@
 *** **verify_ssl** [boolean]: Enable (`True`) or disable (`False`) TLS/SSL verification for HTTPS connections.
 *** **index_prefix** [string]: Splunk's index prefix.
 *** **ssl_ca_path** [string]: The relative container path to a single `.pem` file containing a certificate authority (CA) for SSL validation.
+
+.Example Splunk configuration
+[source,yaml]
+----
+# ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+    producer: splunk
+    splunk_config:
+        host: http://<user_name>.remote.csb
+        port: 8089
+        bearer_token: <bearer_token>
+        url_scheme: <http/https>
+        verify_ssl: False
+        index_prefix: <splunk_log_index_name>
+        ssl_ca_path: <location_to_ssl-ca-cert.pem>
+# ...
+----
+
+[id="splunk-hec-configuration-fields"]
+=== Splunk HEC configuration fields
+
+The following fields are available when configuring Splunk HTTP Event Collector (HEC) for {productname}.
+
+** **producer** [string]: `splunk_hec`. Use when configuring Splunk HEC.
+** **splunk_hec_config** [object]: Logs model configuration for Splunk HTTP event collector action logs configuration.
+*** **host** [string]: Splunk cluster endpoint.
+*** **port** [integer]: Splunk management cluster endpoint port.
+*** **hec_token** [string]: HEC token for Splunk.
+*** **url_scheme** [string]: The URL scheme for access the Splunk service. If Splunk is behind SSL/TLS, must be `https`.
+*** **verify_ssl** [boolean]: Enable (`true`) or disable (`false`) SSL/TLS verification for HTTPS connections.
+*** **index** [string]: The Splunk index to use.
+*** **splunk_host** [string]: The host name to log this event.
+*** **splunk_sourcetype** [string]: The name of the Splunk `sourcetype` to use.
+
+[source,yaml]
+----
+# ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  producer: splunk_hec
+  splunk_hec_config: <1>
+    host: prd-p-aaaaaq.splunkcloud.com <2>
+    port: 8088 <3>
+    hec_token: 12345678-1234-1234-1234-1234567890ab <4>
+    url_scheme: https <5>
+    verify_ssl: False <6>
+    index: quay <7>
+    splunk_host: quay-dev <8>
+    splunk_sourcetype: quay_logs <9>
+# ...
+----
 
 == Action log rotation and archiving configuration
 
