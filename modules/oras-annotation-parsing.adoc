@@ -1,0 +1,164 @@
+:_content-type: CONCEPT
+[id="annotation-parsing-oras"]
+= Annotation parsing
+
+Some OCI media types do not utilize labels and, as such, critical information such as expiration timestamps are not included. {productname} supports metadata passed through annotations to accommodate OCI media types that do not include these labels for metadata transmission. Tools such as Cosign and ORAS (OCI Registry as Storage) can now be used to embed information with artifact types to help ensure that images operate properly, for example, to expire.
+
+The following procedure uses ORAS to add an expiration date to an OCI media artifact.
+
+[IMPORTANT]
+====
+If you pushed an image with `podman push`, and then add an annotation with `oras`, the MIME type is changed. Consequently, you will not be able to pull the same image with `podman pull` because Podman does not recognize that MIME type.
+====
+
+.Prerequisites
+
+* You have downloaded the `oras` CLI. For more information, see link:https://oras.land/docs/installation[Installation].
+* You have pushed an OCI media artifact to your {productname} repository.
+
+////
+.Procedure
+
+. Create an example artifact:
++
+[source,terminal]
+----
+$ cat <<EOF > Dockerfile
+FROM alpine
+CMD echo 'hello world!'
+EOF
+----
+
+. Create an artifact directory:
++
+[source,terminal]
+----
+$ mkdir <example_directory>
+----
+
+. Build the Docker image by using Podman. For example:
++
+[source,terminal]
+----
+$ podman build -t <myartifact_image> .
+----
++
+.Example output
++
+[source,terminal]
+----
+STEP 1/2: FROM alpine
+STEP 2/2: CMD echo 'hello world!'
+--> Using cache a5c9903200482a77ad9be3234962d2eac4dfef0b35d08eb4e966bf0125e0679b
+COMMIT myartifact-image
+--> a5c990320048
+Successfully tagged localhost/myartifact-image:latest
+Successfully tagged localhost/hello-world:v1
+a5c9903200482a77ad9be3234962d2eac4dfef0b35d08eb4e966bf0125e0679b
+----
+
+. Confirm that the image has been built:
++
+[source,terminal]
+----
+$ podman images
+----
++
+.Example output
++
+[source,terminal]
+----
+REPOSITORY                                 TAG         IMAGE ID      CREATED        SIZE
+localhost/<myartifact_image >                latest      a5c990320048  18 hours ago   8.08 MB
+----
+
+. Convert the image to an OCI artifact. For example:
++
+[source,terminal]
+----
+$ podman save --format oci-archive -o myartifact-image.tar <myartifact_image>
+----
+
+. Inspect the image to ensure that it follows the OCI format:
++
+[source,terminal]
+----
+$ podman inspect myartifact-image
+----
++
+.Example output
++
+[source,terminal]
+----
+---
+[
+     {
+          "Id": "a5c9903200482a77ad9be3234962d2eac4dfef0b35d08eb4e966bf0125e0679b",
+          "Digest": "sha256:cc9c20f447dfd2b30019a44290d451a2edc5dec51736d29b5697c23fe7e55afb",
+          "RepoTags": [
+               "localhost/myartifact-image:latest",
+               "localhost/hello-world:v1"
+---
+----
+
+. Tag the image by entering the following command:
++
+[source,terminal]
+----
+$ podman tag <myartifact_image> quay.io/<organization_name>/<repository>/<image_name>:<tag>
+----
+
+. Push the artifact to your {productname} registry. For example:
++
+[source,terminal]
+----
+$ podman push <myartifact_image> quay.io/<organization_name>/<repository>/<image_name>:<tag>
+----
+////
+
+* By default, some OCI media types, like `application/vnd.oci.image.manifest.v1+json`, do not use certain labels, like expiration timestamps. You can use a CLI tool like ORAS (`oras`) to add annotations to OCI media types. For example:
++
+[source,terminal]
+----
+$ oras push --annotation "quay.expires-after=2d" \ <1>
+--annotation "expiration = 2d" \ <2>
+quay.io/<organization_name>/<repository>/<image_name>:<tag>
+----
+<1> Set the expiration time for 2 days, indicated by `2d`.
+<2> Adds the expiration label.
++
+.Example output
++
+[source,terminal]
+----
+✓ Exists    application/vnd.oci.empty.v1+json                                                                                   2/2  B 100.00%     0s
+  └─ sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+✓ Uploaded  application/vnd.oci.image.manifest.v1+json                                                                      561/561  B 100.00%  511ms
+  └─ sha256:9b4f2d43b62534423894d077f0ff0e9e496540ec8b52b568ea8b757fc9e7996b
+Pushed [registry] quay.io/stevsmit/testorg3/oci-image:v1
+ArtifactType: application/vnd.unknown.artifact.v1
+Digest: sha256:9b4f2d43b62534423894d077f0ff0e9e496540ec8b52b568ea8b757fc9e7996b
+----
+
+.Verification
+
+. Pull the image with `oras`. For example:
++
+[source,terminal]
+----
+$ oras pull quay.io/<organization_name>/<repository>/<image_name>:<tag>
+----
+
+. Inspect the changes using `oras`. For example:
++
+[source,terminal]
+----
+$ oras manifest fetch quay.io/<organization_name>/<repository>/<image_name>:<tag>
+----
++
+.Example output
++
+[source,terminal]
+----
+{"schemaVersion":2,"mediaType":"application/vnd.oci.image.manifest.v1+json","artifactType":"application/vnd.unknown.artifact.v1","config":{"mediaType":"application/vnd.oci.empty.v1+json","digest":"sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a","size":2,"data":"e30="},"layers":[{"mediaType":"application/vnd.oci.empty.v1+json","digest":"sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a","size":2,"data":"e30="}],"annotations":{"org.opencontainers.image.created":"2024-07-11T15:22:42Z","version ":" 8.11"}}
+----
