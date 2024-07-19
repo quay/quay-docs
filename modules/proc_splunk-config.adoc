@@ -2,7 +2,7 @@
 [id="proc_splunk-config"]
 = Configuring {productname} to use Splunk
 
-Use the following procedure to configure {productname} to use Splunk.
+Use the following procedure to configure {productname} to use Splunk or the Splunk HTTP Event Collector (HEC). 
 
 .Prerequisites
 
@@ -11,7 +11,9 @@ Use the following procedure to configure {productname} to use Splunk.
 
 .Procedure
 
-. Open your {productname} `config.yaml` file and add the following configuration fields:
+. Configure {productname} to use Splunk or the Splunk HTTP Event Collector (HEC).
+
+.. If opting to use Splunk, open your {productname} `config.yaml` file and add the following configuration fields:
 +
 [source,yaml]
 ----
@@ -36,6 +38,36 @@ LOGS_MODEL_CONFIG:
 <5> Boolean. Whether to enable TLS/SSL. Defaults to `true`.
 <6> String. The Splunk index prefix. Can be a new, or used, index. Can be created from the Splunk UI.
 <7> String. The relative container path to a single `.pem` file containing a certificate authority (CA) for TLS/SSL validation.
+
+.. If opting to use Splunk HEC, open your {productname} `config.yaml` file and add the following configuration fields:
++
+[source,yaml]
+----
+# ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  producer: splunk_hec <1>
+  splunk_hec_config: <2>
+    host: prd-p-aaaaaq.splunkcloud.com <3>
+    port: 8088 <4>
+    hec_token: 12345678-1234-1234-1234-1234567890ab <5>
+    url_scheme: https <6>
+    verify_ssl: False <7>
+    index: quay <8>
+    splunk_host: quay-dev <9>
+    splunk_sourcetype: quay_logs <10>
+# ...
+----
+<1> Specify `splunk_hec` when configuring Splunk HEC.
+<2> Logs model configuration for Splunk HTTP event collector action logs configuration.
+<3> Splunk cluster endpoint
+<4> Splunk management cluster endpoint port.
+<5> HEC token for Splunk.
+<6> The URL scheme for access the Splunk service. If Splunk is behind SSL/TLS, must be `https`.
+<7> Boolean. Enable (true) or disable (false) SSL/TLS verification for HTTPS connections.
+<8> The Splunk index to use.
+<9> The host name to log this event.
+<10> The name of the Splunk `sourcetype` to use.
 
 . If you are configuring `ssl_ca_path`, you must configure the SSL/TLS certificate so that {productname} will trust it. 
 
