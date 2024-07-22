@@ -8,22 +8,38 @@ The following sections detail new configuration fields added in {productname} 3.
 == Registry auto-pruning configuration fields
 
 The following configuration fields have been added to {productname} auto-pruning feature:
+|===
+| Field | Type | Description
+| *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES* |Integer | The interval, in minutes, that defines the frequency to re-run notifications for expiring images. +
+ +
+**Default:** `300`
 
-* *DEFAULT_NAMESPACE_AUTOPRUNE_POLICY*: The default organization-wide auto-prune policy. 
-** *.method: number_of_tags*: When setting an auto-prune policy for a registry with the `number_of_tags` configuration field, the oldest tags are deleted by their creation date until the desired number of tags is achieved. 
-** *.value: <integer>*: When used with *method: number_of_tags*, denotes the number of tags to keep.
+|*DEFAULT_NAMESPACE_AUTOPRUNE_POLICY* | Object | The default organization-wide auto-prune policy.
 
-** *.method: creation_date*: When setting an auto-prune policy for a registry with the `creation_date` configuration field, any tags with a creation date older than the given time span, for example, 10 days, are deleted. Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`) and include a valid integer, for example, `1y`.
-** *.value: <integer>*: When used with *creation_date*, denotes how long to keep tags.
+|{nbsp}{nbsp}{nbsp} *.method: number_of_tags* | Object | The option specifying the number of tags to keep. 
 
-* *AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD*: The period in which the auto-pruner worker runs at the registry level. By default, it is set to run one time per day (one time per 24 hours). Value must be in seconds. 
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *method: number_of_tags*, denotes the number of tags to keep. +
+
+For example, to keep two tags, specify `2`.
+
+|{nbsp}{nbsp}{nbsp} *.method: creation_date* | Object | The option specifying the duration of which to keep tags. 
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *creation_date*, denotes how long to keep tags. +
+
+Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`). Must include a valid integer. For example, to keep tags for one year, specify `1y`.
+
+|*AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD* |Integer | The period in which the auto-pruner worker runs at the registry level. By default, it is set to run one time per day (one time per 24 hours). Value must be in seconds.
+
+|===
 
 [id="oauth-reassign-configuration-field"]
 == OAuth access token reassignment configuration field 
 
 The following configuration field has been added for reassigning OAuth access tokens:
 
-* *FEATURE_ASSIGN_OAUTH_TOKEN*: Allows organization administrators to assign OAuth tokens to other users.
+|===
+| Field | Type | Description
+| *FEATURE_ASSIGN_OAUTH_TOKEN* | Boolean | Allows organization administrators to assign OAuth tokens to other users.
+|===
 
 .Example OAuth access token reassignment YAML
 [source,yaml]
@@ -38,7 +54,10 @@ FEATURE_ASSIGN_OAUTH_TOKEN: true
 
 The following configuration field has been added to notify users on detected vulnerabilities based on security level:
 
-* *NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX*: Set minimal security level for new notifications on detected vulnerabilities. Avoids creation of large number of notifications after first index. If not defined, defaults to `High`. Available options include `Critical`, `High`, `Medium`, `Low`, `Negligible`, and `Unknown`.
+|===
+| Field | Type | Description
+| *NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX* | String | Set minimal security level for new notifications on detected vulnerabilities. Avoids creation of large number of notifications after first index. If not defined, defaults to `High`. Available options include `Critical`, `High`, `Medium`, `Low`, `Negligible`, and `Unknown`.
+|===
 
 .Example image vulnerability notification YAML
 [source,yaml]
@@ -51,7 +70,10 @@ NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX: High
 
 The following configuration field allows users to list OCI referrers of a manifest under a repository by using the v2 API:
 
-* *FEATURE_REFERRERS_API*: Enables OCI 1.1's referrers API.
+|===
+| Field | Type | Description
+| *FEATURE_REFERRERS_API* | Boolean | Enables OCI 1.1's referrers API.
+|===
 
 .Example OCI referrers enablement YAML
 [source,yaml]
@@ -66,7 +88,10 @@ FEATURE_REFERRERS_API: true
 
 The following configuration field has been added to address when external systems like Splunk or ElasticSearch are configured as audit log destinations but are intermittently unavailable. When set to `True`, the logging event is logged to the stdout instead. 
 
-* *ALLOW_WITHOUT_STRICT_LOGGING*: When set to `True`, allows you to use any registry action when you are unable to write to the audit log.
+|===
+| Field | Type | Description
+| *ALLOW_WITHOUT_STRICT_LOGGING* | Boolean | When set to `True`, allows you to use any registry action when you are unable to write to the audit log.
+|===
 
 .Example strict logging YAML
 [source,yaml]
@@ -81,7 +106,10 @@ ALLOW_WITHOUT_STRICT_LOGGING: True
 
 The following configuration field has been added to enhance {productname} notifications:
 
-* *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES*. Integer. The interval, in minutes, that defines the frequency to re-run notifications for expiring images. By default, this field is set to notify {productname} users of events happening every 5 hours.
+|===
+| Field | Type | Description
+| *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES* | Integer | The interval, in minutes, that defines the frequency to re-run notifications for expiring images. By default, this field is set to notify {productname} users of events happening every 5 hours.
+|===
 
 .Example notification re-run YAML
 [source,yaml]
