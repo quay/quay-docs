@@ -35,14 +35,7 @@ The following updates have been made to {productname}.
 
 With this update, {productname} administrators can configure their deployment to forward action logs directly to a Splunk HTTP Event Collector (HEC). This enhancement enables seamless integration with Splunk for comprehensive log management and analysis.
 
-For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/manage_red_hat_quay/index#proc_manage-log-storage-splunk[Configuring action log storage for Splunk].
-
-[id="metadata-support-annotations"]
-=== Metadata support through annotations
-
-Some OCI media types do not utilize labels and, as such, critical information such as expiration timestamps are not included. With this release, {productname} now supports metadata passed through annotations to accommodate OCI media types that do not include these labels for metadata transmission. Tools such as Cosign and ORAS (OCI Registry as Storage) can now be used to embed information with artifact types to help ensure that images operate properly, for example, to expire.
-
-For more information about OCI media types and how adding an annotation with ORAS works, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/index#oci-intro[Open Container Initiative support].
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#proc_manage-log-storage-splunk[Configuring action log storage for Splunk].
 
 [id="api-token-ownership"]
 === API token ownership
@@ -60,7 +53,7 @@ Previously, {productname} administrators and users had no way of being alerted w
 
 Image expiration event triggers can be configured to notify users through email, Slack, webhooks, and so on, and can be configured at the repository level. Triggers can be set for images expiring in any amount of days, and can work in conjunction with the auto-pruning feature. 
 
-For more information, see https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/index#creating-image-expiration-notification[Creating an image expiration notification].
+For more information, see https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/use_red_hat_quay/index#creating-image-expiration-notification[Creating an image expiration notification].
 
 [id="auto-pruning-enhancements"]
 === {productname} auto-pruning enhancements
@@ -85,7 +78,14 @@ For more information, see link:https://access.redhat.com/documentation/en-us/red
 
 For more information about OCI spec 1.1, see link:https://github.com/opencontainers/distribution-spec/tree/v1.1.0-rc1?tab=readme-ov-file#oci-distribution-specification[OCI Distribution Specification].
 
-For more information about OCI support and {productname}, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/index#oci-intro[Open Container Initiative support].
+For more information about OCI support and {productname}, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/use_red_hat_quay/index#oci-intro[Open Container Initiative support].
+
+[id="metadata-support-annotations"]
+=== Metadata support through annotations
+
+Some OCI media types do not utilize labels and, as such, critical information such as expiration timestamps are not included. With this release, {productname} now supports metadata passed through annotations to accommodate OCI media types that do not include these labels for metadata transmission. Tools such as Cosign and ORAS (OCI Registry as Storage) can now be used to embed information with artifact types to help ensure that images operate properly, for example, to expire.
+
+For more information about OCI media types and how adding an annotation with ORAS works, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/use_red_hat_quay/index#oci-intro[Open Container Initiative support].
 
 [id="v2-ui-enhancement"]
 === {productname} v2 UI enhancements
@@ -106,8 +106,11 @@ The following configuration fields have been added to {productname} {producty}.
 === OAuth access token reassignment configuration field 
 
 The following configuration field has been added for reassigning OAuth access tokens:
+|===
+| Field | Type | Description
 
-* *FEATURE_ASSIGN_OAUTH_TOKEN*. Boolean. Allows organization administrators to assign OAuth tokens to other users.
+| *FEATURE_ASSIGN_OAUTH_TOKEN* | Boolean | Allows organization administrators to assign OAuth tokens to other users.
+|===
 
 .Example OAuth access token reassignment YAML
 [source,yaml]
@@ -122,7 +125,10 @@ FEATURE_ASSIGN_OAUTH_TOKEN: true
 
 The following configuration field has been added to enhance {productname} notifications:
 
-* *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES*. Integer. The interval, in minutes, that defines the frequency to re-run notifications for expiring images. By default, this field is set to notify {productname} users of events happening every 5 hours.
+|===
+| Field | Type | Description
+| *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES* | Integer | The interval, in minutes, that defines the frequency to re-run notifications for expiring images. By default, this field is set to notify {productname} users of events happening every 5 hours.
+|===
 
 .Example notification re-run YAML
 [source,yaml]
@@ -137,14 +143,28 @@ NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES: 10
 
 The following configuration fields have been added to {productname} auto-pruning feature:
 
-* *DEFAULT_NAMESPACE_AUTOPRUNE_POLICY*. Object. The default organization-wide auto-prune policy. 
-** *.method: number_of_tags*. Object. When setting an auto-prune policy for a registry with the `number_of_tags` configuration field, the oldest tags are deleted by their creation date until the desired number of tags is achieved. 
-** *.value:*. Integer. When used with *method: number_of_tags*, denotes the number of tags to keep.
+|===
+| Field | Type | Description
+| *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES* |Integer | The interval, in minutes, that defines the frequency to re-run notifications for expiring images. +
+ +
+**Default:** `300`
 
-** *.method: creation_date*. Object. When setting an auto-prune policy for a registry with the `creation_date` configuration field, any tags with a creation date older than the given time span, for example, 10 days, are deleted.
-** *.value*. String. When used with *creation_date*, denotes how long to keep tags. Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`) and include a valid integer, for example, `1y`.
+|*DEFAULT_NAMESPACE_AUTOPRUNE_POLICY* | Object | The default organization-wide auto-prune policy.
 
-* *AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD*. Integer. The period in which the auto-pruner worker runs at the registry level. By default, it is set to run one time per day (one time per 24 hours). Value must be in seconds. 
+|{nbsp}{nbsp}{nbsp} *.method: number_of_tags* | Object | The option specifying the number of tags to keep. 
+
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *method: number_of_tags*, denotes the number of tags to keep. +
+
+For example, to keep two tags, specify `2`.
+
+|{nbsp}{nbsp}{nbsp} *.method: creation_date* | Object | The option specifying the duration of which to keep tags. 
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *creation_date*, denotes how long to keep tags. +
+
+Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`). Must include a valid integer. For example, to keep tags for one year, specify `1y`.
+
+|*AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD* |Integer | The period in which the auto-pruner worker runs at the registry level. By default, it is set to run one time per day (one time per 24 hours). Value must be in seconds.
+
+|===
 
 .Example registry auto-prune policy by number of tags
 [source,yaml]
@@ -167,7 +187,10 @@ DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
 
 The following configuration field has been added to notify users on detected vulnerabilities based on security level:
 
-* *NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX*. String. Set minimal security level for new notifications on detected vulnerabilities. Avoids creation of large number of notifications after first index. If not defined, defaults to `High`. Available options include `Critical`, `High`, `Medium`, `Low`, `Negligible`, and `Unknown`.
+|===
+| Field | Type | Description
+| *NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX* | String | Set minimal security level for new notifications on detected vulnerabilities. Avoids creation of large number of notifications after first index. If not defined, defaults to `High`. Available options include `Critical`, `High`, `Medium`, `Low`, `Negligible`, and `Unknown`.
+|===
 
 .Example image vulnerability notification YAML
 [source,yaml]
@@ -180,7 +203,10 @@ NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX: High
 
 The following configuration field allows users to list OCI referrers of a manifest under a repository by using the v2 API:
 
-* *FEATURE_REFERRERS_API*. Boolean. Enables OCI 1.1's referrers API.
+|===
+| Field | Type | Description
+| *FEATURE_REFERRERS_API* | Boolean | Enables OCI 1.1's referrers API.
+|===
 
 .Example OCI referrers enablement YAML
 [source,yaml]
@@ -195,7 +221,10 @@ FEATURE_REFERRERS_API: True
 
 The following configuration field has been added to address when external systems like Splunk or ElasticSearch are configured as audit log destinations but are intermittently unavailable. When set to `True`, the logging event is logged to the stdout instead. 
 
-* *ALLOW_WITHOUT_STRICT_LOGGING*. Boolean. When set to `True`, allows you to use any registry action when you are unable to write to the audit log.
+|===
+| Field | Type | Description
+| *ALLOW_WITHOUT_STRICT_LOGGING* | Boolean | When set to `True`, allows you to use any registry action when you are unable to write to the audit log.
+|===
 
 .Example strict logging YAML
 [source,yaml]
@@ -281,14 +310,10 @@ The {productname} team is aware of the following known issues on the v2 UI:
 [id="limitations-312"]
 === {productname} 3.12 limitations
 
-* In this release, the following features are not supported on IBM Power (`ppc64le`) and IBM Z (`s390x`):
-** RadowGW Ceph storage
-** Splunk HEC
+The following features are not supported on IBM Power (`ppc64le`) or IBM Z (`s390x`):
 
-[id="notable-technical-changes-312"]
-== Notable technical changes
-
-The following technical changes have been made in {productname} {producty}.
+* Ceph RadosGW storage
+* Splunk HTTP Event Collector (HEC)
 
 [id="bug-fixes-312"]
 == {productname} bug fixes
@@ -330,7 +355,12 @@ Some features available in previous releases have been deprecated or removed. De
 |===
 |Feature | Quay 3.12 | Quay 3.11 | Quay 3.10
 
-|link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/index#oci-intro[Open Container Initiative 1.1 support].
+|link:link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#proc_manage-log-storage-splunk[Splunk HTTP Event Collector (HEC)] support
+|General Availability
+|-
+|-
+
+|link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/index#oci-intro[Open Container Initiative 1.1 support]
 |General Availability
 |-
 |-
