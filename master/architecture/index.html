@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" class="chrometwo"><head><title>Red Hat Quay architecture</title><link rel="stylesheet" type="text/css" href="Common_Content/css/default.css"/><meta name="generator" content="publican v4.3.4"/><meta name="description" content="Red Hat Quay Architecture"/><link rel="next" href="#arch-intro" title="Chapter 1. Red Hat Quay overview"/><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><script type="text/javascript" src="Common_Content/scripts/jquery-1.7.1.min.js"> </script><script type="text/javascript" src="Common_Content/scripts/utils.js"> </script><script type="text/javascript" src="Common_Content/scripts/highlight.js/highlight.pack.js"> </script></head><body><div id="chrometwo"><div id="main"><div xml:lang="en-US" class="book" id="idm45905033379040"><div class="titlepage"><div><div class="producttitle"><span class="productname">Red Hat Quay</span> <span class="productnumber">3.12</span></div><div><h1 class="title">Red Hat Quay architecture</h1></div><div><h2 class="subtitle">Red Hat Quay Architecture</h2></div><div><div xml:lang="en-US" class="authorgroup"><span class="orgname">Red Hat OpenShift Documentation Team</span></div></div><div><a href="#idm45905014972432">Legal Notice</a></div><div><div class="abstract"><p class="title"><strong>Abstract</strong></p><div class="para">
+<html xmlns="http://www.w3.org/1999/xhtml" class="chrometwo"><head><title>Red Hat Quay architecture</title><link rel="stylesheet" type="text/css" href="Common_Content/css/default.css"/><meta name="generator" content="publican v4.3.4"/><meta name="description" content="Red Hat Quay Architecture"/><link rel="next" href="#arch-intro" title="Chapter 1. Red Hat Quay overview"/><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><script type="text/javascript" src="Common_Content/scripts/jquery-1.7.1.min.js"> </script><script type="text/javascript" src="Common_Content/scripts/utils.js"> </script><script type="text/javascript" src="Common_Content/scripts/highlight.js/highlight.pack.js"> </script></head><body><div id="chrometwo"><div id="main"><div xml:lang="en-US" class="book" id="idm44858083274384"><div class="titlepage"><div><div class="producttitle"><span class="productname">Red Hat Quay</span> <span class="productnumber">3.12</span></div><div><h1 class="title">Red Hat Quay architecture</h1></div><div><h2 class="subtitle">Red Hat Quay Architecture</h2></div><div><div xml:lang="en-US" class="authorgroup"><span class="orgname">Red Hat OpenShift Documentation Team</span></div></div><div><a href="#idm44858065863440">Legal Notice</a></div><div><div class="abstract"><p class="title"><strong>Abstract</strong></p><div class="para">
 				Red Hat Quay Architecture
-			</div></div></div></div><hr/></div><div class="toc"><ul class="toc"><li><span class="chapter"><a href="#arch-intro">1. Red Hat Quay overview</a></span><ul><li><span class="section"><a href="#arch-intro-scalability">1.1. Scalability and high availability (HA)</a></span></li><li><span class="section"><a href="#arch-intro-content-distribution">1.2. Content distribution</a></span></li><li><span class="section"><a href="#arch-intro-build-automation">1.3. Build automation</a></span></li><li><span class="section"><a href="#red-hat-quay-builds-architecture">1.4. Red Hat Quay enhanced build architecture</a></span></li><li><span class="section"><a href="#arch-intro-integration">1.5. Integration</a></span><ul><li><span class="section"><a href="#arch-rest-api">1.5.1. REST API</a></span></li></ul></li><li><span class="section"><a href="#arch-intro-security">1.6. Security</a></span><ul><li><span class="section"><a href="#arch-tls-ssl-config">1.6.1. TLS/SSL configuration</a></span></li><li><span class="section"><a href="#arch-intro-clair">1.6.2. Clair</a></span></li><li><span class="section"><a href="#arch-operator-security">1.6.3. Red Hat Quay Operator security</a></span></li><li><span class="section"><a href="#arch-builders">1.6.4. Fully isolated builds</a></span></li><li><span class="section"><a href="#arch-rbac">1.6.5. Role-based access controls</a></span></li></ul></li><li><span class="section"><a href="#arch-intro-recent-features">1.7. Recently added features</a></span></li></ul></li><li><span class="chapter"><a href="#arch-prereqs">2. Red Hat Quay prerequisites</a></span><ul><li><span class="section"><a href="#core-prereqs-storage">2.1. Image storage backend</a></span><ul><li><span class="section"><a href="#arch-supported-image-storage-types">2.1.1. Supported image storage engines</a></span></li><li><span class="section"><a href="#arch-unsupported-image-storage-types">2.1.2. Unsupported image storage engines</a></span></li></ul></li><li><span class="section"><a href="#arch-core-prereqs-db">2.2. Database backend</a></span></li><li><span class="section"><a href="#core-prereqs-redis">2.3. Redis</a></span></li></ul></li><li><span class="chapter"><a href="#arch-quay-infrastructure">3. Red Hat Quay infrastructure</a></span><ul><li><span class="section"><a href="#arch-quay-standalone-hosts">3.1. Running Red Hat Quay on standalone hosts</a></span></li><li><span class="section"><a href="#arch-quay-openshift">3.2. Running Red Hat Quay on OpenShift</a></span></li><li><span class="section"><a href="#arch-integrating-standalone-ocp">3.3. Integrating standalone Red Hat Quay with OpenShift Container Platform</a></span></li><li><span class="section"><a href="#arch-mirror-registry">3.4. Mirror registry for Red Hat OpenShift</a></span></li><li><span class="section"><a href="#core-distinct-registries">3.5. Single compared to multiple registries</a></span></li></ul></li><li><span class="chapter"><a href="#sample-quay-on-prem-intro">4. Deploying Red Hat Quay on premise</a></span><ul><li><span class="section"><a href="#core-example-deployment">4.1. Red Hat Quay example deployments</a></span></li><li><span class="section"><a href="#deployment-topology">4.2. Red Hat Quay deployment topology</a></span></li><li><span class="section"><a href="#deployment-topology-with-storage-proxy">4.3. Red Hat Quay deployment topology with storage proxy</a></span></li></ul></li><li><span class="chapter"><a href="#arch-deploy-quay-public-cloud">5. Deploying Red Hat Quay on public cloud</a></span><ul><li><span class="section"><a href="#arch-quay-on-aws">5.1. Running Red Hat Quay on Amazon Web Services</a></span></li><li><span class="section"><a href="#arch-quay-on-azure">5.2. Running Red Hat Quay on Microsoft Azure</a></span></li></ul></li><li><span class="chapter"><a href="#content-distrib-intro">6. Content distribution with Red Hat Quay</a></span><ul><li><span class="section"><a href="#arch-mirroring-intro">6.1. Repository mirroring</a></span><ul><li><span class="section"><a href="#arch-mirroring-using">6.1.1. Using repository mirroring</a></span></li><li><span class="section"><a href="#arch-mirroring-recommend">6.1.2. Repository mirroring recommendations</a></span></li><li><span class="section"><a href="#arch-mirroring-events">6.1.3. Event notifications for mirroring</a></span></li><li><span class="section"><a href="#arch-mirroring-api-intro">6.1.4. Mirroring API</a></span></li></ul></li><li><span class="section"><a href="#georepl-intro">6.2. Geo-replication</a></span><ul><li><span class="section"><a href="#arch-georpl-features">6.2.1. Geo-replication features</a></span></li><li><span class="section"><a href="#arch-georepl-prereqs">6.2.2. Geo-replication requirements and constraints</a></span></li></ul></li></ul></li></ul></div><section class="chapter" id="arch-intro"><div class="titlepage"><div><div><h1 class="title">Chapter 1. Red Hat Quay overview</h1></div></div></div><p>
+			</div></div></div></div><hr/></div><div class="toc"><ul class="toc"><li><span class="chapter"><a href="#arch-intro">1. Red Hat Quay overview</a></span><ul><li><span class="section"><a href="#arch-intro-scalability">1.1. Scalability and high availability (HA)</a></span></li><li><span class="section"><a href="#arch-intro-content-distribution">1.2. Content distribution</a></span></li><li><span class="section"><a href="#arch-intro-build-automation">1.3. Build automation</a></span></li><li><span class="section"><a href="#red-hat-quay-builds-architecture">1.4. Red Hat Quay enhanced build architecture</a></span></li><li><span class="section"><a href="#arch-intro-integration">1.5. Integration</a></span><ul><li><span class="section"><a href="#arch-rest-api">1.5.1. REST API</a></span></li></ul></li><li><span class="section"><a href="#arch-intro-security">1.6. Security</a></span><ul><li><span class="section"><a href="#arch-tls-ssl-config">1.6.1. TLS/SSL configuration</a></span></li><li><span class="section"><a href="#arch-intro-clair">1.6.2. Clair</a></span></li><li><span class="section"><a href="#arch-operator-security">1.6.3. Red Hat Quay Operator security</a></span></li><li><span class="section"><a href="#arch-builders">1.6.4. Fully isolated builds</a></span></li><li><span class="section"><a href="#arch-rbac">1.6.5. Role-based access controls</a></span></li></ul></li><li><span class="section"><a href="#arch-intro-recent-features">1.7. Recently added features</a></span></li></ul></li><li><span class="chapter"><a href="#arch-prereqs">2. Red Hat Quay prerequisites</a></span><ul><li><span class="section"><a href="#core-prereqs-storage">2.1. Image storage backend</a></span><ul><li><span class="section"><a href="#arch-supported-image-storage-types">2.1.1. Supported image storage engines</a></span></li><li><span class="section"><a href="#arch-unsupported-image-storage-types">2.1.2. Unsupported image storage engines</a></span></li></ul></li><li><span class="section"><a href="#arch-core-prereqs-db">2.2. Database backend</a></span></li><li><span class="section"><a href="#core-prereqs-redis">2.3. Redis</a></span></li></ul></li><li><span class="chapter"><a href="#arch-quay-infrastructure">3. Red Hat Quay infrastructure</a></span><ul><li><span class="section"><a href="#arch-quay-standalone-hosts">3.1. Running Red Hat Quay on standalone hosts</a></span></li><li><span class="section"><a href="#arch-quay-openshift">3.2. Running Red Hat Quay on OpenShift</a></span></li><li><span class="section"><a href="#arch-integrating-standalone-ocp">3.3. Integrating standalone Red Hat Quay with OpenShift Container Platform</a></span></li><li><span class="section"><a href="#arch-mirror-registry">3.4. Mirror registry for Red Hat OpenShift</a></span></li><li><span class="section"><a href="#core-distinct-registries">3.5. Single compared to multiple registries</a></span></li></ul></li><li><span class="chapter"><a href="#sample-quay-on-prem-intro">4. Deploying Red Hat Quay on premise</a></span><ul><li><span class="section"><a href="#core-example-deployment">4.1. Red Hat Quay example deployments</a></span></li><li><span class="section"><a href="#deployment-topology">4.2. Red Hat Quay deployment topology</a></span></li><li><span class="section"><a href="#deployment-topology-with-storage-proxy">4.3. Red Hat Quay deployment topology with storage proxy</a></span></li></ul></li><li><span class="chapter"><a href="#arch-deploy-quay-public-cloud">5. Deploying Red Hat Quay on public cloud</a></span><ul><li><span class="section"><a href="#arch-quay-on-aws">5.1. Running Red Hat Quay on Amazon Web Services</a></span></li><li><span class="section"><a href="#arch-quay-on-azure">5.2. Running Red Hat Quay on Microsoft Azure</a></span></li></ul></li><li><span class="chapter"><a href="#content-distrib-intro">6. Content distribution with Red Hat Quay</a></span><ul><li><span class="section"><a href="#arch-mirroring-intro">6.1. Repository mirroring</a></span><ul><li><span class="section"><a href="#arch-mirroring-using">6.1.1. Using repository mirroring</a></span></li><li><span class="section"><a href="#arch-mirroring-recommend">6.1.2. Repository mirroring recommendations</a></span></li><li><span class="section"><a href="#arch-mirroring-events">6.1.3. Event notifications for mirroring</a></span></li><li><span class="section"><a href="#arch-mirroring-api-intro">6.1.4. Mirroring API</a></span></li></ul></li><li><span class="section"><a href="#georepl-intro">6.2. Geo-replication</a></span><ul><li><span class="section"><a href="#arch-georpl-features">6.2.1. Geo-replication features</a></span></li><li><span class="section"><a href="#arch-georepl-prereqs">6.2.2. Geo-replication requirements and constraints</a></span></li><li><span class="section"><a href="#georepl-arch-standalone">6.2.3. Geo-replication using standalone Red Hat Quay</a></span></li><li><span class="section"><a href="#georepl-arch-operator">6.2.4. Geo-replication using the Red Hat Quay Operator</a></span></li><li><span class="section"><a href="#georepl-mixed-storage">6.2.5. Mixed storage for geo-replication</a></span></li></ul></li><li><span class="section"><a href="#mirroring-versus-georepl">6.3. Repository mirroring compared to geo-replication</a></span></li><li><span class="section"><a href="#arch-airgap-intro">6.4. Air-gapped or disconnected deployments</a></span></li></ul></li><li><span class="chapter"><a href="#sizing-intro">7. Red Hat Quay sizing and subscriptions</a></span><ul><li><span class="section"><a href="#sizing-sample">7.1. Red Hat Quay sample sizings</a></span></li><li><span class="section"><a href="#subscription-intro">7.2. Red Hat Quay subscription information</a></span></li><li><span class="section"><a href="#quay-internal-registry-intro">7.3. Using Red Hat Quay with or without internal registry</a></span></li></ul></li><li><span class="chapter"><a href="#quota-management-arch">8. Quota management architecture</a></span></li><li><span class="chapter"><a href="#namespace-auto-pruning-arch">9. Namespace auto-pruning architecture</a></span><ul><li><span class="section"><a href="#auto-prune-worker">9.1. Auto-prune worker</a></span><ul><li><span class="section"><a href="#auto-prune-task-creation">9.1.1. Auto-prune-task-creation</a></span></li><li><span class="section"><a href="#auto-prune-worker-execution">9.1.2. Auto-prune worker execution</a></span></li></ul></li></ul></li></ul></div><section class="chapter" id="arch-intro"><div class="titlepage"><div><div><h1 class="title">Chapter 1. Red Hat Quay overview</h1></div></div></div><p>
 			Red Hat Quay is a distributed and highly available container image registry for your enterprise.
 		</p><p>
 			Red Hat Quay container registry platform provides secure storage, distribution, access controls, geo-replications, repository mirroring, and governance of containers and cloud-native artifacts on any infrastructure. It is available as a standalone component or as an Operator for OpenShift Container Platform, and is deployable on-prem or on a public cloud.
@@ -269,7 +269,7 @@
 				</li><li class="listitem">
 					<a class="link" href="#georepl-intro" title="6.2. Geo-replication">Geo-replication</a>
 				</li><li class="listitem">
-					<a class="link" href="#arch-airgap-intro">Deployment in air-gapped environments</a>
+					<a class="link" href="#arch-airgap-intro" title="6.4. Air-gapped or disconnected deployments">Deployment in air-gapped environments</a>
 				</li></ul></div><section class="section" id="arch-mirroring-intro"><div class="titlepage"><div><div><h2 class="title">6.1. Repository mirroring</h2></div></div></div><p>
 				Red Hat Quay repository mirroring lets you mirror images from external container registries, or another local registry, into your Red Hat Quay cluster. Using repository mirroring, you can synchronize images to Red Hat Quay based on repository names and tags.
 			</p><p>
@@ -396,31 +396,23 @@
 							All Red Hat Quay instances must have the same set of superusers, as they are defined inside the common configuration file.
 						</li><li class="listitem">
 							Geo-replication requires your Clair configuration to be set to <code class="literal">unmanaged</code>. An unmanaged Clair database allows the Red Hat Quay Operator to work in a geo-replicated environment, where multiple instances of the Red Hat Quay Operator must communicate with the same database. For more information, see <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3.7/html-single/deploy_red_hat_quay_on_openshift_with_the_quay_operator/index#clair-unmanaged">Advanced Clair configuration</a>.
-						</li></ul></div><p>
-					&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD * Geo-Replication requires SSL/TLS certificates and keys. For more information, see <a class="link" href="https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/proof_of_concept_-_deploying_red_hat_quay/index#advanced-quay-poc-deployment">Using SSL/TLS certificates</a>.
-				</p><div class="informalexample"><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-							Geo-Replication requires SSL/TLS certificates and keys. For more information, see * Geo-Replication requires SSL/TLS certificates and keys. For more information, see <a class="link" href="https://docs.redhat.com/en/documentation/red_hat_quay/3/html/proof_of_concept_-_deploying_red_hat_quay/advanced-quay-poc-deployment">Proof of concept deployment using SSL/TLS certificates</a>. . &gt;&gt;&gt;&gt;&gt;&gt;&gt; 7068057f (Fixes some Clair exporting commands (#992))
+						</li><li class="listitem">
+							Geo-Replication requires SSL/TLS certificates and keys. For more information, see * Geo-Replication requires SSL/TLS certificates and keys. For more information, see <a class="link" href="https://docs.redhat.com/en/documentation/red_hat_quay/3/html/proof_of_concept_-_deploying_red_hat_quay/advanced-quay-poc-deployment">Proof of concept deployment using SSL/TLS certificates</a>. .
 						</li></ul></div><p>
 					If the above requirements cannot be met, you should instead use two or more distinct Red Hat Quay deployments and take advantage of repository mirroring functions.
-				</p><p id="georepl-arch-standalone">
-					= Geo-replication using standalone Red Hat Quay
-				</p><p>
+				</p></section><section class="section" id="georepl-arch-standalone"><div class="titlepage"><div><div><h3 class="title">6.2.3. Geo-replication using standalone Red Hat Quay</h3></div></div></div><p>
 					In the following image, Red Hat Quay is running standalone in two separate regions, with a common database and a common Redis instance. Localized image storage is provided in each region and image pulls are served from the closest available storage engine. Container image pushes are written to the preferred storage engine for the Red Hat Quay instance, and will then be replicated, in the background, to the other storage engines.
 				</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
 						If Clair fails in one cluster, for example, the US cluster, US users would not see vulnerability reports in Red Hat Quay for the second cluster (EU). This is because all Clair instances have the same state. When Clair fails, it is usually because of a problem within the cluster.
 					</p></div></div><div class="formalpara"><p class="title"><strong>Geo-replication architecture</strong></p><p>
 						<span class="inlinemediaobject"><img src="images/178_Quay_architecture_0821_georeplication.png" alt="Geo-replication"/></span>
-					</p></div><p id="georepl-arch-operator">
-					= Geo-replication using the Red Hat Quay Operator
-				</p><p>
+					</p></div></section><section class="section" id="georepl-arch-operator"><div class="titlepage"><div><div><h3 class="title">6.2.4. Geo-replication using the Red Hat Quay Operator</h3></div></div></div><p>
 					<span class="inlinemediaobject"><img src="images/178_Quay_architecture_0821_georeplication_openshift-temp.png" alt="Geo-replication architecture"/></span>
 				</p><p>
 					In the example shown above, the Red Hat Quay Operator is deployed in two separate regions, with a common database and a common Redis instance. Localized image storage is provided in each region and image pulls are served from the closest available storage engine. Container image pushes are written to the preferred storage engine for the Quay instance, and will then be replicated, in the background, to the other storage engines.
 				</p><p>
 					Because the Operator now manages the Clair security scanner and its database separately, geo-replication setups can be leveraged so that they do not manage the Clair database. Instead, an external shared database would be used. Red Hat Quay and Clair support several providers and vendors of PostgreSQL, which can be found in the Red Hat Quay 3.x <a class="link" href="https://access.redhat.com/articles/4067991">test matrix</a>. Additionally, the Operator also supports custom Clair configurations that can be injected into the deployment, which allows users to configure Clair with the connection credentials for the external database.
-				</p><p id="georepl-mixed-storage">
-					= Mixed storage for geo-replication
-				</p><p>
+				</p></section><section class="section" id="georepl-mixed-storage"><div class="titlepage"><div><div><h3 class="title">6.2.5. Mixed storage for geo-replication</h3></div></div></div><p>
 					Red Hat Quay geo-replication supports the use of different and multiple replication targets, for example, using AWS S3 storage on public cloud and using Ceph storage on premise. This complicates the key requirement of granting access to all storage backends from all Red Hat Quay pods and cluster nodes. As a result, it is recommended that you use the following:
 				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
 							A VPN to prevent visibility of the internal storage, <span class="emphasis"><em>or</em></span>
@@ -430,479 +422,457 @@
 					This results in the public cloud instance of Red Hat Quay having access to on-premise storage, but the network will be encrypted, protected, and will use ACLs, thereby meeting security requirements.
 				</p><p>
 					If you cannot implement these security measures, it might be preferable to deploy two distinct Red Hat Quay registries and to use repository mirroring as an alternative to geo-replication.
-				</p><p id="mirroring-versus-georepl">
-					= Repository mirroring compared to geo-replication
-				</p><p>
-					Red Hat Quay geo-replication mirrors the entire image storage backend data between 2 or more different storage backends while the database is shared, for example, one Red Hat Quay registry with two different blob storage endpoints. The primary use cases for geo-replication include the following:
-				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-							Speeding up access to the binary blobs for geographically dispersed setups
-						</li><li class="listitem">
-							Guaranteeing that the image content is the same across regions
-						</li></ul></div><p>
-					Repository mirroring synchronizes selected repositories, or subsets of repositories, from one registry to another. The registries are distinct, with each registry having a separate database and separate image storage.
-				</p><p>
-					The primary use cases for mirroring include the following:
-				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-							Independent registry deployments in different data centers or regions, where a certain subset of the overall content is supposed to be shared across the data centers and regions
-						</li><li class="listitem">
-							Automatic synchronization or mirroring of selected (allowlisted) upstream repositories from external registries into a local Red Hat Quay deployment
-						</li></ul></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
-						Repository mirroring and geo-replication can be used simultaneously.
-					</p></div></div><div class="table" id="idm45905015877280"><p class="title"><strong>Table 6.1. Red Hat Quay Repository mirroring and geo-replication comparison</strong></p><div class="table-contents"><table class="lt-4-cols lt-7-rows"><colgroup><col style="width: 33%; " class="col_1"/><col style="width: 33%; " class="col_2"/><col style="width: 33%; " class="col_3"/></colgroup><thead><tr><th align="left" valign="top" id="idm45905011192832" scope="col">Feature / Capability</th><th align="left" valign="top" id="idm45905011191968" scope="col">Geo-replication</th><th align="left" valign="top" id="idm45905011191104" scope="col">Repository mirroring</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45905011192832">
-								<p>
-									What is the feature designed to do?
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191968">
-								<p>
-									A shared, global registry
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191104">
-								<p>
-									Distinct, different registries
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905011192832">
-								<p>
-									What happens if replication or mirroring has not been completed yet?
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191968">
-								<p>
-									The remote copy is used (slower)
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191104">
-								<p>
-									No image is served
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905011192832">
-								<p>
-									Is access to all storage backends in both regions required?
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191968">
-								<p>
-									Yes (all Red Hat Quay nodes)
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191104">
-								<p>
-									No (distinct storage)
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905011192832">
-								<p>
-									Can users push images from both sites to the same repository?
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191968">
-								<p>
-									Yes
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191104">
-								<p>
-									No
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905011192832">
-								<p>
-									Is all registry content and configuration identical across all regions (shared database)?
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191968">
-								<p>
-									Yes
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191104">
-								<p>
-									No
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905011192832">
-								<p>
-									Can users select individual namespaces or repositories to be mirrored?
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191968">
-								<p>
-									No
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191104">
-								<p>
-									Yes
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905011192832">
-								<p>
-									Can users apply filters to synchronization rules?
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191968">
-								<p>
-									No
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191104">
-								<p>
-									Yes
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905011192832">
-								<p>
-									Are individual / different role-base access control configurations allowed in each region
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191968">
-								<p>
-									No
-								</p>
-								</td><td align="left" valign="top" headers="idm45905011191104">
-								<p>
-									Yes
-								</p>
-								</td></tr></tbody></table></div></div><p id="arch-airgap-intro">
-					= Air-gapped or disconnected deployments
-				</p><p>
-					In the following diagram, the upper deployment in the diagram shows Red Hat Quay and Clair connected to the internet, with an air-gapped OpenShift Container Platform cluster accessing the Red Hat Quay registry through an explicit, allowlisted hole in the firewall.
-				</p><p>
-					The lower deployment in the diagram shows Red Hat Quay and Clair running inside of the firewall, with image and CVE data transferred to the target system using offline media. The data is exported from a separate Red Hat Quay and Clair deployment that is connected to the internet.
-				</p><p>
-					The following diagram shows how Red Hat Quay and Clair can be deployed in air-gapped or disconnected environments:
-				</p><div class="formalpara"><p class="title"><strong>Red Hat Quay and Clair in disconnected, or air-gapped, environments</strong></p><p>
-						<span class="inlinemediaobject"><img src="images/178_Quay_architecture_0821_air-gapped.png" alt="Air-gapped deployment"/></span>
-					</p></div><p id="sizing-intro">
-					= Red Hat Quay sizing and subscriptions
-				</p><p>
-					Scalability of Red Hat Quay is one of its key strengths, with a single code base supporting a broad spectrum of deployment sizes, including the following:
-				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-							Proof of Concept deployment on a single development machine
-						</li><li class="listitem">
-							Mid-size deployment of approximately 2,000 users that can serve content to dozens of Kubernetes clusters
-						</li><li class="listitem">
-							High-end deployment such as <a class="link" href="https://quay.io">Quay.io</a> that can serve thousands of Kubernetes clusters world-wide
-						</li></ul></div><p>
-					Since sizing heavily depends on a multitude of factors, such as the number of users, images, concurrent pulls and pushes, there are no standard sizing recommendations.
-				</p><p>
-					The following are the minimum requirements for systems running Red Hat Quay (per container/pod instance):
-				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-							<span class="strong strong"><strong>Quay:</strong></span> minimum 6 GB; recommended 8 GB, 2 more more vCPUs
-						</li><li class="listitem">
-							<span class="strong strong"><strong>Clair:</strong></span> recommended 2 GB RAM and 2 or more vCPUs
-						</li><li class="listitem">
-							<span class="strong strong"><strong>Storage:</strong></span>: recommended 30 GB
-						</li><li class="listitem">
-							<span class="strong strong"><strong>NooBaa:</strong></span> minimum 2 GB, 1 vCPU (when <code class="literal">objectstorage</code> component is selected by the Operator)
-						</li><li class="listitem">
-							<span class="strong strong"><strong>Clair database:</strong></span> minimum 5 GB required for security metadata
-						</li></ul></div><p>
-					Stateless components of Red Hat Quay can be scaled out, but this will cause a heavier load on stateful backend services.
-				</p><p id="sizing-sample">
-					= Red Hat Quay sample sizings
-				</p><p>
-					The following table shows approximate sizing for Proof of Concept, mid-size, and high-end deployments. Whether a deployment runs appropriately with the same metrics depends on many factors not shown below.
-				</p><div class="informaltable"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 40%; " class="col_1"/><col style="width: 20%; " class="col_2"/><col style="width: 20%; " class="col_3"/><col style="width: 20%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm45905015156176" scope="col">Metric</th><th align="center" valign="top" id="idm45905015155088" scope="col">Proof of concept</th><th align="center" valign="top" id="idm45905015154000" scope="col">Mid-size</th><th align="center" valign="top" id="idm45905015152912" scope="col">High End<br/> (Quay.io)</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45905015156176">
-								<p>
-									No. of Quay containers by default
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015155088">
-								<p>
-									1
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015154000">
-								<p>
-									4
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015152912">
-								<p>
-									15
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905015156176">
-								<p>
-									No. of Quay containers max at scale-out
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015155088">
-								<p>
-									N/A
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015154000">
-								<p>
-									8
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015152912">
-								<p>
-									30
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905015156176">
-								<p>
-									No. of Clair containers by default
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015155088">
-								<p>
-									1
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015154000">
-								<p>
-									3
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015152912">
-								<p>
-									10
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905015156176">
-								<p>
-									No. of Clair containers max at scale-out
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015155088">
-								<p>
-									N/A
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015154000">
-								<p>
-									6
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015152912">
-								<p>
-									15
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905015156176">
-								<p>
-									No. of mirroring pods (to mirror 100 repositories)
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015155088">
-								<p>
-									1
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015154000">
-								<p>
-									5-10
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015152912">
-								<p>
-									N/A
-								</p>
-								</td></tr><tr><td align="left" valign="middle" headers="idm45905015156176">
-								<p>
-									Database sizing
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015155088">
-								<p>
-									2 -4 Cores<br/> 6-8 GB RAM<br/> 10-20 GB disk
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015154000">
-								<p>
-									4-8 Cores<br/> 6-32 GB RAM<br/> 100 GB - 1 TB disk
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015152912">
-								<p>
-									32 cores<br/> 244 GB<br/> 1+ TB disk
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905015156176">
-								<p>
-									Object storage backend sizing
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015155088">
-								<p>
-									10-100 GB
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015154000">
-								<p>
-									1 - 20 TB
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015152912">
-								<p>
-									50+ TB up to PB
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905015156176">
-								<p>
-									Redis cache sizing
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015155088"> </td><td align="center" valign="top" headers="idm45905015154000">
-								<p>
-									2 Cores<br/> 2-4 GB RAM
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015152912">
-								<p>
-									4 cores <br/> 28 GB RAM
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905015156176">
-								<p>
-									Underlying node sizing<br/> (physical or virtual)
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015155088">
-								<p>
-									4 Cores<br/> 8 GB RAM
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015154000">
-								<p>
-									4-6 Cores<br/> 12-16 GB RAM
-								</p>
-								</td><td align="center" valign="top" headers="idm45905015152912">
-								<p>
-									Quay:<br/> 13 cores<br/> 56GB RAM<br/><br/> Clair:<br/> 2 cores<br/> 4 GB RAM
-								</p>
-								</td></tr></tbody></table></div><p>
-					For further details on sizing &amp; related recommendations for mirroring, see the section on <a class="link" href="#arch-mirroring-intro" title="6.1. Repository mirroring">repository mirroring</a>.
-				</p><p>
-					The sizing for the Redis cache is only relevant if you use Quay builders, otherwise it is not significant.
-				</p><p id="subscription-intro">
-					= Red Hat Quay subscription information
-				</p><p>
-					Red Hat Quay is available with Standard or Premium support, and subscriptions are based on deployments.
-				</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
-						Deployment means an installation of a single Red Hat Quay registry using a shared data backend.
-					</p></div></div><p>
-					With a Red Hat Quay subscription, the following options are available:
-				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-							There is no limit on the number of pods, such as Quay, Clair, Builder, and so on, that you can deploy.
-						</li><li class="listitem">
-							Red Hat Quay pods can run in multiple data centers or availability zones.
-						</li><li class="listitem">
-							Storage and database backends can be deployed across multiple data centers or availability zones, but only as a single, shared storage backend and single, shared database backend.
-						</li><li class="listitem">
-							Red Hat Quay can manage content for an unlimited number of clusters or standalone servers.
-						</li><li class="listitem">
-							Clients can access the Red Hat Quay deployment regardless of their physical location.
-						</li><li class="listitem">
-							You can deploy Red Hat Quay on OpenShift Container Platform infrastructure nodes to minimize subscription requirements.
-						</li><li class="listitem">
-							You can run the Container Security Operator (CSO) and the Quay Bridge Operator (QBO) on your OpenShift Container Platform clusters at no additional cost.
-						</li></ul></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
-						Red Hat Quay geo-replication requires a subscription for each storage replication. The database, however, is shared.
-					</p></div></div><p>
-					For more information about purchasing a Red Hat Quay subscription, see <a class="link" href="https://www.redhat.com/en/technologies/cloud-computing/quay">Red Hat Quay</a>.
-				</p><p id="quay-internal-registry-intro">
-					= Using Red Hat Quay with or without internal registry
-				</p><p>
-					Red Hat Quay can be used as an external registry in front of multiple OpenShift Container Platform clusters with their internal registries.
-				</p><p>
-					Red Hat Quay can also be used in place of the internal registry when it comes to automating builds and deployment rollouts. The required coordination of <code class="literal">Secrets</code> and <code class="literal">ImageStreams</code> is automated by the Quay Bridge Operator, which can be launched from the OperatorHub for OpenShift Container Platform.
-				</p><p id="quota-management-arch">
-					= Quota management architecture
-				</p><p>
-					With the quota management feature enabled, individual blob sizes are summed at the repository and namespace level. For example, if two tags in the same repository reference the same blob, the size of that blob is only counted once towards the repository total. Additionally, manifest list totals are counted toward the repository total.
-				</p><div class="admonition important"><div class="admonition_header">Important</div><div><p>
-						Because manifest list totals are counted toward the repository total, the total quota consumed when upgrading from a previous version of Red Hat Quay might be reportedly differently in Red Hat Quay 3.9. In some cases, the new total might go over a repository’s previously-set limit. Red Hat Quay administrators might have to adjust the allotted quota of a repository to account for these changes.
-					</p></div></div><p>
-					The quota management feature works by calculating the size of existing repositories and namespace with a backfill worker, and then adding or subtracting from the total for every image that is pushed or garbage collected afterwords. Additionally, the subtraction from the total happens when the manifest is garbage collected.
-				</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
-						Because subtraction occurs from the total when the manifest is garbage collected, there is a delay in the size calculation until it is able to be garbage collected. For more information about garbage collection, see <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#red_hat_quay_garbage_collection">Red Hat Quay garbage collection</a>.
-					</p></div></div><p>
-					The following database tables hold the quota repository size, quota namespace size, and quota registry size, in bytes, of a Red Hat Quay repository within an organization:
-				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-							<code class="literal">QuotaRepositorySize</code>
-						</li><li class="listitem">
-							<code class="literal">QuotaNameSpaceSize</code>
-						</li><li class="listitem">
-							<code class="literal">QuotaRegistrySize</code>
-						</li></ul></div><p>
-					The organization size is calculated by the backfill worker to ensure that it is not duplicated. When an image push is initialized, the user’s organization storage is validated to check if it is beyond the configured quota limits. If an image push exceeds defined quota limitations, a soft or hard check occurs:
-				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
-							For a soft check, users are notified.
-						</li><li class="listitem">
-							For a hard check, the push is stopped.
-						</li></ul></div><p>
-					If storage consumption is within configured quota limits, the push is allowed to proceed.
-				</p><p>
-					Image manifest deletion follows a similar flow, whereby the links between associated image tags and the manifest are deleted. Additionally, after the image manifest is deleted, the repository size is recalculated and updated in the <code class="literal">QuotaRepositorySize</code>, <code class="literal">QuotaNameSpaceSize</code>, and <code class="literal">QuotaRegistrySize</code> tables.
-				</p><p id="namespace-auto-pruning-arch">
-					= Namespace auto-pruning architecture
-				</p><p>
-					For the namespace auto-pruning feature, two distinct database tables within a database schema were created: one for <code class="literal">namespaceautoprunepolicy</code> and another for <code class="literal">autoprunetaskstatus</code>. An auto-prune worker carries out the configured policies.
-				</p><h6 id="namespaceautoprunepolicy-database-table">Namespace auto prune policy database table</h6><p>
-					The <code class="literal">namespaceautoprunepolicy</code> database table holds the policy configuration for a single namespace. There is only one entry per namespace, but there is support for multiple rows per <code class="literal">namespace_id</code>. The <code class="literal">policy</code> field holds the policy details, such as <code class="literal">{method: "creation_date", olderThan: "2w"}</code> or <code class="literal">{method: "number_of_tags", numTags: 100}</code>.
-				</p><div class="table" id="idm45905012685008"><p class="title"><strong>Table 6.2. <code class="literal">namespaceautoprunepolicy</code> database table</strong></p><div class="table-contents"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 25%; " class="col_1"/><col style="width: 25%; " class="col_2"/><col style="width: 25%; " class="col_3"/><col style="width: 25%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm45905010840480" scope="col">Field</th><th align="left" valign="top" id="idm45905010839392" scope="col">Type</th><th align="left" valign="top" id="idm45905010838304" scope="col">Attributes</th><th align="left" valign="top" id="idm45905010837216" scope="col">Description</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45905010840480">
-								<p>
-									<code class="literal">uuid</code>
-								</p>
-								</td><td align="left" valign="top" headers="idm45905010839392">
-								<p>
-									character varying (225)
-								</p>
-								</td><td align="left" valign="top" headers="idm45905010838304">
-								<p>
-									Unique, indexed
-								</p>
-								</td><td align="left" valign="top" headers="idm45905010837216">
-								<p>
-									Unique identifier for this policy
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905010840480">
-								<p>
-									<code class="literal">namespace_id</code>
-								</p>
-								</td><td align="left" valign="top" headers="idm45905010839392">
-								<p>
-									Integer
-								</p>
-								</td><td align="left" valign="top" headers="idm45905010838304">
-								<p>
-									Foreign Key
-								</p>
-								</td><td align="left" valign="top" headers="idm45905010837216">
-								<p>
-									Namespace that the policy falls under
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905010840480">
-								<p>
-									<code class="literal">policy</code>
-								</p>
-								</td><td align="left" valign="top" headers="idm45905010839392">
-								<p>
-									text
-								</p>
-								</td><td align="left" valign="top" headers="idm45905010838304">
-								<p>
-									JSON
-								</p>
-								</td><td align="left" valign="top" headers="idm45905010837216">
-								<p>
-									Policy configuration
-								</p>
-								</td></tr></tbody></table></div></div><h6 id="autoprunetaskstatus-database-table">Auto-prune task status database table</h6><p>
-					The <code class="literal">autoprunetaskstatus</code> table registers tasks to be executed by the auto-prune worker. Tasks are executed within the context of a single namespace. Only one task per namespace exists.
-				</p><div class="table" id="idm45905014823520"><p class="title"><strong>Table 6.3. <code class="literal">autoprunetaskstatus</code> database table</strong></p><div class="table-contents"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 25%; " class="col_1"/><col style="width: 25%; " class="col_2"/><col style="width: 25%; " class="col_3"/><col style="width: 25%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm45905014816512" scope="col">Field</th><th align="left" valign="top" id="idm45905015259872" scope="col">Type</th><th align="left" valign="top" id="idm45905015258784" scope="col">Attributes</th><th align="left" valign="top" id="idm45905015257696" scope="col">Description</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45905014816512">
-								<p>
-									<code class="literal">namespace_id</code>
-								</p>
-								</td><td align="left" valign="top" headers="idm45905015259872">
-								<p>
-									Integer
-								</p>
-								</td><td align="left" valign="top" headers="idm45905015258784">
-								<p>
-									Foreign Key
-								</p>
-								</td><td align="left" valign="top" headers="idm45905015257696">
-								<p>
-									Namespace that this task belongs to
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905014816512">
-								<p>
-									<code class="literal">last_ran_ms</code>
-								</p>
-								</td><td align="left" valign="top" headers="idm45905015259872">
-								<p>
-									Big Integer (bigint)
-								</p>
-								</td><td align="left" valign="top" headers="idm45905015258784">
-								<p>
-									Nullable, indexed
-								</p>
-								</td><td align="left" valign="top" headers="idm45905015257696">
-								<p>
-									Last time that the worker executed the policies for this namespace
-								</p>
-								</td></tr><tr><td align="left" valign="top" headers="idm45905014816512">
-								<p>
-									<code class="literal">status</code>
-								</p>
-								</td><td align="left" valign="top" headers="idm45905015259872">
-								<p>
-									text
-								</p>
-								</td><td align="left" valign="top" headers="idm45905015258784">
-								<p>
-									Nullable
-								</p>
-								</td><td align="left" valign="top" headers="idm45905015257696">
-								<p>
-									Details from the last execution task
-								</p>
-								</td></tr></tbody></table></div></div><p id="auto-prune-worker">
-					== Auto-prune worker
-				</p><p>
-					The following sections detail information about the auto-prune worker.
-				</p><p id="auto-prune-task-creation">
-					=== Auto-prune-task-creation
-				</p><p>
+				</p></section></section><section class="section" id="mirroring-versus-georepl"><div class="titlepage"><div><div><h2 class="title">6.3. Repository mirroring compared to geo-replication</h2></div></div></div><p>
+				Red Hat Quay geo-replication mirrors the entire image storage backend data between 2 or more different storage backends while the database is shared, for example, one Red Hat Quay registry with two different blob storage endpoints. The primary use cases for geo-replication include the following:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Speeding up access to the binary blobs for geographically dispersed setups
+					</li><li class="listitem">
+						Guaranteeing that the image content is the same across regions
+					</li></ul></div><p>
+				Repository mirroring synchronizes selected repositories, or subsets of repositories, from one registry to another. The registries are distinct, with each registry having a separate database and separate image storage.
+			</p><p>
+				The primary use cases for mirroring include the following:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						Independent registry deployments in different data centers or regions, where a certain subset of the overall content is supposed to be shared across the data centers and regions
+					</li><li class="listitem">
+						Automatic synchronization or mirroring of selected (allowlisted) upstream repositories from external registries into a local Red Hat Quay deployment
+					</li></ul></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					Repository mirroring and geo-replication can be used simultaneously.
+				</p></div></div><div class="table" id="idm44858068967264"><p class="title"><strong>Table 6.1. Red Hat Quay Repository mirroring and geo-replication comparison</strong></p><div class="table-contents"><table class="lt-4-cols lt-7-rows"><colgroup><col style="width: 33%; " class="col_1"/><col style="width: 33%; " class="col_2"/><col style="width: 33%; " class="col_3"/></colgroup><thead><tr><th align="left" valign="top" id="idm44858068096352" scope="col">Feature / Capability</th><th align="left" valign="top" id="idm44858066216880" scope="col">Geo-replication</th><th align="left" valign="top" id="idm44858066216128" scope="col">Repository mirroring</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm44858068096352">
+							<p>
+								What is the feature designed to do?
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216880">
+							<p>
+								A shared, global registry
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216128">
+							<p>
+								Distinct, different registries
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858068096352">
+							<p>
+								What happens if replication or mirroring has not been completed yet?
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216880">
+							<p>
+								The remote copy is used (slower)
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216128">
+							<p>
+								No image is served
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858068096352">
+							<p>
+								Is access to all storage backends in both regions required?
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216880">
+							<p>
+								Yes (all Red Hat Quay nodes)
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216128">
+							<p>
+								No (distinct storage)
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858068096352">
+							<p>
+								Can users push images from both sites to the same repository?
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216880">
+							<p>
+								Yes
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216128">
+							<p>
+								No
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858068096352">
+							<p>
+								Is all registry content and configuration identical across all regions (shared database)?
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216880">
+							<p>
+								Yes
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216128">
+							<p>
+								No
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858068096352">
+							<p>
+								Can users select individual namespaces or repositories to be mirrored?
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216880">
+							<p>
+								No
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216128">
+							<p>
+								Yes
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858068096352">
+							<p>
+								Can users apply filters to synchronization rules?
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216880">
+							<p>
+								No
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216128">
+							<p>
+								Yes
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858068096352">
+							<p>
+								Are individual / different role-base access control configurations allowed in each region
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216880">
+							<p>
+								No
+							</p>
+							</td><td align="left" valign="top" headers="idm44858066216128">
+							<p>
+								Yes
+							</p>
+							</td></tr></tbody></table></div></div></section><section class="section" id="arch-airgap-intro"><div class="titlepage"><div><div><h2 class="title">6.4. Air-gapped or disconnected deployments</h2></div></div></div><p>
+				In the following diagram, the upper deployment in the diagram shows Red Hat Quay and Clair connected to the internet, with an air-gapped OpenShift Container Platform cluster accessing the Red Hat Quay registry through an explicit, allowlisted hole in the firewall.
+			</p><p>
+				The lower deployment in the diagram shows Red Hat Quay and Clair running inside of the firewall, with image and CVE data transferred to the target system using offline media. The data is exported from a separate Red Hat Quay and Clair deployment that is connected to the internet.
+			</p><p>
+				The following diagram shows how Red Hat Quay and Clair can be deployed in air-gapped or disconnected environments:
+			</p><div class="formalpara"><p class="title"><strong>Red Hat Quay and Clair in disconnected, or air-gapped, environments</strong></p><p>
+					<span class="inlinemediaobject"><img src="images/178_Quay_architecture_0821_air-gapped.png" alt="Air-gapped deployment"/></span>
+				</p></div></section></section><section class="chapter" id="sizing-intro"><div class="titlepage"><div><div><h1 class="title">Chapter 7. Red Hat Quay sizing and subscriptions</h1></div></div></div><p>
+			Scalability of Red Hat Quay is one of its key strengths, with a single code base supporting a broad spectrum of deployment sizes, including the following:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					Proof of Concept deployment on a single development machine
+				</li><li class="listitem">
+					Mid-size deployment of approximately 2,000 users that can serve content to dozens of Kubernetes clusters
+				</li><li class="listitem">
+					High-end deployment such as <a class="link" href="https://quay.io">Quay.io</a> that can serve thousands of Kubernetes clusters world-wide
+				</li></ul></div><p>
+			Since sizing heavily depends on a multitude of factors, such as the number of users, images, concurrent pulls and pushes, there are no standard sizing recommendations.
+		</p><p>
+			The following are the minimum requirements for systems running Red Hat Quay (per container/pod instance):
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					<span class="strong strong"><strong>Quay:</strong></span> minimum 6 GB; recommended 8 GB, 2 more more vCPUs
+				</li><li class="listitem">
+					<span class="strong strong"><strong>Clair:</strong></span> recommended 2 GB RAM and 2 or more vCPUs
+				</li><li class="listitem">
+					<span class="strong strong"><strong>Storage:</strong></span>: recommended 30 GB
+				</li><li class="listitem">
+					<span class="strong strong"><strong>NooBaa:</strong></span> minimum 2 GB, 1 vCPU (when <code class="literal">objectstorage</code> component is selected by the Operator)
+				</li><li class="listitem">
+					<span class="strong strong"><strong>Clair database:</strong></span> minimum 5 GB required for security metadata
+				</li></ul></div><p>
+			Stateless components of Red Hat Quay can be scaled out, but this will cause a heavier load on stateful backend services.
+		</p><section class="section" id="sizing-sample"><div class="titlepage"><div><div><h2 class="title">7.1. Red Hat Quay sample sizings</h2></div></div></div><p>
+				The following table shows approximate sizing for Proof of Concept, mid-size, and high-end deployments. Whether a deployment runs appropriately with the same metrics depends on many factors not shown below.
+			</p><div class="informaltable"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 40%; " class="col_1"/><col style="width: 20%; " class="col_2"/><col style="width: 20%; " class="col_3"/><col style="width: 20%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm44858065792640" scope="col">Metric</th><th align="center" valign="top" id="idm44858065791552" scope="col">Proof of concept</th><th align="center" valign="top" id="idm44858067729488" scope="col">Mid-size</th><th align="center" valign="top" id="idm44858067728400" scope="col">High End<br/> (Quay.io)</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm44858065792640">
+							<p>
+								No. of Quay containers by default
+							</p>
+							</td><td align="center" valign="top" headers="idm44858065791552">
+							<p>
+								1
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067729488">
+							<p>
+								4
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067728400">
+							<p>
+								15
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858065792640">
+							<p>
+								No. of Quay containers max at scale-out
+							</p>
+							</td><td align="center" valign="top" headers="idm44858065791552">
+							<p>
+								N/A
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067729488">
+							<p>
+								8
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067728400">
+							<p>
+								30
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858065792640">
+							<p>
+								No. of Clair containers by default
+							</p>
+							</td><td align="center" valign="top" headers="idm44858065791552">
+							<p>
+								1
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067729488">
+							<p>
+								3
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067728400">
+							<p>
+								10
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858065792640">
+							<p>
+								No. of Clair containers max at scale-out
+							</p>
+							</td><td align="center" valign="top" headers="idm44858065791552">
+							<p>
+								N/A
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067729488">
+							<p>
+								6
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067728400">
+							<p>
+								15
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858065792640">
+							<p>
+								No. of mirroring pods (to mirror 100 repositories)
+							</p>
+							</td><td align="center" valign="top" headers="idm44858065791552">
+							<p>
+								1
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067729488">
+							<p>
+								5-10
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067728400">
+							<p>
+								N/A
+							</p>
+							</td></tr><tr><td align="left" valign="middle" headers="idm44858065792640">
+							<p>
+								Database sizing
+							</p>
+							</td><td align="center" valign="top" headers="idm44858065791552">
+							<p>
+								2 -4 Cores<br/> 6-8 GB RAM<br/> 10-20 GB disk
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067729488">
+							<p>
+								4-8 Cores<br/> 6-32 GB RAM<br/> 100 GB - 1 TB disk
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067728400">
+							<p>
+								32 cores<br/> 244 GB<br/> 1+ TB disk
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858065792640">
+							<p>
+								Object storage backend sizing
+							</p>
+							</td><td align="center" valign="top" headers="idm44858065791552">
+							<p>
+								10-100 GB
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067729488">
+							<p>
+								1 - 20 TB
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067728400">
+							<p>
+								50+ TB up to PB
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858065792640">
+							<p>
+								Redis cache sizing
+							</p>
+							</td><td align="center" valign="top" headers="idm44858065791552"> </td><td align="center" valign="top" headers="idm44858067729488">
+							<p>
+								2 Cores<br/> 2-4 GB RAM
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067728400">
+							<p>
+								4 cores <br/> 28 GB RAM
+							</p>
+							</td></tr><tr><td align="left" valign="top" headers="idm44858065792640">
+							<p>
+								Underlying node sizing<br/> (physical or virtual)
+							</p>
+							</td><td align="center" valign="top" headers="idm44858065791552">
+							<p>
+								4 Cores<br/> 8 GB RAM
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067729488">
+							<p>
+								4-6 Cores<br/> 12-16 GB RAM
+							</p>
+							</td><td align="center" valign="top" headers="idm44858067728400">
+							<p>
+								Quay:<br/> 13 cores<br/> 56GB RAM<br/><br/> Clair:<br/> 2 cores<br/> 4 GB RAM
+							</p>
+							</td></tr></tbody></table></div><p>
+				For further details on sizing &amp; related recommendations for mirroring, see the section on <a class="link" href="#arch-mirroring-intro" title="6.1. Repository mirroring">repository mirroring</a>.
+			</p><p>
+				The sizing for the Redis cache is only relevant if you use Quay builders, otherwise it is not significant.
+			</p></section><section class="section" id="subscription-intro"><div class="titlepage"><div><div><h2 class="title">7.2. Red Hat Quay subscription information</h2></div></div></div><p>
+				Red Hat Quay is available with Standard or Premium support, and subscriptions are based on deployments.
+			</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					Deployment means an installation of a single Red Hat Quay registry using a shared data backend.
+				</p></div></div><p>
+				With a Red Hat Quay subscription, the following options are available:
+			</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+						There is no limit on the number of pods, such as Quay, Clair, Builder, and so on, that you can deploy.
+					</li><li class="listitem">
+						Red Hat Quay pods can run in multiple data centers or availability zones.
+					</li><li class="listitem">
+						Storage and database backends can be deployed across multiple data centers or availability zones, but only as a single, shared storage backend and single, shared database backend.
+					</li><li class="listitem">
+						Red Hat Quay can manage content for an unlimited number of clusters or standalone servers.
+					</li><li class="listitem">
+						Clients can access the Red Hat Quay deployment regardless of their physical location.
+					</li><li class="listitem">
+						You can deploy Red Hat Quay on OpenShift Container Platform infrastructure nodes to minimize subscription requirements.
+					</li><li class="listitem">
+						You can run the Container Security Operator (CSO) and the Quay Bridge Operator (QBO) on your OpenShift Container Platform clusters at no additional cost.
+					</li></ul></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+					Red Hat Quay geo-replication requires a subscription for each storage replication. The database, however, is shared.
+				</p></div></div><p>
+				For more information about purchasing a Red Hat Quay subscription, see <a class="link" href="https://www.redhat.com/en/technologies/cloud-computing/quay">Red Hat Quay</a>.
+			</p></section><section class="section" id="quay-internal-registry-intro"><div class="titlepage"><div><div><h2 class="title">7.3. Using Red Hat Quay with or without internal registry</h2></div></div></div><p>
+				Red Hat Quay can be used as an external registry in front of multiple OpenShift Container Platform clusters with their internal registries.
+			</p><p>
+				Red Hat Quay can also be used in place of the internal registry when it comes to automating builds and deployment rollouts. The required coordination of <code class="literal">Secrets</code> and <code class="literal">ImageStreams</code> is automated by the Quay Bridge Operator, which can be launched from the OperatorHub for OpenShift Container Platform.
+			</p></section></section><section class="chapter" id="quota-management-arch"><div class="titlepage"><div><div><h1 class="title">Chapter 8. Quota management architecture</h1></div></div></div><p>
+			With the quota management feature enabled, individual blob sizes are summed at the repository and namespace level. For example, if two tags in the same repository reference the same blob, the size of that blob is only counted once towards the repository total. Additionally, manifest list totals are counted toward the repository total.
+		</p><div class="admonition important"><div class="admonition_header">Important</div><div><p>
+				Because manifest list totals are counted toward the repository total, the total quota consumed when upgrading from a previous version of Red Hat Quay might be reportedly differently in Red Hat Quay 3.9. In some cases, the new total might go over a repository’s previously-set limit. Red Hat Quay administrators might have to adjust the allotted quota of a repository to account for these changes.
+			</p></div></div><p>
+			The quota management feature works by calculating the size of existing repositories and namespace with a backfill worker, and then adding or subtracting from the total for every image that is pushed or garbage collected afterwords. Additionally, the subtraction from the total happens when the manifest is garbage collected.
+		</p><div class="admonition note"><div class="admonition_header">Note</div><div><p>
+				Because subtraction occurs from the total when the manifest is garbage collected, there is a delay in the size calculation until it is able to be garbage collected. For more information about garbage collection, see <a class="link" href="https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#red_hat_quay_garbage_collection">Red Hat Quay garbage collection</a>.
+			</p></div></div><p>
+			The following database tables hold the quota repository size, quota namespace size, and quota registry size, in bytes, of a Red Hat Quay repository within an organization:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					<code class="literal">QuotaRepositorySize</code>
+				</li><li class="listitem">
+					<code class="literal">QuotaNameSpaceSize</code>
+				</li><li class="listitem">
+					<code class="literal">QuotaRegistrySize</code>
+				</li></ul></div><p>
+			The organization size is calculated by the backfill worker to ensure that it is not duplicated. When an image push is initialized, the user’s organization storage is validated to check if it is beyond the configured quota limits. If an image push exceeds defined quota limitations, a soft or hard check occurs:
+		</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
+					For a soft check, users are notified.
+				</li><li class="listitem">
+					For a hard check, the push is stopped.
+				</li></ul></div><p>
+			If storage consumption is within configured quota limits, the push is allowed to proceed.
+		</p><p>
+			Image manifest deletion follows a similar flow, whereby the links between associated image tags and the manifest are deleted. Additionally, after the image manifest is deleted, the repository size is recalculated and updated in the <code class="literal">QuotaRepositorySize</code>, <code class="literal">QuotaNameSpaceSize</code>, and <code class="literal">QuotaRegistrySize</code> tables.
+		</p></section><section class="chapter" id="namespace-auto-pruning-arch"><div class="titlepage"><div><div><h1 class="title">Chapter 9. Namespace auto-pruning architecture</h1></div></div></div><p>
+			For the namespace auto-pruning feature, two distinct database tables within a database schema were created: one for <code class="literal">namespaceautoprunepolicy</code> and another for <code class="literal">autoprunetaskstatus</code>. An auto-prune worker carries out the configured policies.
+		</p><h3 id="namespaceautoprunepolicy-database-table">Namespace auto prune policy database table</h3><p>
+			The <code class="literal">namespaceautoprunepolicy</code> database table holds the policy configuration for a single namespace. There is only one entry per namespace, but there is support for multiple rows per <code class="literal">namespace_id</code>. The <code class="literal">policy</code> field holds the policy details, such as <code class="literal">{method: "creation_date", olderThan: "2w"}</code> or <code class="literal">{method: "number_of_tags", numTags: 100}</code>.
+		</p><div class="table" id="idm44858062892544"><p class="title"><strong>Table 9.1. <code class="literal">namespaceautoprunepolicy</code> database table</strong></p><div class="table-contents"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 25%; " class="col_1"/><col style="width: 25%; " class="col_2"/><col style="width: 25%; " class="col_3"/><col style="width: 25%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm44858067793360" scope="col">Field</th><th align="left" valign="top" id="idm44858067792272" scope="col">Type</th><th align="left" valign="top" id="idm44858067791184" scope="col">Attributes</th><th align="left" valign="top" id="idm44858067790096" scope="col">Description</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm44858067793360">
+						<p>
+							<code class="literal">uuid</code>
+						</p>
+						</td><td align="left" valign="top" headers="idm44858067792272">
+						<p>
+							character varying (225)
+						</p>
+						</td><td align="left" valign="top" headers="idm44858067791184">
+						<p>
+							Unique, indexed
+						</p>
+						</td><td align="left" valign="top" headers="idm44858067790096">
+						<p>
+							Unique identifier for this policy
+						</p>
+						</td></tr><tr><td align="left" valign="top" headers="idm44858067793360">
+						<p>
+							<code class="literal">namespace_id</code>
+						</p>
+						</td><td align="left" valign="top" headers="idm44858067792272">
+						<p>
+							Integer
+						</p>
+						</td><td align="left" valign="top" headers="idm44858067791184">
+						<p>
+							Foreign Key
+						</p>
+						</td><td align="left" valign="top" headers="idm44858067790096">
+						<p>
+							Namespace that the policy falls under
+						</p>
+						</td></tr><tr><td align="left" valign="top" headers="idm44858067793360">
+						<p>
+							<code class="literal">policy</code>
+						</p>
+						</td><td align="left" valign="top" headers="idm44858067792272">
+						<p>
+							text
+						</p>
+						</td><td align="left" valign="top" headers="idm44858067791184">
+						<p>
+							JSON
+						</p>
+						</td><td align="left" valign="top" headers="idm44858067790096">
+						<p>
+							Policy configuration
+						</p>
+						</td></tr></tbody></table></div></div><h3 id="autoprunetaskstatus-database-table">Auto-prune task status database table</h3><p>
+			The <code class="literal">autoprunetaskstatus</code> table registers tasks to be executed by the auto-prune worker. Tasks are executed within the context of a single namespace. Only one task per namespace exists.
+		</p><div class="table" id="idm44858065139696"><p class="title"><strong>Table 9.2. <code class="literal">autoprunetaskstatus</code> database table</strong></p><div class="table-contents"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 25%; " class="col_1"/><col style="width: 25%; " class="col_2"/><col style="width: 25%; " class="col_3"/><col style="width: 25%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm44858065132688" scope="col">Field</th><th align="left" valign="top" id="idm44858065131600" scope="col">Type</th><th align="left" valign="top" id="idm44858065130512" scope="col">Attributes</th><th align="left" valign="top" id="idm44858063247776" scope="col">Description</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm44858065132688">
+						<p>
+							<code class="literal">namespace_id</code>
+						</p>
+						</td><td align="left" valign="top" headers="idm44858065131600">
+						<p>
+							Integer
+						</p>
+						</td><td align="left" valign="top" headers="idm44858065130512">
+						<p>
+							Foreign Key
+						</p>
+						</td><td align="left" valign="top" headers="idm44858063247776">
+						<p>
+							Namespace that this task belongs to
+						</p>
+						</td></tr><tr><td align="left" valign="top" headers="idm44858065132688">
+						<p>
+							<code class="literal">last_ran_ms</code>
+						</p>
+						</td><td align="left" valign="top" headers="idm44858065131600">
+						<p>
+							Big Integer (bigint)
+						</p>
+						</td><td align="left" valign="top" headers="idm44858065130512">
+						<p>
+							Nullable, indexed
+						</p>
+						</td><td align="left" valign="top" headers="idm44858063247776">
+						<p>
+							Last time that the worker executed the policies for this namespace
+						</p>
+						</td></tr><tr><td align="left" valign="top" headers="idm44858065132688">
+						<p>
+							<code class="literal">status</code>
+						</p>
+						</td><td align="left" valign="top" headers="idm44858065131600">
+						<p>
+							text
+						</p>
+						</td><td align="left" valign="top" headers="idm44858065130512">
+						<p>
+							Nullable
+						</p>
+						</td><td align="left" valign="top" headers="idm44858063247776">
+						<p>
+							Details from the last execution task
+						</p>
+						</td></tr></tbody></table></div></div><section class="section" id="auto-prune-worker"><div class="titlepage"><div><div><h2 class="title">9.1. Auto-prune worker</h2></div></div></div><p>
+				The following sections detail information about the auto-prune worker.
+			</p><section class="section" id="auto-prune-task-creation"><div class="titlepage"><div><div><h3 class="title">9.1.1. Auto-prune-task-creation</h3></div></div></div><p>
 					When a new policy is created in the <code class="literal">namespaceautoprunepolicy</code> database table, a row is also created in the <code class="literal">autoprunetask</code> table. This is done in the same transaction. The auto-prune worker uses the entry in the <code class="literal">autoprunetask</code> table to identify which namespace it should execute policies for.
-				</p><p id="auto-prune-worker-execution">
-					=== Auto-prune worker execution
-				</p><p>
+				</p></section><section class="section" id="auto-prune-worker-execution"><div class="titlepage"><div><div><h3 class="title">9.1.2. Auto-prune worker execution</h3></div></div></div><p>
 					The auto-pruning worker is an asynchronous job that executes configured policies. Its workflow is based on values in the <code class="literal">autoprunetask</code> table. When a task begins, the following occurs:
 				</p><div class="itemizedlist"><ul class="itemizedlist" type="disc"><li class="listitem">
 							The auto-prune worker starts on a set interval, which defaults at 30 seconds.
@@ -932,7 +902,7 @@
 							The <code class="literal">last_ran_ms</code> gets updated after a row from <code class="literal">autoprunetask</code> is selected.
 						</li><li class="listitem">
 							The auto-prune worker ends.
-						</li></ul></div></div></section></section></section><div><div xml:lang="en-US" class="legalnotice" id="idm45905014972432"><h1 class="legalnotice">Legal Notice</h1><div class="para">
+						</li></ul></div></section></section></section><div><div xml:lang="en-US" class="legalnotice" id="idm44858065863440"><h1 class="legalnotice">Legal Notice</h1><div class="para">
 		Copyright <span class="trademark"/>© 2024 Red Hat, Inc.
 	</div><div class="para">
 		The text of and illustrations in this document are licensed by Red Hat under a Creative Commons Attribution–Share Alike 3.0 Unported license ("CC-BY-SA"). An explanation of CC-BY-SA is available at <a class="uri" href="http://creativecommons.org/licenses/by-sa/3.0/">http://creativecommons.org/licenses/by-sa/3.0/</a>. In accordance with CC-BY-SA, if you distribute this document or an adaptation of it, you must provide the URL for the original version.
