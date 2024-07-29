@@ -1,4 +1,4 @@
-:_content-type: CONCEPT
+:_content-type: PROCEDURE
 [id="running-standalone-debug-mode"]
 = Running a standalone {productname} deployment in debug mode
 
@@ -19,34 +19,5 @@ $ podman run -p 443:8443 -p 80:8080 -e DEBUGLOG=true  -v /config:/conf/stack -v 
 +
 [source,terminal]
 ----
-$ podman logs quay
+$ podman logs <quay_container_name>
 ----
-
-[id="running-operator-debug-mode"]
-= Running the {productname} Operator in debug mode
-
-Use the following procedure to run the {productname} Operator in debug mode. 
-
-.Procedure 
-
-. Enter the following command to edit the `QuayRegistry` custom resource definition:
-+
-[source,terminal]
-----
-$ oc edit quayregistry <quay_registry_name> -n <quay_namespace>
-----
-
-. Update the `QuayRegistry` to add the following parameters:
-+
-[source,yaml]
-----
-spec:
-  - kind: quay
-    managed: true
-    overrides:
-      env:
-      - name: DEBUGLOG
-        value: "true"
-----
-
-. After the {productname} Operator has restarted with debugging enabled, try pulling an image from the registry. If it is still slow, dump all dogs from all `Quay` pods to a file, and check the files for more information. 
