@@ -1,0 +1,26 @@
+:_content-type: PROCEDURE
+[id="running-ldap-debug-mode"]
+= Running an LDAP {productname} deployment in debug mode
+
+Use the following procedure to run an LDAP deployment of {productname} in debug mode.
+
+.Procedure 
+
+. Enter the following command to run your LDAP {productname} deployment in debug mode:
++
+[source,terminal]
+----
+$ podman run -p 443:8443 -p 80:8080 -e DEBUGLOG=true -e USERS_DEBUG=1  -v /config:/conf/stack -v /storage:/datastorage -d {productrepo}/{quayimage}:{productminv}
+----
+
+. To view the debug logs, enter the following command:
++
+[source,terminal]
+----
+$ podman logs <quay_container_name>
+----
++
+[IMPORTANT]
+====
+Setting `USERS_DEBUG=1` exposes credentials in clear text. This variable should be removed from the {productname} deployment after debugging. The log file that is generated with this environment variable should be scrutinized, and passwords should be removed before sending to other users. Use with caution.
+====
