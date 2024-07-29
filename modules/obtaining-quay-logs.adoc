@@ -57,6 +57,16 @@ gunicorn-web stdout | 2023-01-20 15:41:52,071 [205] [DEBUG] [app] Starting reque
 
 {productname} does not have verbose logs, however, with the following procedures, you can obtain a detailed status check of your database pod or container. 
 
+[NOTE]
+====
+Additional debugging information can be returned if you have deployed {productname} in one of the following ways:
+
+* You have deployed {productname} by passing in the `DEBUGLOG=true` variable.
+* You have deployed {productname} with LDAP authentication enabled by passing in the `DEBUGLOG=true` and `USERS_DEBUG=1` variables.
+* You have configured {productname-ocp} by updating the `QuayRegistry` resource to include `DEBUGLOG=true`. 
+
+For more information, see "Running {productname} in debug mode".
+====
 .Procedure
 
 . Enter the following commands to examine verbose database logs.
@@ -82,15 +92,15 @@ $ oc cp <quay_pod_name>:/var/lib/pgsql/data/userdata/log/* /path/to/desired_dire
 +
 [source,terminal]
 ----
-$ podman logs <quay_container_name> --previous
+$ podman logs <quay_container_id> --previous
 ----
 +
 [source,terminal]
 ----
-$ podman logs <quay_container_name> --previous -c <container_name>
+$ podman logs <quay_container_id> --previous -c <container_name>
 ----
 +
 [source,terminal]
 ----
-$ podman cp <quay_container_name>:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host
+$ podman cp <quay_container_id>:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host
 ----
