@@ -32,7 +32,7 @@ Checking Clair logs can also be used to check if there are any errors from the u
 
 . Check your version of Clair.
 
-.. If you are running Clair on the {productname} Operator, enter the following command:
+.. If you are running Clair on {productname-ocp}, enter the following command:
 +
 [source,terminal]
 ----
@@ -58,36 +58,58 @@ $ podman logs clair-container
 [id="enabling-debug-mode-clair"]
 == Enabling debug mode for Clair
 
-By default, debug mode for Clair is enabled. You can enable debug mode for Clair by updating your Clair `config.yaml` file. 
+By default, debug mode for Clair is disabled. You can enable debug mode for Clair by updating your `clair-config.yaml` file.
+
+.Prerequisites
+
+* For Clair on {productname-ocp} deployments, you must link:https://docs.redhat.com/en/documentation/red_hat_quay/3.12/html-single/vulnerability_reporting_with_clair_on_red_hat_quay/index#custom-clair-configuration-managed-database[Running a custom Clair configuration with a managed Clair database].
 
 Use the following procedure to enable debug mode for Clair.
 
 .Procedure
 
-. Enable debug mode for Clair 
+. Update your `clair-config.yaml` file to include the debug option. 
 
-.. If you are running Clair on the {productname} Operator, enter the following command:
-+
-[source,terminal]
-----
-$ oc exec -it clair-pod-name -- cat /clair/config.yaml
-----
+.. On standalone {productname} deployments:
 
-.. If you are running a standalone deployment of {productname} and using a Clair container, enter the following command:
-+
-[source,terminal]
-----
-$ podman exec -it clair-container-name cat /clair/config.yaml
-----
-
-. Update your Clair `config.yaml` file to enable debugging:
+... Add the following configuration field to your `clair-config.yaml` file:
 +
 [source,yaml]
 ----
-http_listen_addr: :8081
-introspection_addr: :8088
 log_level: debug
 ----
+
+... Restart your Clair deployment by entering the following command:
++
+[source,terminal]
+----
+$ podman restart <clair_container_name>
+----
+
+.. On {productname-ocp} deployments:
+
+... On the {ocp} web console, click *Operators* -> *Installed Operators* -> *Quay Registry*. 
+
+... Click the name of your registry, for example, *Example Registry*. You are redirected to the *Details* page of your registry.
+
+... Click the Config Bundle Secret, for example, *example-registry-config-bundle-xncls*. 
+
+... Confirm that you are running a custom Clair configuration by looking for the `clair-config.yaml` file under the *Data* section of the *Details* page of your secret. 
+
+... If you have a `clair-config.yaml` file, click *Actions* -> *Edit Secret*. If you do not, see "Running a custom Clair configuration with a managed Clair database". 
+
+... Update your `clair-config.yaml` file to include the `log_level: debug` configuration variable. For example:
++
+[source,yaml]
+----
+log_level: debug
+----
+
+... Click *Save*. 
+
+... You can check the status of your Clair deployment by clicking *Workloads* -> *Pods*. The `clair-app` pod should report `1/1` under the *Ready* category. 
+
+... You can confirm that Clair is returning debugging information by clicking the *clair-app* pod that is ready -> *Logs*.
 
 [id="checking-clair-configuration"]
 == Checking Clair configuration 
