@@ -1,31 +1,38 @@
-name: Cherry Pick to redhat-3.12
+name: Cherry Pick on Comment
 
 on:
-  pull_request:
-    branches:
-      - main  # Change this to the branch from which the PRs are merged, if different
-    types: ["closed"]
+  issue_comment:
+    types: [created]
 
 jobs:
-  cherry_pick_redhat_3_12:
+  cherry_pick:
     runs-on: ubuntu-latest
-    name: Cherry pick into redhat-3.12
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'redhat-3.12') && github.event.pull_request.merged == true }}
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/cherry-pick') }}
     steps:
-      - name: Checkout
+      - name: Extract branch name from comment
+        id: extract_branch
+        run: |
+          echo "branch=$(echo "${{ github.event.comment.body }}" | cut -d' ' -f2)" >> $GITHUB_OUTPUT
+
+      - name: Checkout the pull request branch
         uses: actions/checkout@v2
         with:
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
-      - name: Cherry pick into redhat-3.12
-        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
-        with:
-          branch: redhat-3.12
-          labels: |
-            cherry-pick
-          reviewers: |
-            aReviewerUser  # Optional: specify any reviewers you want to request
-          title: '[cherry-pick] {old_title}'  # Optional: customize the title
-          body: 'Cherry picking #{old_pull_request_id} onto this branch'  # Optional: customize the body
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get the last commit SHA from pull request
+        id: get_sha
+        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Checkout the target branch
+        run: |
+          git fetch origin ${{ steps.extract_branch.outputs.branch }}
+          git checkout ${{ steps.extract_branch.outputs.branch }}
+
+      - name: Cherry pick the commit
+        run: git cherry-pick ${{ steps.get_sha.outputs.sha }}
+
+      - name: Push the changes
+        env:
+          GH_PAT: ${{ secrets.GITHUB_TOKEN }}
+        run: git push https://${GH_PAT}@github.com/${{ github.repository }} HEAD:${{ steps.extract_branch.outputs.branch }}
