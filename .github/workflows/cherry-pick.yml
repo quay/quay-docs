@@ -1,38 +1,49 @@
-name: Cherry Pick
+name: Cherry Pick to Release Branches
 
 on:
-  issue_comment:
-    types: [created]
+  pull_request:
+    branches:
+      - master  # Replace with your default branch
+    types: ["closed"]
 
 jobs:
-  cherry-pick:
+  cherry_pick_release_v1_0:
     runs-on: ubuntu-latest
-    if: |
-      startsWith(github.event.comment.body, '/cherry-pick')
+    name: Cherry pick into release-v1.0
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'release-v1.0') && github.event.pull_request.merged == true }}
     steps:
-      - name: Check out repository
+      - name: Checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Cherry pick into release-v1.0
+        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
+        with:
+          branch: release-v1.0
+          labels: |
+            cherry-pick
+          reviewers: |
+            aReviewerUser
 
-      - name: Set up Git
-        run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+  cherry_pick_release_v2_0:
+    runs-on: ubuntu-latest
+    name: Cherry pick into release-v2.0
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'release-v2.0') && github.event.pull_request.merged == true }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Cherry pick into release-v2.0
+        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
+        with:
+          branch: release-v2.0
+          labels: |
+            cherry-pick
+          reviewers: |
+            aReviewerUser
+          title: '[cherry-pick] {old_title}'
+          body: 'Cherry picking #{old_pull_request_id} onto this branch'
 
-      - name: Extract target branch
-        id: extract
-        run: echo "::set-output name=branch::$(echo "${{ github.event.comment.body }}" | cut -d' ' -f2)"
-
-      - name: Cherry-pick the PR
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          TARGET_BRANCH=${{ steps.extract.outputs.branch }}
-          git fetch origin ${{ github.event.pull_request.head.ref }}
-          git checkout $TARGET_BRANCH
-          git cherry-pick ${{ github.event.pull_request.head.sha }} || exit 0
-
-      - name: Push changes
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          git push https://${GH_PAT}@github.com/${{ github.repository }} $TARGET_BRANCH
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
