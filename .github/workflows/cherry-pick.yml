@@ -6,7 +6,7 @@ on:
 
 jobs:
   cherry_pick:
-    if: ${{ startsWith(github.event.comment.body, '/cherry-pick') }}
+    if: ${{ github.event.comment.body.startsWith('/cherry-pick') }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -16,12 +16,14 @@ jobs:
 
       - name: Extract target branch from comment
         id: extract_branch
-        run: echo "TARGET_BRANCH=$(echo '${{ github.event.comment.body }}' | cut -d' ' -f2 | tr -d '?')" >> $GITHUB_ENV
+        run: |
+          TARGET_BRANCH=$(echo '${{ github.event.comment.body }}' | cut -d' ' -f2 | tr -d '?')
+          echo "TARGET_BRANCH=$TARGET_BRANCH" >> $GITHUB_ENV
 
-      - name: Run Cherry-Pick Action
-        uses: your-org/your-cherry-pick-action@v1
+      - name: Cherry pick the commit
+        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
         with:
-          target-branch: redhat-3.12
+          target-branch: ${{ env.TARGET_BRANCH }}
           pr-creator-token: ${{ secrets.GITHUB_TOKEN }}
           pr-title-suffix: '[Cherry-Pick]'
         id: cherry_pick_action
@@ -31,6 +33,6 @@ jobs:
 
       - name: Comment on PR with Result
         run: |
-          gh pr comment ${{ github.event.issue.number }} --body "Cherry-pick to `redhat-3.12` was successful. PR Number: ${{ steps.cherry_pick_action.outputs.pr-number }}"
+          gh pr comment ${{ github.event.issue.number }} --body "Cherry-pick to `${{ env.TARGET_BRANCH }}` was successful. PR Number: ${{ steps.cherry_pick_action.outputs.pr-number }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
