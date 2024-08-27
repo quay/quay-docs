@@ -1,49 +1,27 @@
-name: Cherry Pick to Release Branches
+name: Cherry Pick on Comment
 
 on:
-  pull_request:
-    branches:
-      - master  # Replace with your default branch
-    types: ["closed"]
+  issue_comment:
+    types: [created]
 
 jobs:
-  cherry_pick_release_v1_0:
+  cherry_pick:
     runs-on: ubuntu-latest
-    name: Cherry pick into release-v1.0
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'release-v1.0') && github.event.pull_request.merged == true }}
+    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/cherry-pick') }}
     steps:
+      - name: Extract branch name from comment
+        id: extract_branch
+        run: |
+          echo "##[set-output name=branch;]$(echo "${{ github.event.comment.body }}" | sed -n 's/\/cherry-pick //p')"
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Cherry pick into release-v1.0
+      - name: Cherry pick commit
         uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
         with:
-          branch: release-v1.0
+          branch: ${{ steps.extract_branch.outputs.branch }}
           labels: |
             cherry-pick
-          reviewers: |
-            aReviewerUser
-
-  cherry_pick_release_v2_0:
-    runs-on: ubuntu-latest
-    name: Cherry pick into release-v2.0
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'release-v2.0') && github.event.pull_request.merged == true }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Cherry pick into release-v2.0
-        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
-        with:
-          branch: release-v2.0
-          labels: |
-            cherry-pick
-          reviewers: |
-            aReviewerUser
-          title: '[cherry-pick] {old_title}'
-          body: 'Cherry picking #{old_pull_request_id} onto this branch'
-
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
