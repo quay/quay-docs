@@ -1,38 +1,36 @@
-name: Cherry Pick PR
+name: Cherry Pick
 
 on:
   issue_comment:
     types: [created]
 
 jobs:
-  cherry_pick:
-    if: ${{ github.event.comment.body.startsWith('/cherry-pick') }}
+  cherry-pick:
     runs-on: ubuntu-latest
+    if: |
+      startsWith(github.event.comment.body, '/cherry-pick')
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 
-      - name: Extract target branch from comment
-        id: extract_branch
+      - name: Set up Git
         run: |
-          TARGET_BRANCH=$(echo '${{ github.event.comment.body }}' | cut -d' ' -f2 | tr -d '?')
-          echo "TARGET_BRANCH=$TARGET_BRANCH" >> $GITHUB_ENV
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+      - name: Extract target branch
+        id: extract
+        run: echo "::set-output name=branch::$(echo "${{ github.event.comment.body }}" | cut -d' ' -f2)"
 
-      - name: Cherry pick the commit
-        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
-        with:
-          target-branch: ${{ env.TARGET_BRANCH }}
-          pr-creator-token: ${{ secrets.GITHUB_TOKEN }}
-          pr-title-suffix: '[Cherry-Pick]'
-        id: cherry_pick_action
-
-      - name: Output PR number
-        run: echo "PR Number: ${{ steps.cherry_pick_action.outputs.pr-number }}"
-
-      - name: Comment on PR with Result
-        run: |
-          gh pr comment ${{ github.event.issue.number }} --body "Cherry-pick to `${{ env.TARGET_BRANCH }}` was successful. PR Number: ${{ steps.cherry_pick_action.outputs.pr-number }}"
+      - name: Cherry-pick the PR
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          TARGET_BRANCH=${{ steps.extract.outputs.branch }}
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          git checkout $TARGET_BRANCH
+          git cherry-pick ${{ github.event.pull_request.head.sha }} || exit 0
+      - name: Push changes
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git push https://${GH_PAT}@github.com/${{ github.repository }} $TARGET_BRANCH
