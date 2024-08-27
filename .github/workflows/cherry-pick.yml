@@ -1,4 +1,4 @@
-name: Cherry Pick on Comment
+name: Cherry Pick PR
 
 on:
   issue_comment:
@@ -6,33 +6,51 @@ on:
 
 jobs:
   cherry_pick:
+    if: ${{ startsWith(github.event.comment.body, '/cherry-pick') }}
     runs-on: ubuntu-latest
-    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '/cherry-pick') }}
     steps:
-      - name: Extract branch name from comment
-        id: extract_branch
-        run: |
-          echo "branch=$(echo "${{ github.event.comment.body }}" | cut -d' ' -f2)" >> $GITHUB_OUTPUT
-
-      - name: Checkout the pull request branch
+      - name: Check out repository
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
+      
+      - name: Extract target branch from comment
+        id: extract_branch
+        run: echo "branch=$(echo '${{ github.event.comment.body }}' | cut -d' ' -f2 | tr -d '?')" >> $GITHUB_ENV
 
-      - name: Get the last commit SHA from pull request
-        id: get_sha
-        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-
-      - name: Checkout the target branch
+      - name: Fetch the target branch
         run: |
-          git fetch origin ${{ steps.extract_branch.outputs.branch }}
-          git checkout ${{ steps.extract_branch.outputs.branch }}
+          echo "Target branch: ${{ env.branch }}"
+          git fetch origin ${{ env.branch }}
 
-      - name: Cherry pick the commit
-        run: git cherry-pick ${{ steps.get_sha.outputs.sha }}
+      - name: Check out the target branch
+        run: git checkout ${{ env.branch }}
 
-      - name: Push the changes
+      - name: Cherry-pick the commit
+        run: |
+          git cherry-pick ${{ github.event.issue.pull_request.merge_commit_sha }}
+        continue-on-error: true
+
+      - name: Push changes
+        if: ${{ success() }}
+        run: |
+          git push origin HEAD:${{ env.branch }}
         env:
           GH_PAT: ${{ secrets.GITHUB_TOKEN }}
-        run: git push https://${GH_PAT}@github.com/${{ github.repository }} HEAD:${{ steps.extract_branch.outputs.branch }}
+
+      - name: Create a Pull Request for Conflicts
+        if: ${{ failure() }}
+        run: |
+          git cherry-pick --abort
+          git checkout -b cherry-pick-${{ github.sha }}-${{ env.branch }}
+          git push origin cherry-pick-${{ github.sha }}-${{ env.branch }}
+          gh pr create --title "[Cherry-pick] Resolve conflicts for PR #${{ github.event.issue.number }}" --body "This pull request resolves merge conflicts between the base branch and cherry-picked commits."
+
+      - name: Comment on PR with Result
+        run: |
+          if [ ${{ success() }} ]; then
+            gh pr comment ${{ github.event.issue.number }} --body "Cherry-pick to `${{ env.branch }}` was successful."
+          else
+            gh pr comment ${{ github.event.issue.number }} --body "Cherry-pick to `${{ env.branch }}` encountered conflicts. A new pull request has been created to resolve them."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
