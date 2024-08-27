@@ -13,44 +13,24 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      
+
       - name: Extract target branch from comment
         id: extract_branch
-        run: echo "branch=$(echo '${{ github.event.comment.body }}' | cut -d' ' -f2 | tr -d '?')" >> $GITHUB_ENV
+        run: echo "TARGET_BRANCH=$(echo '${{ github.event.comment.body }}' | cut -d' ' -f2 | tr -d '?')" >> $GITHUB_ENV
 
-      - name: Fetch the target branch
-        run: |
-          echo "Target branch: ${{ env.branch }}"
-          git fetch origin ${{ env.branch }}
+      - name: Run Cherry-Pick Action
+        uses: your-org/your-cherry-pick-action@v1
+        with:
+          target-branch: redhat-3.12
+          pr-creator-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-title-suffix: '[Cherry-Pick]'
+        id: cherry_pick_action
 
-      - name: Check out the target branch
-        run: git checkout ${{ env.branch }}
-
-      - name: Cherry-pick the commit
-        run: |
-          git cherry-pick ${{ github.event.issue.pull_request.merge_commit_sha }}
-        continue-on-error: true
-
-      - name: Push changes
-        if: ${{ success() }}
-        run: |
-          git push origin HEAD:${{ env.branch }}
-        env:
-          GH_PAT: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create a Pull Request for Conflicts
-        if: ${{ failure() }}
-        run: |
-          git cherry-pick --abort
-          git checkout -b cherry-pick-${{ github.sha }}-${{ env.branch }}
-          git push origin cherry-pick-${{ github.sha }}-${{ env.branch }}
-          gh pr create --title "[Cherry-pick] Resolve conflicts for PR #${{ github.event.issue.number }}" --body "This pull request resolves merge conflicts between the base branch and cherry-picked commits."
+      - name: Output PR number
+        run: echo "PR Number: ${{ steps.cherry_pick_action.outputs.pr-number }}"
 
       - name: Comment on PR with Result
         run: |
-          if [ ${{ success() }} ]; then
-            gh pr comment ${{ github.event.issue.number }} --body "Cherry-pick to `${{ env.branch }}` was successful."
-          else
-            gh pr comment ${{ github.event.issue.number }} --body "Cherry-pick to `${{ env.branch }}` encountered conflicts. A new pull request has been created to resolve them."
+          gh pr comment ${{ github.event.issue.number }} --body "Cherry-pick to `redhat-3.12` was successful. PR Number: ${{ steps.cherry_pick_action.outputs.pr-number }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
