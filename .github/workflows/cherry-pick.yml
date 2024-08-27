@@ -1,49 +1,31 @@
-name: Cherry Pick to Release Branches
+name: Cherry Pick to redhat-3.12
 
 on:
   pull_request:
     branches:
-      - master  # Replace with your default branch
+      - main  # Change this to the branch from which the PRs are merged, if different
     types: ["closed"]
 
 jobs:
-  cherry_pick_release_v1_0:
+  cherry_pick_redhat_3_12:
     runs-on: ubuntu-latest
-    name: Cherry pick into release-v1.0
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'release-v1.0') && github.event.pull_request.merged == true }}
+    name: Cherry pick into redhat-3.12
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'redhat-3.12') && github.event.pull_request.merged == true }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Cherry pick into release-v1.0
+      - name: Cherry pick into redhat-3.12
         uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
         with:
-          branch: release-v1.0
+          branch: redhat-3.12
           labels: |
             cherry-pick
           reviewers: |
-            aReviewerUser
-
-  cherry_pick_release_v2_0:
-    runs-on: ubuntu-latest
-    name: Cherry pick into release-v2.0
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'release-v2.0') && github.event.pull_request.merged == true }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Cherry pick into release-v2.0
-        uses: carloscastrojumo/github-cherry-pick-action@v1.0.1
-        with:
-          branch: release-v2.0
-          labels: |
-            cherry-pick
-          reviewers: |
-            aReviewerUser
-          title: '[cherry-pick] {old_title}'
-          body: 'Cherry picking #{old_pull_request_id} onto this branch'
+            aReviewerUser  # Optional: specify any reviewers you want to request
+          title: '[cherry-pick] {old_title}'  # Optional: customize the title
+          body: 'Cherry picking #{old_pull_request_id} onto this branch'  # Optional: customize the body
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
