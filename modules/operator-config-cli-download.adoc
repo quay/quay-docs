@@ -43,11 +43,25 @@ You can use the config bundle secret to download the existing configuration.
 
 .Procedure
 
+. Describe the `QuayRegistry` resource by entering the following command:
++
+[source,terminal]
+----
+$ oc describe quayregistry -n <quay_namespace>
+----
++
+[source,terminal]
+----
+# ...
+  Config Bundle Secret:  example-registry-config-bundle-v123x
+# ...
+----
+
 . Obtain the secret data by entering the following command:
 +
 [source,terminal]
 ----
-$ oc get secret -n quay-enterprise init-config-bundle-secret -o jsonpath='{.data}'
+$ oc get secret -n <quay_namespace> <example-registry-config-bundle-v123x> -o jsonpath='{.data}'
 ----
 +
 .Example output
@@ -58,7 +72,8 @@ $ oc get secret -n quay-enterprise init-config-bundle-secret -o jsonpath='{.data
     "config.yaml": "RkVBVFVSRV9VU0 ... MDAwMAo="
 }
 ----
-. Enter the following command to decode the data:
+
+. Decode the data by entering the following command:
 +
 [source,terminal]
 ----
@@ -78,4 +93,11 @@ FEATURE_QUOTA_MANAGEMENT: true
 FEATURE_PROXY_CACHE: true
 FEATURE_BUILD_SUPPORT: true
 DEFAULT_SYSTEM_REJECT_QUOTA_BYTES: 102400000
+----
+
+. Optional. You can export the data into a YAML file into the current directory by passing in the `>> config.yaml` flag. For example:
++
+[source,terminal]
+----
+$ echo 'RkVBVFVSRV9VU0 ... MDAwMAo=' | base64 --decode >> config.yaml
 ----
