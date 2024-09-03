@@ -1,0 +1,238 @@
+:_content-type: PROCEDURE
+[id="creating-custom-ssl-certs-config-bundle"]
+= Creating a custom SSL/TLS configBundleSecret resource
+
+After creating your custom SSL/TLS certificates, you can create a custom `configBundleSecret` resource for {productname-ocp}, which allows you to upload `ssl.cert` and `ssl.key` files.
+
+.Prerequisites
+
+* You have base64 decoded the original config bundle into a `config.yaml` file.
+* You have generated custom SSL certificates and keys.
+
+.Procedure
+
+. Create a new YAML file, for example, `custom-ssl-config-bundle-secret.yaml`:
++
+[source,terminal]
+----
+$ touch custom-ssl-config-bundle-secret.yaml
+----
+
+. Create the `custom-ssl-config-bundle-secret` resource.
+
+.. Create the resource by entering the following command:
++
+[source,terminal]
+----
+$ oc -n <namespace> create secret generic custom-ssl-config-bundle-secret \
+  --from-file=config.yaml=<config.yaml> \ <1>
+  --from-file=ssl.cert=<ssl.cert> \ <2>
+  --from-file=extra_ca_cert=<ca.cert> \ <3>
+  --from-file=ssl.key=<ssl.key> \ <4>
+  --dry-run=client -o yaml > custom-ssl-config-bundle-secret.yaml
+----
+<1> Where `<config.yaml>` is your `base64 decoded` `config.yaml` file.
+<2> Where `<ssl.cert>` is your `ssl.cert` file.
+<3> Optional. The `--from-file=extra_ca_cert=<ca.cert>` field allows {productname} to recognize custom Certificate Authority (CA) files. If you are using LDAP, OIDC, or another service that uses custom CAs, you must add them via the `extra_ca_cert` path.
+<4> Where `<ssl.key>` is your `ssl.key` file.
+
+. Optional. You can check the content of the `custom-ssl-config-bundle-secret.yaml` file by entering the following command:
++
+[source,terminal]
+----
+$ cat custom-ssl-config-bundle-secret.yaml
+----
++
+.Example output
++
+[source,terminal]
+----
+apiVersion: v1
+data:
+  config.yaml: QUxMT1dfUFVMTFNfV0lUSE9VVF9TVFJJQ1RfTE9HR0lORzogZmFsc2UKQVVUSEVOVElDQVRJT05fVFlQRTogRGF0YWJhc2UKREVGQVVMVF9UQUdfRVhQSVJBVElPTjogMncKRElTVFJJQlVURURfU1R...
+  ssl.cert: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVYakNDQTBhZ0F3SUJBZ0lVTUFBRk1YVWlWVHNoMGxNTWI3U1l0eFV5eTJjd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2dZZ3hDekFKQmdOVkJBWVR...
+  extra_ca_cert:LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVYakNDQTBhZ0F3SUJBZ0lVTUFBRk1YVWlWVHNoMGxNTWI3U1l0eFV5eTJjd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2dZZ3hDe...
+  ssl.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ2c0VWxZOVV1SVJPY1oKcFhpZk9MVEdqaS9neUxQMlpiMXQ...
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: custom-ssl-config-bundle-secret
+  namespace: <namespace>
+----
+
+. Create the `configBundleSecret` resource by entering the following command:
++
+[source,terminal]
+----
+$ oc create -n <namespace> -f custom-ssl-config-bundle-secret.yaml
+----
++
+.Example output
++
+[source,terminal]
+----
+secret/custom-ssl-config-bundle-secret created
+----
+
+. Update the `QuayRegistry` YAML file to reference the `custom-ssl-config-bundle-secret` object by entering the following command:
++
+[source,terminal]
+----
+$ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":{"configBundleSecret":"custom-ssl-config-bundle-secret"}}'
+----
++
+.Example output
++
+[source,terminal]
+----
+quayregistry.quay.redhat.com/example-registry patched
+----
+
+. Set the `tls` component of the `QuayRegistry` YAML to `false` by entering the following command:
++
+[source,terminal]
+----
+$ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":{"components":[{"kind":"tls","managed":false}]}}'
+----
++
+.Example output
++
+[source,terminal]
+----
+quayregistry.quay.redhat.com/example-registry patched
+----
+
+. Ensure that your `QuayRegistry` YAML file has been updated to use the custom SSL `configBundleSecret` resource, and that your and `tls` resource is set to `false` by entering the following command:
++
+[source,terminal]
+----
+$ oc get quayregistry <registry_name> -n <namespace> -o yaml
+----
++
+.Example output
++
+[source,terminal]
+----
+# ...
+  configBundleSecret: custom-ssl-config-bundle-secret
+# ...
+spec:
+  components:
+  - kind: tls
+    managed: false
+# ...
+----
+
+////
+. Set the `route` component of the `QuayRegistry` YAML to `false` by entering the following command:
++
+[source,terminal]
+----
+$ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":{"components":[{"kind":"route","managed":false}]}}'
+----
++
+.Example output
++
+[source,terminal]
+----
+quayregistry.quay.redhat.com/example-registry patched
+----
+
+. You must set the `Routes` to `Passthrough`. This can be done on the {ocp} web console.
+
+.. Click *Networking* -> *Routes*.
+
+.. Click the menu kebab for your registry, then click *Edit Route*.
+
+.. For *Hostname*, include the URL of your {productname} registry.
+
+.. For *Service*, select *<_registry_quay_app*.
+
+.. For *Target port*, select *443 -> 8443 (TCP)*. 
+
+.. For *TLS termination* select *Passthrough*.
+
+.. For *Insecure traffic* select *Redirect*. Then, click *Save*.
+
+. Monitor your {productname} registry deployment:
+
+.. On the {ocp} web console click *Operators* -> *Installed Operators* -> *{productname}*.
+
+.. Click *Quay Registry*, then click the name of your registry.
+
+.. Click *Events* to monitor the progress of the reconfiguration. If necessary, you can restart all pods by deleting them. For example:
++
+[source,terminal]
+----
+$ oc get pods -n <namespace> | grep quay
+----
++
+.Example output
++
+[source,terminal]
+----
+example-registry-quay-app-6c5bc8ffb7-4qr5v            1/1     Running   0               18m
+example-registry-quay-app-6c5bc8ffb7-xwswd            1/1     Running   0               20m
+example-registry-quay-database-5f64c9db49-bmg9v       1/1     Running   0               156m
+example-registry-quay-mirror-797458dcc7-ktw9v         1/1     Running   0               19m
+example-registry-quay-mirror-797458dcc7-tmcxd         1/1     Running   0               19m
+example-registry-quay-redis-5f6b6cc597-rltc5          1/1     Running   0               20m
+quay-operator.v3.12.1-5b7dbd57df-xrs87                1/1     Running   0               24h
+----
++
+[source,terminal]
+----
+$ oc delete pods -n <namespace>  example-registry-quay-app-6c5bc8ffb7-4qr5v example-registry-quay-app-6c5bc8ffb7-xwswd example-registry-quay-database-5f64c9db49-bmg9v example-registry-quay-mirror-797458dcc7-ktw9v example-registry-quay-mirror-797458dcc7-tmcxd example-registry-quay-redis-5f6b6cc597-rltc5 quay-operator.v3.12.1-5b7dbd57df-xrs87
+----
+
+
+... Create an SSL/TLS bundle by concatenating the SSL certificate and the CA certificate. For example:
++
+[source,terminal]
+----
+$ cat ssl.cert ca.cert > ssl-bundle.cert
+----
++
+[NOTE]
+====
+Depending on your needs, you might also include `intermediateCA.pem` CAs, `rootCA.pem` CAs, or other CAs into the `ssl-bundle.cert` as necessary. Do not include private keys in your configuration bundle. 
+====
+
+. If not already set, update your `config.yaml` file to include the `PREFERRED_URL_SCHEME: https`, `EXTERNAL_TLS_TERMINATION: false`, and `SERVER_HOSTNAME` fields:
++
+[source,yaml]
+----
+PREFERRED_URL_SCHEME: https
+EXTERNAL_TLS_TERMINATION: false
+SERVER_HOSTNAME: <quay-server.example.com>
+----
+////
+
+.Verification
+
+* Confirm a TLS connection to the server and port by entering the following command:
++
+[source,terminal]
+----
+$  openssl s_client -connect <quay-server.example.com>:443
+----
++
+.Example output
++
+[source,terminal]
+----
+# ...
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_256_GCM_SHA384
+    Session-ID: 0E995850DC3A8EB1A838E2FF06CE56DBA81BD8443E7FA05895FBD6FBDE9FE737
+    Session-ID-ctx: 
+    Resumption PSK: 1EA68F33C65A0F0FA2655BF9C1FE906152C6E3FEEE3AEB6B1B99BA7C41F06077989352C58E07CD2FBDC363FA8A542975
+    PSK identity: None
+    PSK identity hint: None
+    SRP username: None
+    TLS session ticket lifetime hint: 7200 (seconds)
+
+# ...
+----
+
