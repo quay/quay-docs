@@ -1,104 +1,17 @@
 :_content-type: PROCEDURE
 [id="operator-custom-ssl-certs-config-bundle"]
-= Using the config bundle to configure custom SSL/TLS certs
+= Configuring custom SSL/TLS certificates on {productname-ocp}
 
-You can configure custom SSL/TLS certificates before the initial deployment, or after {productname} is deployed on {ocp}. This is done by creating or updating the config bundle secret.
+You can configure custom SSL/TLS certificates before or after the initial deployment of {productname-ocp}. This process involves creating or updating the `configBundleSecret` resource within the `QuayRegistry` YAML file to integrate your custom certificates.
 
+[NOTE]
+====
 If you are adding the certificates to an existing deployment, you must include the existing `config.yaml` file in the new config bundle secret, even if you are not making any configuration changes.
+====
 
-Use the following procedure to add custom SSL/TLS certificates.
+The following procedures enable you to apply custom SSL/TLS certificates to ensure secure communication and meet specific security requirements for your {productname-ocp} deployment. These steps include generating a Certificate Authority (CA) file, an `ssl.key`, and an `ssl.cert`. Then it shows you how to integrate those files into your {productname-ocp} deployment, which ensures that your registry operates with the specified security settings and conforms to your organization's SSL/TLS policies.
 
-.Procedure
-
-. In your `QuayRegistry` YAML file, set `kind: tls` to `managed:false`, for example:
-+
-[source,yaml]
-----
-  - kind: tls
-    managed: false
-----
-
-. Navigate to the *Events* page, which should reveal that the change is blocked until you set up the appropriate config. For example:
-+
-[source,yaml]
-----
-    - lastTransitionTime: '2022-03-28T12:56:49Z'
-      lastUpdateTime: '2022-03-28T12:56:49Z'
-      message: >-
-        required component `tls` marked as unmanaged, but `configBundleSecret`
-        is missing necessary fields
-      reason: ConfigInvalid
-      status: 'True'
-
-----
-
-. Create the secret using embedded data or by using files.
-
-.. Embed the configuration details directly in the `Secret` resource YAML file. For example:
-+
-[source,yaml]
-.custom-ssl-config-bundle.yaml
-----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: custom-ssl-config-bundle-secret
-  namespace: quay-enterprise
-data:
-  config.yaml: |
-    FEATURE_USER_INITIALIZE: true
-    BROWSER_API_CALLS_XHR_ONLY: false
-    SUPER_USERS:
-    - quayadmin
-    FEATURE_USER_CREATION: false
-    FEATURE_QUOTA_MANAGEMENT: true
-    FEATURE_PROXY_CACHE: true
-    FEATURE_BUILD_SUPPORT: true
-    DEFAULT_SYSTEM_REJECT_QUOTA_BYTES: 102400000
-  extra_ca_cert_my-custom-ssl.crt: |
-    -----BEGIN CERTIFICATE-----
-    MIIDsDCCApigAwIBAgIUCqlzkHjF5i5TXLFy+sepFrZr/UswDQYJKoZIhvcNAQEL
-    BQAwbzELMAkGA1UEBhMCSUUxDzANBgNVBAgMBkdBTFdBWTEPMA0GA1UEBwwGR0FM
-    ....
-    -----END CERTIFICATE-----
-----
-
-.. Create the secret from the YAML file:
-+
-----
-$ oc create  -f custom-ssl-config-bundle.yaml
-----
-..
-
-. Alternatively, you can create files containing the desired information, and then create the secret from those files.
-
-.. Enter the following command to create a generic `Secret` object that contains the `config.yaml` file and a `custom-ssl.crt` file:
-+
-----
-$ oc create secret generic custom-ssl-config-bundle-secret \
-  --from-file=config.yaml \
-  --from-file=extra_ca_cert_my-custom-ssl.crt=my-custom-ssl.crt
-----
-
-
-.. Create or update the `QuayRegistry` YAML file, referencing the created `Secret`, for example:
-+
-.Example `QuayRegistry` YAML file
-+
-[source,yaml]
-----
-apiVersion: quay.redhat.com/v1
-kind: QuayRegistry
-metadata:
-  name: example-registry
-  namespace: quay-enterprise
-spec:
-  configBundleSecret: custom-ssl-config-bundle-secret
-----
-
-.. Deploy or update the registry using the YAML file by entering the following command:
-+
-----
-$ oc apply -f quayregistry.yaml
-----
-
+[NOTE]
+====
+The following procedure is used for securing {productname} with an HTTPS certificate. Note that this differs from managing Certificate Authority Trust Bundles. CA Trust Bundles are used by system processes within the `Quay` container to verify certificates against trusted CAs, and ensure that services like LDAP, storage backend, and OIDC connections are trusted. 
+====
