@@ -1,8 +1,8 @@
 :_content-type: PROCEDURE
 [id="configuring-ssl-using-cli"]
-= Configuring SSL/TLS using the command line interface
+= Configuring custom SSL/TLS certificates by using the command line interface
 
-Use the following procedure to configure SSL/TLS using the CLI.
+SSL/TLS must be configured by using the command-line interface (CLI) and updating your `config.yaml` file manually.
 
 .Prerequisites
 
@@ -15,29 +15,29 @@ Use the following procedure to configure SSL/TLS using the CLI.
 [source,terminal]
 +
 ----
-cp ~/ssl.cert ~/ssl.key $QUAY/config
+cp ~/ssl.cert ~/ssl.key /path/to/configuration_directory
 ----
 
-. Change into the `$QUAY/config` directory by entering the following command:
+. Navigate to the configuration directory by entering the following command:
 +
 [source,terminal]
 ----
-$ cd $QUAY/config
+$ cd /path/to/configuration_directory
 ----
 
-. Edit the `config.yaml` file and specify that you want {productname} to handle TLS/SSL:
+. Edit the `config.yaml` file and specify that you want {productname} to handle SSL/TLS:
 +
-.config.yaml
+.Example `config.yaml` file
 [source,yaml]
 ----
-...
-SERVER_HOSTNAME: quay-server.example.com
+# ...
+SERVER_HOSTNAME: <quay-server.example.com>
 ...
 PREFERRED_URL_SCHEME: https
-...
+# ...
 ----
 
-. Optional: Append the contents of the rootCA.pem file to the end of the ssl.cert file by entering the following command:
+. Optional: Append the contents of the `rootCA.pem` file to the end of the `ssl.cert` file by entering the following command:
 +
 [source,terminal]
 ----
@@ -48,7 +48,7 @@ $ cat rootCA.pem >> ssl.cert
 +
 [source,terminal]
 ----
-$ sudo podman stop quay
+$ sudo podman stop <quay_container_name>
 ----
 
 . Restart the registry by entering the following command:

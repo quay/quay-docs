@@ -2,7 +2,7 @@
 [id="creating-a-certificate-authority"]
 = Creating a Certificate Authority
 
-To configure {productname} with a self-signed certificate, you must first create a Certificate Authority (CA). Use the following procedure to create a Certificate Authority (CA).
+Use the following procedure to set up your own CA and use it to issue a server certificate for your domain. This allows you to secure communications with SSL/TLS using your own certificates.
 
 .Procedure
 
@@ -31,13 +31,6 @@ Organization Name (eg, company) [Default Company Ltd]:QUAY
 Organizational Unit Name (eg, section) []:DOCS
 Common Name (eg, your name or your server's hostname) []:quay-server.example.com
 ----
-
-[id="signing-a-certificate"]
-== Signing the certificate
-
-Use the following procedure to sign the certificate.
-
-.Procedure
 
 . Generate the server key by entering the following command:
 +
@@ -68,7 +61,7 @@ Email Address []:
 
 . Create a configuration file `openssl.cnf`, specifying the server hostname, for example:
 +
-.openssl.cnf
+.Example `openssl.cnf` file
 [source,terminal]
 ----
 [req]
@@ -89,4 +82,19 @@ IP.1 = 192.168.1.112
 [source,terminal]
 ----
 $ openssl x509 -req -in ssl.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out ssl.cert -days 356 -extensions v3_req -extfile openssl.cnf
+----
+
+. Confirm your created certificates and files by entering the following command:
++
+[source,terminal]
+----
+$ ls /path/to/certificates
+----
++
+.Example output
++
+[source,terminal]
+----
+rootCA.key ssl-bundle.cert ssl.key custom-ssl-config-bundle-secret.yaml rootCA.pem ssl.cert
+openssl.cnf rootCA.srl  ssl.csr
 ----
