@@ -1,53 +1,95 @@
-[[config-custom-ssl-certs-manual]]
-= Adding TLS Certificates to the {productname} Container
+[id="config-extra-ca-certs-standalone"]
+= Adding additional Certificate Authorities to the {productname} container
 
-To add custom TLS certificates to {productname}, create a new
-directory named `extra_ca_certs/` beneath the {productname} config
-directory. Copy any required site-specific TLS certificates to this new
-directory.
+The `extra_ca_certs` directory is the directory where additional Certificate Authorities (CAs) can be stored to extend the set of trusted certificates. These certificates are used by {productname} to verify SSL/TLS connections with external services. When deploying {productname}, you can place the necessary CAs in this directory to ensure that connections to services like LDAP, OIDC, and storage systems are properly secured and validated.
 
-[[add-certificates-to-quay-container]]
-== Add TLS certificates to {productname}
-. View certificate to be added to the container
+For standalone {productname} deployments, you must create this directory and copy the additional CA certificates into that directory. 
+
+.Prerequisites
+
+* You have a CA for the desired service.
+
+.Procedure
+
+. View the certificate to be added to the container by entering the following command:
 +
-```
+[source,terminal]
+----
 $ cat storage.crt
+----
++
+.Example output
++
+[source,terminal]
+----
 -----BEGIN CERTIFICATE-----
-MIIDTTCCAjWgAwIBAgIJAMVr9ngjJhzbMA0GCSqGSIb3DQEBCwUAMD0xCzAJBgNV
-[...]
+MIIDTTCCAjWgAwIBAgIJAMVr9ngjJhzbMA0GCSqGSIb3DQEBCwUAMD0xCzAJBgNV...
 -----END CERTIFICATE-----
-```
+----
 
-. Create certs directory and copy certificate there
+. Create the `extra_ca_certs` in the `/config` folder of your {productname} directory by entering the following command:
 +
-```
-$ mkdir -p quay/config/extra_ca_certs
-$ cp storage.crt quay/config/extra_ca_certs/
-$ tree quay/config/
-├── config.yaml
-├── extra_ca_certs
-│   ├── storage.crt
-```
+[source,terminal]
+----
+$ mkdir -p /path/to/quay_config_folder/extra_ca_certs
+----
 
-. Obtain the `Quay` container's `CONTAINER ID` with `podman ps`:
+. Copy the CA file to the `extra_ca_certs` folder. For example:
 +
-[subs="verbatim,attributes"]
-```
-$ sudo podman ps
+[source,terminal]
+----
+$ cp storage.crt /path/to/quay_config_folder/extra_ca_certs/
+----
+
+. Ensure that the `storage.crt` file exists within the `extra_ca_certs` folder by entering the following command:
++
+[source,terminal]
+----
+$ tree /path/to/quay_config_folder/extra_ca_certs
+----
++
+.Example output
++
+[source,terminal]
+----
+/path/to/quay_config_folder/extra_ca_certs
+├── storage.crt----
+----
+
+. Obtain the `CONTAINER ID` of your `Quay` consider by entering the following command:
++
+[source,terminal]
+----
+$ podman ps
+----
++
+.Example output
++
+[source,terminal]
+----
 CONTAINER ID        IMAGE                                COMMAND                  CREATED             STATUS              PORTS
 5a3e82c4a75f        <registry>/<repo>/quay:{productminv} "/sbin/my_init"          24 hours ago        Up 18 hours         0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp, 443/tcp   grave_keller
-```
+----
 
-. Restart the container with that ID:
+. Restart the container by entering the following command
 +
-```
-$ sudo podman restart 5a3e82c4a75f
-```
+[source,terminal]
+----
+$ podman restart 5a3e82c4a75f
+----
 
-. Examine the certificate copied into the container namespace:
+. Confirm that the certificate was copied into the container namespace by running the following command:
 +
-```
-$ sudo podman exec -it 5a3e82c4a75f cat /etc/ssl/certs/storage.pem
+[source,terminal]
+----
+$ podman exec -it 5a3e82c4a75f cat /etc/ssl/certs/storage.pem
+----
++
+.Example output
++
+[source,terminal]
+----
 -----BEGIN CERTIFICATE-----
-MIIDTTCCAjWgAwIBAgIJAMVr9ngjJhzbMA0GCSqGSIb3DQEBCwUAMD0xCzAJBgNV
-```
+MIIDTTCCAjWgAwIBAgIJAMVr9ngjJhzbMA0GCSqGSIb3DQEBCwUAMD0xCzAJBgNV...
+-----END CERTIFICATE-----
+----
