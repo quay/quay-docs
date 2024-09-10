@@ -4,17 +4,41 @@
 
 {productname} is composed of many different processes which all run within the same container. Many of these processes interact with the database.
 
-If enabled, each process that interacts with the database will contain a connection pool. These per-process connection pools are configured to maintain a maximum of 20 connections. Under heavy load, it is possible to fill the connection pool for every process within a {productname} container. Under certain deployments and loads, this might require analysis to ensure that {productname} does not exceed the configured database's maximum connection count.
+Database connection pooling is enabled by default, and each process that interacts with the database contains a connection pool. These per-process connection pools are configured to maintain a maximum of 20 connections. Under heavy load, it is possible to fill the connection pool for every process within a {productname} container. Under certain deployments and loads, this might require analysis to ensure that {productname} does not exceed the configured database's maximum connection count.
 
-Overtime, the connection pools will release idle connections. To release all connections immediately, {productname}  requires a restart.
+Overtime, the connection pools release idle connections. To release all connections immediately, {productname} requires a restart.
 
-Database connection pooling can be toggled by setting the environment variable `DB_CONNECTION_POOLING` to `true` or `false`.
+For standalone {productname} deployments, database connection pooling can be toggled off when starting your deployment. For example:
+
+[source,terminal]
+----
+$ sudo podman run -d --rm -p 80:8080 -p 443:8443  \
+   --name=quay \
+   -v $QUAY/config:/conf/stack:Z \
+   -v $QUAY/storage:/datastorage:Z \
+   -e DB_CONNECTION_POOLING=false
+   registry.redhat.io/quay/quay-rhel8:v3.12.1
+----
+
+For {productname-ocp}, database connection pooling can be configured by modifying the `QuayRegistry` custom resource definition (CRD). For example:
+[source,yaml]
+.Example QuayRegistry CRD
+----
+spec:
+  components:
+  - kind: quay
+    managed: true
+    overrides:
+      env:
+      - name: DB_CONNECTION_POOLING
+        value: "false"
+----
 
 .Database connection pooling configuration
 [cols="3a,1a,2a",options="header"]
 |===
 | Variable | Type | Description
-| **DB_CONNECTION_POOLING** | Boolean |  Enable or disable database connection pooling 
+| **DB_CONNECTION_POOLING** | String |  Whether to enable or disable database connection pooling. Defaults to true. Accepted values are `"true"` or `"false"`
 |===
 
 If database connection pooling is enabled, it is possible to change the maximum size of the connection pool. This can be done through the following `config.yaml` option:
