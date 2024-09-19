@@ -1,0 +1,199 @@
+:_content-type: PROCEDURE
+[id="prepare-ocp-for-bare-metal-builds"]
+= Configuring bare metal builds for {productname-ocp}
+
+Use the following procedure to configure _bare metal builds_ for {productname-ocp}.
+
+[NOTE]
+====
+If you are using the {productname} Operator on {ocp} with a managed `route` component in your `QuayRegistry` CRD, see "{productname-ocp} _builds_ limitations with self-managed _routes_".
+====
+
+.Prerequisites 
+
+* You have an {ocp} cluster provisioned with the {productname} Operator running.
+* You have set the `tls` component to `unmanaged` and uploaded custom SSL/TLS certificates to the {productname} Operator. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview[SSL and TLS for {productname}].
+* You are logged into {ocp} as a cluster administrator.
+
+.Procedure 
+
+. Enter the following command to create a project where Builds will be run, for example, `bare-metal-builder`:
++
+[source,terminal]
+----
+$ oc new-project bare-metal-builder
+----
+
+. Create a new `ServiceAccount` in the the `bare-metal-builder` namespace by entering the following command:
++
+[source,terminal]
+----
+$ oc create sa -n bare-metal-builder quay-builder
+----
+
+. Enter the following command to grant a user the `edit` role within the `bare-metal-builder` namespace:
++
+[source,terminal]
+----
+$ oc policy add-role-to-user -n bare-metal-builder edit system:serviceaccount:builder:quay-builder
+----
+
+. Enter the following command to retrieve a token associated with the `quay-builder` service account in the `bare-metal-builder` namespace. This token is used to authenticate and interact with the {ocp} cluster's API server.
++
+[source,terminal]
+----
+$ oc sa get-token -n bare-metal-builder quay-builder
+----
+
+. Identify the URL for the {ocp} cluster's API server. This can be found in the {ocp} web console.
+
+. Identify a worker node label to be used when scheduling _build jobs_. Because _build pods_ must run on bare metal worker nodes, typically these are identified with specific labels.
++
+Check with your cluster administrator to determine exactly which node label should be used. 
+
+. Obtain the Kube API Server's certificate authority (CA) to add to {productname}'s extra certificates. 
+
+.. Enter the following command to obtain the name of the secret containing the CA:
++
+[source,terminal]
+----
+$ oc get sa openshift-apiserver-sa --namespace=openshift-apiserver -o json | jq '.secrets[] | select(.name | contains("openshift-apiserver-sa-token"))'.name
+----
+
+.. Obtain the `ca.crt` key value from the secret in the {ocp} Web Console. The value begins with *"-----BEGIN CERTIFICATE-----"`*. 
+
+.. Import the CA to {productname}. Ensure that the name of this file matches the `K8S_API_TLS_CA` field used in Step 9. 
+
+. Create the following `SecurityContextConstraints` resource for the `ServiceAccount`:
++
+[source,yaml]
+----
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: quay-builder
+priority: null
+readOnlyRootFilesystem: false
+requiredDropCapabilities: null
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+seccompProfiles:
+- '*'
+supplementalGroups:
+  type: RunAsAny
+volumes:
+- '*'
+allowHostDirVolumePlugin: true
+allowHostIPC: true
+allowHostNetwork: true
+allowHostPID: true
+allowHostPorts: true
+allowPrivilegeEscalation: true
+allowPrivilegedContainer: true
+allowedCapabilities:
+- '*'
+allowedUnsafeSysctls:
+- '*'
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: quay-builder-scc
+  namespace: builder
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - quay-builder
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: quay-builder-scc
+  namespace: builder
+subjects:
+- kind: ServiceAccount
+  name: quay-builder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: quay-builder-scc
+----
+
+. Update the `config.yaml` file of your {productname-ocp} deployment to include an appropriate _bare metal builds_ configuration by using the {ocp} web console.
+
+.. Click *Operators* -> *Installed Operators* -> *Red Hat Quay* -> *Quay Registry*. 
+
+.. Click the name of your registry, for example, *example-registry*. 
+
+.. Under *Config Bundle Secret*, click the name of your configuration bundle, for example, *extra-ca-certificate-config-bundle-secret*. 
+
+.. Click *Actions* -> *Edit Secret*.
+
+.. Add the following information to your {productname} `config.yaml` file, replacing each value with information that is relevant to your specific installation:
++
+[source,yaml]
+----
+FEATURE_USER_INITIALIZE: true
+BROWSER_API_CALLS_XHR_ONLY: false
+SUPER_USERS:
+- <superusername>
+FEATURE_USER_CREATION: false
+FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_BUILD_SUPPORT: True
+BUILD_MANAGER:
+- ephemeral
+- ALLOWED_WORKER_COUNT: 1
+  ORCHESTRATOR_PREFIX: buildman/production/
+    ORCHESTRATOR:
+      REDIS_HOST: <sample_redis_hostname> <1>
+      REDIS_PASSWORD: ""
+      REDIS_SSL: false
+      REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+  EXECUTORS:
+  - EXECUTOR: kubernetes
+    BUILDER_NAMESPACE: <sample_builder_namespace> <2>
+    K8S_API_SERVER: <sample_k8s_api_server> <3>
+    K8S_API_TLS_CA: <sample_crt_file> <4>
+    VOLUME_SIZE: 8G
+    KUBERNETES_DISTRIBUTION: openshift
+    CONTAINER_MEMORY_LIMITS: 1G <5>
+    CONTAINER_CPU_LIMITS: 300m <6>
+    CONTAINER_MEMORY_REQUEST: 1G <7>
+    CONTAINER_CPU_REQUEST: 300m <8>
+    NODE_SELECTOR_LABEL_KEY: beta.kubernetes.io/instance-type
+    NODE_SELECTOR_LABEL_VALUE: n1-standard-4
+    CONTAINER_RUNTIME: podman
+    SERVICE_ACCOUNT_NAME: <sample_service_account_name>
+    SERVICE_ACCOUNT_TOKEN: <sample_account_token> <9>
+    QUAY_USERNAME: <quay_username>
+    QUAY_PASSWORD: <quay_password>
+    WORKER_IMAGE: <registry>/quay-quay-builder
+    WORKER_TAG: <some_tag>
+    BUILDER_VM_CONTAINER_IMAGE: quay.io/quay/quay-builder-qemu-fedoracoreos:latest
+    SETUP_TIME: 180
+    MINIMUM_RETRY_THRESHOLD: 0
+    SSH_AUTHORIZED_KEYS:
+    - <ssh-rsa 12345 someuser@email.com>
+    - <ssh-rsa 67890 someuser2@email.com>
+----
+<1> The hostname for your Redis service.
+<2> Set to match the name of your _bare metal builds_ namespace. This example used `bare-metal-builder`.
+<3> The `K8S_API_SERVER` is obtained by running `$ oc cluster-info`.
+<4> You must manually create and add your custom CA cert, for example, `K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build_cluster.crt`.
+<5> Defaults to `5120Mi` if left unspecified.
+<6> Defaults to `1000m` if left unspecified.
+<7> Defaults to `3968Mi` if left unspecified.
+<8> Defaults to `500m` if left unspecified.
+<9> Obtained when running `$ oc create sa`.
+
+. Restart your {productname} registry to enable the _builds_ feature.

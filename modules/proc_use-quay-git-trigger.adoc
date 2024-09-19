@@ -1,41 +1,38 @@
 [id="setting-up-custom-git-trigger"]
 = Setting up a custom Git trigger
 
-A _custom Git trigger_ is a generic way for any Git server to act as a Build trigger. It relies solely on SSH keys and webhook endpoints. Everything else is left for the user to implement. 
-
-[id="creating-a-custom-git-trigger"]
-== Creating a trigger
-
-Creating a custom Git trigger is similar to the creation of any other trigger, with the exception of the following:
-
-ifeval::["{context}" == "quay-io"]
-* {quayio} cannot automatically detect the proper Robot Account to use with the trigger. This must be done manually during the creation process. 
-endif::[]
-
-ifeval::["{context}" == "use-quay"]
-* {productname} cannot automatically detect the proper Robot Account to use with the trigger. This must be done manually during the creation process. 
-endif::[]
-
-* There are extra steps after the creation of the trigger that must be done. These steps are detailed in the following sections. 
-
-[id="post-git-trigger-creation-setup"]
-== Custom trigger creation setup
-
-When creating a custom Git trigger, two additional steps are required: 
+After you have created a _custom Git trigger_, two additional steps are required:
 
 . You must provide read access to the SSH public key that is generated when creating the trigger. 
 
 ifeval::["{context}" == "quay-io"]
 . You must setup a webhook that POSTs to the {quayio} endpoint to trigger the build. 
 endif::[]
-ifeval::["{context}" == "use-quay"]
+ifeval::["{context}" == "quay-builders-image-automation"]
 . You must setup a webhook that POSTs to the {productname} endpoint to trigger the build. 
 endif::[]
+
+[id="obtaining-build-trigger-credentials"]
+== Obtaining build trigger credentials
+
+The SSH public key and Webhook Endpoint URL are available on the {productname} UI. 
+
+.Prerequisites
+
+* You have created a _custom Git trigger_. 
+
+.Procedure
+
+. On the *Builds* page of your repository, click the menu kebab for your _custom Git trigger_. 
+
+. Click *View Credentials*. 
+
+. Save the SSH Public Key and Webhook Endpoint URL. 
 
 The key and the URL are available by selecting *View Credentials* from the *Settings*, or _gear_ icon.
 
 .View and modify tags from your repository
-image:view-credentials.png[View and modify tags from your repository]
+image:view-credentials.png[Trigger Credentials]
 
 [id="ssh-public-key-access"]
 === SSH public key access
@@ -49,18 +46,13 @@ ifeval::["{context}" == "use-quay"]
 endif::[]
 generates for a custom Git trigger.
 
-For example, https://git-scm.herokuapp.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server[Git documentation] describes a small server setup in which adding the key to `$HOME/.ssh/authorize_keys` would provide access for Builders
-to clone the repository. For any git repository management software that is not officially supported, there is usually a location to input the key often labeled as *Deploy Keys*.
+For example, documentation for link:https://git-scm.com/book/en/v2/Git-on-the-Server-Getting-Git-on-a-Server[Getting Git on a Server] describes a describes how to set up a Git server on a Linux-based machine with a focus on managing repositories and access control through SSH. In this procedure, a small server is set up to add the keys to the `$HOME/.ssh/authorize_keys` folder, which provides access for _builders_ to clone the repository. 
+
+For any Git repository management software that is not officially supported, there is usually a location to input the key that is often labeled as *Deploy Keys*. 
 
 [id="webhook"]
 === Webhook
-To automatically trigger a build, one must `POST` a `.json` payload
-to the webhook URL using the following format.
-
-This can be accomplished in various ways depending on the
-server setup, but for most cases can be done with a
-https://git-scm.herokuapp.com/book/en/v2/Customizing-Git-Git-Hooks#idp26374144[`post-receive`
-Git Hook].
+To automatically trigger a build, you must `POST` a `.json` payload to the webhook URL using the following format: 
 
 [NOTE]
 ====
@@ -92,3 +84,5 @@ This request requires a `Content-Type` header containing
   }
 }
 ----
+
+This can typically be accomplished with a link:https://git-scm.com/docs/githooks#post-receive[`post-receive` Git hook], however it does depend on your server setup.

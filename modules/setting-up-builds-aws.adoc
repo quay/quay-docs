@@ -1,0 +1,37 @@
+:_content-type: PROCEDURE
+[id="setting-up-builds-aws"]
+= {productname} Builder configuration with Amazon Elastic Compute Cloud
+
+{productname} can also be configured to use Amazon Elastic Compute Cloud (EC2) instances as _build worker_ nodes. This is useful for situations where you might want to have EC2 based _builds_ available as a backup solution in the event that your {ocp} _build workers_ are overloaded or unavailable.
+
+[NOTE]
+====
+Amazon EC2 _builds_ are not supported by Red{nbsp}Hat. This is currently provided as an upstream feature only.
+====
+
+You can follow the steps in "Configuring bare metal builds for {productname-ocp}" and substitute the following changes in your configuration bundle to enable Amazon EC2. 
+
+.Example configuration for bare metal builds with Amazon EC2
+[source,yaml]
+----
+  EXECUTORS:
+    - EXECUTOR: ec2
+      QUAY_USERNAME: <quay_username>
+      QUAY_PASSWORD: <quay_pass>
+      WORKER_IMAGE: quay.io/quay/quay-builder
+      WORKER_TAG: latest
+      EC2_REGION: us-east-1
+      COREOS_AMI: ami-02545325b519192df # Fedora CoreOS <1>
+      AWS_ACCESS_KEY: *****
+      AWS_SECRET_KEY: *****
+      EC2_INSTANCE_TYPE: t2.large
+      EC2_VPC_SUBNET_ID: <some_subnet>
+      EC2_SECURITY_GROUP_IDS:
+      - <sg-somesg>
+      EC2_KEY_NAME: <some_key>
+      BLOCK_DEVICE_SIZE: 58
+      SSH_AUTHORIZED_KEYS:
+      - <ssh-rsa 12345 user1@email.com>
+      - <ssh-rsa 67890 user2@email.com>
+----
+<1> Specifies an AMI name where _builds_ will be run. Unlike bare metal _builds_, these container _builds_ are done directly within an ephemeral EC2 instance. This AMI must utilize ignition and contain a docker. The AMI shown in this example is used by {quay.io} for its build system.

@@ -1,0 +1,79 @@
+:_content-type: CONCEPT
+[id="starting-a-build"]
+= Starting a new build by uploading a Dockerfile
+
+ifeval::["{context}" == "quay-io"]
+By default, {quayio} users can start new _builds_ out-of-the-box. 
+endif::[]
+
+ifeval::["{context}" == "quay-builders-image-automation"]
+After you have enabled the {productname} _builds_ feature by configuring your deployment, you can start a new build by uploading a Dockerfile.
+endif::[]
+
+Use the following procedure to start a new _build_ by uploading a Dockerfile.
+
+.Prerequisites
+
+* You have navigated to the *Builds* page of your repository.
+ifeval::["{context}" == "quay-builders-image-automation"]
+* You have configured your environment to use the _build_ feature.
+endif::[]
+
+.Procedure
+
+. On the *Builds* page, click *Start New Build*.
+
+. When prompted, click *Upload Dockerfile* to upload a Dockerfile or an archive that contains a Dockerfile at the root directory.
+
+. Click *Start Build*.
++
+[NOTE]
+====
+* Currently, users cannot specify the Docker build context when manually starting a build.
+* Currently, BitBucket is unsupported on the {productname} v2 UI. 
+====
+
+. You are redirected to the _build_, which can be viewed in real-time. Wait for the Dockerfile _build_ to be completed and pushed. 
+
+. Optional. you can click *Download Logs* to download the logs, or *Copy Logs* to copy the logs. 
+
+. Click the back button to return to the *Repository Builds* page, where you can view the _build history_.
++
+image:build-history.png[Build history v2 UI]
+
+ifeval::["{context}" == "quay-builders-image-automation"]
+. You can check the status of your build by clicking the commit in the *Build History* page, or by running the following command:
++
+----
+$ oc get pods -n virtual-builders
+----
++
+.Example output
+----
+NAME                                               READY   STATUS    RESTARTS   AGE
+f192fe4a-c802-4275-bcce-d2031e635126-9l2b5-25lg2   1/1     Running   0          7s
+----
++
+[source,terminal]
+----
+$ oc get pods -n virtual-builders
+----
++
+.Example output
+----
+NAME                                               READY   STATUS        RESTARTS   AGE
+f192fe4a-c802-4275-bcce-d2031e635126-9l2b5-25lg2   1/1     Terminating   0          9s
+----
+
+. After the build has completed, the `oc get pods -n virtual-builders` command returns no resources:
++
+[source,terminal]
+----
+$ oc get pods -n virtual-builders
+----
++
+.Example output
+----
+No resources found in virtual-builders namespace.
+----
+endif::[]

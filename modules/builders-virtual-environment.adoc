@@ -1,49 +1,23 @@
-:_content-type: CONCEPT
+:_content-type: PROCEDURE
 [id="builders-virtual-environment"]
-= Creating a {productname} builders environment with {ocp}
+= Configuring virtual builds for {productname-ocp}
 
-The procedures in this section explain how to create a {productname} virtual builders environment with {ocp}.
-
-[id="openshift-tls-component"]
-== {ocp} TLS component
-
-The `tls` component allows you to control TLS configuration.
+The procedures in this section explain how to create an environment for _virtual builds_ for {productname-ocp}. 
 
 [NOTE]
 ====
-{productname} {producty} does not support builders when the TLS component is managed by the Operator.
+* If you are using Amazon Web Service (AWS) S3 storage, you must modify your storage bucket in the AWS console, prior to running builders. See "Modifying your AWS S3 storage bucket" in the following section for the required parameters.
+* If you are using a Google Cloud Platform (GCP) object bucket, you must configure cross-origin resource sharing (CORS) to enable _virtual builds_.
 ====
 
-If you set `tls` to `unmanaged`, you supply your own `ssl.cert` and `ssl.key` files. In this instance, if you want your cluster to support builders, you must add both the Quay route and the builder route name to the SAN list in the cert, or use a wildcard.
+.Prerequisites 
 
-To add the builder route, use the following format:
-
-[source,bash]
-----
-[quayregistry-cr-name]-quay-builder-[ocp-namespace].[ocp-domain-name]:443
-----
-
-[id="red-hat-quay-quota-builders-establishment"]
-== Using {ocp} for {productname} builders
-
-Builders require SSL/TLS certificates. For more information about SSL/TLS certificates, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/proof_of_concept_-_deploying_red_hat_quay/advanced-quay-poc-deployment[Proof of concept deployment using SSL/TLS certificates].
-
-If you are using Amazon Web Service (AWS) S3 storage, you must modify your storage bucket in the AWS console, prior to running builders. See "Modifying your AWS S3 storage bucket" in the following section for the required parameters.
-
-[id="red-hat-quay-setting-up-builders"]
-=== Preparing {ocp} for virtual builders
-
-Use the following procedure to prepare {ocp} for {productname} virtual builders.
-
-[NOTE]
-====
-* This procedure assumes you already have a cluster provisioned and a Quay Operator running.
-* This procedure is for setting up a virtual namespace on OpenShift Container Platform.
-====
+* You have an {ocp} cluster provisioned with the {productname} Operator running.
+* You have set the `tls` component to `unmanaged` and uploaded custom SSL/TLS certificates to the {productname} Operator. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview[SSL and TLS for {productname}].
+* You have configured the {ocp} TLS component for builds.
+* You are logged into {ocp} as a cluster administrator.
 
 .Procedure
-
-. Log in to your {productname} cluster using a cluster administrator account.
 
 . Create a new project where your virtual builders will be run, for example, `virtual-builders`, by running the following command:
 +
@@ -52,42 +26,49 @@ Use the following procedure to prepare {ocp} for {productname} virtual builders.
 $ oc new-project virtual-builders
 ----
 
-. Create a `ServiceAccount` in the project that will be used to run builds by entering the following command:
+. Create a `ServiceAccount` in the project that will be used to run _builds_ by entering the following command:
 +
 [source,terminal]
 ----
 $ oc create sa -n virtual-builders quay-builder
 ----
++
+.Example output
++
+[source,terminal]
+----
+serviceaccount/quay-builder created
+----
 
-. Provide the created service account with editing permissions so that it can run the build:
+. Provide the created service account with editing permissions so that it can run a _build_:
 +
 [source,terminal]
 ----
 $ oc adm policy -n virtual-builders add-role-to-user edit system:serviceaccount:virtual-builders:quay-builder
 ----
++
+.Example output
++
+[source,terminal]
+----
+clusterrole.rbac.authorization.k8s.io/edit added: "system:serviceaccount:virtual-builders:quay-builder"
+----
 
-. Grant the Quay builder `anyuid scc` permissions by entering the following command:
+. Grant the _builder_ worker `anyuid scc` permissions by entering the following command. This requires cluster administrator privileges, which is required because _builders_ must run as the Podman user for unprivileged or rootless builds to work.
 +
 [source,terminal]
 ----
 $ oc adm policy -n virtual-builders add-scc-to-user anyuid -z quay-builder
 ----
 +
-[NOTE]
-====
-This action requires cluster admin privileges. This is required because builders must run as the Podman user for unprivileged or rootless builds to work.
-====
-
-. Obtain the token for the Quay builder service account.
-
-.. If using {ocp} 4.10 or an earlier version, enter the following command:
+.Example output
 +
 [source,terminal]
 ----
-oc sa get-token -n virtual-builders quay-builder
+clusterrole.rbac.authorization.k8s.io/system:openshift:scc:anyuid added: "quay-builder"
 ----
 
-.. If using {ocp} 4.11 or later, enter the following command:
+. Obtain the token for the _builder_ service account by entering the following command:
 +
 [source,terminal]
 ----
@@ -100,12 +81,13 @@ When the token expires you will need to request a new token. Optionally, you can
 ====
 +
 .Example output
++
 [source,terminal]
 ----
 eyJhbGciOiJSUzI1NiIsImtpZCI6IldfQUJkaDVmb3ltTHZ0dGZMYjhIWnYxZTQzN2dJVEJxcDJscldSdEUtYWsifQ...
 ----
 
-. Determine the builder route by entering the following command:
+. Determine the _builder_ route by entering the following command:
 +
 [source,terminal]
 ----
@@ -115,13 +97,16 @@ $ oc get route -n quay-enterprise
 .Example output
 [source,terminal]
 ----
-NAME                                  HOST/PORT                                                                    PATH   SERVICES                              PORT   TERMINATION     WILDCARD
-...
-example-registry-quay-builder         example-registry-quay-builder-quay-enterprise.apps.docs.quayteam.org                example-registry-quay-app             grpc   edge/Redirect   None
-...
+NAME: example-registry-quay-builder 
+HOST/PORT: example-registry-quay-builder-quay-enterprise.apps.stevsmit-cluster-new.gcp.quaydev.org
+PATH:
+SERVICES: example-registry-quay-app   
+PORT: grpc    
+TERMINATION: passthrough/Redirect   
+WILDCARD: None
 ----
 
-. Generate a self-signed SSL/TlS certificate with the .crt extension by entering the following command:
+. Generate a self-signed SSL/TlS certificate with the `.crt` extension by entering the following command:
 +
 [source,terminal]
 ----
@@ -129,19 +114,30 @@ $ oc extract cm/kube-root-ca.crt -n openshift-apiserver
 ----
 +
 .Example output
++
 [source,terminal]
 ----
 ca.crt
 ----
 
-. Rename the `ca.crt` file to `extra_ca_cert_build_cluster.crt` by entering the following command:
+. Rename the `ca.crt` file to `build-cluster.crt` by entering the following command:
 +
 [source,terminal]
 ----
-$ mv ca.crt extra_ca_cert_build_cluster.crt
+$ mv ca.crt build-cluster.crt
 ----
 
-. Locate the secret for you configuration bundle in the *Console*, and select *Actions* -> *Edit Secret* and add the appropriate builder configuration:
+. Update the `config.yaml` file of your {productname-ocp} deployment to include an appropriate _virtual builds_ configuration by using the {ocp} web console.
+
+.. Click *Operators* -> *Installed Operators* -> *Red Hat Quay* -> *Quay Registry*. 
+
+.. Click the name of your registry, for example, *example-registry*. 
+
+.. Under *Config Bundle Secret*, click the name of your configuration bundle, for example, *extra-ca-certificate-config-bundle-secret*. 
+
+.. Click *Actions* -> *Edit Secret*.
+
+.. Add an appropriate _virtual builds_ configuration with the following reference: 
 +
 [source,yaml]
 ----
@@ -169,36 +165,35 @@ BUILD_MANAGER:
         BUILDER_NAMESPACE: <sample_builder_namespace> <4>
         SETUP_TIME: 180
         MINIMUM_RETRY_THRESHOLD: 0
-        BUILDER_CONTAINER_IMAGE: <sample_builder_container_image> <5>
+        BUILDER_CONTAINER_IMAGE: quay.io/projectquay/quay-builder:{producty}
         # Kubernetes resource options
-        K8S_API_SERVER: <sample_k8s_api_server> <6>
-        K8S_API_TLS_CA: <sample_crt_file> <7>
+        K8S_API_SERVER: <sample_k8s_api_server> <5>
+        K8S_API_TLS_CA: <sample_crt_file> <6>
         VOLUME_SIZE: 8G
         KUBERNETES_DISTRIBUTION: openshift
-        CONTAINER_MEMORY_LIMITS: 1G <8>
-        CONTAINER_CPU_LIMITS: 300m <9>
-        CONTAINER_MEMORY_REQUEST: 1G <10>
-        CONTAINER_CPU_REQUEST: 300m <11>
+        CONTAINER_MEMORY_LIMITS: 1G <7>
+        CONTAINER_CPU_LIMITS: 300m <8>
+        CONTAINER_MEMORY_REQUEST: 1G <9>
+        CONTAINER_CPU_REQUEST: 300m <10>
         NODE_SELECTOR_LABEL_KEY: ""
         NODE_SELECTOR_LABEL_VALUE: ""
         SERVICE_ACCOUNT_NAME: <sample_service_account_name>
-        SERVICE_ACCOUNT_TOKEN: <sample_account_token> <12>
+        SERVICE_ACCOUNT_TOKEN: <sample_account_token> <11>
 ----
 +
-<1> The build route is obtained by running `oc get route -n` with the name of your OpenShift Operator's namespace. A port must be provided at the end of the route, and it should use the following format: `[quayregistry-cr-name]-quay-builder-[ocp-namespace].[ocp-domain-name]:443`.
-<2> If the `JOB_REGISTRATION_TIMEOUT` parameter is set too low, you might receive the following error: `failed to register job to build manager: rpc error: code = Unauthenticated desc = Invalid build token: Signature has expired`. It is suggested that this parameter be set to at least 240.
-<3> If your Redis host has a password or SSL/TLS certificates, you must update accordingly.
-<4> Set to match the name of your virtual builders namespace, for example, `virtual-builders`.
-<5> For early access, the `BUILDER_CONTAINER_IMAGE` is currently `quay.io/projectquay/quay-builder:3.7.0-rc.2`. Note that this might change during the early access window. If this happens, customers are alerted.
-<6> The `K8S_API_SERVER` is obtained by running `oc cluster-info`.
-<7> You must manually create and add your custom CA cert, for example, `K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build_cluster.crt`.
-<8> Defaults to `5120Mi` if left unspecified.
-<9> For virtual builds, you must ensure that there are enough resources in your cluster. Defaults to `1000m` if left unspecified.
-<10> Defaults to `3968Mi` if left unspecified.
-<11> Defaults to `500m` if left unspecified.
-<12> Obtained when running `oc create sa`.
+<1> The build route is obtained by running `$ oc get route -n` with the namespace of your {productname-ocp} deployment. A port must be provided at the end of the route, and it should use the following format: `[quayregistry-cr-name]-quay-builder-[ocp-namespace].[ocp-domain-name]:443`.
+<2> If the `JOB_REGISTRATION_TIMEOUT` parameter is set too low, you might receive the following error: `failed to register job to build manager: rpc error: code = Unauthenticated desc = Invalid build token: Signature has expired`. This parameter should be set to at least `240`.
+<3> If your Redis host has a password or SSL/TLS certificates, you must update this field accordingly.
+<4> Set to match the name of your _virtual builds_ namespace. This example used `virtual-builders`.
+<5> The `K8S_API_SERVER` is obtained by running `$ oc cluster-info`.
+<6> You must manually create and add your custom CA cert, for example, `K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build_cluster.crt`.
+<7> Defaults to `5120Mi` if left unspecified.
+<8> For _virtual builds_, you must ensure that there are enough resources in your cluster. Defaults to `1000m` if left unspecified.
+<9> Defaults to `3968Mi` if left unspecified.
+<10> Defaults to `500m` if left unspecified.
+<11> Obtained when running `$ oc create sa`.
 +
-.Sample configuration
+.Example _virtual builds_ configuration
 [source,yaml]
 ----
 FEATURE_USER_INITIALIZE: true
@@ -225,7 +220,7 @@ BUILD_MANAGER:
         BUILDER_NAMESPACE: virtual-builders
         SETUP_TIME: 180
         MINIMUM_RETRY_THRESHOLD: 0
-        BUILDER_CONTAINER_IMAGE: quay.io/projectquay/quay-builder:3.7.0-rc.2
+        BUILDER_CONTAINER_IMAGE: quay.io/projectquay/quay-builder:{producty}
         # Kubernetes resource options
         K8S_API_SERVER: api.docs.quayteam.org:6443
         K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build_cluster.crt
@@ -241,456 +236,6 @@ BUILD_MANAGER:
         SERVICE_ACCOUNT_TOKEN: "eyJhbGciOiJSUzI1NiIsImtpZCI6IldfQUJkaDVmb3ltTHZ0dGZMYjhIWnYxZTQzN2dJVEJxcDJscldSdEUtYWsifQ"
 ----
 
-[id="red-hat-quay-manual-ssl-for-builders"]
-=== Manually adding SSL/TLS certificates
+.. Click *Save* on the *Edit Secret* page.
 
-Due to a known issue with the configuration tool, you must manually add your custom SSL/TLS certificates to properly run builders. Use the following procedure to manually add custom SSL/TLS certificates.
-
-For more information creating SSL/TLS certificates, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/proof_of_concept_-_deploying_red_hat_quay/advanced-quay-poc-deployment[Proof of concept deployment using SSL/TLS certificates].
-
-
-[id="create-sign-certificates"]
-==== Creating and signing certificates
-
-Use the following procedure to create and sign an SSL/TLS certificate.
-
-.Procedure
-
-* Create a certificate authority and sign a certificate. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/proof_of_concept_-_deploying_red_hat_quay/index#creating-a-certificate-authority[Creating a Certificate Authority].
-+
-.openssl.cnf
-[source,terminal]
-----
-[req]
-req_extensions = v3_req
-distinguished_name = req_distinguished_name
-[req_distinguished_name]
-[ v3_req ]
-basicConstraints = CA:FALSE
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
-subjectAltName = @alt_names
-[alt_names]
-DNS.1 = example-registry-quay-quay-enterprise.apps.docs.quayteam.org <1>
-DNS.2 = example-registry-quay-builder-quay-enterprise.apps.docs.quayteam.org <2>
-----
-<1> An `alt_name` for the URL of your {productname} registry must be included.
-<2> An `alt_name` for the `BUILDMAN_HOSTNAME`
-+
-.Sample commands
-[source,terminal]
-----
-$ openssl genrsa -out rootCA.key 2048
-$ openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 1024 -out rootCA.pem
-$ openssl genrsa -out ssl.key 2048
-$ openssl req -new -key ssl.key -out ssl.csr
-$ openssl x509 -req -in ssl.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out ssl.cert -days 356 -extensions v3_req -extfile openssl.cnf
-----
-
-[id="setting-tls-unmanaged"]
-==== Setting TLS to unmanaged
-
-Use the following procedure to set `king:tls` to unmanaged.
-
-.Procedure
-
-. In your {productname} Registry YAML, set `kind: tls` to `managed: false`:
-+
-[source,yaml]
-----
-  - kind: tls
-    managed: false
-----
-
-. On the *Events* page, the change is blocked until you set up the appropriate `config.yaml` file. For example:
-+
-[source,yaml]
-----
-    - lastTransitionTime: '2022-03-28T12:56:49Z'
-      lastUpdateTime: '2022-03-28T12:56:49Z'
-      message: >-
-        required component `tls` marked as unmanaged, but `configBundleSecret`
-        is missing necessary fields
-      reason: ConfigInvalid
-      status: 'True'
-
-----
-
-[id="creating-temporary-secrets"]
-==== Creating temporary secrets
-
-Use the following procedure to create temporary secrets for the CA certificate.
-
-.Procedure
-
-. Create a secret in your default namespace for the CA certificate:
-+
-----
-$ oc create secret generic -n quay-enterprise temp-crt --from-file extra_ca_cert_build_cluster.crt
-----
-
-. Create a secret in your default namespace for the `ssl.key` and `ssl.cert` files:
-+
-----
-$ oc create secret generic -n quay-enterprise quay-config-ssl --from-file ssl.cert --from-file ssl.key
-----
-
-[id="copying-secret-data-to-config"]
-==== Copying secret data to the configuration YAML
-
-Use the following procedure to copy secret data to your `config.yaml` file.
-
-.Procedure
-
-. Locate the new secrets in the console UI at *Workloads* -> *Secrets*.
-
-. For each secret, locate the YAML view:
-+
-[source,yaml]
-----
-kind: Secret
-apiVersion: v1
-metadata:
-  name: temp-crt
-  namespace: quay-enterprise
-  uid: a4818adb-8e21-443a-a8db-f334ace9f6d0
-  resourceVersion: '9087855'
-  creationTimestamp: '2022-03-28T13:05:30Z'
-...
-data:
-  extra_ca_cert_build_cluster.crt: >-
-    LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURNakNDQWhxZ0F3SUJBZ0l....
-type: Opaque
-----
-+
-[source,yaml]
-----
-kind: Secret
-apiVersion: v1
-metadata:
-  name: quay-config-ssl
-  namespace: quay-enterprise
-  uid: 4f5ae352-17d8-4e2d-89a2-143a3280783c
-  resourceVersion: '9090567'
-  creationTimestamp: '2022-03-28T13:10:34Z'
-...
-data:
-  ssl.cert: >-
-    LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVaakNDQTA2Z0F3SUJBZ0lVT...
-  ssl.key: >-
-    LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcFFJQkFBS0NBUUVBc...
-type: Opaque
-----
-
-. Locate the secret for your {productname} registry configuration bundle in the UI, or through the command line by running a command like the following:
-+
-[source,terminal]
-----
-$ oc get quayregistries.quay.redhat.com -o jsonpath="{.items[0].spec.configBundleSecret}{'\n'}"  -n quay-enterprise
-----
-
-. In the {ocp} console, select the YAML tab for your configuration bundle secret, and add the data from the two secrets you created:
-+
-[source,yaml]
-----
-kind: Secret
-apiVersion: v1
-metadata:
-  name: init-config-bundle-secret
-  namespace: quay-enterprise
-  uid: 4724aca5-bff0-406a-9162-ccb1972a27c1
-  resourceVersion: '4383160'
-  creationTimestamp: '2022-03-22T12:35:59Z'
-...
-data:
-  config.yaml: >-
-    RkVBVFVSRV9VU0VSX0lOSVRJQUxJWkU6IHRydWUKQlJ...
-  extra_ca_cert_build_cluster.crt: >-
-    LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURNakNDQWhxZ0F3SUJBZ0ldw....
-  ssl.cert: >-
-    LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVaakNDQTA2Z0F3SUJBZ0lVT...
-  ssl.key: >-
-    LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcFFJQkFBS0NBUUVBc...
-type: Opaque
-----
-
-. Click *Save*.
-
-. Enter the following command to see if your pods are restarting:
-+
-[source,terminal]
-----
-$ oc get pods -n quay-enterprise
-----
-+
-.Example output
-[source,terminal]
-----
-NAME                                                   READY   STATUS              RESTARTS   AGE
-...
-example-registry-quay-app-6786987b99-vgg2v             0/1     ContainerCreating   0          2s
-example-registry-quay-app-7975d4889f-q7tvl             1/1     Running             0          5d21h
-example-registry-quay-app-7975d4889f-zn8bb             1/1     Running             0          5d21h
-example-registry-quay-app-upgrade-lswsn                0/1     Completed           0          6d1h
-example-registry-quay-config-editor-77847fc4f5-nsbbv   0/1     ContainerCreating   0          2s
-example-registry-quay-config-editor-c6c4d9ccd-2mwg2    1/1     Running             0          5d21h
-example-registry-quay-database-66969cd859-n2ssm        1/1     Running             0          6d1h
-example-registry-quay-mirror-764d7b68d9-jmlkk          1/1     Terminating         0          5d21h
-example-registry-quay-mirror-764d7b68d9-jqzwg          1/1     Terminating         0          5d21h
-example-registry-quay-redis-7cc5f6c977-956g8           1/1     Running             0          5d21h
-----
-
-. After your {productname} registry has reconfigured, enter the following command to check if the {productname} app pods are running:
-+
-[source,terminal]
-----
-$ oc get pods -n quay-enterprise
-----
-+
-.Example output
-[source,terminal]
-----
-example-registry-quay-app-6786987b99-sz6kb             1/1     Running            0          7m45s
-example-registry-quay-app-6786987b99-vgg2v             1/1     Running            0          9m1s
-example-registry-quay-app-upgrade-lswsn                0/1     Completed          0          6d1h
-example-registry-quay-config-editor-77847fc4f5-nsbbv   1/1     Running            0          9m1s
-example-registry-quay-database-66969cd859-n2ssm        1/1     Running            0          6d1h
-example-registry-quay-mirror-758fc68ff7-5wxlp          1/1     Running            0          8m29s
-example-registry-quay-mirror-758fc68ff7-lbl82          1/1     Running            0          8m29s
-example-registry-quay-redis-7cc5f6c977-956g8           1/1     Running            0          5d21h
-----
-
-. In your browser, access the registry endpoint and validate that the certificate has been updated appropriately. For example:
-+
-[source,terminal]
-----
-Common Name (CN)	example-registry-quay-quay-enterprise.apps.docs.quayteam.org
-Organisation (O)	DOCS
-Organisational Unit (OU)	QUAY
-----
-
-[id="red-hat-quay-builders-ui"]
-=== Using the UI to create a build trigger
-
-Use the following procedure to use the UI to create a build trigger.
-
-.Procedure
-
-. Log in to your {productname} repository.
-
-. Click *Create New Repository* and create a new registry, for example, `testrepo`.
-
-. On the *Repositories* page, click the *Builds* tab on the navigation pane. Alternatively, use the corresponding URL directly:
-+
-----
-https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/repository/quayadmin/testrepo?tab=builds
-----
-+
-[IMPORTANT]
-====
-In some cases, the builder might have issues resolving hostnames. This issue might be related to the `dnsPolicy` being set to `default` on the job object. Currently, there is no workaround for this issue. It will be resolved in a future version of {productname}.
-====
-
-. Click  *Create Build Trigger* -> *Custom Git Repository Push*.
-
-. Enter the HTTPS or SSH style URL used to clone your Git repository, then click *Continue*. For example:
-+
-----
-https://github.com/gabriel-rh/actions_test.git
-----
-
-. Check *Tag manifest with the branch or tag name* and then click *Continue*.
-
-. Enter the location of the Dockerfile to build when the trigger is invoked, for example, `/Dockerfile` and click *Continue*.
-
-. Enter the location of the context for the Docker build, for example, `/`, and click *Continue*.
-
-. If warranted, create a Robot Account. Otherwise, click *Continue*.
-
-. Click *Continue* to verify the parameters.
-
-. On the *Builds* page, click *Options* icon of your Trigger Name, and then click *Run Trigger Now*.
-
-. Enter a commit SHA from the Git repository and click *Start Build*.
-
-. You can check the status of your build by clicking the commit in the *Build History* page, or by running `oc get pods -n virtual-builders`. For example:
-+
-----
-$ oc get pods -n virtual-builders
-----
-+
-.Example output
-----
-NAME                                               READY   STATUS    RESTARTS   AGE
-f192fe4a-c802-4275-bcce-d2031e635126-9l2b5-25lg2   1/1     Running   0          7s
-----
-+
-[source,terminal]
-----
-$ oc get pods -n virtual-builders
-----
-+
-.Example output
-----
-NAME                                               READY   STATUS        RESTARTS   AGE
-f192fe4a-c802-4275-bcce-d2031e635126-9l2b5-25lg2   1/1     Terminating   0          9s
-----
-+
-----
-$ oc get pods -n virtual-builders
-----
-+
-.Example output
-----
-No resources found in virtual-builders namespace.
-----
-
-. When the build is finished, you can check the status of the tag under *Tags* on the navigation pane.
-+
-[NOTE]
-====
-With early access, full build logs and timestamps of builds are currently unavailable.
-====
-
-
-[id="red-hat-quay-s3-bucket-modify"]
-=== Modifying your AWS S3 storage bucket
-
-If you are using AWS S3 storage, you must change your storage bucket in the AWS console, prior to running builders.
-
-.Procedure
-
-. Log in to your AWS console at link:https://s3.console.aws.amazon.com[s3.console.aws.com].
-
-. In the search bar, search for `S3` and then click *S3*.
-
-. Click the name of your bucket, for example, `myawsbucket`.
-
-. Click the *Permissions* tab.
-
-. Under *Cross-origin resource sharing (CORS)*, include the following parameters:
-+
-[source,yaml]
-----
-  [
-      {
-          "AllowedHeaders": [
-              "Authorization"
-          ],
-          "AllowedMethods": [
-              "GET"
-          ],
-          "AllowedOrigins": [
-              "*"
-          ],
-          "ExposeHeaders": [],
-          "MaxAgeSeconds": 3000
-      },
-      {
-          "AllowedHeaders": [
-              "Content-Type",
-              "x-amz-acl",
-              "origin"
-          ],
-          "AllowedMethods": [
-              "PUT"
-          ],
-          "AllowedOrigins": [
-              "*"
-          ],
-          "ExposeHeaders": [],
-          "MaxAgeSeconds": 3000
-      }
-  ]
-----
-
-[id="red-hat-quay-gcp-bucket-modify"]
-=== Modifying your Google Cloud Platform object bucket 
-
-[NOTE]
-====
-Currently, modifying your Google Cloud Platform object bucket is not supported on IBM Power and IBM Z.
-====
-
-Use the following procedure to configure cross-origin resource sharing (CORS) for virtual builders. 
-
-[NOTE]
-====
-Without CORS configuration, uploading a build Dockerfile fails. 
-====
-
-.Procedure 
-
-. Use the following reference to create a JSON file for your specific CORS needs. For example:
-+
-[source,terminal]
-----
-$ cat gcp_cors.json
-----
-+
-.Example output
-+
-[source,yaml]
-----
-[
-    {
-      "origin": ["*"],
-      "method": ["GET"],
-      "responseHeader": ["Authorization"],
-      "maxAgeSeconds": 3600
-    },
-    {
-      "origin": ["*"],
-      "method": ["PUT"],
-      "responseHeader": [              
-              "Content-Type",
-              "x-goog-acl",
-              "origin"],
-      "maxAgeSeconds": 3600
-    }
-]
-----
-
-. Enter the following command to update your GCP storage bucket:
-+
-[source,terminal]
-----
-$ gcloud storage buckets update gs://<bucket_name> --cors-file=./gcp_cors.json
-----
-+
-.Example output
-+
-[source,terminal]
-----
-Updating                                                                                                  
-  Completed 1    
-----
-
-. You can display the updated CORS configuration of your GCP bucket by running the following command:
-+
-[source,terminal]
-----
-$ gcloud storage buckets describe gs://<bucket_name>  --format="default(cors)"
-----
-+
-.Example output
-+
-[source,yaml]
-----
-cors:
-- maxAgeSeconds: 3600
-  method:
-  - GET
-  origin:
-  - '*'
-  responseHeader:
-  - Authorization
-- maxAgeSeconds: 3600
-  method:
-  - PUT
-  origin:
-  - '*'
-  responseHeader:
-  - Content-Type
-  - x-goog-acl
-  - origin
-----
+. Restart your {productname-ocp} registry with the new configuration.
