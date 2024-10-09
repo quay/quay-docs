@@ -2,7 +2,7 @@
 [id="red-hat-quay-namespace-auto-pruning-overview"]
 = {productname} auto-pruning overview
 
-{productname} administrators can set up auto-pruning policies on organizations and repositories; administrators can also set up auto-pruning policies at the registry level so that they apply to all organizations, including all newly created organizations. This feature allows for image tags to be automatically deleted within an organization or a repository based on specified criteria, which allows {productname} organization owners to stay below the storage quota by automatically pruning content.
+{productname} administrators can set up multiple auto-pruning policies on organizations and repositories; administrators can also set up auto-pruning policies at the registry level so that they apply to all organizations, including all newly created organizations. This feature allows for image tags to be automatically deleted within an organization or a repository based on specified criteria, which allows {productname} organization owners to stay below the storage quota by automatically pruning content.
  
 Currently, two policies have been added:
 
@@ -10,12 +10,12 @@ Currently, two policies have been added:
 
 * **Prune image tags by creation date**. For this policy, any tags with a creation date older than the given time span, for example, 10 days, are deleted.
 
-After tags are automatically pruned, they go into the {productname} time machine, or the  amount of time, after a tag is deleted, that the tag is accessible before being garbage collected. The expiration time of an image tag is dependent on your organization's settings. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]. 
+After tags are automatically pruned, they go into the {productname} time machine, or the  amount of time, after a tag is deleted, that the tag is accessible before being garbage collected. The expiration time of an image tag is dependent on your organization's settings. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]. 
 
-Users can only configure one policy per namespace or repository; this can be done through the {productname} v2 UI. Policies can also be set by using the API endpoints through the command-line interface (CLI). 
+Users can configure multiple policies per namespace or repository; this can be done through the {productname} v2 UI. Policies can also be set by using the API endpoints through the command-line interface (CLI). 
 
 [id="prerequisites-limitations-namespace-autopruning"]
-== Prerequisites and limitations for auto-pruning 
+== Prerequisites and limitations for auto-pruning and multiple policies
 
 The following prerequisites and limitations apply to the auto-pruning feature:
 
@@ -24,3 +24,8 @@ The following prerequisites and limitations apply to the auto-pruning feature:
 * Auto-pruning is only supported in databases that support the `FOR UPDATE SKIP LOCKED` SQL command.
 
 * Auto-pruning is unavailable on mirrored repositories and read-only repositories.
+
+* If you are configuring multiple auto-prune policies, rules are processed without particular order, and individual result sets are processed immediately before moving on to the next rule. 
+** For example, if an image is already subject for garbage collection by one rule, it cannot be excluded from pruning by another rule.
+
+* If you have both an auto-pruning policy for an organization and a repository, the auto-pruning policies set at the organization level are executed first.
