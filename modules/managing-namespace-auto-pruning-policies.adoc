@@ -119,7 +119,6 @@ $ podman push <quay-server.example.com>/<quayadmin>/busybox:test4
 
 . By default, the auto-pruner worker at the registry level runs every 24 hours. After 24 hours, the two oldest image tags are removed, leaving the `test3` and `test4` tags if you followed these instructions. Check your {productname} organization to ensure that the two oldest tags were removed.
 
-
 [id="creating-policy-v2-ui"]
 == Creating an auto-prune policy for an organization by using the {productname} v2 UI
 
@@ -128,54 +127,9 @@ Use the following procedure to create an auto-prune policy for an organization u
 .Prerequisites 
 
 * You have enabled the `FEATURE_AUTO_PRUNE` feature.
+* Your organization has image tags that have been pushed to it.
 
 .Procedure 
-
-. Tag four sample images, for example, `busybox`, that will be pushed to the repository with auto-pruning enabled. For example:
-+
-[source,terminal]
-----
-$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test
-----
-+
-[source,terminal]
-----
-$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test2
-----
-+
-[source,terminal]
-----
-$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test3
-----
-+
-[source,terminal]
-----
-$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test4
-----
-
-. Push the four sample images, for example, `busybox`, to the repository with auto-pruning enabled by entering the following commands:
-+
-[source,terminal]
-----
-$ podman push <quay-server.example.com>/quayadmin/busybox:test
-----
-+
-[source,terminal]
-----
-$ podman push <quay-server.example.com>/<quayadmin>/busybox:test2
-----
-+
-[source,terminal]
-----
-$ podman push <quay-server.example.com>/<quayadmin>/busybox:test3
-----
-+
-[source,terminal]
-----
-$ podman push <quay-server.example.com>/<quayadmin>/busybox:test4
-----
-
-. Check that there are four tags in your repository. 
 
 . On the {productname} v2 UI, click *Organizations* in the navigation pane.
 
@@ -191,15 +145,24 @@ image:auto-prune-policies-page.png[Auto-Prune Policies page]
 
 . Select the desired number of tags to keep. By default, this is set at *20* tags. For this example, the number of tags to keep is set at *3*.
 
-. Optional. To prune only tags that match the given regex pattern, click the *Tag pattern* box and select *match*. In the regex box, enter a pattern to match tags against. For example, to automatically prune all `test` tags, enter `^test.*`. To prune a specific image, you can enter `^test1$`. 
+. Optional. With the introduction of _regular expressions_, you are provided the following options to fine-grain your auto-pruning policy:
++
+* *Match*: When selecting this option, the auto-pruner prunes all tags that match the given _regex_ pattern.
+* *Does not match*: When selecting this option, the auto-pruner prunes all tags that _do not_ match the _regex_ pattern.
++
+If you do not select an option, the auto-pruner defaults to pruning all image tags.
++
+For this example, click the *Tag pattern* box and select *match*. In the regex box, enter a pattern to match tags against. For example, to automatically prune all `test` tags, enter `^test.*`.
 
 . Optional. You can create a second auto-prune policy by clicking *Add Policy* and entering the required information. 
 
-. Click *Save*. A notification that your auto-prune policy has been updated appears. 
+. Click *Save*. A notification that your auto-prune policy has been updated appears.
++
+With this example, the organization is configured to keep the three latest tags that are named `^test.*`. 
 
 .Verification
 
-* Navigate to the *Tags* page of your Organization's repository. With this example, tags are marked for deletion starting from the tag's oldest creation date. After a few minutes, the auto-pruner worker removes tags that no longer fit within the established criteria. In this example, it removes the `busybox:test` tag, and keeps the `busybox:test2`, `busybox:test3`, and `busybox:test4` tag.
+* Navigate to the *Tags* page of your Organization's repository. After a few minutes, the auto-pruner worker removes tags that no longer fit within the established criteria. In this example, it removes the `busybox:test` tag, and keeps the `busybox:test2`, `busybox:test3`, and `busybox:test4` tag.
 +
 After tags are automatically pruned, they go into the {productname} time machine, or the  amount of time after a tag is deleted that the tag is accessible before being garbage collected. The expiration time of an image tag is dependent on your organization's settings. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]. 
 
@@ -248,10 +211,11 @@ $ curl -X POST \
     "method": "creation_date",
     "value": "7d",
     "tagPattern": "^v*",
-    "tagPatternMatches": true
+    "tagPatternMatches": <true> <1>
   }' \
   "https://<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/"
 ----
+<1> Setting `tagPatternMatches` to `true` makes it so that tags that match the given regex pattern will be pruned. In this example, tags that match `^v*` are pruned.
 +
 .Example output
 +
@@ -370,54 +334,9 @@ Use the following procedure to create an auto-prune policy for a repository usin
 .Prerequisites 
 
 * You have enabled the `FEATURE_AUTO_PRUNE` feature.
+* You have pushed image tags to your repository.
 
 .Procedure 
-
-. Tag four sample images, for example, `busybox`, that will be pushed to the repository with auto-pruning enabled. For example:
-+
-[source,terminal]
-----
-$ podman tag docker.io/library/busybox <quay-server.example.com>/<organization_name>/<repository_name>:test
-----
-+
-[source,terminal]
-----
-$ podman tag docker.io/library/busybox <quay-server.example.com>/<organization_name>/<repository_name>:test2
-----
-+
-[source,terminal]
-----
-$ podman tag docker.io/library/busybox <quay-server.example.com>/<organization_name>/<repository_name>:test3
-----
-+
-[source,terminal]
-----
-$ podman tag docker.io/library/busybox <quay-server.example.com>/<organization_name>/<repository_name>:test4
-----
-
-. Push the four sample images, for example, `busybox`, to the repository with auto-pruning enabled by entering the following commands:
-+
-[source,terminal]
-----
-$ podman push <quay-server.example.com>/<organization_name>/<repository_name>:test
-----
-+
-[source,terminal]
-----
-$ podman push <quay-server.example.com>/<organization_name>/<repository_name>:test2
-----
-+
-[source,terminal]
-----
-$ podman push <quay-server.example.com>/<organization_name>/<repository_name>:test3
-----
-+
-[source,terminal]
-----
-$ podman push <quay-server.example.com>/<organization_name>/<repository_name>:test4
-----
-
-. Check that there are four tags in your repository. 
 
 . On the {productname} v2 UI, click *Repository* in the navigation pane.
 
@@ -427,11 +346,18 @@ $ podman push <quay-server.example.com>/<organization_name>/<repository_name>:te
 
 . Click *Repository Auto-Prune Policies*.
 
-. Click the drop down menu and select the desired policy, for example, *By number of tags*. 
+. Click the drop down menu and select the desired policy, for example, *By age of tags*. 
 
-. Select the desired number of tags to keep. By default, this is set at *20* tags. For this example, the number of tags to keep is set at *3*.
+. Set a time, for example, `5` and an interval, for example `minutes` to delete tags older than the specified time frame. For this example, tags older than 5 minutes are marked for deletion. 
 
-. Optional. To prune only tags that match the given regex pattern, click the *Tag pattern* box and select *match*. In the regex box, enter a pattern to match tags against. For example, to automatically prune all `test` tags, enter `^test.*`. To prune a specific image, you can enter `^test1$`. 
+. Optional. With the introduction of _regular expressions_, you are provided the following options to fine-grain your auto-pruning policy:
++
+* *Match*: When selecting this option, the auto-pruner prunes all tags that match the given _regex_ pattern.
+* *Does not match*: When selecting this option, the auto-pruner prunes all tags that _do not_ match the _regex_ pattern.
++
+If you do not select an option, the auto-pruner defaults to pruning all image tags.
++
+For this example, click the *Tag pattern* box and select *Does not match*. In the _regex_ box, enter a pattern to match tags against. For example, to automatically prune all tags that _do not_ match the `test` tag, enter `^test.*`.
 
 . Optional. You can create a second auto-prune policy by clicking *Add Policy* and entering the required information. 
 
@@ -439,7 +365,7 @@ $ podman push <quay-server.example.com>/<organization_name>/<repository_name>:te
 
 .Verification
 
-* Navigate to the *Tags* page of your Organization's repository. With this example, tags are marked for deletion starting from the tag's oldest creation date. After a few minutes, the auto-pruner worker removes tags that no longer fit within the established criteria. In this example, it removes the `busybox:test` tag, and keeps the `busybox:test2`, `busybox:test3`, and `busybox:test4` tag.
+* Navigate to the *Tags* page of your Organization's repository. With this example, Tags that are older than 5 minutes that _do not_ match the `^test.*` _regex_ tag are automatically pruned when the pruner runs. 
 +
 After tags are automatically pruned, they go into the {productname} time machine, or the  amount of time after a tag is deleted that the tag is accessible before being garbage collected. The expiration time of an image tag is dependent on your organization's settings. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]. 
 
@@ -488,10 +414,11 @@ $ curl -X POST \
     "method": "<creation_date>",
     "value": "<7d>",
     "tagPattern": "<^test.>*",
-    "tagPatternMatches": <true>
+    "tagPatternMatches": <false> <1>
   }' \
   "https://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/<tag_name>/autoprunepolicy/"
 ----
+<1> Setting `tagPatternMatches` to `false` makes it so that tags that all tags that _do not_ match the given regex pattern are pruned. In this example, all tags _but_ `^test.` are pruned.
 +
 .Example output
 +
