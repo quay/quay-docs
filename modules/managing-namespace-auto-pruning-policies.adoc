@@ -2,7 +2,7 @@
 [id="managing-namespace-auto-pruning-policies"]
 = Managing auto-pruning policies using the {productname} UI
 
-All auto-pruning policies, with the exception of a registry-wide auto pruning policy, are created using the {productname} v2 UI. This can be done after you have configured your {productname} `config.yaml` file to enable the auto-pruning feature and the v2 UI.
+All auto-pruning policies, with the exception of a registry-wide auto pruning policy, are created using the {productname} v2 UI or by using the API. This can be done after you have configured your {productname} `config.yaml` file to enable the auto-pruning feature and the v2 UI.
 
 [NOTE]
 ====
@@ -191,6 +191,10 @@ image:auto-prune-policies-page.png[Auto-Prune Policies page]
 
 . Select the desired number of tags to keep. By default, this is set at *20* tags. For this example, the number of tags to keep is set at *3*.
 
+. Optional. To prune only tags that match the given regex pattern, click the *Tag pattern* box and select *match*. In the regex box, enter a pattern to match tags against. For example, to automatically prune all `test` tags, enter `^test.*`. To prune a specific image, you can enter `^test1$`. 
+
+. Optional. You can create a second auto-prune policy by clicking *Add Policy* and entering the required information. 
+
 . Click *Save*. A notification that your auto-prune policy has been updated appears. 
 
 .Verification
@@ -212,7 +216,7 @@ You can use {productname} API endpoints to manage auto-pruning policies for an n
 
 .Procedure 
 
-. Enter the following `POST` command create a new policy that limits the number of tags allowed in an organization:
+. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createorganizationautoprunepolicy[`POST /api/v1/organization/{orgname}/autoprunepolicy/`] command create a new policy that limits the number of tags allowed in an organization:
 +
 [source,terminal]
 ----
@@ -232,13 +236,43 @@ $ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: appli
 ----
 {"uuid": "73d64f05-d587-42d9-af6d-e726a4a80d6e"}
 ----
-+
-Attempting to create multiple policies returns the following error:
+
+. Optional. You can add an additional policy to an organization and pass in the `tagPattern` and `tagPatternMatches` fields to prune only tags that match the given regex pattern. For example:
 +
 [source,terminal]
 ----
-{"detail": "Policy for this namespace already exists, delete existing to create new policy", "error_message": "Policy for this namespace already exists, delete existing to create new policy", "error_type": "invalid_request", "title": "invalid_request", "type": "http://<quay-server.example.com>/api/v1/error/invalid_request", "status": 400}
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "creation_date",
+    "value": "7d",
+    "tagPattern": "^v*",
+    "tagPatternMatches": true
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/"
 ----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "ebf7448b-93c3-4f14-bf2f-25aa6857c7b0"}
+----
+
+. You can update your organization's auto-prune policy by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updateorganizationautoprunepolicy[`PUT /api/v1/organization/{orgname}/autoprunepolicy/{policy_uuid}`] command. For example:
++
+[source,terminal]
+----
+$ curl -X PUT   -H "Authorization: Bearer <bearer_token>"   -H "Content-Type: application/json"   -d '{
+    "method": "creation_date",
+    "value": "4d",
+    "tagPattern": "^v*",
+    "tagPatternMatches": true
+  }'   "<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/<uuid>"
+----
++
+This command does not return output. Continue to the next step.
 
 . Check your auto-prune policy by entering the following command:
 +
@@ -254,7 +288,7 @@ $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.exam
 {"policies": [{"uuid": "73d64f05-d587-42d9-af6d-e726a4a80d6e", "method": "creation_date", "value": "7d"}]}
 ----
 
-. You can delete the auto-prune policy by entering the following command. Note that deleting the policy requires the UUID.
+. You can delete the auto-prune policy for your organization by entering the following command. Note that deleting the policy requires the UUID.
 +
 [source,terminal]
 ----
@@ -397,6 +431,10 @@ $ podman push <quay-server.example.com>/<organization_name>/<repository_name>:te
 
 . Select the desired number of tags to keep. By default, this is set at *20* tags. For this example, the number of tags to keep is set at *3*.
 
+. Optional. To prune only tags that match the given regex pattern, click the *Tag pattern* box and select *match*. In the regex box, enter a pattern to match tags against. For example, to automatically prune all `test` tags, enter `^test.*`. To prune a specific image, you can enter `^test1$`. 
+
+. Optional. You can create a second auto-prune policy by clicking *Add Policy* and entering the required information. 
+
 . Click *Save*. A notification that your auto-prune policy has been updated appears.
 
 .Verification
@@ -418,7 +456,7 @@ You can use {productname} API endpoints to manage auto-pruning policies for an r
 
 .Procedure
 
-. Enter the following `POST` command create a new policy that limits the number of tags allowed in an organization:
+. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updateorganizationautoprunepolicy[`POST /api/v1/repository/{repository}/autoprunepolicy/`] command create a new policy that limits the number of tags allowed in an organization:
 +
 [source,terminal]
 ----
@@ -438,13 +476,47 @@ $ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: appli
 ----
 {"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7"}
 ----
-+
-Attempting to create multiple policies returns the following error:
+
+. Optional. You can add an additional policy and pass in the `tagPattern` and `tagPatternMatches` fields to prune only tags that match the given regex pattern. For example:
 +
 [source,terminal]
 ----
-{"detail": "Policy for this namespace already exists, delete existing to create new policy", "error_message": "Policy for this namespace already exists, delete existing to create new policy", "error_type": "invalid_request", "title": "invalid_request", "type": "http://quay-server.example.com/api/v1/error/invalid_request", "status": 400}
+$ curl -X POST \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "<creation_date>",
+    "value": "<7d>",
+    "tagPattern": "<^test.>*",
+    "tagPatternMatches": <true>
+  }' \
+  "https://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/<tag_name>/autoprunepolicy/"
 ----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "b53d8d3f-2e73-40e7-96ff-736d372cd5ef"}
+----
+
+. You can update your policy for the repository by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updaterepositoryautoprunepolicy[`PUT /api/v1/repository/{repository}/autoprunepolicy/{policy_uuid}`] command and passing in the UUID. For example:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "number_of_tags",
+    "value": "5",
+    "tagPattern": "^test.*",
+    "tagPatternMatches": true
+  }' \
+  "https://quay-server.example.com/api/v1/repository/<namespace>/<repo_name>/autoprunepolicy/<uuid>"
+----
++
+This command does not return output. Continue to the next step to check your auto-prune policy.
 
 . Check your auto-prune policy by entering the following command:
 +
@@ -495,7 +567,7 @@ You can use {productname} API endpoints to manage auto-pruning policies on a rep
 
 .Procedure 
 
-. Enter the following `POST` command create a new policy that limits the number of tags for the current user:
+. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createuserautoprunepolicy[`POST /api/v1/user/autoprunepolicy/`] command create a new policy that limits the number of tags for the current user:
 +
 [source,terminal]
 ----
@@ -508,6 +580,43 @@ $ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: appli
 ----
 {"uuid": "7726f79c-cbc7-490e-98dd-becdc6fefce7"}
 ----
+
+. Optional. You can add an additional policy for the current user and pass in the `tagPattern` and `tagPatternMatches` fields to prune only tags that match the given regex pattern. For example:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "creation_date",
+    "value": "7d",
+    "tagPattern": "^v*",
+    "tagPatternMatches": true
+  }' \
+  "https://<quay-server.example.com>/api/v1/user/autoprunepolicy/"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "b3797bcd-de72-4b71-9b1e-726dabc971be"}
+----
+
+. You can update your policy for the current user by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updateuserautoprunepolicy[`PUT /api/v1/user/autoprunepolicy/{policy_uuid}`] command. For example:
++
+[source,terminal]
+----
+$ curl -X PUT   -H "Authorization: Bearer <bearer_token>"   -H "Content-Type: application/json"   -d '{
+    "method": "creation_date",
+    "value": "4d",
+    "tagPattern": "^test.",
+    "tagPatternMatches": true
+  }'   "https://<quay-server.example.com>/api/v1/user/autoprunepolicy/<uuid>"
+----
++
+Updating a policy does not return output in the CLI.
 
 . Check your auto-prune policy by entering the following command:
 +
