@@ -27,13 +27,14 @@ $ touch custom-ssl-config-bundle-secret.yaml
 $ oc -n <namespace> create secret generic custom-ssl-config-bundle-secret \
   --from-file=config.yaml=</path/to/config.yaml> \ <1>
   --from-file=ssl.cert=</path/to/ssl.cert> \ <2>
-  --from-file=extra_ca_cert=</path/to/ca.cert> \ <3>
+  --from-file=extra_ca_cert_<name-of-certificate>.crt=ca-certificate-bundle.crt
+ \ <3>
   --from-file=ssl.key=</path/to/ssl.key> \ <4>
   --dry-run=client -o yaml > custom-ssl-config-bundle-secret.yaml
 ----
 <1> Where `<config.yaml>` is your `base64 decoded` `config.yaml` file.
 <2> Where `<ssl.cert>` is your `ssl.cert` file.
-<3> Optional. The `--from-file=extra_ca_cert=<ca.cert>` field allows {productname} to recognize custom Certificate Authority (CA) files. If you are using LDAP, OIDC, or another service that uses custom CAs, you must add them via the `extra_ca_cert` path. For more information, see "Adding additional Certificate Authorities to {productname-ocp}."
+<3> Optional. The `--from-file=extra_ca_cert_<name-of-certificate>.crt=ca-certificate-bundle.crt` field allows {productname} to recognize custom Certificate Authority (CA) files. If you are using LDAP, OIDC, or another service that uses custom CAs, you must add them via the `extra_ca_cert` path. For more information, see "Adding additional Certificate Authorities to {productname-ocp}."
 <4> Where `<ssl.key>` is your `ssl.key` file.
 
 . Optional. You can check the content of the `custom-ssl-config-bundle-secret.yaml` file by entering the following command:
@@ -51,7 +52,7 @@ apiVersion: v1
 data:
   config.yaml: QUxMT1dfUFVMTFNfV0lUSE9VVF9TVFJJQ1RfTE9HR0lORzogZmFsc2UKQVVUSEVOVElDQVRJT05fVFlQRTogRGF0YWJhc2UKREVGQVVMVF9UQUdfRVhQSVJBVElPTjogMncKRElTVFJJQlVURURfU1R...
   ssl.cert: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVYakNDQTBhZ0F3SUJBZ0lVTUFBRk1YVWlWVHNoMGxNTWI3U1l0eFV5eTJjd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2dZZ3hDekFKQmdOVkJBWVR...
-  extra_ca_cert:LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVYakNDQTBhZ0F3SUJBZ0lVTUFBRk1YVWlWVHNoMGxNTWI3U1l0eFV5eTJjd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2dZZ3hDe...
+  extra_ca_cert_<name-of-certificate>:LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVYakNDQTBhZ0F3SUJBZ0lVTUFBRk1YVWlWVHNoMGxNTWI3U1l0eFV5eTJjd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2dZZ3hDe...
   ssl.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ2c0VWxZOVV1SVJPY1oKcFhpZk9MVEdqaS9neUxQMlpiMXQ...
 kind: Secret
 metadata:
