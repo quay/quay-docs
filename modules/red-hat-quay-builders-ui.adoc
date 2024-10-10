@@ -1,0 +1,74 @@
+:_content-type: PROCEDURE
+[id="creating-a-build-trigger"]
+= Creating a build trigger
+
+The following procedure sets up a _custom Git trigger_. A custom Git trigger is a generic way for any Git server to act as a _build trigger_. It relies solely on SSH keys and webhook endpoints. Creating a custom Git trigger is similar to the creation of any other trigger, with the exception of the following:
+
+ifeval::["{context}" == "quay-io"]
+* {quayio} cannot automatically detect the proper Robot Account to use with the trigger. This must be done manually during the creation process. 
+endif::[]
+
+ifeval::["{context}" == "use-quay"]
+* {productname} cannot automatically detect the proper Robot Account to use with the trigger. This must be done manually during the creation process. 
+endif::[]
+
+These steps can be replicated to create a _build trigger_ using Github, Gitlab, or Bitbucket, however, you must configure the credentials for these services in your `config.yaml` file. 
+
+[NOTE]
+====
+* If you want to use Github to create a _build trigger_, you must configure Github to be used with {productname} by creating an OAuth application. For more information, see "Creating an OAuth application Github".
+====
+
+ifeval::["{context}" == "quay-builders-image-automation"]
+.Prerequisites
+
+* For {productname-ocp} deployments, you have configured your {ocp} environment for either link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/builders_and_image_automation/build/tmp/en-US/html-single/index#bare-metal-builds[bare metal builds] or link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/builders_and_image_automation/build/tmp/en-US/html-single/index#red-hat-quay-builders-enhancement[virtual builds]. 
+endif::[]
+
+.Procedure 
+
+. Log in to your {productname} registry.
+
+. In the navigation pane, click *Repositories*. 
+
+. Click *Create Repository*.
+
+. Click the *Builds* tab.
+
+. On the *Builds* page, click *Create Build Trigger*. 
+
+. Select the desired platform, for example, *Github*, *Bitbucket*, *Gitlab*, or use a custom Git repository. For this example, click *Custom Git Repository Push*.
+
+. Enter a custom Git repository name, for example, `\git@github.com:<username>/<repo>.git`. Then, click *Next*. 
+
+. When prompted, configure the tagging options by selecting one of, or both of, the following options:
++
+* *Tag manifest with the branch or tag name*. When selecting this option, the built manifest the name of the branch or tag for the git commit are tagged.
++
+* *Add `latest` tag if on default branch*. When selecting this option, the built manifest with latest if the build occurred on the default branch for the repository are tagged. 
++
+Optionally, you can add a custom tagging template. There are multiple tag templates that you can enter here, including using short SHA IDs, timestamps, author names, committer, and branch names from the commit as tags. For more information, see "Tag naming for build triggers".
++
+After you have configured tagging, click *Next*.
+
+. When prompted, select the location of the Dockerfile to be built when the trigger is invoked. If the Dockerfile is located at the root of the git repository and named Dockerfile, enter */Dockerfile* as the Dockerfile path. Then, click *Next*. 
+
+. When prompted, select the context for the Docker build. If the Dockerfile is located at the root of the Git repository, enter `/` as the build context directory. Then, click *Next*. 
+
+. Optional. Choose an optional robot account. This allows you to pull a private base image during the build process. If you know that a private base image is not used, you can skip this step. 
+
+. Click *Next*. Check for any verification warnings. If necessary, fix the issues before clicking *Finish*. 
+
+. You are alerted that the trigger has been successfully activated. Note that using this trigger requires the following actions:
+* You must give the following public key read access to the git repository.
+* You must set your repository to `POST` to the following URL to trigger a build.
++
+Save the SSH Public Key, then click *Return to <organization_name>/<repository_name>*. You are redirected to the *Builds* page of your repository. 
+
+. On the *Builds* page, you now have a _build trigger_. For example:
++
+image:build-trigger-example.png[Example Build trigger]
++
+After you have created a custom Git trigger, additional steps are required. Continue on to "Setting up a custom Git trigger".
++
+If you are setting up a _build trigger_ for Github, Gitlab, or Bitbucket, continue on to "Manually triggering a build".

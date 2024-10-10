@@ -1,0 +1,51 @@
+:_content-type: PROCEDURE
+[id="red-hat-quay-s3-bucket-modify"]
+= Modifying your AWS S3 storage bucket
+
+If you are using AWS S3 storage, you must change your storage bucket in the AWS console prior to starting a _build_.
+
+.Procedure
+
+. Log in to your AWS console at link:https://s3.console.aws.amazon.com[s3.console.aws.com].
+
+. In the search bar, search for `S3` and then click *S3*.
+
+. Click the name of your bucket, for example, `myawsbucket`.
+
+. Click the *Permissions* tab.
+
+. Under *Cross-origin resource sharing (CORS)*, include the following parameters:
++
+[source,yaml]
+----
+  [
+      {
+          "AllowedHeaders": [
+              "Authorization"
+          ],
+          "AllowedMethods": [
+              "GET"
+          ],
+          "AllowedOrigins": [
+              "*"
+          ],
+          "ExposeHeaders": [],
+          "MaxAgeSeconds": 3000
+      },
+      {
+          "AllowedHeaders": [
+              "Content-Type",
+              "x-amz-acl",
+              "origin"
+          ],
+          "AllowedMethods": [
+              "PUT"
+          ],
+          "AllowedOrigins": [
+              "*"
+          ],
+          "ExposeHeaders": [],
+          "MaxAgeSeconds": 3000
+      }
+  ]
+----

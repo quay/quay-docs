@@ -1,0 +1,87 @@
+:_content-type: PROCEDURE
+[id="red-hat-quay-gcp-bucket-modify"]
+= Modifying your Google Cloud Platform object bucket 
+
+[NOTE]
+====
+Currently, modifying your Google Cloud Platform object bucket is not supported on IBM Power and IBM Z.
+====
+
+Use the following procedure to configure cross-origin resource sharing (CORS) for virtual builders. Without CORS configuration, uploading a build Dockerfile fails. 
+
+.Procedure 
+
+. Use the following reference to create a JSON file for your specific CORS needs. For example:
++
+[source,terminal]
+----
+$ cat gcp_cors.json
+----
++
+.Example output
++
+[source,yaml]
+----
+[
+    {
+      "origin": ["*"],
+      "method": ["GET"],
+      "responseHeader": ["Authorization"],
+      "maxAgeSeconds": 3600
+    },
+    {
+      "origin": ["*"],
+      "method": ["PUT"],
+      "responseHeader": [              
+              "Content-Type",
+              "x-goog-acl",
+              "origin"],
+      "maxAgeSeconds": 3600
+    }
+]
+----
+
+. Enter the following command to update your GCP storage bucket:
++
+[source,terminal]
+----
+$ gcloud storage buckets update gs://<bucket_name> --cors-file=./gcp_cors.json
+----
++
+.Example output
++
+[source,terminal]
+----
+Updating                                                                                                  
+  Completed 1    
+----
+
+. You can display the updated CORS configuration of your GCP bucket by running the following command:
++
+[source,terminal]
+----
+$ gcloud storage buckets describe gs://<bucket_name>  --format="default(cors)"
+----
++
+.Example output
++
+[source,yaml]
+----
+cors:
+- maxAgeSeconds: 3600
+  method:
+  - GET
+  origin:
+  - '*'
+  responseHeader:
+  - Authorization
+- maxAgeSeconds: 3600
+  method:
+  - PUT
+  origin:
+  - '*'
+  responseHeader:
+  - Content-Type
+  - x-goog-acl
+  - origin
+----
