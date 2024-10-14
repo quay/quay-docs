@@ -281,7 +281,7 @@ The use of `/user/` in the following commands represents the user that is curren
 +
 [source,terminal]
 ----
-$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags", "value": 10}' http://<quay-server.example.com>/api/v1/<user>/autoprunepolicy/
+$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags", "value": 10}' http://<quay-server.example.com>/api/v1/user/autoprunepolicy/
 ----
 +
 .Example output
@@ -295,14 +295,14 @@ $ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: appli
 +
 [source,terminal]
 ----
-$ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/<user>/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859
+$ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/
 ----
 +
 Alternatively, you can include the UUID:
 +
 [source,terminal]
 ----
-$ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/<user>/autoprunepolicy/
+$ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859
 ----
 +
 .Example output
@@ -316,7 +316,7 @@ $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.exam
 +
 [source,terminal]
 ----
-$ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/<user>/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859
+$ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859
 ----
 +
 .Example output
@@ -416,7 +416,7 @@ $ curl -X POST \
     "tagPattern": "<^test.>*",
     "tagPatternMatches": <false> <1>
   }' \
-  "https://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/<tag_name>/autoprunepolicy/"
+  "https://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/"
 ----
 <1> Setting `tagPatternMatches` to `false` makes it so that tags that all tags that _do not_ match the given regex pattern are pruned. In this example, all tags _but_ `^test.` are pruned.
 +
@@ -494,11 +494,11 @@ You can use {productname} API endpoints to manage auto-pruning policies on a rep
 
 .Procedure 
 
-. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createuserautoprunepolicy[`POST /api/v1/user/autoprunepolicy/`] command create a new policy that limits the number of tags for the current user:
+. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createuserautoprunepolicy[`POST /api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/`] command create a new policy that limits the number of tags for the user:
 +
 [source,terminal]
 ----
-$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags","value": 2}' http://<quay-server.example.com>/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/
+$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags","value": 2}' https://<quay-server.example.com>/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/
 ----
 +
 .Example output
@@ -521,7 +521,7 @@ $ curl -X POST \
     "tagPattern": "^v*",
     "tagPatternMatches": true
   }' \
-  "https://<quay-server.example.com>/api/v1/user/autoprunepolicy/"
+  "http://<quay-server.example.com>/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/"
 ----
 +
 .Example output
@@ -531,7 +531,7 @@ $ curl -X POST \
 {"uuid": "b3797bcd-de72-4b71-9b1e-726dabc971be"}
 ----
 
-. You can update your policy for the current user by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updateuserautoprunepolicy[`PUT /api/v1/user/autoprunepolicy/{policy_uuid}`] command. For example:
+. You can update your policy for the current user by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updateuserautoprunepolicy[`PUT /api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/<policy_uuid>`] command. For example:
 +
 [source,terminal]
 ----
@@ -540,7 +540,7 @@ $ curl -X PUT   -H "Authorization: Bearer <bearer_token>"   -H "Content-Type: ap
     "value": "4d",
     "tagPattern": "^test.",
     "tagPatternMatches": true
-  }'   "https://<quay-server.example.com>/api/v1/user/autoprunepolicy/<uuid>"
+  }'   "https://<quay-server.example.com>/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/<policy_uuid>"
 ----
 +
 Updating a policy does not return output in the CLI.
@@ -570,7 +570,7 @@ $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.exam
 +
 [source,terminal]
 ----
-$ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/7726f79c-cbc7-490e-98dd-becdc6fefce7
+$ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/<policy_uuid>
 ----
 +
 .Example output
