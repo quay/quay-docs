@@ -1,0 +1,93 @@
+
+:_content-type: PROCEDURE
+[id="troubleshooting-builds"]
+= Troubleshooting Builds
+
+The _builder_ instances started by the _build manager_ are ephemeral. This means that they will either get shut down by {productname} on timeouts or failure, or garbage collected by the control plane (EC2/K8s). In order to obtain the _builds_ logs, you must do so while the _builds_ are running.
+
+[id="debug-config-flag"]
+== DEBUG config flag
+
+The `DEBUG` flag can be set to `true` in order to prevent the _builder_ instances from getting cleaned up after completion or failure. For example:
+
+[source,yaml]
+----
+  EXECUTORS:
+    - EXECUTOR: ec2
+      DEBUG: true
+      ...
+    - EXECUTOR: kubernetes
+      DEBUG: true
+      ...
+----
+
+When set to `true`, the debug feature prevents the _build nodes_ from shutting down after the `quay-builder` service is done or fails. It also prevents the _build manager_ from cleaning up the instances by terminating EC2 instances or deleting Kubernetes jobs. This allows debugging _builder node_ issues. 
+
+Debugging should not be set in a production cycle. The lifetime service still exists; for example, the instance still shuts down after approximately two hours. When this happens, EC2 instances are terminated and Kubernetes jobs are completed. 
+
+Enabling debug also affects the `ALLOWED_WORKER_COUNT` because the unterminated instances and jobs still count toward the total number of running workers. As a result, the existing _builder workers_ must be manually deleted if `ALLOWED_WORKER_COUNT` is reached to be able to schedule new _builds_. 
+
+ifdef::upstream[]
+[id="troubleshooting-amazon-ec2"]
+== Troubleshooting Amazon EC2
+
+Use the following procedure to troubleshoot Amazon EC2 Builds.
+
+.Procedure
+
+. Start a Build in {productname}.
+
+. In the EC2 console, identify the Build instance. Build instances are named `Quay Ephemeral Builder` and have the tag {`<Build_UUID>: <uuid>`}
+
+. Using the SSH key set by the `EC2_KEY_NAME` configuration field, log in to the Builder instance by running the following command:
++
+[source,terminal]
+----
+$ ssh -i /path/to/ssh/key/in/ec2/or/config/id_rsa core@<instance_ip>
+----
+
+. Obtain the `quay-builder` service logs by entering the following commands:
++
+[source,terminal]
+----
+$ systemctl status quay-builder
+----
++
+[source,terminal]
+----
+$ journalctl -f -u quay-builder
+----
+endif::upstream[]
+
+[id="openshift-kubernetes-troubleshooting"]
+== Troubleshooting {ocp} and Kubernetes Builds
+
+Use the following procedure to troubleshooting {ocp} Kubernetes Builds.
+
+.Procedure
+
+. Create a port forwarding tunnel between your local machine and a pod running with either an {ocp} cluster or a Kubernetes cluster by entering the following command:
++
+[source,terminal]
+----
+$ oc port-forward <builder_pod> 9999:2222
+----
+
+. Establish an SSH connection to the remote host using a specified SSH key and port, for example:
++
+[source,terminal]
+----
+$ ssh -i /path/to/ssh/key/set/in/ssh_authorized_keys -p 9999 core@localhost
+----
+
+. Obtain the `quay-builder` service logs by entering the following commands:
++
+[source,terminal]
+----
+$ systemctl status quay-builder
+----
++
+[source,terminal]
+----
+$ journalctl -f -u quay-builder
+----

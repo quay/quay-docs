@@ -1,0 +1,39 @@
+:_content-type: PROCEDURE
+[id="openshift-routes-limitations"]
+= {productname-ocp} _builds_ limitations with self-managed _routes_
+
+The following limitations apply when you are using the {productname} Operator on {ocp} with a managed `route` component:
+
+* Currently, {ocp} _routes_ are only able to serve traffic to a single port. Additional steps are required to set up {productname} Builds. 
+
+* Ensure that your `kubectl` or `oc` CLI tool is configured to work with the cluster where the {productname} Operator is installed and that your `QuayRegistry` exists; the `QuayRegistry` does not have to be on the same bare metal cluster where _builders_ run. 
+
+* Ensure that HTTP/2 ingress is enabled on the OpenShift cluster by following link:https://docs.openshift.com/container-platform/{ocp-y}/networking/ingress-operator.html#nw-http2-haproxy_configuring-ingress[these steps].
+
+* The {productname} Operator creates a `Route` resource that directs gRPC traffic to the Build manager server running inside of the existing `Quay` pod, or pods. If you want to use a custom hostname, or a subdomain like `<builder-registry.example.com>`, ensure that you create a CNAME record with your DNS provider that points to the `status.ingress[0].host` of the create `Route` resource. For example:
++
+----
+$ kubectl get -n <namespace> route <quayregistry-name>-quay-builder -o jsonpath={.status.ingress[0].host}
+----
+
+* Using the {ocp} UI or CLI, update the `Secret` referenced by `spec.configBundleSecret` of the `QuayRegistry` with the _build_ cluster CA certificate. Name the key `extra_ca_cert_build_cluster.cert`. Update the `config.yaml` file entry with the correct values referenced in the _build_ configuration that you created when you configured {productname} _builds_, and add the `BUILDMAN_HOSTNAME` CONFIGURATION FIELD:
++
+[source,yaml]
+----
+BUILDMAN_HOSTNAME: <build-manager-hostname> <1>
+BUILD_MANAGER:
+- ephemeral
+- ALLOWED_WORKER_COUNT: 1
+  ORCHESTRATOR_PREFIX: buildman/production/
+  JOB_REGISTRATION_TIMEOUT: 600
+  ORCHESTRATOR:
+    REDIS_HOST: <quay_redis_host
+    REDIS_PASSWORD: <quay_redis_password>
+    REDIS_SSL: true
+    REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+  EXECUTORS:
+  - EXECUTOR: kubernetes
+    BUILDER_NAMESPACE: builder
+    ...
+----
+<1> The externally accessible server hostname which the _build jobs_ use to communicate back to the _build manager_. Default is the same as `SERVER_HOSTNAME`. For an OpenShift `route` resource, it is either `status.ingress[0].host` or the CNAME entry if using a custom hostname. `BUILDMAN_HOSTNAME` must include the port number, for example, `somehost:443` for an {ocp} `route` resource, as the gRPC client used to communicate with the _build manager_ does not infer any port if omitted.
