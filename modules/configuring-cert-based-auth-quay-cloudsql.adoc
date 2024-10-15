@@ -1,0 +1,195 @@
+:_content-type: PROCEDURE
+[id="configuring-cert-based-auth-quay-sql"]
+= Configuring certificate-based authentication with SQL
+
+The following procedure shows you how to connect {productname} with an SQL database using secure client-side certificates. Using this procedure verifies the SQL server's certificate against a trusted Certificate Authority certificate. This enhances the security of the connection between {productname} and your SQL server, as well as provides easier automation for your deployment. The following example uses Google Cloud Platform's CloudSQL, however it is also applicable for PostgreSQL.
+
+.Prerequisites
+
+* You have generated custom Certificate Authorities (CAs) and your SSL/TLS certificates and keys are available in `PEM` format that will be used to generate an SSL connection with your CloudSQL database. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview[SSL and TLS for {productname}].
+* You have `base64 decoded` the original config bundle into a `config.yaml` file. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-config-cli-download[Downloading the existing configuration].
+* You are using an externally managed PostgreSQL or CloudSQL database. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-unmanaged-postgres[Using and existing PostgreSQL database] with the `DB_URI` variable set.
+* Your externally managed PostgreSQL or CloudSQL database is configured for SSL/TLS.
+* The `postgres` component of your `QuayRegistry` CRD is set to `managed: false`, and your CloudSQL database is set with the `DB_URI` configuration variable. The following procedure uses `postgresql://<cloudsql_username>:<dbpassword>@34.29.130.58:5432/quay14`.
+
+.Procedure
+
+. After you have generated the CAs and SSL/TLS certificates and keys for your CloudSQL database and ensured that they are in `.pem` format, test the SSL connection to your CloudSQL server:
+
+.. Initiate a connection to your CloudSQL server by entering the following command:
++
+[source,terminal]
+----
+$ psql "sslmode=verify-ca sslrootcert=<ssl_server_certificate_authority>.pem sslcert=<ssl_client_certificate>.pem sslkey=<ssl_client_key>.pem hostaddr=<34.29.130.58> port=<5432> user=<cloudsql_username> dbname=<cloudsql_database_name>"
+----
+
+.. Create a new database and verify that the connection is using SSL by running the following command:
++
+[source,terminal]
+----
+postgres=> create database <new_database_name>;
+----
++
+.Example output
++
+[source,terminal]
+----
+CREATE DATABASE
+----
+
+.. Switch to the new database by entering the following command:
++
+[source,terminal]
+----
+\c <new_database_name>;
+----
++
+.Example output
++
+[source,terminal]
+----
+psql (15.1, server 16.4)
+WARNING: psql major version 15, server major version 16.
+         Some psql features might not work.
+SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384, compression: off)
+You are now connected to database "<database_name>" as user "<cloudsql_username>".
+----
+
+.. Add the `pg_trgm` extension if it does not exist by running the following command:
++
+[source,terminal]
+----
+<new_database_name>=> CREATE EXTENSION IF NOT EXISTS pg_trgm;
+----
++
+.Example output
++
+[source,terminal]
+----
+CREATE EXTENSION
+----
+
+.. Sever the connection to your CloudSQL database:
++
+[source,terminal]
+----
+<new_database_name>=> \q 
+----
+
+. In your {productname} directory, create a new YAML file, for example, `postgresql-client-certs.yaml`, by running the following command:
++
+[source,terminal]
+----
+$ touch cloudsql-client-certs
+----
+
+. Create the `postgresql-client-certs` resource by entering the following command:
++
+[source,terminal]
+----
+$ oc create secret generic postgresql-client-certs \
+--from-file config.yaml=<path/to/config.yaml> <1>
+--from-file=tls.crt=<path/to/ssl_client_certificate.pem> <2>
+--from-file=tls.key=<path/to/ssl_client_key.pem> <3>
+--from-file=ca.crt=<path/to/ssl_server_certificate.pem> <4>
+----
+<1> Where` <config.yaml>` is your `base64 decoded` `config.yaml` file.
+<2> Where `ssl_client_certificate.pem` is your SSL certificate in `.pem` format.
+<3> Where `ssl_client_key.pem` is your SSL key in `.pem` format.
+<4> Where `ssl_server_certificate.pem` is your SSL root CA in `.pem` format.
+
+. Depending on your security requirements and the type of certificates that you are using, you can configure {productname} to verify the certificate against a trusted CA using the `verify-ca` SSL mode. Alternatively, you can configure {productname} to verify the certificate against a trusted CA *and* that the hostname matches a SAN entry in your certificates. Use one of the following verification methods.
+
+.. To verify the certificate against a trusted CA only, use the `verify-ca` SSL mode. Edit your `config.yaml` file to include the following information:
++
+[IMPORTANT]
+====
+The information included in the `DB_CONNECTION_ARGS` variable, for example, `sslmode`, `sslrootcert`, `sslcert`, and `sslkey` *must* match the information appended to the `DB_URI` variable. Failure to match might result in a failed connection.
+====
++
+[source,yaml]
+----
+DB_CONNECTION_ARGS:
+    autorollback: true
+    sslmode: verify-ca <1>
+    sslrootcert: /.postgresql/<root.crt> <2>
+    sslcert: /.postgresql/<cloudsql.crt> <3>
+    sslkey: /.postgresql/<cloudsql.key> <4>
+    threadlocals: true <5>
+DB_URI: postgresql://<dbusername>:<dbpassword>@34.29.130.58:5432/quay14?sslmode=verify-ca&sslcert=/.postgresql/<cloudsql.crt>&sslkey=/.postgresql/<cloudsql.key>&sslrootcert=/.postgresql/<root.crt> <6>
+----
+<1> Ensures that the database only tries an SSL/TLS connection and verifies that the server certificate is issued by a trusted CA.
+<2> The path of the `root.crt` file, which contains the root certificate used to verify the SSL/TLS connection with your CloudSQL database. This file is mounted in the `Quay` pod from the Kubernetes secret.
+<3> The path of the `cloudsql.crt` file, which contains the client certificate used to authenticate the connection to your CloudSQL database. This file is mounted in the `Quay` pod from the Kubernetes secret.
+<4> The path of the `cloudsql.key` file, which contains the private key associated with the client certificate. This file is mounted in the `Quay` pod from the Kubernetes secret.
+<5> Enables auto-rollback for connections.
+<6> The URI that accesses your CloudSQL database appended with your `root.crt`, `cloudsql.crt`, and `cloudsql.key` files. If using `verify-ca` as your SSL mode, you must also include the database username and password. The SSL/TLS information included in `DB_URI` must match the information provided in `DB_CONNECTION_ARGS`.
+
+.. To verify the certificate against a trusted CA *and* match a SAN name in your certificate, use the `verify-full` SSL mode. Edit your `config.yaml` file to include the following information:
++
+[IMPORTANT]
+====
+The information included in the `DB_CONNECTION_ARGS` variable, for example, `sslmode`, `sslrootcert`, `sslcert`, and `sslkey` *must* match the information appended to the `DB_URI` variable. Failure to match might result in a failed connection.
+====
++
+[source,yaml]
+----
+DB_CONNECTION_ARGS:
+    autorollback: true
+    sslmode: verify-full <1>
+    sslrootcert: /.postgresql/<root.crt> <2>
+    sslcert: /.postgresql/<cloudsql.crt> <3>
+    sslkey: /.postgresql/<cloudsql.key> <4>
+    threadlocals: true <5>
+DB_URI: postgresql://<dbusername>:<dbpassword>@<hostname>:5432/quay?sslmode=verify-full&sslcert=/.postgresql/postgresql.crt&sslkey=/.postgresql/postgresql.key&sslrootcert=/.postgresql/root.crt <6>
+----
+<1> Ensures that the database only tries an SSL/TLS connection Verifies that the server certificate is issued by a trusted CA and that the requested server hostname matches that in your certificate.
+<2> The path of the `root.crt` file, which contains the root certificate used to verify the SSL/TLS connection with your CloudSQL database. This file is mounted in the `Quay` pod from the Kubernetes secret.
+<3> The path of the `cloudsql.crt` file, which contains the client certificate used to authenticate the connection to your CloudSQL database. This file is mounted in the `Quay` pod from the Kubernetes secret.
+<4> The path of the `cloudsql.key` file, which contains the private key associated with the client certificate. This file is mounted in the `Quay` pod from the Kubernetes secret.
+<5> Enables auto-rollback for connections.
+<6> The URI that accesses your CloudSQL database appended with your `root.crt`, `cloudsql.crt`, and `cloudsql.key` files. If using `verify-full` as your SSL mode, you must also include the database username, password, and hostname. The SSL/TLS information included in `DB_URI` must match the information provided in `DB_CONNECTION_ARGS`.
+
+. Create the `configBundleSecret` resource by entering the following command:
++
+[source,terminal]
+----
+$ oc create -n <namespace> -f postgresql-client-certs.yaml
+----
++
+.Example output
++
+[source,terminal]
+----
+secret/postgresql-client-certs created
+----
+
+. Update the `QuayRegistry` YAML file to reference the postgresql-client-certs` object by entering the following command:
++
+[source,terminal]
+----
+$ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":{"configBundleSecret":"postgresql-client-certs"}}'
+----
++
+.Example output
++
+[source,terminal]
+----
+quayregistry.quay.redhat.com/example-registry patched
+----
+
+. Ensure that your `QuayRegistry` YAML file has been updated to use the extra CA certificate `configBundleSecret` resource by entering the following command:
++
+[source,terminal]
+----
+$ oc get quayregistry <registry_name> -n <namespace> -o yaml
+----
++
+.Example output
++
+[source,terminal]
+----
+# ...
+  configBundleSecret: postgresql-client-certs
+# ...
+----
