@@ -1,0 +1,274 @@
+:_content-type: PROCEDURE
+[id="keyless-authentication-robot-accounts"]
+= Keyless authentication with robot accounts
+
+In previous versions of {productname}, robot account tokens were valid for the lifetime of the token unless deleted or regenerated. Tokens that do not expire have security implications for users who do not want to store long-term passwords or manage the deletion, or regeneration, or new authentication tokens. 
+
+With {productname} {producty}, {productname} administrators are provided the ability to exchange external OIDC token for short-lived, or _ephemeral_ robot account tokens with either Red Hat Single Sign-On (based on the Keycloak project) or Microsoft Entra ID. This allows robot accounts to leverage tokens that last one hour, which are are refreshed regularly and can be used to authenticate individual transactions. 
+
+This feature greatly enhances the security of your {productname} registry by mitigating the possibility of robot token exposure by removing the tokens after one hour.
+
+Configuring keyless authentication with robot accounts is a multi-step procedure that requires setting a robot federation, generating an OAuth2 token from your OIDC provider, and exchanging the OAuth2 token for a robot account access token. 
+
+[id="generating-oauth2-token-using-keycloak"]
+== Generating an OAuth2 token with Red Hat Sign Sign-On
+
+The following procedure shows you how to generate an OAuth2 token using Red Hat Single Sign-On. Depending on your OIDC provider, these steps will vary.
+
+.Procedure
+
+. On the Red Hat Single Sign-On UI:
+
+.. Click *Clients* and then the name of the application or service that can request authentication of a user.
+
+.. On the *Settings* page of your client, ensure that the following options are set or enabled:
++
+* *Client ID*
+* *Valid redirect URI*
+* *Client authentication*
+* *Authorization*
+* *Standard flow*
+* *Direct access grants*
++
+[NOTE]
+====
+Settings can differ depending on your setup.
+====
+
+.. On the *Credentials* page, store the *Client Secret* for future use.
+
+.. On the *Users* page, click *Add user* and enter a username, for example, `service-account-quaydev`. Then, click *Create*.
+
+.. Click the name of of the user, for example *service-account-quaydev* on the *Users* page. 
+
+.. Click the *Credentials* tab -> *Set password* -> and provide a password for the user. If warranted, you can make this password temporary by selecting the *Temporary* option. 
+
+.. Click the *Realm settings* tab -> *OpenID Endpoint Configuration*. Store the `/protocol/openid-connect/token` endpoint. For example:
++
+[source,text]
+----
+http://localhost:8080/realms/master/protocol/openid-connect/token
+----
+
+. On a web browser, navigate to the following URL:
++
+[source,text]
+----
+http://<keycloak_url>/realms/<realm_name>/protocol/openid-connect/auth?response_type=code&client_id=<client_id>
+----
+
+. When prompted, log in with the *service-account-quaydev* user and the temporary password you set. Complete the login by providing the required information and setting a permanent password if necessary.
+
+. You are redirected to the URI address provided for your client. For example:
++
+[source,text]
+----
+https://localhost:3000/cb?session_state=5c9bce22-6b85-4654-b716-e9bbb3e755bc&iss=http%3A%2F%2Flocalhost%3A8080%2Frealms%2Fmaster&code=ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43
+----
++
+Take note of the `code` provided in the address. For example:
++
+[source,text]
+----
+code=ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43
+----
++
+[NOTE]
+====
+This is a temporary code that can only be used one time. If necessary, you can refresh the page or revisit the URL to obtain another code.
+====
+
+. On your terminal, use the following `curl -X POST` command to generate a temporary OAuth2 access token:
++
+[source,terminal]
+----
+$ curl -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" <1>
+-H "Content-Type: application/x-www-form-urlencoded" \
+-d "client_id=quaydev" <2>
+-d "client_secret=g8gPsBLxVrLo2PjmZkYBdKvcB9C7fmBz" <3>
+-d "grant_type=authorization_code"
+-d "code=ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43" <4>
+----
+<1> The `protocol/openid-connect/token` endpoint found on the *Realm settings* page of the Red Hat Single Sign-On UI.
+<2> The Client ID used for this procedure.
+<3> The Client Secret for the Client ID. 
+<4> The code returned from the redirect URI.
++
+.Example output
++
+[source,terminal]
+----
+{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJTVmExVHZ6eDd2cHVmc1dkZmc1SHdua1ZDcVlOM01DN1N5T016R0QwVGhVIn0...",
+"expires_in":60,"refresh_expires_in":1800,"refresh_token":"eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJiNTBlZTVkMS05OTc1LTQwMzUtYjNkNy1lMWQ5ZTJmMjg0MTEifQ.oBDx6B3pUkXQO8m-M3hYE7v-w25ak6y70CQd5J8f5EuldhvTwpWrC1K7yOglvs09dQxtq8ont12rKIoCIi4WXw","token_type":"Bearer","not-before-policy":0,"session_state":"5c9bce22-6b85-4654-b716-e9bbb3e755bc","scope":"profile email"}
+----
+
+. Store the `access_token` from the previously step, as it will be exchanged for a {productname} robot account token in the following procedure.
+
+[id="setting-robot-federation"]
+== Setting up a robot account federation by using the {productname} v2 UI
+
+The following procedure shows you how to set up a robot account federation by using the {productname} v2 UI. This procedure uses Red Hat Single Sign-On, which is based on the Keycloak project. These steps, and the information used to set up a robot account federation, will vary depending on your OIDC provider.
+
+.Prerequisites
+
+* You have created an organization. The following example uses `fed_test`.
+* You have created a robot account. The following example uses `fest_test+robot1`.
+* You have configured a OIDC for your {productname} deployment. The following example uses Red Hat Single Sign-On.
+
+.Procedure
+
+. On the Red Hat Single Sign-On main page:
+
+.. Select the appropriate realm that is authenticated for use with {productname}. Store the issuer URL, for example, `\https://keycloak-auth-realm.quayadmin.org/realms/quayrealm`.
+
+.. Click *Users* -> the name of the user to be linked with the robot account for authentication. You must use the same user account that you used when generating the OAuth2 access token.
+
+.. On the *Details* page, store the *ID* of the user, for example, `449e14f8-9eb5-4d59-a63e-b7a77c75f770`.
++
+[NOTE]
+====
+The information collected in this step will vary depending on your OIDC provider. For example, with Red Hat Single Sign-On, the *ID* of a user is used as the *Subject* to set up the robot account federation in a subsequent step. For a different OIDC provider, like Microsoft Entra ID, this information is stored as the *Subject*.
+====
+
+. On your {productname} registry:
+
+.. Navigate to *Organizations* and click the name of your organization, for example, *fed_test*.
+
+.. Click *Robot Accounts*.
+
+.. Click the menu kebab -> *Set robot federation*.
+
+.. Click the *+* symbol. 
+
+.. In the popup window, include the following information:
++
+* *Issuer URL*: `\https://keycloak-auth-realm.quayadmin.org/realms/quayrealm`. For Red Hat Single Sign-On, this is the the URL of your Red Hat Single Sign-On realm. This might vary depending on your OIDC provider.
+* *Subject*: `449e14f8-9eb5-4d59-a63e-b7a77c75f770`. For Red Hat Single Sign-On, the *Subject* is the *ID* of your Red Hat Single Sign-On user. This varies depending on your OIDC provider. For example, if you are using Microsoft Entra ID, the *Subject* will be the *Subject* or your Entra ID user.
+
+.. Click *Save*. 
+
+[id="exchanging-oauth2-robot-account-token"]
+== Exchanging an OAuth2 access token for a {productname} robot account token
+
+The following procedure leverages the `access token` generated in the previous procedure to create a new {productname} robot account token. The new {productname} robot account token is used for authentication between your OIDC provider and {productname}. 
+
+[NOTE]
+====
+The following example uses a Python script to exchange the OAuth2 access token for a {productname} robot account token.
+====
+
+.Prerequisites
+
+* You have the `python3` CLI tool installed.
+
+.Procedure
+
+. Save the following Python script in a `.py` file, for example, `robot_fed_token_auth.py`
++
+[source,python]
+----
+import requests
+import os
+
+TOKEN=os.environ.get('TOKEN')
+robot_user = "fed-test+robot1"
+
+def get_quay_robot_token(fed_token):
+    URL = "https://<quay-server.example.com>/oauth2/federation/robot/token"
+    response = requests.get(URL, auth=(robot_user,fed_token)) <1>
+    print(response)
+    print(response.text)
+
+if __name__ == "__main__":
+    get_quay_robot_token(TOKEN)
+----
+<1> If your {productname} deployment is using custom SSL/TLS certificates, the response must be `response = requests.get(URL,auth=(robot_user,fed_token),verify=False)`, which includes the `verify=False` flag.
+
+. Export the OAuth2 access token as `TOKEN`. For example:
++
+[source,terminal]
+----
+$ export TOKEN = eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJTVmExVHZ6eDd2cHVmc1dkZmc1SHdua1ZDcVlOM01DN1N5T016R0QwVGhVIn0...
+----
+
+. Run the `robot_fed_token_auth.py` script by entering the following command:
++
+[source,terminal]
+----
+$ python3 robot_fed_token_auth.py
+----
++
+.Example output
++
+[source,terminal]
+----
+<Response [200]>
+{"token": "291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZ..."}
+----
++
+[IMPORTANT]
+====
+This token expires after one hour. After one hour, a new token must be generated.
+====
+
+. Export the robot account access token as `QUAY_TOKEN`. For example:
++
+[source,terminal]
+----
+$ export QUAY_TOKEN=291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZ
+----
+
+[id="pushing-pulling-images-robot-account"]
+== Pushing and pulling images 
+
+After you have generated a new robot account access token and exported it, you can log in and the robot account using the access token and push and pull images. 
+
+.Prerequisites 
+
+* You have exported the OAuth2 access token into a new robot account access token.
+
+.Procedure
+
+. Log in to your {productname} registry using the `fest_test+robot1` robot account and the `QUAY_TOKEN` access token. For example:
++
+[source,terminal]
+----
+$ podman login <quay-server.example.com> -u fed_test+robot1 -p $QUAY_TOKEN
+----
+
+. Pull an image from a {productname} repository for which the robot account has the proper permissions. For example:
++
+[source,terminal]
+----
+$ podman pull <quay-server.example.com/<repository_name>/<image_name>> 
+----
++
+.Example output
++
+[source,terminal]
+----
+Getting image source signatures
+Copying blob 900e6061671b done  
+Copying config 8135583d97 done  
+Writing manifest to image destination
+Storing signatures
+8135583d97feb82398909c9c97607159e6db2c4ca2c885c0b8f590ee0f9fe90d
+0.57user 0.11system 0:00.99elapsed 68%CPU (0avgtext+0avgdata 78716maxresident)k
+800inputs+15424outputs (18major+6528minor)pagefaults 0swaps
+----
+
+. Attempt to pull an image from a {productname} repository for which the robot account does _not_ have the proper permissions. For example:
++
+[source,terminal]
+----
+$ podman pull <quay-server.example.com/<different_repository_name>/<image_name>> 
+----
++
+.Example output
++
+[source,terminal]
+----
+Error: initializing source docker://quay-server.example.com/example_repository/busybox:latest: reading manifest in quay-server.example.com/example_repository/busybox: unauthorized: access to the requested resource is not authorized
+----
++
+After one hour, the credentials for this robot account are set to expire. Afterwards, you must generate a new access token for this robot account.
