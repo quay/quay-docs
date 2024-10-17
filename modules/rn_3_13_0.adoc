@@ -142,6 +142,21 @@ For example API commands, see link:https://docs.redhat.com/en/documentation/red_
 
 The following sections note known issues and limitations for {productname} {producty}.
 
+=== Registry auto-pruning known issue
+
+Currently, the auto-pruning feature prioritizes the following order when configured:
+
+. Method: `creation_date` + `organization wide`
+. Method: `creation_date` + `repository wide`
+. Method: `number_of_tags` + `organization wide`
+. Method: `number_of_tags` + `repository wide`
+
+This means that the auto-pruner first prioritizes, for example, an organization-wide policy set to expire tags by their creation date before it prunes images by the number of tags that it has.
+
+There is a known issue when configuring a registry-wide auto-pruning policy. If {productname} administrators configure a `number_of_tags` policy before a `creation_date` policy, it is possible to prune more than the intended set for the `number_of_tags` policy. This might lead to situations where a repository removes certain image tags unexpectedly.
+
+This is not an issue for organization or repository-wide auto-prune policies. This known issue only exists at the registry level. It will be fixed in a future version of {productname}.
+
 [id="v2-ui-known-issues-313"]
 === {productname} v2 UI known issues
 
