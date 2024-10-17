@@ -12,7 +12,7 @@ Currently, two policies have been added:
 
 After tags are automatically pruned, they go into the {productname} time machine, or the  amount of time, after a tag is deleted, that the tag is accessible before being garbage collected. The expiration time of an image tag is dependent on your organization's settings. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]. 
 
-Users can configure multiple policies per namespace or repository; this can be done through the {productname} v2 UI. Policies can also be set by using the API endpoints through the command-line interface (CLI). 
+Users can configure multiple policies per namespace or repository; this can be done through the {productname} v2 UI. Policies can also be set by using the API endpoints through the command-line interface (CLI).
 
 [id="prerequisites-limitations-namespace-autopruning"]
 == Prerequisites and limitations for auto-pruning and multiple policies
@@ -29,3 +29,15 @@ The following prerequisites and limitations apply to the auto-pruning feature:
 ** For example, if an image is already subject for garbage collection by one rule, it cannot be excluded from pruning by another rule.
 
 * If you have both an auto-pruning policy for an organization and a repository, the auto-pruning policies set at the organization level are executed first.
+
+[id="autopruning-regular-expressions"]
+== Regular expressions with auto-pruning
+
+{productname} administrators can leverage _regular expressions_, or _regex_, to match a subset of tags for both organization- and repository-level auto-pruning policies. This provides more granular auto-pruning policies to target only certain image tags for removal. Consider the following when using _regular expressions_ with the auto-pruning feature:
+
+* _Regular expressions_ are optional. 
+* If a _regular expression_ is not provided, the auto-pruner defaults to pruning all image tags in the organization or the repository. These are user-supplied and must be protected against ReDOS attacks. 
+* Registry-wide policies do not currently support _regular expressions_. Only organization- and repository-level auto-pruning policies support _regular expressions_.
+* _Regular expressions_ can be configured to prune images that either do, or _do not_, match the provided _regex_ pattern.
+
+Some of the following procedures provide example auto-pruning policies using _regular expressions_ that you can use as a reference when creating an auto-prune policy. 
