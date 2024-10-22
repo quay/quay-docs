@@ -20,7 +20,7 @@ The following procedure demonstrates how to connect {productname} with an SQL da
 +
 [source,terminal]
 ----
-$ psql "sslmode=verify-ca sslrootcert=<ssl_server_certificate_authority>.pem sslcert=<ssl_client_certificate>.pem sslkey=<ssl_client_key>.pem hostaddr=<34.29.130.58> port=<5432> user=<cloudsql_username> dbname=<cloudsql_database_name>"
+$ psql "sslmode=verify-ca sslrootcert=<ssl_server_certificate_authority>.pem sslcert=<ssl_client_certificate>.pem sslkey=<ssl_client_key>.pem hostaddr=<database_host> port=<5432> user=<cloudsql_username> dbname=<cloudsql_database_name>"
 ----
 
 . In your {productname} directory, create a new YAML file, for example, `quay-config-bundle.yaml`, by running the following command:
@@ -69,7 +69,7 @@ DB_URI: postgresql://<dbusername>:<dbpassword>@<database_host>:<port>/<database_
 <3> The `postgresql.crt` file contains the client certificate used to authenticate the connection to your CloudSQL database. This file is mounted in the `Quay` pod from the Kubernetes secret.
 <4> The `postgresql.key` file contains the private key associated with the client certificate. This file is mounted in the `Quay` pod from the Kubernetes secret.
 <5> Enables auto-rollback for connections.
-<6> The URI that accesses your CloudSQL database appended with your `root.crt`, `postgresql.crt`, and `postgresql.key` files. The SSL/TLS information included in `DB_URI` must match the information provided in `DB_CONNECTION_ARGS`. If you are using CloudSQL, you must include your database username and password in this variable.
+<6> The URI that accesses your CloudSQL database. Must be appended with the `sslmode` type, your `root.crt`, `postgresql.crt`, and `postgresql.key` files. The SSL/TLS information included in `DB_URI` must match the information provided in `DB_CONNECTION_ARGS`. If you are using CloudSQL, you must include your database username and password in this variable.
 
 . Create the `configBundleSecret` resource by entering the following command:
 +
