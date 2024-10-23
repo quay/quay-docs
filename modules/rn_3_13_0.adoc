@@ -5,11 +5,11 @@
 The following sections detail _y_ and _z_ stream release information.
 
 [id="rn-3-13-0"]
-== RHBA-2024:4525 - {productname} 3.13.0 release
+== RHBA-2024:8408 - {productname} 3.13.0 release
 
 Issued 2024-10-zz
 
-{productname} release 3.13 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2024:XXXX[RHBA-2024:XXXX] advisory. For the most recent compatibility matrix, see link:https://access.redhat.com/articles/4067991[Quay Enterprise 3.x Tested Integrations]. For information the release cadence of {productname}, see the link:https://access.redhat.com/support/policy/updates/rhquay/[{productname} Life Cycle Policy].
+{productname} release 3.13 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2024:8408[RHBA-2024:8408] advisory. For the most recent compatibility matrix, see link:https://access.redhat.com/articles/4067991[Quay Enterprise 3.x Tested Integrations]. For information the release cadence of {productname}, see the link:https://access.redhat.com/support/policy/updates/rhquay/[{productname} Life Cycle Policy].
 
 [id="documentation-changes-313"]
 == {productname} documentation changes
@@ -52,7 +52,7 @@ Additional auto-pruning policies can be added on the {productname} v2 UI by clic
 
 For more information about setting auto-prune policies, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#red-hat-quay-namespace-auto-pruning-overview[{productname} auto-pruning overview].
 
-[id="example-feature-2"]
+[id="keyless-auth-robot-accounts"]
 === Keyless authentication with robot accounts
 
 In previous versions of {productname}, robot account tokens were valid for the lifetime of the token unless deleted or regenerated. Tokens that do not expire have security implications for users who do not want to store long-term passwords or manage the deletion, or regeneration, or new authentication tokens. 
@@ -73,19 +73,19 @@ The following updates have been made to {productname-ocp}.
 
 With this release, support for certificate-based authentication between {productname} and PostgreSQL has been added. This allows {productname} administrators to supply their own SSL/TLS certificates that can be used for client-side authentication with PostgreSQL or CloudSQL. This provides enhanced security and allows for easier automation for your {productname} registry.
 
-For more information, see. . .
+For more information, see link:https://content-stage.docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/securing_red_hat_quay/index#cert-based-auth-quay-sql[Certificate-based authentication between {productname} and SQL].
 
 [id="v2-ui-enhancement"]
 === {productname} v2 UI enhancements
 
 The following enhancements have been made to the {productname} v2 UI.
 
-[id="example-v2-ui-enhancement"]
+[id="robot-federation-v2-ui-enhancement"]
 ==== Robot federation selection
 
 A new configuration page, *Set robot federation*, has been added to the {productname} v2 UI. This can be found by navigating to your organization or repository's robot account, clicking the menu kebab, and then clicking *Set robot federation*. This page is used when configuring keyless authentication with robot accounts, and allows you to add multiple OIDC providers to a single robot account.
 
-For more information, see . . .
+For more information, see https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#keyless-authentication-robot-accounts[Keyless authentication with robot accounts].
 
 [id="new-quay-config-fields-313"]
 == New {productname} configuration fields
@@ -146,6 +146,13 @@ _optional_|Determine whether pruned tags should or should not match the tagPatte
 
 For example API commands, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3.12/html-single/manage_red_hat_quay/index#red-hat-quay-namespace-auto-pruning-overview[{productname} auto-pruning overview].
 
+[id="notable-technical-changes-313]
+== {productname} 3.13 notable technical changes
+
+Clair now requires its PostgreSQL database to be version 15. For standalone {productname} deployments, administrators must manually migrate their database over from PostgreSQL version 13 to version 15. For more information about this procedure, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrading-clair-postgresql-database[Upgrading the Clair PostgreSQL database].
+
+For {productname-ocp} deployments, this update is automatically handled by the Operator so long as your Clair PostgreSQL database is currently using version 13.
+
 [id="known-issues-and-limitations-313"]
 == {productname} 3.13 known issues and limitations
 
@@ -199,14 +206,24 @@ The {productname} team is aware of the following known issues on the v2 UI:
 * link:https://issues.redhat.com/browse/PROJQUAY-6758[*PROJQUAY-6758*]. The new UI should display correct operation number when hover over different operation type
 * link:https://issues.redhat.com/browse/PROJQUAY-6757[*PROJQUAY-6757*]. The new UI usage log should display the tag expiration time as date format
 
-[id="limitations-313"]
-=== {productname} 3.13 limitations
-
-
 [id="bug-fixes-313"]
 == {productname} bug fixes
 
 The following issues were fixed with {productname} {producty}:
+
+* link:https://issues.redhat.com/browse/PROJQUAY-5681[*PROJQUAY-5681*]. Previously, when configuring an image repository with *Events and Notifications* to receive a Slack notification for *Push to Repository* and *Package Vulnerability Found*, no notification was returned of *new critical image vulnerability found*. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-7244[*PROJQUAY-7244*]. Previously, it was not possible to filter for repositories under specific organizations. This issue has been resolved, and you can now filter for repositories under specific organizations.
+* link:https://issues.redhat.com/browse/PROJQUAY-7388[*PROJQUAY-7388*]. Previously, when {productname} was configured with OIDC authentication using Microsoft Azure Entra ID and team sync was enabled, removing the team sync resulted in the usage logs chart displaying *Undefined*. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-7430[*PROJQUAY-7430*]. Some public container image registries, for example, Google Cloud Registry, generate longer passwords for the login. When this happens, {productname} could not mirror images from those registries because the password length exceeded the maximum allowed in the {productname} database. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-7599[*PROJQUAY-7599*]. Previously, attempting to delete a manifest using a tag name and the {productname} v2 API resulted in a 405 error code. This was because there was no `delete_manifest_by_tagname` operation in the API. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-7606[*PROJQUAY-7606*]. Users can now create a new team using the dashes (`-`) via the v2 UI. Previously, this could only be done using the API.
+* link:https://issues.redhat.com/browse/PROJQUAY-7686[*PROJQUAY-7686*]. Previously, the vulnerability page showed vertical scroll bars when provided URLs in the advisories were too big, which caused difficulties in reading information from the page. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-[*PROJQUAY-*]. There was a bug in the console service when using {quayio} for the first time. When attempting to create a user correlated with the console's user, clicking *Confirm username* refreshed the page and opened the same modal. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-[*PROJQUAY-*]. 
+* link:https://issues.redhat.com/browse/PROJQUAY-[*PROJQUAY-*]. 
+* link:https://issues.redhat.com/browse/PROJQUAY-[*PROJQUAY-*]. 
+* link:https://issues.redhat.com/browse/PROJQUAY-[*PROJQUAY-*]. 
+* link:https://issues.redhat.com/browse/PROJQUAY-[*PROJQUAY-*]. 
 
 [id="quay-feature-tracker"]
 == {productname} feature tracker
@@ -221,6 +238,16 @@ Some features available in previous releases have been deprecated or removed. De
 [cols="4,1,1,1",options="header"]
 |===
 |Feature | Quay 3.13 | Quay 3.12 | Quay 3.11
+
+|link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#keyless-authentication-robot-accounts[Keyless authentication with robot accounts]
+|General Availability
+|-
+|-
+
+|link:https://content-stage.docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/securing_red_hat_quay/index#cert-based-auth-quay-sql[Certificate-based authentication between {productname} and SQL]
+|General Availability
+|-
+|-
 
 |link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#proc_manage-log-storage-splunk[Splunk HTTP Event Collector (HEC)] support
 |General Availability
@@ -258,11 +285,6 @@ Some features available in previous releases have been deprecated or removed. De
 |General Availability
 
 |link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html/manage_red_hat_quay/red-hat-quay-namespace-auto-pruning-overview[{productname} repository auto-pruning]
-|General Availability
-|General Availability
-|General Availability
-
-|link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#configuring-dark-mode-ui[Configuring dark mode on the {productname} v2 UI]
 |General Availability
 |General Availability
 |General Availability
