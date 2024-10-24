@@ -1,0 +1,63 @@
+////
+= getOrgRobotFederation 
+
+Manage federation configuration for a robot account within an organization.
+
+[discrete] 
+== GET /api/v1/organization/{orgname}/robots/{robot_shortname}/federation
+
+Retrieve the federation configuration for the specified organization robot.
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+[discrete] 
+== Path parameters
+
+[options="header", width=100%, cols=".^2a,.^3a,.^9a,.^4a"] 
+|=== 
+|Type|Name|Description|Schema 
+|path|*orgname* + *robot_shortname*
+_required_|The name of the organization and the short name for the robot, without any user or organization prefix|string 
+|===
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+////
+
+= Auth Federated Robot Token
+Return an expiring robot token using the robot identity federation mechanism.
+
+[discrete]
+== GET oauth2/federation/robot/token
+
+**Authorizations:** oauth2_implicit (**robot:auth**)
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful authentication and token generation|{ "token": "string" }
+|401|Unauthorized: missing or invalid authentication|{ "error": "string" }
+|===
+
+[discrete]
+== Request Body
+
+[options="header", width=100%, cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|body|**auth_result** + 
+_required_|The result of the authentication process, containing information about the robot identity.|{ "missing": "boolean", "error_message": "string", "context": { "robot": "RobotObject" } }
+|===
