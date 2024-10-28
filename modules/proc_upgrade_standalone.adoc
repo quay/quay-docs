@@ -2,13 +2,13 @@
 [id="standalone-upgrade"]
 = Standalone upgrade
 
-In general, {productname} supports upgrades from a prior (N-1) minor version only.  For example, upgrading directly from {productname} 3.8 to the latest version of {producty} is not supported. Instead, users would have to upgrade as follows:
+In general, {productname} supports upgrades from a prior (N-1) minor version only. For example, upgrading directly from {productname} 3.8 to the latest version of {producty} is not supported. Instead, users would have to upgrade as follows:
 
 . 3.8.z -> 3.9.z
 . 3.9.z -> 3.10.z
 . 3.10.z -> 3.11.z
 . 3.11.z -> 3.12.z
-. 3.12.z -> 3.13
+. 3.12.z -> 3.13.z
 
 This is required to ensure that any necessary database migrations are done correctly and in the right order during the upgrade.
 
@@ -28,7 +28,6 @@ This document describes the steps needed to perform each individual upgrade. Det
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_13_z_from_3_10_z[Upgrade to 3.13.z from 3.10.z]
 
 ////
-
 //3.12
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_12_z_from_3_11_z[Upgrade to 3.12.z from 3.11.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_12_z_from_3_10_z[Upgrade to 3.12.z from 3.10.z]
@@ -74,10 +73,111 @@ The general procedure for a manual upgrade consists of the following steps:
 . Start Clair using the new version of the image.
 . Wait until Clair is ready to accept connections before starting the new version of Quay.
 
+[id="accessing-images"]
 == Accessing images
 
 {productname} image from version 3.4.0 and later are available from link:https://registry.redhat.io[registry.redhat.io] and
 link:https://registry.access.redhat.com[registry.access.redhat.com], with authentication set up as described in link:https://access.redhat.com/RegistryAuthentication[Red Hat Container Registry Authentication].
+
+[id="upgrading-clair-postgresql-database"]
+== Upgrading the Clair PostgreSQL database
+
+If you are upgrading {productname} to version 13, you must migrate your Clair PostgreSQL database version from PostgreSQL version 13 -> version 15. This requires bringing down your Clair PostgreSQL 13 database and running a migration script to initiate the process.
+
+Use the following procedure to upgrade your Clair PostgreSQL database from version 13 -> to version 15. 
+
+[IMPORTANT]
+====
+Clair security scans might become temporarily disrupted after the migration procedure has succeeded.
+====
+
+.Procedure 
+
+. Stop the {productname} container by entering the following command:
++
+[source,terminal]
+----
+$ sudo podman stop <quay_container_name>
+----
+
+. Stop the Clair container by running the following command:
++
+[source,terminal]
+----
+$ sudo podman stop <clair_container_id>
+----
+
+. Run the following Podman process from SCLOrg's link:https://github.com/sclorg/postgresql-container/tree/master/13#data-migration[Data Migration] procedure, which allows for data migration from a remote PostgreSQL server:
++
+[source,terminal]
+----
+$ sudo podman run -d --name <clair_migration_postgresql_database> <1>
+  -e POSTGRESQL_MIGRATION_REMOTE_HOST=<container_ip_address> \ <2>
+  -e POSTGRESQL_MIGRATION_ADMIN_PASSWORD=remoteAdminP@ssword \
+  -v </host/data/directory:/var/lib/pgsql/data:Z> \ <3>
+  [ OPTIONAL_CONFIGURATION_VARIABLES ]
+  registry.redhat.io/rhel8/postgresql-15
+----
++
+<1> Insert a name for your Clair PostgreSQL 15 migration database.
+<2> Your new Clair PostgreSQL 15 database container IP address. Can obtained by running the following command: `sudo podman inspect -f "{{.NetworkSettings.IPAddress}}" postgresql-quay`. 
+<3> You must specify a different volume mount point than the one from your initial Clair PostgreSQL 13 deployment, and modify the access control lists for said directory. For example:
++
+[source,terminal]
+----
+$ mkdir -p /host/data/clair-postgresql15-directory
+----
++
+[source,terminal]
+----
+$ setfacl -m u:26:-wx /host/data/clair-postgresql15-directory
+----
++
+This prevents data from being overwritten by the new container.
+
+. Stop the Clair PostgreSQL 13 container:
++
+[source,terminal]
+----
+$ sudo podman stop <clair_postgresql13_container_name>
+----
+
+. After completing the PostgreSQL migration, run the Clair PostgreSQL 15 container, using the new data volume mount from Step 3, for example, `</host/data/clair-postgresql15-directory:/var/lib/postgresql/data>`:
++
+[source,terminal]
+----
+$ sudo podman run -d --rm --name <postgresql15-clairv4> \
+  -e POSTGRESQL_USER=<clair_username> \
+  -e POSTGRESQL_PASSWORD=<clair_password> \
+ 	-e POSTGRESQL_DATABASE=<clair_database_name> \
+  -e POSTGRESQL_ADMIN_PASSWORD=<admin_password> \
+  -p 5433:5432 \
+  -v </host/data/clair-postgresql15-directory:/var/lib/postgresql/data:Z> \
+    registry.redhat.io/rhel8/postgresql-15
+----
+
+. Start the {productname} container by entering the following command:
++
+[source,terminal]
+----
+$ sudo podman run -d --rm -p 80:8080 -p 443:8443 --name=quay \
+-v /home/<quay_user>/quay-poc/config:/conf/stack:Z \
+-v /home/<quay_user>/quay-poc/storage:/datastorage:Z \
+{productrepo}/{quayimage}:{productminv}
+----
+
+. Start the Clair container by entering the following command:
++
+[source,terminal]
+----
+$ sudo podman run -d --name clairv4 \
+-p 8081:8081 -p 8088:8088 \
+-e CLAIR_CONF=/clair/config.yaml \
+-e CLAIR_MODE=combo \
+registry.redhat.io/quay/clair-rhel8:{productminv}
+----
+
+For more information, see link:https://github.com/sclorg/postgresql-container/tree/master/13#data-migration[Data Migration].
 
 == Upgrade to 3.13.z from 3.12.z
 
@@ -91,6 +191,7 @@ ifdef::upstream[]
 endif::upstream[]
 * **PostgreSQL:** {postgresimage}
 * **Redis:** {redisimage}
+* **Clair-PosgreSQL:** registry.redhat.io/rhel8/postgresql-15
 
 == Upgrade to 3.13.z from 3.11.z
 
@@ -104,6 +205,7 @@ ifdef::upstream[]
 endif::upstream[]
 * **PostgreSQL:** {postgresimage}
 * **Redis:** {redisimage}
+* **Clair-PosgreSQL:** registry.redhat.io/rhel8/postgresql-15
 
 == Upgrade to 3.13.z from 3.10.z
 
@@ -117,6 +219,7 @@ ifdef::upstream[]
 endif::upstream[]
 * **PostgreSQL:** {postgresimage}
 * **Redis:** {redisimage}
+* **Clair-PosgreSQL:** registry.redhat.io/rhel8/postgresql-15
 
 ////
 == Upgrade to 3.12.z from 3.11.z
