@@ -146,6 +146,14 @@ _optional_|Determine whether pruned tags should or should not match the tagPatte
 
 For example API commands, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3.12/html-single/manage_red_hat_quay/index#red-hat-quay-namespace-auto-pruning-overview[{productname} auto-pruning overview].
 
+=== New federated robot token API endpoints
+
+The following API endpoints have been added for the keyless authentication with robot accounts feature:
+
+* `GET oauth2/federation/robot/token`. Use this API endpoint to return an expiring robot token using the robot identity federation mechanism.
+
+* `POST /api/v1/organization/{orgname}/robots/{robot_shortname}/federation`. Use this API endpoint to create a federation configuration for the specified organization robot.
+
 [id="notable-technical-changes-313"]
 == {productname} 3.13 notable technical changes
 
@@ -159,7 +167,10 @@ For {productname-ocp} deployments, this update is automatically handled by the O
 The following sections note known issues and limitations for {productname} {producty}.
 
 [id="registry-auto-pruning-known-issue"]
-=== Registry auto-pruning known issue
+=== Registry auto-pruning known issues
+
+[id="policy-prioritization-known-issue"]
+==== Policy prioritization known issue
 
 Currently, the auto-pruning feature prioritizes the following order when configured:
 
@@ -173,6 +184,11 @@ This means that the auto-pruner first prioritizes, for example, an organization-
 There is a known issue when configuring a registry-wide auto-pruning policy. If {productname} administrators configure a `number_of_tags` policy before a `creation_date` policy, it is possible to prune more than the intended set for the `number_of_tags` policy. This might lead to situations where a repository removes certain image tags unexpectedly.
 
 This is not an issue for organization or repository-wide auto-prune policies. This known issue only exists at the registry level. It will be fixed in a future version of {productname}.
+
+[id="unrecognizable-auto-prune-tag-patterns"]
+==== Unrecognizable auto-prune tag patterns
+
+When creating an auto-prune policy, the pruner cannot recognize `\b` and `\B` patterns. This is a common behavior with regular expression patterns, wherein `\b` and `\B` match empty strings. {productname} administrators should avoid using _regex_ patterns that use `\B` and `\b` to avoid this issue. (link:https://issues.redhat.com/browse/PROJQUAY-8089[*PROJQUAY-8089*])
 
 [id="v2-ui-known-issues-313"]
 === {productname} v2 UI known issues
