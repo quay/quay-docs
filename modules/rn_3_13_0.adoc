@@ -7,7 +7,7 @@ The following sections detail _y_ and _z_ stream release information.
 [id="rn-3-13-0"]
 == RHBA-2024:8408 - {productname} 3.13.0 release
 
-Issued 2024-10-zz
+Issued 2024-10-30
 
 {productname} release 3.13 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2024:8408[RHBA-2024:8408] advisory. For the most recent compatibility matrix, see link:https://access.redhat.com/articles/4067991[Quay Enterprise 3.x Tested Integrations]. For information the release cadence of {productname}, see the link:https://access.redhat.com/support/policy/updates/rhquay/[{productname} Life Cycle Policy].
 
@@ -214,7 +214,10 @@ The following issues were fixed with {productname} {producty}:
 * link:https://issues.redhat.com/browse/PROJQUAY-5681[*PROJQUAY-5681*]. Previously, when configuring an image repository with *Events and Notifications* to receive a Slack notification for *Push to Repository* and *Package Vulnerability Found*, no notification was returned of *new critical image vulnerability found*. This issue has been resolved.
 * link:https://issues.redhat.com/browse/PROJQUAY-7244[*PROJQUAY-7244*]. Previously, it was not possible to filter for repositories under specific organizations. This issue has been resolved, and you can now filter for repositories under specific organizations.
 * link:https://issues.redhat.com/browse/PROJQUAY-7388[*PROJQUAY-7388*]. Previously, when {productname} was configured with OIDC authentication using Microsoft Azure Entra ID and team sync was enabled, removing the team sync resulted in the usage logs chart displaying *Undefined*. This issue has been resolved.
-* link:https://issues.redhat.com/browse/PROJQUAY-7430[*PROJQUAY-7430*]. Some public container image registries, for example, Google Cloud Registry, generate longer passwords for the login. When this happens, {productname} could not mirror images from those registries because the password length exceeded the maximum allowed in the {productname} database. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-7430[*PROJQUAY-7430*]. Some public container image registries, for example, Google Cloud Registry, generate longer passwords for the login. When this happens, {productname} could not mirror images from those registries because the password length exceeded the maximum allowed in the {productname} database. 
++
+The actual length limit imposed by the encryption mechanism is lower than `9000`. This implies that while the database can hold up to `9000` characters, the effective limit during encryption is actually `6000`, and be calculated as follows: {Max Password Length} = {field\_max\_length} - {_RESERVED\_FIELD\_SPACE}. A password length of `6000` ensures compatibility with AWS ECR and most registries.
+
 * link:https://issues.redhat.com/browse/PROJQUAY-7599[*PROJQUAY-7599*]. Previously, attempting to delete a manifest using a tag name and the {productname} v2 API resulted in a 405 error code. This was because there was no `delete_manifest_by_tagname` operation in the API. This issue has been resolved.
 * link:https://issues.redhat.com/browse/PROJQUAY-7606[*PROJQUAY-7606*]. Users can now create a new team using the dashes (`-`) via the v2 UI. Previously, this could only be done using the API.
 * link:https://issues.redhat.com/browse/PROJQUAY-7686[*PROJQUAY-7686*]. Previously, the vulnerability page showed vertical scroll bars when provided URLs in the advisories were too big, which caused difficulties in reading information from the page. This issue has been resolved.
