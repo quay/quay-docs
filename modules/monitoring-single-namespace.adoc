@@ -1,26 +1,64 @@
 :_content-type: PROCEDURE
 [id="monitoring-single-namespace"]
-= Enabling monitoring when the {productname} Operator is installed in a single namespace
+= Enabling monitoring for {productname} in a custom namespace
 
 [NOTE]
 ====
-Currently, enabling monitoring when the {productname} Operator is installed in a single namespace is not supported on IBM Power and IBM Z.
+Currently, enabling monitoring when the {productname} Operator is installed in a custom namespace is not supported on IBM Power and IBM Z.
 ====
 
-When the {productname} Operator is installed in a single namespace, the monitoring component is set to `unmanaged`. To configure monitoring, you must enable it for user-defined namespaces in {ocp}.
+When the {productname} Operator is installed in a custom namespace, or a namespace outside of `openshift-operators`, the `monitoring` component of the `QuayRegistry` custom resource definition (CRD) is automatically set to unmanaged. 
 
-For more information, see the {ocp} documentation for link:https://docs.openshift.com/container-platform/{ocp-y}/monitoring/configuring-the-monitoring-stack.html[Configuring the monitoring stack] and link:https://docs.openshift.com/container-platform/{ocp-y}/monitoring/enabling-monitoring-for-user-defined-projects.html[Enabling monitoring for user-defined projects].
+The following procedures show you how to configure the `QuayRegistry` CRD for monitoring and how to create the necessary resources to enable monitoring. 
 
-The following sections shows you how to enable monitoring for {productname} based on the {ocp} documentation.
+[id="editing-quayregistry-crd-enable-monitoring"]
+== Editing the QuayRegistry CRD to enable monitoring
 
-[id="creating-cluster-monitoring-config-map"]
-== Creating a cluster monitoring config map
+To enable monitoring for your {productname-ocp} deployment, you must re-enable the `monitoring` component by editing the `QuayRegistry` CRD and re-enabling the `monitoring` component. The following procedure shows you how to do this when using the CLI or {ocp} web console.
 
-Use the following procedure check if the `cluster-monitoring-config` `ConfigMap` object exists.
+.Prerequisites 
+
+* You are logged into {ocp} as an administrator. 
 
 .Procedure
 
-. Enter the following command to check whether the `cluster-monitoring-config` ConfigMap object exists:
+. To enable `monitoring` by using the {ocp} web console:
+
+.. On your {ocp} dashboard, click *Operators* -> *Installed Operators* -> *Red Hat Quay*.
+
+.. Click *Quay Registry* and then the name of your registry.
+
+.. Click *YAML*.
+
+.. Under the `spec` field, locate `monitoring` and set `managed: true`.
+
+. To enable `monitoring` by using the CLI:
+
+.. Set the `monitoring` component of the `QuayRegistry` CRD to `managed: true` by entering the following command:
++
+[source,terminal]
+----
+$ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":{"components":[{"kind":"monitoring","managed":true}]}}'
+----
+
+.Additional resources
+
+* link:https://docs.openshift.com/container-platform/{ocp-y}/monitoring/configuring-the-monitoring-stack.html[Configuring the monitoring stack]
+
+* link:https://docs.openshift.com/container-platform/{ocp-y}/monitoring/enabling-monitoring-for-user-defined-projects.html[Enabling monitoring for user-defined projects].
+
+[id="creating-cluster-monitoring-config-map"]
+== Configuring monitoring
+
+The following procedure shows you how to create the necessary resources to enable monitoring for {productname-ocp}. It also shows you how to create the necessary resources for user-defined workloads if warranted.
+
+.Prerequisites
+
+* You have set the `monitoring` component to `managed: true` in your `QuayRegistry` CRD.
+
+.Procedure
+
+. Enter the following command to check whether the `cluster-monitoring-config` `ConfigMap` object exists:
 +
 [source,terminal]
 ----
@@ -34,9 +72,9 @@ $ oc -n openshift-monitoring get configmap cluster-monitoring-config
 Error from server (NotFound): configmaps "cluster-monitoring-config" not found
 ----
 
-. Optional: If the `ConfigMap` object does not exist, create a YAML manifest. In the following example, the file is called `cluster-monitoring-config.yaml`.
+. If the `ConfigMap` object does not exist, create a YAML manifest. In the following example, the file is called `cluster-monitoring-config.yaml`.
 +
-[source,terminal]
+[source,yaml]
 ----
 apiVersion: v1
 kind: ConfigMap
@@ -45,9 +83,11 @@ metadata:
   namespace: openshift-monitoring
 data:
   config.yaml: |
+    enableUserWorkload: true <1>
 ----
+<1> When set to true, the `enableUserWorkload` parameter enables monitoring for user-defined projects in a cluster. This automatically creates the `user-workload-monitoring-config` `ConfigMap` object. Set this field to `false` or remove it if you do not want to enable monitoring for user-defined namespaces.
 
-. Optional: If the `ConfigMap` object does not exist, create the `ConfigMap` object:
+. Create the `ConfigMap` object by running the following command:
 +
 [source,terminal]
 ----
@@ -61,7 +101,7 @@ $ oc apply -f cluster-monitoring-config.yaml
 configmap/cluster-monitoring-config created
 ----
 
-. Ensure that the `ConfigMap` object exists by running the following command:
+. Ensure that the `cluster-monitoring-confi` `ConfigMap` object exists by running the following command:
 +
 [source,terminal]
 ----
@@ -73,9 +113,43 @@ $ oc -n openshift-monitoring get configmap cluster-monitoring-config
 [source,terminal]
 ----
 NAME                        DATA   AGE
-cluster-monitoring-config   1      12s
+cluster-monitoring-config   1      60s
 ----
 
+. Optional. If you set `enableUserWorkload: true` in your `config.yaml` file:
+
+.. Ensure that the `user-workload-monitoring-config` `ConfigMap` object exists by running the following command:
++
+[source,terminal]
+----
+$ oc -n openshift-user-workload-monitoring get configmap user-workload-monitoring-config
+----
++
+[source,terminal]
+----
+NAME                              DATA   AGE
+user-workload-monitoring-config   0      10s
+----
+
+.. Ensure that the following pods are running in your cluster:
++
+----
+$ oc get pods -n openshift-user-workload-monitoring
+----
++
+.Example output
++
+[source,terminal]
+----
+NAME                                   READY   STATUS    RESTARTS   AGE
+prometheus-operator-6f96b4b8f8-gq6rl   2/2     Running   0          15s
+prometheus-user-workload-0             5/5     Running   1          12s
+prometheus-user-workload-1             5/5     Running   1          12s
+thanos-ruler-user-workload-0           3/3     Running   0          8s
+thanos-ruler-user-workload-1           3/3     Running   0          8s
+----
+
+////
 [id="creating-user-defined-workload-monitoring-config-map"]
 == Creating a user-defined workload monitoring ConfigMap object
 
@@ -103,11 +177,13 @@ Error from server (NotFound): configmaps "user-workload-monitoring-config" not f
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: user-workload-monitoring-config
-  namespace: openshift-user-workload-monitoring
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
 data:
   config.yaml: |
+    enableUserWorkload: true <1>
 ----
+<1> When set to true, the `enableUserWorkload` parameter enables monitoring for user-defined projects in a cluster.
 
 . Optional: Create the `ConfigMap` object by entering the following command:
 +
@@ -122,6 +198,7 @@ $ oc apply -f user-workload-monitoring-config.yaml
 ----
 configmap/user-workload-monitoring-config created
 ----
+
 
 [id="enabling-monitoring-user-defined-projects"]
 == Enable monitoring for user-defined projects
@@ -180,6 +257,7 @@ prometheus-user-workload-1             5/5     Running   1          12s
 thanos-ruler-user-workload-0           3/3     Running   0          8s
 thanos-ruler-user-workload-1           3/3     Running   0          8s
 ----
+////
 
 [id="creating-service-object-expose-quay-metrics"]
 == Creating a Service object to expose {productname} metrics
