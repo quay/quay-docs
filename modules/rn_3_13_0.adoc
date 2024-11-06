@@ -22,6 +22,34 @@ The following documentation changes have been made with the {productname} {produ
 
 * A new book titled "link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/managing_access_and_permissions/index[Managing access and permissions]" has been created. This book covers topics related to access controls, repository visibility, and robot accounts by using the UI and the API. More content will be added to this book in the future.
 
+[id="upgrading-quay-313"]
+== Upgrading to {productname} 3.13
+
+With {productname} 3.13, the `volumeSize` parameter has been implemented for use with the `clairpostgres` component of the `QuayRegistry` custom resource definition (CRD). This replaces the `volumeSize` parameter that was previously used for the `clair` component of the same CRD. 
+
+If your {productname} 3.12 `QuayRegistry` custom resource definition (CRD) implemented a volume override for the `clair` component, you must ensure that the `volumeSize` field is included under the `clairpostgres` component of the `QuayRegistry` CRD.
+
+[IMPORTANT]
+====
+Failure to move `volumeSize` from the `clair` component to the `clairpostgres` component will result in a failed upgrade to version 3.13.
+====
+
+For example:
+
+[source,yaml]
+----
+spec:
+  components:
+  - kind: clair
+    managed: true
+  - kind: clairpostgres
+    managed: true
+    overrides:
+      volumeSize: <volume_size>
+----
+
+For more information about upgrading, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{productname}/html/upgrade_red_hat_quay/index[Upgrade {productname}].
+
 [id="new-features-and-enhancements-313"]
 == {productname} new features and enhancements
 
@@ -146,6 +174,7 @@ _optional_|Determine whether pruned tags should or should not match the tagPatte
 
 For example API commands, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3.12/html-single/manage_red_hat_quay/index#red-hat-quay-namespace-auto-pruning-overview[{productname} auto-pruning overview].
 
+[id="federated-robot-token-api-endpoints"]
 === New federated robot token API endpoints
 
 The following API endpoints have been added for the keyless authentication with robot accounts feature:
@@ -166,13 +195,15 @@ For {productname-ocp} deployments, this update is automatically handled by the O
 
 The following sections note known issues and limitations for {productname} {producty}.
 
-[id="upgrading-known-issues"]
-=== Upgrading known issue
+[id="fips-mode-known-issue"]
+=== FIPS mode known issue
 
 If FIPS mode is enabled for your {ocp} cluster and you use Clair, you must not upgrade the {productname} Operator to version {producty} If you upgrade, Clair will not function in your cluster. (link:https://issues.redhat.com/browse/PROJQUAY-8185[*PROJQUAY-8185*])
 
 [id="registry-auto-pruning-known-issue"]
 === Registry auto-pruning known issues
+
+The following known issues apply to the auto-pruning feature.
 
 [id="policy-prioritization-known-issue"]
 ==== Policy prioritization known issue
