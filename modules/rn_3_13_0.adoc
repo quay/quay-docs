@@ -4,6 +4,46 @@
 
 The following sections detail _y_ and _z_ stream release information.
 
+[id="rn-3-13-1"]
+== RHBA-2024:9478 - {productname} 3.13.1 release
+
+Issued 2024-11-18
+
+{productname} release 3.13.1 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2024:9478[RHBA-2024:9478] advisory. 
+
+[id="information-upgrading-3-13-1"]
+== Information about upgrading to 3.13.1
+
+Previously, when attempting to upgrade to {productname} 3.13, if FIPS mode was enabled for your {ocp} cluster with Clair enabled, Clair would not function in your cluster. This issue was resolved in version 3.13.1. Upgrading to {productname} 3.13 automatically upgrades users to version 3.13.1 so that this issue is avoided. Additionally, if you are upgrading from 3.13 to 3.13.1 and FIPs was enabled, upgrading to 3.13.1 resolves the issue. (link:https://issues.redhat.com/browse/PROJQUAY-8185[*PROJQUAY-8185*])
+
+[id="enhancements-313-1"]
+=== {productname} 3.13.1 enhancements
+
+With the release of {productname} 3.13.1, Hitachi Content Platform (HCP) is now supported for use a storage backend. This allows organizations to leverage HCP for scalable, secure, and reliable object storage within their {productname} registry deployments.
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-hcp[HCP Object Storage]. 
+
+[id="known-issues-313-1"]
+=== {productname} 3.13.1 known issues
+
+When using Hitachi Content Platform for your object storage, attempting to push an image with a large layer to a {productname} registry results in the following error:
+
+[source,text]
+----
+An error occurred (NoSuchUpload) when calling the CompleteMultipartUpload operation: The specified multipart upload does not exist. The upload ID might be invalid, or the multipart upload might have been aborted or completed.
+----
+
+This is a known issue and will be fixed in a future version of {productname}.
+
+[id="bug-fixes-313-1"]
+=== {productname} 3.13.1 bug fixes
+
+* link:https://issues.redhat.com/browse/PROJQUAY-8185[PROJQUAY-8185]. Previously, when attempting to upgrade {productname-ocp} to 3.13 with FIPS mode enabled, the upgrade would fail for deploying using Clair. This issue has been resolved. Upgrading to 3.13.1 does not fail for {productname-ocp} using Clair with FIPS mode enabled.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-8024[PROJQUAY-8024]. Previously, using Hitachi HCP v9.7 as your storage provider would return errors when attempting to pull images. This issue has been resolved.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-5086[PROJQUAY-5086]. Previously, {productname-ocp} would produce information about horizontal pod autoscalers (HPAs) for some components (for example, `Clair`, `Redis`, `PostgreSQL`, and `ObjectStorage`) when they were unmanaged by the Operator. This issue has been resolved and information about HPAs are not longer reported for unmanaged components.
+
 [id="rn-3-13-0"]
 == RHBA-2024:8408 - {productname} 3.13.0 release
 
@@ -200,7 +240,7 @@ The following sections note known issues and limitations for {productname} {prod
 [id="fips-mode-known-issue"]
 === FIPS mode known issue
 
-If FIPS mode is enabled for your {ocp} cluster and you use Clair, you must not upgrade the {productname} Operator to version {producty} If you upgrade, Clair will not function in your cluster. (link:https://issues.redhat.com/browse/PROJQUAY-8185[*PROJQUAY-8185*])
+If FIPS mode is enabled for your {ocp} cluster and you use Clair, you must not upgrade the {productname} Operator to version {producty}. If you upgrade, Clair will not function in your cluster. (link:https://issues.redhat.com/browse/PROJQUAY-8185[*PROJQUAY-8185*])
 
 [id="registry-auto-pruning-known-issue"]
 === Registry auto-pruning known issues
