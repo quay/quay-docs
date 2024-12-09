@@ -6,21 +6,115 @@ Horizontal Pod Autoscalers (HPAs) are now included with the `Clair`, `Quay`, and
 
 As HPA is configured by default to be managed, the number of `Clair`, `Quay`, and `Mirror` pods is set to two. This facilitates the avoidance of downtime when updating or reconfiguring {productname} through the Operator or during rescheduling events.
 
+[NOTE]
+====
+There is a known issue when disabling the `HorizontalPodAutoscaler` component and attempting to edit the HPA resource itself and increase the value of the `minReplicas` field. When attempting this setup, `Quay` application pods are scaled out by the unmanaged HPA and, after 60 seconds, the replica count is reconciled by the {productname} Operator. As a result, HPA pods are continuously created and then removed by the Operator. 
+
+To resolve this issue, you should upgrade your {productname} deployment to at least version 3.12.5 or 3.13.1 and then use the following example to avoid the issue.
+
+This issue will be fixed in a future version of {productname}. For more information, see link:https://issues.redhat.com/browse/PROJQUAY-6474[PROJQUAY-6474].
+====
+
 [id="operator-disabling-hpa"]
 == Disabling the Horizontal Pod Autoscaler
 
-To disable autoscaling or create your own `HorizontalPodAutoscaler`, specify the component as `unmanaged` in the `QuayRegistry` instance. For example:
+To disable autoscaling or create your own `HorizontalPodAutoscaler` component, specify the component as `unmanaged` in the `QuayRegistry` custom resource definition. To avoid the known issue noted above, you must modify the `QuayRegistry` CRD object and set the replicas equal to `null` for the `quay`, `clair`, and `mirror` components. 
 
+.Procedure
+
+* Edit the `QuayRegistry` CRD to include the following `replicas: null` for the `quay` component:
++
+[source,terminal]
+----
+$ oc edit quayregistry <quay_registry_name> -n <quay_namespace>
+----
++
 [source,yaml]
 ----
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
-  name: example-registry
+name: quay-registry
+namespace: quay-enterprise
+spec:
+components:
+  - kind: horizontalpodautoscaler
+    managed: false
+  - kind: quay
+    managed: true
+    overrides: 
+      replicas: null <1>
+  - kind: clair
+    managed: true
+    overrides:
+      replicas: null
+  - kind: mirror
+    managed: true
+    overrides:
+      replicas: null
+# ...
+----
+<1> After setting `replicas: null` in your `QuayRegistry` CRD, a new replica set might be generated because the deployment manifest of the `Quay` app is changed with `replicas: 1`. 
+
+.Verification
+
+. Create a customized `HorizontalPodAutoscalers` CRD and increase the `minReplicas` amount to a higher value, for exampe, `3`:
++
+[source,yaml]
+----
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: quay-registry-quay-app
   namespace: quay-enterprise
 spec:
-  components:
-    - kind: horizontalpodautoscaler
-      managed: false
-# ...
+  scaleTargetRef:
+    kind: Deployment
+    name: quay-registry-quay-app
+    apiVersion: apps/v1
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 90
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 90 
+----
+
+. Ensure that your `QuayRegistry` application successfully starts by entering the following command:
++
+[source,terminal]
+----
+$ oc get pod | grep quay-app
+----
++
+.Example output
++
+[source,terminal]
+----
+quay-registry-quay-app-5b8fd49d6b-7wvbk         1/1     Running     0          34m
+quay-registry-quay-app-5b8fd49d6b-jslq9         1/1     Running     0          3m42s
+quay-registry-quay-app-5b8fd49d6b-pskpz         1/1     Running     0          43m
+quay-registry-quay-app-upgrade-llctl            0/1     Completed   0          51m
+----
+
+. Ensure that your `HorizontalPodAutoscalers` successfully starts by entering the following command:
++
+[source,terminal]
+----
+$ oc get hpa
+----
++
+[source,terminal]
+----
+NAME                     REFERENCE                           TARGETS            MINPODS   MAXPODS   REPLICAS   AGE
+quay-registry-quay-app   Deployment/quay-registry-quay-app   67%/90%, 54%/90%   3         20        3          51m
 ----
