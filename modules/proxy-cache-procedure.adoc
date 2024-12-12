@@ -12,40 +12,36 @@ The following procedure describes how you can use {productname} to proxy a remot
 
 .Procedure
 
-. In your Quay organization on the UI, for example, `cache-quayio`, click *Organization Settings* on the left hand pane.
+. On the {productname} v2 UI, click the name of an organization, for example, *cache-org*.
 
-. Optional: Click *Add Storage Quota* to configure quota management for your organization. For more information about quota management, see link:https://access.redhat.com//documentation/en-us/red_hat_quay/3.7/html-single/use_red_hat_quay#red-hat-quay-quota-management-and-enforcement[Quota Management].
-+
-[NOTE]
-====
-In some cases, pulling images with Podman might return the following error when quota limit is reached during a pull:  `unable to pull image: Error parsing image configuration: Error fetching blob: invalid status code from registry 403 (Forbidden)`. Error `403` is inaccurate, and occurs because Podman hides the correct API error: `Quota has been exceeded on namespace`. This known issue will be fixed in a future Podman update.
-====
+. In the navigation pane, click *Settings*.
 
-. In *Remote Registry* enter the name of the remote registry to be cached, for example, `quay.io`, and click *Save*.
+. In the *Remote Registry* box, enter the name of the remote registry to be cached, for example, `quay.io`, and click *Save*.
 +
 [NOTE]
 ====
 By adding a namespace to the *Remote Registry*, for example, `quay.io/<namespace>`, users in your organization will only be able to proxy from that namespace.
 ====
 
-. Optional: Add a *Remote Registry Username* and *Remote Registry Password*.
+. Optional. In the *Remote Registry username* box, enter the username for authenticating into the remote registry specified in the previous step. For anonymous pulls from the upstream, you can leave this empty. If you do note set a username at the time of creation, you cannot add one without removing the proxy cache and creating a new registry.
+
+. Optional. In the *Remote registry password* box, enter the password for authenticating into the remote registry. For anonymous pulls from the upstream, you can leave this empty. If you do note set a username at the time of creation, you cannot add one without removing the proxy cache and creating a new registry.
+
+. Optional. Set a time in the *Expiration* field.
 +
 [NOTE]
 ====
-If you do not set a *Remote Registry Username* and *Remote Registry Password*, you cannot add one without removing the proxy cache and creating a new registry.
+* The default tag *Expiration* field for cached images in a proxy organization is set to 86400 seconds. In the proxy organization, the tag expiration is refreshed to the value set in the UI's *Expiration* field every time the tag is pulled. This feature is different than Quay's default link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#tag-expiration[individual tag expiration] feature. In a proxy organization, it is possible to override the individual tag feature. When this happens, the individual tag's expiration is reset according to the *Expiration* field of the proxy organization.
+* Expired images will disappear after the allotted time, but are still stored in {productname}. The time in which an image is completely deleted, or  collected, depends on the *Time Machine* setting of your organization. The default time for garbage collection is 14 days unless otherwise specified.
 ====
 
-. Optional: Set a time in the *Expiration* field.
-+
-[NOTE]
-====
-* The default tag *Expiration* field for cached images in a proxy organization is set to 86400 seconds. In the proxy organization, the tag expiration is refreshed to the value set in the UI's *Expiration* field every time the tag is pulled. This feature is different than Quay's default link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/use_red_hat_quay/index#tag-expiration[individual tag expiration] feature. In a proxy organization, it is possible to override the individual tag feature. When this happens, the individual tag's expiration is reset according to the *Expiration* field of the proxy organization.
-* Expired images will disappear after the allotted time, but are still stored in Quay. The time in which an image is completely deleted, or  collected, depends on the *Time Machine* setting of your organization. The default time for garbage collection is 14 days unless otherwise specified.
-====
+. Optional. Check the *http* box if you want an unsecure protocol used. If not checked, https is used to request the remote registry.
 
 . Click *Save*.
 
-. On the CLI, pull a public image from the registry, for example, quay.io, acting as a proxy cache:
+.Verification
+
+. On the CLI, pull a public image from the remote registry that was specified, for example, `quay.io`, acting as a proxy cache:
 +
 ----
 $ podman pull <registry_url>/<organization_name>/<quayio_namespace>/<image_name>
