@@ -1,0 +1,87 @@
+:_content-type: REFERENCE
+[id="using-the-api"]
+= Using the {productname} API
+
+After you have created an application and generated an OAuth 2 access token with the desired settings, you can pass in the access token to `GET`, `PUT`, `POST`, or `DELETE` settings by using the API from the CLI. Generally, a {productname} API command looks similar to the following example:
+
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <your_access_token>" <1>
+    https://<quay-server.example.com>/api/v1/<example>/<endpoint>/ <2>
+----
+<1> The OAuth 2 access token that was generated through the {productname} UI.
+<2> The URL of your {productname} deployment and the desired API endpoint.
+
+All {productname} APIs are documented in the link:https://docs.redhat.com/en/documentation/red_hat_quay/{productname}/html-single/red_hat_quay_api_guide/index#red_hat_quay_application_programming_interface_api[{productname} Application Programming Interface (API)] chapter. Understanding how they are documented is crucial to successful invocation. Take, for example, the following entry for the `createAppToken` API endpoint:
+
+[source,text]
+----
+*createAppToken* <1>
+Create a new app specific token for user. <2>
+
+*POST /api/v1/user/apptoken* <3>
+
+**Authorizations: **oauth2_implicit (**user:admin**) <4>
+
+ Request body schema (application/json)
+
+*Path parameters* <5>
+
+Name: **title**
+Description: Friendly name to help identify the token.
+Schema: string
+
+*Responses* <6>
+
+|HTTP Code|Description             |Schema
+|201      |Successful creation     |
+|400      |Bad Request             |&lt;&lt;_apierror,ApiError&gt;&gt;
+|401      |Session required        |&lt;&lt;_apierror,ApiError&gt;&gt;
+|403      |Unauthorized access     |&lt;&lt;_apierror,ApiError&gt;&gt;
+|404      |Not found               |&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+----
+<1> The name of the API endpoint.
+<2> A brief description of the API endpoint.
+<3> The API endpoint used for invocation.
+<4> The authorizations required to use the API endpoint.
+<5> The available paths to be used with the API endpoint. In this example, `title` is the only path to be used with the `POST /api/v1/user/apptoken` endpoint.
+<6> The API responses for this endpoint.
+
+In order to use an API endpoint, you pass in your access token and then include the appropriate fields depending on your needs. The following procedure shows you how to use the `POST /api/v1/user/apptoken` endpoint.
+
+.Prerequisites
+
+* You have access to the {productname} API, which entails having already created an OAuth 2 access token.
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file.
+
+.Procedure
+
+* Create a user application by entering the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#appspecifictokens[`POST /api/v1/user/apptoken`] API call:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <access_token>" <1>
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "MyAppToken" <2>
+  }' \
+  "http://quay-server.example.com/api/v1/user/apptoken" <3>
+----
+<1> The Oauth access token.
+<2> The name of your application token.
+<3> The URL of your {productname} deployment appended with the `/api/v1/user/apptoken` endpoint.
++
+.Example output
++
+[source,terminal]
+----
+{"token": {"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null, "token_code": "K2YQB1YO0ABYV5OBUYOMF9MCUABN12Y608Q9RHFXBI8K7IE8TYCI4WEEXSVH1AXWKZCKGUVA57PSA8N48PWED9F27PXATFUVUD9QDNCE9GOT9Q8ACYPIN0HL"}}
+----
+
+.Verification
+
+. On the {productname} UI, click your username in the navigation pane -> *Account Settings*. The name of your application appears under the *Docker CLI and other Application Tokens* heading. For example:
++
+image::application-token.png[Application token]
