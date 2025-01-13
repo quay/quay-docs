@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" class="chrometwo"><head><title>Red Hat Quay architecture</title><link rel="stylesheet" type="text/css" href="Common_Content/css/default.css"/><meta name="generator" content="publican v4.3.4"/><meta name="description" content="Red Hat Quay Architecture"/><link rel="next" href="#arch-intro" title="Chapter 1. Red Hat Quay overview"/><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><script type="text/javascript" src="Common_Content/scripts/jquery-1.7.1.min.js"> </script><script type="text/javascript" src="Common_Content/scripts/utils.js"> </script><script type="text/javascript" src="Common_Content/scripts/highlight.js/highlight.pack.js"> </script></head><body><div id="chrometwo"><div id="main"><div xml:lang="en-US" class="book" id="idm45538544849472"><div class="titlepage"><div><div class="producttitle"><span class="productname">Red Hat Quay</span> <span class="productnumber">3.13</span></div><div><h1 class="title">Red Hat Quay architecture</h1></div><div><h2 class="subtitle">Red Hat Quay Architecture</h2></div><div><div xml:lang="en-US" class="authorgroup"><span class="orgname">Red Hat OpenShift Documentation Team</span></div></div><div><a href="#idm45538522255360">Legal Notice</a></div><div><div class="abstract"><p class="title"><strong>Abstract</strong></p><div class="para">
+<html xmlns="http://www.w3.org/1999/xhtml" class="chrometwo"><head><title>Red Hat Quay architecture</title><link rel="stylesheet" type="text/css" href="Common_Content/css/default.css"/><meta name="generator" content="publican v4.3.4"/><meta name="description" content="Red Hat Quay Architecture"/><link rel="next" href="#arch-intro" title="Chapter 1. Red Hat Quay overview"/><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/><script type="text/javascript" src="Common_Content/scripts/jquery-1.7.1.min.js"> </script><script type="text/javascript" src="Common_Content/scripts/utils.js"> </script><script type="text/javascript" src="Common_Content/scripts/highlight.js/highlight.pack.js"> </script></head><body><div id="chrometwo"><div id="main"><div xml:lang="en-US" class="book" id="idm45199280991008"><div class="titlepage"><div><div class="producttitle"><span class="productname">Red Hat Quay</span> <span class="productnumber">3.13</span></div><div><h1 class="title">Red Hat Quay architecture</h1></div><div><h2 class="subtitle">Red Hat Quay Architecture</h2></div><div><div xml:lang="en-US" class="authorgroup"><span class="orgname">Red Hat OpenShift Documentation Team</span></div></div><div><a href="#idm45199263885408">Legal Notice</a></div><div><div class="abstract"><p class="title"><strong>Abstract</strong></p><div class="para">
 				Red Hat Quay Architecture
 			</div></div></div></div><hr/></div><div class="toc"><ul class="toc"><li><span class="chapter"><a href="#arch-intro">1. Red Hat Quay overview</a></span><ul><li><span class="section"><a href="#arch-intro-scalability">1.1. Scalability and high availability (HA)</a></span></li><li><span class="section"><a href="#arch-intro-content-distribution">1.2. Content distribution</a></span></li><li><span class="section"><a href="#arch-intro-build-automation">1.3. Build automation</a></span></li><li><span class="section"><a href="#red-hat-quay-builds-architecture">1.4. Red Hat Quay enhanced build architecture</a></span></li><li><span class="section"><a href="#arch-intro-integration">1.5. Integration</a></span><ul><li><span class="section"><a href="#arch-rest-api">1.5.1. REST API</a></span></li></ul></li><li><span class="section"><a href="#arch-intro-security">1.6. Security</a></span><ul><li><span class="section"><a href="#arch-tls-ssl-config">1.6.1. TLS/SSL configuration</a></span></li><li><span class="section"><a href="#arch-intro-clair">1.6.2. Clair</a></span></li><li><span class="section"><a href="#arch-operator-security">1.6.3. Red Hat Quay Operator security</a></span></li><li><span class="section"><a href="#arch-builders">1.6.4. Fully isolated builds</a></span></li><li><span class="section"><a href="#arch-rbac">1.6.5. Role-based access controls</a></span></li></ul></li><li><span class="section"><a href="#arch-intro-recent-features">1.7. Recently added features</a></span></li></ul></li><li><span class="chapter"><a href="#arch-prereqs">2. Red Hat Quay prerequisites</a></span><ul><li><span class="section"><a href="#core-prereqs-storage">2.1. Image storage backend</a></span><ul><li><span class="section"><a href="#arch-supported-image-storage-types">2.1.1. Supported image storage engines</a></span></li></ul></li><li><span class="section"><a href="#arch-core-prereqs-db">2.2. Database backend</a></span></li><li><span class="section"><a href="#core-prereqs-redis">2.3. Redis</a></span></li></ul></li><li><span class="chapter"><a href="#arch-quay-infrastructure">3. Red Hat Quay infrastructure</a></span><ul><li><span class="section"><a href="#arch-quay-standalone-hosts">3.1. Running Red Hat Quay on standalone hosts</a></span></li><li><span class="section"><a href="#arch-quay-openshift">3.2. Running Red Hat Quay on OpenShift</a></span></li><li><span class="section"><a href="#arch-integrating-standalone-ocp">3.3. Integrating standalone Red Hat Quay with OpenShift Container Platform</a></span></li><li><span class="section"><a href="#arch-mirror-registry">3.4. Mirror registry for Red Hat OpenShift</a></span></li><li><span class="section"><a href="#core-distinct-registries">3.5. Single compared to multiple registries</a></span></li></ul></li><li><span class="chapter"><a href="#sample-quay-on-prem-intro">4. Deploying Red Hat Quay on premise</a></span><ul><li><span class="section"><a href="#core-example-deployment">4.1. Red Hat Quay example deployments</a></span></li><li><span class="section"><a href="#deployment-topology">4.2. Red Hat Quay deployment topology</a></span></li><li><span class="section"><a href="#deployment-topology-with-storage-proxy">4.3. Red Hat Quay deployment topology with storage proxy</a></span></li></ul></li><li><span class="chapter"><a href="#arch-deploy-quay-public-cloud">5. Deploying Red Hat Quay on public cloud</a></span><ul><li><span class="section"><a href="#arch-quay-on-aws">5.1. Running Red Hat Quay on Amazon Web Services</a></span></li><li><span class="section"><a href="#arch-quay-on-azure">5.2. Running Red Hat Quay on Microsoft Azure</a></span></li></ul></li><li><span class="chapter"><a href="#content-distrib-intro">6. Content distribution with Red Hat Quay</a></span><ul><li><span class="section"><a href="#arch-mirroring-intro">6.1. Repository mirroring</a></span><ul><li><span class="section"><a href="#arch-mirroring-using">6.1.1. Using repository mirroring</a></span></li><li><span class="section"><a href="#arch-mirroring-recommend">6.1.2. Repository mirroring recommendations</a></span></li><li><span class="section"><a href="#arch-mirroring-events">6.1.3. Event notifications for mirroring</a></span></li><li><span class="section"><a href="#arch-mirroring-api-intro">6.1.4. Mirroring API</a></span></li></ul></li><li><span class="section"><a href="#georepl-intro">6.2. Geo-replication</a></span><ul><li><span class="section"><a href="#arch-georpl-features">6.2.1. Geo-replication features</a></span></li><li><span class="section"><a href="#arch-georepl-prereqs">6.2.2. Geo-replication requirements and constraints</a></span></li><li><span class="section"><a href="#georepl-arch-standalone">6.2.3. Geo-replication using standalone Red Hat Quay</a></span></li><li><span class="section"><a href="#georepl-arch-operator">6.2.4. Geo-replication using the Red Hat Quay Operator</a></span></li><li><span class="section"><a href="#georepl-mixed-storage">6.2.5. Mixed storage for geo-replication</a></span></li></ul></li><li><span class="section"><a href="#mirroring-versus-georepl">6.3. Repository mirroring compared to geo-replication</a></span></li><li><span class="section"><a href="#arch-airgap-intro">6.4. Air-gapped or disconnected deployments</a></span></li></ul></li><li><span class="chapter"><a href="#sizing-intro">7. Red Hat Quay sizing and subscriptions</a></span><ul><li><span class="section"><a href="#sizing-sample">7.1. Red Hat Quay sample sizings</a></span></li><li><span class="section"><a href="#subscription-intro">7.2. Red Hat Quay subscription information</a></span></li><li><span class="section"><a href="#quay-internal-registry-intro">7.3. Using Red Hat Quay with or without internal registry</a></span></li></ul></li><li><span class="chapter"><a href="#quota-management-arch">8. Quota management architecture</a></span></li><li><span class="chapter"><a href="#namespace-auto-pruning-arch">9. Namespace auto-pruning architecture</a></span><ul><li><span class="section"><a href="#auto-prune-worker">9.1. Auto-prune worker</a></span><ul><li><span class="section"><a href="#auto-prune-task-creation">9.1.1. Auto-prune-task-creation</a></span></li><li><span class="section"><a href="#auto-prune-worker-execution">9.1.2. Auto-prune worker execution</a></span></li></ul></li></ul></li></ul></div><section class="chapter" id="arch-intro"><div class="titlepage"><div><div><h1 class="title">Chapter 1. Red Hat Quay overview</h1></div></div></div><p>
 			Red Hat Quay is a distributed and highly available container image registry for your enterprise.
@@ -436,99 +436,99 @@
 						Automatic synchronization or mirroring of selected (allowlisted) upstream repositories from external registries into a local Red Hat Quay deployment
 					</li></ul></div><div class="admonition note"><div class="admonition_header">Note</div><div><p>
 					Repository mirroring and geo-replication can be used simultaneously.
-				</p></div></div><div class="table" id="idm45538525179696"><p class="title"><strong>Table 6.1. Red Hat Quay Repository mirroring and geo-replication comparison</strong></p><div class="table-contents"><table class="lt-4-cols lt-7-rows"><colgroup><col style="width: 33%; " class="col_1"/><col style="width: 33%; " class="col_2"/><col style="width: 33%; " class="col_3"/></colgroup><thead><tr><th align="left" valign="top" id="idm45538522243728" scope="col">Feature / Capability</th><th align="left" valign="top" id="idm45538522242864" scope="col">Geo-replication</th><th align="left" valign="top" id="idm45538522242000" scope="col">Repository mirroring</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45538522243728">
+				</p></div></div><div class="table" id="idm45199267190304"><p class="title"><strong>Table 6.1. Red Hat Quay Repository mirroring and geo-replication comparison</strong></p><div class="table-contents"><table class="lt-4-cols lt-7-rows"><colgroup><col style="width: 33%; " class="col_1"/><col style="width: 33%; " class="col_2"/><col style="width: 33%; " class="col_3"/></colgroup><thead><tr><th align="left" valign="top" id="idm45199263809760" scope="col">Feature / Capability</th><th align="left" valign="top" id="idm45199263808896" scope="col">Geo-replication</th><th align="left" valign="top" id="idm45199261069488" scope="col">Repository mirroring</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45199263809760">
 							<p>
 								What is the feature designed to do?
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242864">
+							</td><td align="left" valign="top" headers="idm45199263808896">
 							<p>
 								A shared, global registry
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242000">
+							</td><td align="left" valign="top" headers="idm45199261069488">
 							<p>
 								Distinct, different registries
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538522243728">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199263809760">
 							<p>
 								What happens if replication or mirroring has not been completed yet?
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242864">
+							</td><td align="left" valign="top" headers="idm45199263808896">
 							<p>
 								The remote copy is used (slower)
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242000">
+							</td><td align="left" valign="top" headers="idm45199261069488">
 							<p>
 								No image is served
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538522243728">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199263809760">
 							<p>
 								Is access to all storage backends in both regions required?
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242864">
+							</td><td align="left" valign="top" headers="idm45199263808896">
 							<p>
 								Yes (all Red Hat Quay nodes)
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242000">
+							</td><td align="left" valign="top" headers="idm45199261069488">
 							<p>
 								No (distinct storage)
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538522243728">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199263809760">
 							<p>
 								Can users push images from both sites to the same repository?
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242864">
+							</td><td align="left" valign="top" headers="idm45199263808896">
 							<p>
 								Yes
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242000">
+							</td><td align="left" valign="top" headers="idm45199261069488">
 							<p>
 								No
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538522243728">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199263809760">
 							<p>
 								Is all registry content and configuration identical across all regions (shared database)?
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242864">
+							</td><td align="left" valign="top" headers="idm45199263808896">
 							<p>
 								Yes
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242000">
+							</td><td align="left" valign="top" headers="idm45199261069488">
 							<p>
 								No
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538522243728">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199263809760">
 							<p>
 								Can users select individual namespaces or repositories to be mirrored?
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242864">
+							</td><td align="left" valign="top" headers="idm45199263808896">
 							<p>
 								No
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242000">
+							</td><td align="left" valign="top" headers="idm45199261069488">
 							<p>
 								Yes
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538522243728">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199263809760">
 							<p>
 								Can users apply filters to synchronization rules?
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242864">
+							</td><td align="left" valign="top" headers="idm45199263808896">
 							<p>
 								No
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242000">
+							</td><td align="left" valign="top" headers="idm45199261069488">
 							<p>
 								Yes
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538522243728">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199263809760">
 							<p>
 								Are individual / different role-base access control configurations allowed in each region
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242864">
+							</td><td align="left" valign="top" headers="idm45199263808896">
 							<p>
 								No
 							</p>
-							</td><td align="left" valign="top" headers="idm45538522242000">
+							</td><td align="left" valign="top" headers="idm45199261069488">
 							<p>
 								Yes
 							</p>
@@ -566,143 +566,143 @@
 			Stateless components of Red Hat Quay can be scaled out, but this will cause a heavier load on stateful backend services.
 		</p><section class="section" id="sizing-sample"><div class="titlepage"><div><div><h2 class="title">7.1. Red Hat Quay sample sizings</h2></div></div></div><p>
 				The following table shows approximate sizing for Proof of Concept, mid-size, and high-end deployments. Whether a deployment runs appropriately with the same metrics depends on many factors not shown below.
-			</p><div class="informaltable"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 40%; " class="col_1"/><col style="width: 20%; " class="col_2"/><col style="width: 20%; " class="col_3"/><col style="width: 20%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm45538526145424" scope="col">Metric</th><th align="center" valign="top" id="idm45538526144336" scope="col">Proof of concept</th><th align="center" valign="top" id="idm45538526143248" scope="col">Mid-size</th><th align="center" valign="top" id="idm45538525905584" scope="col">High End<br/> (Quay.io)</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45538526145424">
+			</p><div class="informaltable"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 40%; " class="col_1"/><col style="width: 20%; " class="col_2"/><col style="width: 20%; " class="col_3"/><col style="width: 20%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm45199267244160" scope="col">Metric</th><th align="center" valign="top" id="idm45199262403824" scope="col">Proof of concept</th><th align="center" valign="top" id="idm45199262402736" scope="col">Mid-size</th><th align="center" valign="top" id="idm45199262401648" scope="col">High End<br/> (Quay.io)</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45199267244160">
 							<p>
 								No. of Quay containers by default
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526144336">
+							</td><td align="center" valign="top" headers="idm45199262403824">
 							<p>
 								1
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526143248">
+							</td><td align="center" valign="top" headers="idm45199262402736">
 							<p>
 								4
 							</p>
-							</td><td align="center" valign="top" headers="idm45538525905584">
+							</td><td align="center" valign="top" headers="idm45199262401648">
 							<p>
 								15
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538526145424">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199267244160">
 							<p>
 								No. of Quay containers max at scale-out
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526144336">
+							</td><td align="center" valign="top" headers="idm45199262403824">
 							<p>
 								N/A
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526143248">
+							</td><td align="center" valign="top" headers="idm45199262402736">
 							<p>
 								8
 							</p>
-							</td><td align="center" valign="top" headers="idm45538525905584">
+							</td><td align="center" valign="top" headers="idm45199262401648">
 							<p>
 								30
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538526145424">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199267244160">
 							<p>
 								No. of Clair containers by default
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526144336">
+							</td><td align="center" valign="top" headers="idm45199262403824">
 							<p>
 								1
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526143248">
+							</td><td align="center" valign="top" headers="idm45199262402736">
 							<p>
 								3
 							</p>
-							</td><td align="center" valign="top" headers="idm45538525905584">
+							</td><td align="center" valign="top" headers="idm45199262401648">
 							<p>
 								10
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538526145424">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199267244160">
 							<p>
 								No. of Clair containers max at scale-out
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526144336">
+							</td><td align="center" valign="top" headers="idm45199262403824">
 							<p>
 								N/A
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526143248">
+							</td><td align="center" valign="top" headers="idm45199262402736">
 							<p>
 								6
 							</p>
-							</td><td align="center" valign="top" headers="idm45538525905584">
+							</td><td align="center" valign="top" headers="idm45199262401648">
 							<p>
 								15
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538526145424">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199267244160">
 							<p>
 								No. of mirroring pods (to mirror 100 repositories)
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526144336">
+							</td><td align="center" valign="top" headers="idm45199262403824">
 							<p>
 								1
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526143248">
+							</td><td align="center" valign="top" headers="idm45199262402736">
 							<p>
 								5-10
 							</p>
-							</td><td align="center" valign="top" headers="idm45538525905584">
+							</td><td align="center" valign="top" headers="idm45199262401648">
 							<p>
 								N/A
 							</p>
-							</td></tr><tr><td align="left" valign="middle" headers="idm45538526145424">
+							</td></tr><tr><td align="left" valign="middle" headers="idm45199267244160">
 							<p>
 								Database sizing
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526144336">
+							</td><td align="center" valign="top" headers="idm45199262403824">
 							<p>
 								2 -4 Cores<br/> 6-8 GB RAM<br/> 10-20 GB disk
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526143248">
+							</td><td align="center" valign="top" headers="idm45199262402736">
 							<p>
 								4-8 Cores<br/> 6-32 GB RAM<br/> 100 GB - 1 TB disk
 							</p>
-							</td><td align="center" valign="top" headers="idm45538525905584">
+							</td><td align="center" valign="top" headers="idm45199262401648">
 							<p>
 								32 cores<br/> 244 GB<br/> 1+ TB disk
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538526145424">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199267244160">
 							<p>
 								Object storage backend sizing
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526144336">
+							</td><td align="center" valign="top" headers="idm45199262403824">
 							<p>
 								10-100 GB
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526143248">
+							</td><td align="center" valign="top" headers="idm45199262402736">
 							<p>
 								1 - 20 TB
 							</p>
-							</td><td align="center" valign="top" headers="idm45538525905584">
+							</td><td align="center" valign="top" headers="idm45199262401648">
 							<p>
 								50+ TB up to PB
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538526145424">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199267244160">
 							<p>
 								Redis cache sizing
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526144336"> </td><td align="center" valign="top" headers="idm45538526143248">
+							</td><td align="center" valign="top" headers="idm45199262403824"> </td><td align="center" valign="top" headers="idm45199262402736">
 							<p>
 								2 Cores<br/> 2-4 GB RAM
 							</p>
-							</td><td align="center" valign="top" headers="idm45538525905584">
+							</td><td align="center" valign="top" headers="idm45199262401648">
 							<p>
 								4 cores <br/> 28 GB RAM
 							</p>
-							</td></tr><tr><td align="left" valign="top" headers="idm45538526145424">
+							</td></tr><tr><td align="left" valign="top" headers="idm45199267244160">
 							<p>
 								Underlying node sizing<br/> (physical or virtual)
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526144336">
+							</td><td align="center" valign="top" headers="idm45199262403824">
 							<p>
 								4 Cores<br/> 8 GB RAM
 							</p>
-							</td><td align="center" valign="top" headers="idm45538526143248">
+							</td><td align="center" valign="top" headers="idm45199262402736">
 							<p>
 								4-6 Cores<br/> 12-16 GB RAM
 							</p>
-							</td><td align="center" valign="top" headers="idm45538525905584">
+							</td><td align="center" valign="top" headers="idm45199262401648">
 							<p>
 								Quay:<br/> 13 cores<br/> 56GB RAM<br/><br/> Clair:<br/> 2 cores<br/> 4 GB RAM
 							</p>
@@ -768,101 +768,101 @@
 			For the namespace auto-pruning feature, two distinct database tables within a database schema were created: one for <code class="literal">namespaceautoprunepolicy</code> and another for <code class="literal">autoprunetaskstatus</code>. An auto-prune worker carries out the configured policies.
 		</p><h3 id="namespaceautoprunepolicy-database-table">Namespace auto prune policy database table</h3><p>
 			The <code class="literal">namespaceautoprunepolicy</code> database table holds the policy configuration for a single namespace. There is only one entry per namespace, but there is support for multiple rows per <code class="literal">namespace_id</code>. The <code class="literal">policy</code> field holds the policy details, such as <code class="literal">{method: "creation_date", olderThan: "2w"}</code> or <code class="literal">{method: "number_of_tags", numTags: 100}</code>.
-		</p><div class="table" id="idm45538525082288"><p class="title"><strong>Table 9.1. <code class="literal">namespaceautoprunepolicy</code> database table</strong></p><div class="table-contents"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 25%; " class="col_1"/><col style="width: 25%; " class="col_2"/><col style="width: 25%; " class="col_3"/><col style="width: 25%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm45538520924256" scope="col">Field</th><th align="left" valign="top" id="idm45538520923168" scope="col">Type</th><th align="left" valign="top" id="idm45538520922080" scope="col">Attributes</th><th align="left" valign="top" id="idm45538520920992" scope="col">Description</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45538520924256">
+		</p><div class="table" id="idm45199266071344"><p class="title"><strong>Table 9.1. <code class="literal">namespaceautoprunepolicy</code> database table</strong></p><div class="table-contents"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 25%; " class="col_1"/><col style="width: 25%; " class="col_2"/><col style="width: 25%; " class="col_3"/><col style="width: 25%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm45199263728240" scope="col">Field</th><th align="left" valign="top" id="idm45199263727152" scope="col">Type</th><th align="left" valign="top" id="idm45199263726064" scope="col">Attributes</th><th align="left" valign="top" id="idm45199263724976" scope="col">Description</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45199263728240">
 						<p>
 							<code class="literal">uuid</code>
 						</p>
-						</td><td align="left" valign="top" headers="idm45538520923168">
+						</td><td align="left" valign="top" headers="idm45199263727152">
 						<p>
 							character varying (225)
 						</p>
-						</td><td align="left" valign="top" headers="idm45538520922080">
+						</td><td align="left" valign="top" headers="idm45199263726064">
 						<p>
 							Unique, indexed
 						</p>
-						</td><td align="left" valign="top" headers="idm45538520920992">
+						</td><td align="left" valign="top" headers="idm45199263724976">
 						<p>
 							Unique identifier for this policy
 						</p>
-						</td></tr><tr><td align="left" valign="top" headers="idm45538520924256">
+						</td></tr><tr><td align="left" valign="top" headers="idm45199263728240">
 						<p>
 							<code class="literal">namespace_id</code>
 						</p>
-						</td><td align="left" valign="top" headers="idm45538520923168">
+						</td><td align="left" valign="top" headers="idm45199263727152">
 						<p>
 							Integer
 						</p>
-						</td><td align="left" valign="top" headers="idm45538520922080">
+						</td><td align="left" valign="top" headers="idm45199263726064">
 						<p>
 							Foreign Key
 						</p>
-						</td><td align="left" valign="top" headers="idm45538520920992">
+						</td><td align="left" valign="top" headers="idm45199263724976">
 						<p>
 							Namespace that the policy falls under
 						</p>
-						</td></tr><tr><td align="left" valign="top" headers="idm45538520924256">
+						</td></tr><tr><td align="left" valign="top" headers="idm45199263728240">
 						<p>
 							<code class="literal">policy</code>
 						</p>
-						</td><td align="left" valign="top" headers="idm45538520923168">
+						</td><td align="left" valign="top" headers="idm45199263727152">
 						<p>
 							text
 						</p>
-						</td><td align="left" valign="top" headers="idm45538520922080">
+						</td><td align="left" valign="top" headers="idm45199263726064">
 						<p>
 							JSON
 						</p>
-						</td><td align="left" valign="top" headers="idm45538520920992">
+						</td><td align="left" valign="top" headers="idm45199263724976">
 						<p>
 							Policy configuration
 						</p>
 						</td></tr></tbody></table></div></div><h3 id="autoprunetaskstatus-database-table">Auto-prune task status database table</h3><p>
 			The <code class="literal">autoprunetaskstatus</code> table registers tasks to be executed by the auto-prune worker. Tasks are executed within the context of a single namespace. Only one task per namespace exists.
-		</p><div class="table" id="idm45538521470752"><p class="title"><strong>Table 9.2. <code class="literal">autoprunetaskstatus</code> database table</strong></p><div class="table-contents"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 25%; " class="col_1"/><col style="width: 25%; " class="col_2"/><col style="width: 25%; " class="col_3"/><col style="width: 25%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm45538526746672" scope="col">Field</th><th align="left" valign="top" id="idm45538526745584" scope="col">Type</th><th align="left" valign="top" id="idm45538526744496" scope="col">Attributes</th><th align="left" valign="top" id="idm45538526743408" scope="col">Description</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45538526746672">
+		</p><div class="table" id="idm45199264158688"><p class="title"><strong>Table 9.2. <code class="literal">autoprunetaskstatus</code> database table</strong></p><div class="table-contents"><table class="gt-4-cols lt-7-rows"><colgroup><col style="width: 25%; " class="col_1"/><col style="width: 25%; " class="col_2"/><col style="width: 25%; " class="col_3"/><col style="width: 25%; " class="col_4"/></colgroup><thead><tr><th align="left" valign="top" id="idm45199264151680" scope="col">Field</th><th align="left" valign="top" id="idm45199264150592" scope="col">Type</th><th align="left" valign="top" id="idm45199260627376" scope="col">Attributes</th><th align="left" valign="top" id="idm45199260626288" scope="col">Description</th></tr></thead><tbody><tr><td align="left" valign="top" headers="idm45199264151680">
 						<p>
 							<code class="literal">namespace_id</code>
 						</p>
-						</td><td align="left" valign="top" headers="idm45538526745584">
+						</td><td align="left" valign="top" headers="idm45199264150592">
 						<p>
 							Integer
 						</p>
-						</td><td align="left" valign="top" headers="idm45538526744496">
+						</td><td align="left" valign="top" headers="idm45199260627376">
 						<p>
 							Foreign Key
 						</p>
-						</td><td align="left" valign="top" headers="idm45538526743408">
+						</td><td align="left" valign="top" headers="idm45199260626288">
 						<p>
 							Namespace that this task belongs to
 						</p>
-						</td></tr><tr><td align="left" valign="top" headers="idm45538526746672">
+						</td></tr><tr><td align="left" valign="top" headers="idm45199264151680">
 						<p>
 							<code class="literal">last_ran_ms</code>
 						</p>
-						</td><td align="left" valign="top" headers="idm45538526745584">
+						</td><td align="left" valign="top" headers="idm45199264150592">
 						<p>
 							Big Integer (bigint)
 						</p>
-						</td><td align="left" valign="top" headers="idm45538526744496">
+						</td><td align="left" valign="top" headers="idm45199260627376">
 						<p>
 							Nullable, indexed
 						</p>
-						</td><td align="left" valign="top" headers="idm45538526743408">
+						</td><td align="left" valign="top" headers="idm45199260626288">
 						<p>
 							Last time that the worker executed the policies for this namespace
 						</p>
-						</td></tr><tr><td align="left" valign="top" headers="idm45538526746672">
+						</td></tr><tr><td align="left" valign="top" headers="idm45199264151680">
 						<p>
 							<code class="literal">status</code>
 						</p>
-						</td><td align="left" valign="top" headers="idm45538526745584">
+						</td><td align="left" valign="top" headers="idm45199264150592">
 						<p>
 							text
 						</p>
-						</td><td align="left" valign="top" headers="idm45538526744496">
+						</td><td align="left" valign="top" headers="idm45199260627376">
 						<p>
 							Nullable
 						</p>
-						</td><td align="left" valign="top" headers="idm45538526743408">
+						</td><td align="left" valign="top" headers="idm45199260626288">
 						<p>
 							Details from the last execution task
 						</p>
@@ -900,7 +900,7 @@
 							The <code class="literal">last_ran_ms</code> gets updated after a row from <code class="literal">autoprunetask</code> is selected.
 						</li><li class="listitem">
 							The auto-prune worker ends.
-						</li></ul></div></section></section></section><div><div xml:lang="en-US" class="legalnotice" id="idm45538522255360"><h1 class="legalnotice">Legal Notice</h1><div class="para">
+						</li></ul></div></section></section></section><div><div xml:lang="en-US" class="legalnotice" id="idm45199263885408"><h1 class="legalnotice">Legal Notice</h1><div class="para">
 		Copyright <span class="trademark"/>© 2025 Red Hat, Inc.
 	</div><div class="para">
 		The text of and illustrations in this document are licensed by Red Hat under a Creative Commons Attribution–Share Alike 3.0 Unported license ("CC-BY-SA"). An explanation of CC-BY-SA is available at <a class="uri" href="http://creativecommons.org/licenses/by-sa/3.0/">http://creativecommons.org/licenses/by-sa/3.0/</a>. In accordance with CC-BY-SA, if you distribute this document or an adaptation of it, you must provide the URL for the original version.
