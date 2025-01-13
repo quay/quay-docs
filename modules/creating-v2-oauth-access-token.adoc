@@ -1,0 +1,46 @@
+:_content-type: PROCEDURE
+[id="creating-v2-oauth-access-token"]
+= Creating an OCI referrers OAuth access token
+
+This OCI referrers OAuth access token is used to list OCI referrers of a manifest under a repository.
+
+.Procedure
+
+. Update your `config.yaml` file to include the `FEATURE_REFERRERS_API: true` field. For example:
++
+[source,yaml]
+----
+# ...
+FEATURE_REFERRERS_API: true
+# ...
+----
+
+. Enter the following command to Base64 encode your credentials:
++
+[source,terminal]
+----
+$ echo -n '<username>:<password>' | base64
+----
++
+.Example output
++
+[source,terminal]
+----
+abcdeWFkbWluOjE5ODlraWROZXQxIQ==
+----
+
+. Enter the following command to use the base64 encoded string and modify the URL endpoint to your {productname} server:
++
+[source,terminal]
+----
+$ curl --location '<quay-server.example.com>/v2/auth?service=<quay-server.example.com>&scope=repository:quay/listocireferrs:pull,push' --header 'Authorization: Basic <base64_username:password_encode_token>' -k | jq
+----
++
+.Example output
++
+[source,terminal]
+----
+{
+  "token": "<example_secret>
+}
+----

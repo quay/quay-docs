@@ -2,83 +2,14 @@
 [id="token-overview"]
 = Introduction to {productname} OAuth 2.0 tokens
 
-The {productname} OAuth2 token system provides a secure, standards-based method for accessing {productname}'s API and other relevant resources. The {productname} OAuth2 token-based approaches provides a secure method for handling authentication and authorization for complex environments. Compared to more traditional API tokens, {productname}'s OAuth2 token system offers the following enhancements:
+The {productname} OAuth 2 token system provides a secure, standards-based method for accessing {productname}'s API and other relevant resources. The OAuth 2 token-based approach provides a secure method for handling authentication and authorization for complex environments. Compared to more traditional API tokens, {productname}'s OAuth 2 token system offers the following enhancements:
 
 * Standards-based security, which adheres to the link:https://oauth.net/2/[OAuth 2.0 protocol].
-* Revocable access by way of deleting the application in which the OAuth2 token exists. 
+* Revocable access by way of deleting the application in which the OAuth 2 token exists. 
 * Fine-grained access control, which allows {productname} administrators the ability to assign specific permissions to tokens.
 * Delegated access, which allows third-party applications and services to act on behalf of a user.
 * Future-proofing, which helps ensure that {productname} remains compatible with other services, platforms, and integrations.
 
-The following sections provide more tails about the token types available with {productname}.
+{productname} primarily supports two types of tokens: OAuth 2 access tokens and robot account tokens. A third token type, an _OCI referrers access token_, that is required to list OCI referrers of a manifest under a repository, is also available when warranted.
 
-[id="token-types"]
-== {productname} token types
-
-{productname} primarily supports two types of tokens: OAuth2 access tokens and robot account tokens. A third token type, an _OCI referrers access token_, that is required to list OCI referrers of a manifest under a repository, is also available when warranted.
-
-[discrete]
-[id="oauth2-access-tokens"]
-=== OAuth2 access tokens 
-
-OAuth 2 access tokens enable user-authenticated access to the {productname} API, suitable for applications that require user identity verification. These tokens are obtained through an OAuth2 authorization process, where a {productname} administrator generates a token on behalf of themselves or another user to access {productname} API endpoints. OAuth 2 tokens authorize actions on API endpoints based on the scopes defined for the token. 
-
-[NOTE]
-====
-Although OAuth 2 tokens authorize actions on API endpoints based on the scopes defined for the token, access to the resources themselves is governed by {productname}'s role-based access control (RBAC) mechanisms. Actions can be created on a resource, for example, a repository, provided that you have the proper role (*Admin* or *Creator*) to do so for that namespace. This is true even if the API token was granted the `repo:admin` scope.
-====
-
-Currently, the following options can be selected for a token holder:
-
-* *Administer Organization*. When selected, allows the user to be able to administer organizations, including creating robots, creating teams, adjusting team membership, and changing billing settings.
-
-* *Administer Repositories*. When selected, provides the user administrator access to all repositories to which the granting user has access.
-
-* *Create Repositories*.  When selected, provides the user the ability to create repositories in any namespaces that the granting user is allowed to create repositories. 
-
-* *View all visible repositories*. When selected, provides the user the ability to view and pull all repositories visible to the granting user.
-
-* *Read/Write to any accessible repositories*.  When selected, provides the user the ability to view, push and pull to all repositories to which the granting user has write access.
-
-* *Super User Access*.  When selected, provides the user the ability to administer your installation including managing users, managing organizations and other features found in the superuser panel. 
-
-* *Administer User*  When selected, provides the user the ability to  administer your account including creating robots and granting them permissions to your repositories. 
-
-* *Read User Information*.  When selected, provides the user the ability to read user information such as username and email address.
-
-Token distributors should be mindful of the permissions that they are granting when generating a token on behalf of a user, and should have absolute trust in a user before granting such permissions as *Administer organization*, *Super User Access*, and *Administer User*.
-
-OAuth2 access tokens are passed as a `Bearer` token in the `Authorization` header of an API call and, as a result, are used to provide authentication and authorization to the defined API endpoint, such as an image tag, a repository, an organization, and so on.
-
-With {productname}, there is currently no way to set an expiration time on an OAuth2 access token, and the token lifespan is 10 years. Tokens can be deleted by deleting the applications in which they were created in the event that they are compromised, however, this deletes all tokens that were made within that specific application.
-
-[NOTE]
-====
-In practice, {productname} administrators _could_ create a new OAuth application on the *Applications* page of their organization each time they wanted to create a new OAuth token for a user. This would ensure that a single application is not responsible for all OAuth tokens. As a result, in the event that a user's token is compromised, the administrator would delete the application of the compromised token. This would help avoid disruption for other users whose tokens might be part of the same application. 
-====
-
-[discrete]
-[id="robot-account-tokens"]
-=== Robot account tokens 
-
-Robot account _tokens_ are essentially _password-type_ credentials used to access a {productname} registry via normal Docker v2 endpoints; these are defined as _tokens_ on the UI because the password itself is encrypted.
-
-Robot account tokens are persistent tokens designed for automation and continuous integration workflows. By default, {productname}'s robot account tokens do not expire and do not require user interaction, which makes robot accounts ideal for non-interactive use cases.
-
-Robot account tokens are automatically generated at the time of a robot's creation and are non-user specific; that is, they are connected to the user and organization namespace where where they are created. for example, a robot named `project_tools+<robot_name>` is associated with the `project_tools` namespace.
-
-Robot account tokens provide access without needing a user's personal credentials. How the robot account is configured, for example, with one of `READ`, `WRITE`, or `ADMIN` permissions, ultimately defines the actions that the robot account can take.
-
-Because robot account tokens are persistent and do not expire by default, they are ideal for automated workflows that require consistent access to {productname} without manual renewal. Despite this, robot account tokens can be easily re-generated by using the the UI or the proper API endpoint via the CLI. To enhance the security of your {productname} deployment, administrators should regularly refresh robot account tokens. Additionally, with the newly-implemented _keyless authentication with robot accounts_ feature, robot account tokens can be exchanged for external OIDC tokens and leveraged so that they only last one hour, enhancing the security of your registry.
-
-When a namespace gets deleted, or when the robot account is deleted itself, they are garbage collected when the collector is scheduled to run.
-
-[discrete]
-[id="oci-referrers-oauth-access-token"]
-=== OCI referrers OAuth access token
-
-In some cases, depending on the features that your {productname} deployment is configured to use, you might need to leverage an _OCI referrers OAuth access token_. OCI referrers OAuth access tokens are used to list OCI referrers of a manifest under a repository, and uses a `curl` command to make a `GET` request to the {productname} `v2/auth` endpoint.
-
-These tokens are obtained via basic HTTP authentication, wherein the user provides a username and password encoded in Base64 to authenticate directly with the `v2/auth` API endpoint. As such, they are based directly on the user's credentials aod do not follow the same detailed authorization flow as OAuth2, but still allow a user to authorize API requests.
-
-_OCI referrers OAuth access tokens_ do not offer scope-based permissions and do not expire. They are solely used to list OCI referrers of a manifest under a repository. 
+The following chapters provide more details about each token type and how to generate each token type.

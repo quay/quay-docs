@@ -1,0 +1,43 @@
+:_content-type: REFERENCE
+[id="oauth2-access-tokens"]
+= OAuth 2 access tokens 
+
+link:https://oauth.net/2/[OAuth 2] access tokens (considered "API tokens" for {productname}) enable user-authenticated access to the {productname} API, suitable for applications that require user identity verification. These tokens are obtained through an OAuth 2 authorization process, where a {productname} administrator generates a token on behalf of themselves or another user to access {productname} API endpoints. OAuth 2 tokens authorize actions on API endpoints based on the scopes defined for the token. 
+
+[NOTE]
+====
+Although OAuth 2 tokens authorize actions on API endpoints based on the scopes defined for the token, access to the resources themselves is governed by {productname}'s role-based access control (RBAC) mechanisms. Actions can be created on a resource, for example, a repository, provided that you have the proper role (*Admin* or *Creator*) to do so for that namespace. This is true even if the API token was granted the `repo:admin` scope.
+====
+
+OAuth 2 access tokens can only be created by using the {productname} UI; there is no way to create an OAuth 2 access token by using the CLI. When creating an OAuth 2 token, the following options can be selected for a token holder:
+
+* *Administer Organization*. When selected, allows the user to be able to administer organizations, including creating robots, creating teams, adjusting team membership, and changing billing settings.
+
+* *Administer Repositories*. When selected, provides the user administrator access to all repositories to which the granting user has access.
+
+* *Create Repositories*.  When selected, provides the user the ability to create repositories in any namespaces that the granting user is allowed to create repositories. 
+
+* *View all visible repositories*. When selected, provides the user the ability to view and pull all repositories visible to the granting user.
+
+* *Read/Write to any accessible repositories*.  When selected, provides the user the ability to view, push and pull to all repositories to which the granting user has write access.
+
+* *Super User Access*.  When selected, provides the user the ability to administer your installation including managing users, managing organizations and other features found in the superuser panel. 
+
+* *Administer User*  When selected, provides the user the ability to  administer your account including creating robots and granting them permissions to your repositories. 
+
+* *Read User Information*.  When selected, provides the user the ability to read user information such as username and email address.
+
+Token distributors should be mindful of the permissions that they are granting when generating a token on behalf of a user, and should have absolute trust in a user before granting such permissions as *Administer organization*, *Super User Access*, and *Administer User*. Additionally, the access token is only revealed at the time of creation; they cannot be listed from the CLI, nor can they be found on the {productname} UI. If an access token is lost or forgotten, a new token must be created; a token cannot be recovered.
+
+OAuth 2 access tokens are passed as a `Bearer` token in the `Authorization` header of an API call and, as a result, are used to provide authentication and authorization to the defined API endpoint, such as an image tag, a repository, an organization, and so on.
+
+The API is available from the `/api/v1` endpoint of your {productname} host. For example, `\https://<quay-server.example.com>/api/v1`. It allows users to connect to endpoints through their browser to `GET`, `POST`, `DELETE`, and `PUT` {productname} settings by enabling the Swagger UI. The API can be accessed by applications that make API calls and use OAuth tokens, and it sends and receives data as JSON. 
+
+With {productname}, there is currently no way to rotate or to set an expiration time on an OAuth 2 access token, and the token lifespan is 10 years. Tokens can be deleted by deleting the applications in which they were created in the event that they are compromised, however, this deletes all tokens that were made within that specific application.
+
+[NOTE]
+====
+In practice, {productname} administrators _could_ create a new OAuth application on the *Applications* page of their organization each time they wanted to create a new OAuth token for a user. This would ensure that a single application is not responsible for all OAuth tokens. As a result, in the event that a user's token is compromised, the administrator would delete the application of the compromised token. This would help avoid disruption for other users whose tokens might be part of the same application. 
+====
+
+The following sections shows you how to generate and reassign an OAuth 2 access token.
