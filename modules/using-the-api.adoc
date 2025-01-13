@@ -1,0 +1,42 @@
+:_content-type: REFERENCE
+[id="using-the-api"]
+= Using the {productname} API
+
+After you have created an application and generated an OAuth 2 access token with the desired settings, you can pass in the access token to `GET`, `PUT`, `POST`, or `DELETE` settings by using the API from the CLI. Generally, an API command looks similar to the following example:
+
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <your_access_token>" <1>
+    https://<quay-server.example.com>/api/v1/<example>/<endpoint>/ <2>
+----
+<1> The OAuth 2 access token that was generated through the {productname} UI.
+<2> The URL of your {productname} deployment and the desired API endpoint.
+
+In order to use the desired API endpoint, you would pass in your access token and then include the appropriate fields depending on your needs. For example, as an administrator, you might want to create a new user account by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createinstalluser[`POST /api/v1/superuser/users/`] endpoint. This endpoint has a required syntax of `POST /api/v1/superuser/users/` upon use, and you must pass in the following required field, as noted by the API entry:
+
+* *username*: The username of the user being created.
+
+It also has an optional field that an administrator could pass in if warranted:
+
+* *email*: The email address of the user being created.
+
+Collectively, using the `POST /api/v1/superuser/users/` endpoint on the CLI would look like the following example:
+
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <bearer_token>" -H "Content-Type: application/json" -d '{
+  "username": "newuser",
+  "email": "newuser@example.com"
+}' "https://<quay-server.example.com>/api/v1/superuser/users/"
+----
+
+If the command is successful, an output similar to the following is returned on the CLI:
+
+[source,terminal]
+----
+{"username": "newuser", "email": "newuser@example.com", "password": "IJWZ8TIY301KPFOW3WEUJEVZ3JR11CY1", "encrypted_password": "9Q36xF54YEOLjetayC0NBaIKgcFFmIHsS3xTZDLzZSrhTBkxUc9FDwUKfnxLWhco6oBJV1NDBjoBcDGmsZMYPt1dSA4yWpPe/JKY9pnDcsw="}
+----
+
+
+
+The following sections show how you might use the {productname} API after you have generated a token. Manual and automated uses of the API are covered.
