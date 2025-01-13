@@ -1,0 +1,79 @@
+:_content-type: PROCEDURE
+[id="creating-oauth-application-api"]
+= Managing a user application by using the API
+
+{productname} users can create, list information about, and delete a _user application_ that can be used as an alternative to using your password for Docker, Podman, or other service providers. User application tokens work like your username and password, but are encrypted and do not provide any information to third parties regarding who is accessing {productname}.
+
+[NOTE]
+====
+After creation via the CLI, the user application token is listed under *User Settings* of the {productname} UI. Note that this differs from an application token that is created under user settings, and should be considered a different application entirely.
+====
+
+Use the following procedure to create a user application token.
+
+.Prerequisites
+
+* You have access to the {productname} API, which entails having already created an OAuth 2 access token.
+
+.Procedure
+
+* Create a user application by entering the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#appspecifictokens[`POST /api/v1/user/apptoken`] API call:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "MyAppToken"
+  }' \
+  "http://quay-server.example.com/api/v1/user/apptoken"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"token": {"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null, "token_code": "K2YQB1YO0ABYV5OBUYOMF9MCUABN12Y608Q9RHFXBI8K7IE8TYCI4WEEXSVH1AXWKZCKGUVA57PSA8N48PWED9F27PXATFUVUD9QDNCE9GOT9Q8ACYPIN0HL"}}
+----
+
+* You can obtain information about your application, including when the application expires, by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#listapptokens[`GET /api/v1/user/apptoken`] command. For example:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <access_token>" \
+  "http://quay-server.example.com/api/v1/user/apptoken"
+----
++
+[source,terminal]
+----
+{"tokens": [{"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null}], "only_expiring": null}
+----
+
+* You can obtain information about a specific user application by entering the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#getapptoken[`GET /api/v1/user/apptoken/{token_uuid}`] command:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <access_token>" \
+  "http://quay-server.example.com/api/v1/user/apptoken/<token_uuid>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"token": {"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null, "token_code": "K2YQB1YO0ABYV5OBUYOMF9MCUABN12Y608Q9RHFXBI8K7IE8TYCI4WEEXSVH1AXWKZCKGUVA57PSA8N48PWED9F27PXATFUVUD9QDNCE9GOT9Q8ACYPIN0HL"}}
+----
+
+* You can delete a user application token by entering the 
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer <access_token>" \
+  "http://quay-server.example.com/api/v1/user/apptoken/<token_uuid>"
+----
++
+This command does not return output in the CLI. You can return a list of tokens by entering one of the aforementioned commands.
