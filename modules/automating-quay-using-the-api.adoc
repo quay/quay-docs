@@ -1,0 +1,73 @@
+:_content-type: REFERENCE
+[id="automating-quay-using-the-api"]
+= Automating {productname} processes by using the API
+
+With the API, {productname} administrators and users with access to the API can automate repetitive tasks such as repository management or image pruning. The following example shows you how you might use a Python script and a cron job to to automate image pruning.
+
+.Prerequisites
+
+* You have access to the {productname} API, which entails having already created an OAuth 2 access token.
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file.
+* You have installed the Python `requests` library using.
+* You have enabled cron jobs on your machine.
+
+.Procedure
+
+. Create a Python script that executes an API command. The following example is used to prune images using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#deletefulltag[`DELETE /api/v1/repository/{repository}/tag/{tag}`] API endpoint.
++
+[source,python]
+----
+import requests <1>
+
+# Hard-coded values
+API_BASE_URL = "http://<quay-server.example.com>/api/v1" <2>
+ACCESS_TOKEN = "<access_token>" <3>
+NAMESPACE = "<namespace_name>" <4>
+REPO_NAME = "<repository_name>" <5>
+TAG = "<tag_name>" <6>
+
+def delete_image_tag():
+    # Construct the full API URL for deleting the tag
+    url = f"{API_BASE_URL}/repository/{NAMESPACE}/{REPO_NAME}/tag/{TAG}"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    
+    # Send the DELETE request to the API
+    response = requests.delete(url, headers=headers)
+    
+    # Check the response and print appropriate messages
+    if response.status_code == 200:
+        print("Tag deleted successfully")
+    else:
+        print("Failed to delete tag:", response.json())
+
+# Execute the function
+delete_image_tag()
+----
+<1> Includes the `import` library in your Python code.
+<2> The URL of your registry appended with `/api/v1`.
+<3> Your OAuth 2 access token.
+<4> The namespace that holds the image tag.
+<5> The repository that holds the image tag.
+<6> The tag name of the image.
+
+. Save the script as `prune_images.py`.
+
+. Create a cron job that automatically runs the script:
+
+.. Open the crontab editor by running the following command:
++
+[source,terminal]
+----
+$ crontab -e
+----
+
+.. In the editor, add the cron job for running the script. The following example runs the script every minute:
++
+[source,text]
+----
+* * * * * sudo python /path/to/prune_images.py >> /var/log/prune_images.log 2>&1
+----
+
