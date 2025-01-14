@@ -1,0 +1,31 @@
+:_content-type: PROCEDURE
+[id="deploy-local-quay-ipv6"]
+= Deploying a local instance of {productname} in IPv6
+
+After you have created a new dual-stack container network, you can deploy a local instance of {productname}.
+
+.Prerequisites
+
+* You have configured Redis, your PostgreSQL database, local image storage, and creating a `config.yaml` file with the desired settings.
+
+.Procedure
+
+. In your {productname} `config.yaml` file, set the `FEATURE_LISTEN_IP_VERSION` field to `IPv6`. For example:
++
+[source,yaml]
+----
+# ...
+FEATURE_LISTEN_IP_VERSION: dual-stack
+# ...
+----
+
+. Enter the following command to start the `Quay` registry container, specifying the appropriate volumes for configuration data and local storage for image data. Note that if you are using dual-stack, you must specify explicit IPv6 port mapping when starting the container.
++
+[subs="verbatim,attributes"]
+----
+$ sudo podman run -d --rm -p "[::]:80:8080" -p "[::]:443:8443"  \
+   --name=quay \
+   -v $QUAY/config:/conf/stack:Z \
+   -v $QUAY/storage:/datastorage:Z \
+   {productrepo}/{quayimage}:{productminv}
+----
