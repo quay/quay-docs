@@ -1,0 +1,90 @@
+[id="quota-limit-management-api"]
+= Setting quota limits for an organization with the {productname} API
+
+You can set specific quota limits for an organization so that, when exceeded, a warning is returned, or the pushed image is denied altogether.
+
+.Procedure
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createorganizationquotalimit[`POST /api/v1/organization/{orgname}/quota/{quota_id}/limit`] command to create a quota policy that rejects images if they exceeded the allotted quota. For example:
++
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota/<quota_id>/limit" \
+     -H "Authorization: Bearer <access_token>" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "limit_bytes": 21474836480,
+           "type": "Reject", <1>
+           "threshold_percent": 90 <2>
+         }'
+----
+<1> One of `Reject` or `Warning`.
+<2> Quota threshold, in percent of quota.
++
+.Example output
++
+[source,terminal]
+----
+"Created"
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#listorganizationquotalimit[`GET /api/v1/organization/{orgname}/quota/{quota_id}/limit`] to obtain the ID of the quota limit. For example:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota/<quota_id>/limit" \
+     -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+[{"id": 2, "type": "Reject", "limit_percent": 90}]
+----
+
+////
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#getuserquotalimit[`GET /api/v1/user/quota/{quota_id}/limit/{limit_id}`] endpoint to return information about the quota limit. Note that this requires the limit ID. For example:
++
+[source,terminal]
+----
+
+----
++
+.Example output
++
+[source,terminal]
+----
+
+----
+////
+
+. Update the policy with the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#changeorganizationquotalimit[`PUT /api/v1/organization/{orgname}/quota/{quota_id}/limit/{limit_id}`] endpoint. For example:
++
+[source,terminal]
+----
+$ curl -X PUT "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota/<quota_id>/limit/<limit_id>" \
+     -H "Authorization: Bearer <access_token>" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "type": "<type>",
+           "threshold_percent": <threshold_percent>
+         }'
+----
++
+.Example output
++
+[source,terminal]
+----
+{"id": 3, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [{"id": 2, "type": "Warning", "limit_percent": 80}], "default_config_exists": false}
+----
+
+. You can delete the quota limit with the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#deleteorganizationquotalimit[`DELETE /api/v1/organization/{orgname}/quota/{quota_id}/limit/{limit_id}`] endpoint:
++
+[source,terminal]
+----
+$ curl -X DELETE "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota/<quota_id>/limit/<limit_id>" \
+     -H "Authorization: Bearer <access_token>"
+----
++
+This command does not return output.
