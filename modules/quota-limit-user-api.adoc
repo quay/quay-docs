@@ -1,0 +1,67 @@
+[id="quota-limit-user-api"]
+= Obtaining quota limits for the user with the {productname} API
+
+You can specify quota and limitations for users so that, when exceeded, a warning is returned, or the pushed image is denied altogether.  Quota limits for users must be set on the {productname} UI. The following APIs can be used to view the quota limits for the user that is logged in. 
+
+.Procedure
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#listuserquota[`GET /api/v1/user/quota`] command to return information about the quota limitations:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/user/quota" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+[{"id": 4, "limit_bytes": 2199023255552, "limit": "2.0 TiB", "default_config": false, "limits": [], "default_config_exists": false}]
+----
+
+. After you have received the quota ID, you can pass it in with the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#getuserquota[`GET /api/v1/user/quota/{quota_id}`] endpoint to return information about the limitation:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/user/quota/{quota_id}" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"id": 4, "limit_bytes": 2199023255552, "limit": "2.0 TiB", "default_config": false, "limits": [], "default_config_exists": false}
+----
+
+. The limitations can be viewed by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#listuserquotalimit[`GET /api/v1/user/quota/{quota_id}/limit`] endpoint. For example:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/user/quota/{quota_id}/limit" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+[{"id": 3, "type": "Reject", "limit_percent": 100}]
+----
+
+. Additional information about the entire policy can be returned using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#getuserquotalimit[`GET /api/v1/user/quota/{quota_id}/limit/{limit_id}`] endpoint:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/user/quota/{quota_id}/limit/{limit_id}" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"id": 4, "limit_bytes": 2199023255552, "limit": "2.0 TiB", "default_config": false, "limits": [{"id": 3, "type": "Reject", "limit_percent": 100}], "default_config_exists": false}
+
+----
