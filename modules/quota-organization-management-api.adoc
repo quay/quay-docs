@@ -1,0 +1,85 @@
+[id="quota-organization-management-api"]
+= Managing organization quota with the {productname} API
+
+When an organization is first created, it does not have an established quota. You can use the API to check, create, change, or delete quota limitations for an organization. 
+
+.Prerequisites
+
+* You have generated an OAuth access token.
+
+.Procedure
+
+. To set a quota for an organization, you can use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createorganizationquota[`POST /api/v1/organization/{orgname}/quota`] endpoint:
++
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota" \
+     -H "Authorization: Bearer <access_token>" \
+     -H "Content-Type: application/json" \
+     -d '{
+         "limit_bytes": 10737418240,
+         "limits": "10 Gi"
+     }'
+----
++
+.Example output
+[source,terminal]
+----
+"Created"
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#listorganizationquota[`GET /api/v1/organization/{orgname}/quota`] command to return information about the policy, including the ID number, which is required for other organization quota endpoints. For example:
++
+[source,terminal]
+----
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota  | jq
+----
++
+.Example output
+[source,terminal]
+----
+[{"id": 1, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}]
+----
++
+After you obtain the ID number, you can use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#getorganizationquota[`GET /api/v1/organization/{orgname}/quota/{quota_id}`] command to list the quota policy. For example:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota/<quota_id>" \
+     -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
+[source,terminal]
+----
+{"id": 1, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}
+----
+
+. You can use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#changeorganizationquota[`PUT /api/v1/organization/{orgname}/quota/{quota_id}`] command to modify the existing quota limitation. Note that this requires the policy ID. For example:
++
+[source,terminal]
+----
+$ curl -X PUT "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota/<quota_id>" \
+     -H "Authorization: Bearer <access_token>" \
+     -H "Content-Type: application/json" \
+     -d '{                                
+         "limit_bytes": <limit_in_bytes>
+     }' 
+----
++
+.Example output
+[source,json]
+----
+{"id": 1, "limit_bytes": 21474836480, "limit": "20.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}
+----
+
+. An organization's quota can be deleted with the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#deleteorganizationquota[`DELETE /api/v1/organization/{orgname}/quota/{quota_id}`] command. For example:
++
+[source,terminal]
++
+----
+$ curl -X DELETE "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota/<quota_id>" \
+     -H "Authorization: Bearer <access_token>"
+----
++
+This command does not return output.
