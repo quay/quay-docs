@@ -1,79 +1,62 @@
-[[quota-establishment-api]]
-= Establishing quota with the {productname} API
+[id="quota-establishment-api"]
+= Establishing quota for an organization with the {productname} API
 
-When an organization is first created, it does not have a quota applied. Use the */api/v1/organization/{organization}/quota* endpoint:
+When an organization is first created, it does not have an established quota. You can use the API to check, create, change, or delete quota limitations for an organization. 
 
-.Sample command
+.Prerequisites
+
+* You have generated an OAuth access token.
+
+.Procedure
+
+. To set a quota for an organization, you can use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createorganizationquota[`POST /api/v1/organization/{orgname}/quota`] endpoint:
++
 [source,terminal]
 ----
-$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota  | jq
+$ curl -X POST "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota" \
+     -H "Authorization: Bearer <access_token>" \
+     -H "Content-Type: application/json" \
+     -d '{
+         "limit_bytes": 10737418240,
+         "limits": "10 Gi"
+     }'
 ----
-
-.Sample output
-[source,terminal]
-----
-[]
-----
-
-== Setting the quota
-
-To set a quota for an organization, POST data to the */api/v1/organization/{orgname}/quota* endpoint:
-.Sample command
-[source,terminal]
-----
-$ curl -k -X POST -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{"limit_bytes": 10485760}'  https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org/api/v1/organization/testorg/quota | jq
-----
-
-.Sample output
++
+.Example output
 [source,terminal]
 ----
 "Created"
 ----
 
-== Viewing the quota
-
-To see the applied quota, `GET` data from the  */api/v1/organization/{orgname}/quota* endpoint:
-
-.Sample command
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#listorganizationquota[`GET /api/v1/organization/{orgname}/quota`] command to see if your organization already has an established quota:
++
 [source,terminal]
 ----
 $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota  | jq
 ----
-
-.Sample output
-[source,json]
-----
-[
-  {
-    "id": 1,
-    "limit_bytes": 10485760,
-    "default_config": false,
-    "limits": [],
-    "default_config_exists": false
-  }
-]
-----
-
-== Modifying the quota
-
-To change the existing quota, in this instance from 10 MB to 100 MB, PUT data to the */api/v1/organization/{orgname}/quota/{quota_id}* endpoint:
-
-.Sample command
++
+.Example output
 [source,terminal]
 ----
-$ curl -k -X PUT -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{"limit_bytes": 104857600}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1 | jq
+[{"id": 1, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}]
 ----
 
-.Sample output
+. You can use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#changeorganizationquota[`PUT /api/v1/organization/{orgname}/quota/{quota_id}`] command to modify the existing quota limitation. For example:
++
+[source,terminal]
+----
+$ curl -X PUT "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota/<quota_id>" \
+     -H "Authorization: Bearer <access_token>" \
+     -H "Content-Type: application/json" \
+     -d '{                                
+         "limit_bytes": <limit_in_bytes>
+     }' 
+----
++
+.Example output
 [source,json]
 ----
-{
-  "id": 1,
-  "limit_bytes": 104857600,
-  "default_config": false,
-  "limits": [],
-  "default_config_exists": false
-}
+{"id": 1, "limit_bytes": 21474836480, "limit": "20.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}
 ----
 
 == Pushing images
