@@ -1,0 +1,67 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_content-type: CONCEPT
+[id="org-proxy-cache-configuration-api"]
+= Configuring a proxy cache for an organization by using the {productname} API
+
+Proxy caching for an organization can be configured by using the {productname} API.
+
+.Procedure
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createproxycacheconfig[`POST /api/v1/organization/{orgname}/proxycache`] endpoint to create a proxy cache configuration for the organization.
++
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/api/v1/organization/<orgname>/proxycache" \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "upstream_registry": "<upstream_registry>"
+      }'
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#validateproxycacheconfig[`POST /api/v1/organization/{orgname}/validateproxycache`] endpoint to validate the proxy configuration:
++
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/api/v1/organization/{orgname}/validateproxycache" \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "upstream_registry": "<upstream_registry>"
+      }'
+
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#getproxycacheconfig[`GET /api/v1/organization/{orgname}/proxycache`] endpoint to obtain information about the proxcy cache. For example:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/{orgname}/proxycache" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"upstream_registry": "quay.io", "expiration_s": 86400, "insecure": false}
+----
+
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#deleteproxycacheconfig[`DELETE /api/v1/organization/{orgname}/proxycache`] endpoint to
++
+[source,terminal]
+----
+$ curl -X DELETE "https://<quay-server.example.com>/api/v1/organization/{orgname}/proxycache" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+"Deleted"
+----
