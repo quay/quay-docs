@@ -1,0 +1,66 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_content-type: CONCEPT
+[id="org-member-info-api"]
+= Retrieving organization member information by using the API
+
+Information about organization members can be retrieved by using the {productname} API.
+
+.Procedure
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#getorganizationmembers[`GET /api/v1/organization/{orgname}/members`] to return a list of organization members:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<orgname>/members" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"members": [{"name": "quayadmin", "kind": "user", "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}, "teams": [{"name": "owners", "avatar": {"name": "owners", "hash": "6f0e3a8c0eb46e8834b43b03374ece43a030621d92a7437beb48f871e90f8d90", "color": "#c7c7c7", "kind": "team"}}], "repositories": ["testrepo"]}, {"name": "testuser", "kind": "user", "avatar": {"name": "testuser", "hash": "f660ab912ec121d1b1e928a0bb4bc61b15f5ad44d5efdc4e1c92a25e99b8e44a", "color": "#6b6ecf", "kind": "user"}, "teams": [{"name": "owners", "avatar": {"name": "owners", "hash": "6f0e3a8c0eb46e8834b43b03374ece43a030621d92a7437beb48f871e90f8d90", "color": "#c7c7c7", "kind": "team"}}], "repositories": []}]}
+----
+
+. You can use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#getorganizationcollaborators[`GET /api/v1/organization/{orgname}/collaborators`] to return a list of organization collaborators:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/{orgname}/collaborators" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"collaborators": [user-test]}
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#getorganizationmember[`GET /api/v1/organization/{orgname}/members/{membername}`] endpoint to obtain more specific information about a user:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<orgname>/members/<membername>" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"name": "quayadmin", "kind": "user", "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}, "teams": [{"name": "owners", "avatar": {"name": "owners", "hash": "6f0e3a8c0eb46e8834b43b03374ece43a030621d92a7437beb48f871e90f8d90", "color": "#c7c7c7", "kind": "team"}}], "repositories": ["testrepo"]}
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#removeorganizationmember[`DELETE /api/v1/organization/{orgname}/members/{membername}`] endpoint to delete a team member.
++
+[source,terminal]
+----
+$ curl -X DELETE "https://<quay-server.example.com>/api/v1/organization/<orgname>/members/<membername>" \
+  -H "Authorization: Bearer <access_token>"
+----
++
+This command does not return output.
