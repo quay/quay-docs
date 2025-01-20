@@ -2,7 +2,9 @@
 [id="automating-quay-using-the-api"]
 = Automating {productname} processes by using the API
 
-With the API, {productname} administrators and users with access to the API can automate repetitive tasks such as repository management or image pruning. The following example shows you how you might use a Python script and a cron job to to automate image pruning.
+With the API, {productname} administrators and users with access to the API can automate repetitive tasks such as repository management or image pruning. 
+
+The following example shows you how you might use a Python script and a cron job to automate the deletion of OAuth 2 applications _except_ the administrator's token. This might be useful if you want to ensure an application associated with an OAuth 2 access token is cycled after a certain period of time.
 
 .Prerequisites
 
@@ -10,6 +12,7 @@ With the API, {productname} administrators and users with access to the API can 
 * You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file.
 * You have installed the Python `requests` library using.
 * You have enabled cron jobs on your machine.
+* You have created several organization applications, including one that will not be deleted.
 
 .Procedure
 
@@ -23,38 +26,73 @@ import requests <1>
 # Hard-coded values
 API_BASE_URL = "http://<quay-server.example.com>/api/v1" <2>
 ACCESS_TOKEN = "<access_token>" <3>
-NAMESPACE = "<namespace_name>" <4>
-REPO_NAME = "<repository_name>" <5>
-TAG = "<tag_name>" <6>
+ORG_NAME = "<organization_name>" <4>
 
-def delete_image_tag():
-    # Construct the full API URL for deleting the tag
-    url = f"{API_BASE_URL}/repository/{NAMESPACE}/{REPO_NAME}/tag/{TAG}"
+def get_all_organization_applications():
+    url = f"{API_BASE_URL}/organization/{ORG_NAME}/applications"
     headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}",
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {ACCESS_TOKEN}"
     }
     
-    # Send the DELETE request to the API
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        try:
+            applications = response.json()
+            # Print the raw response for debugging
+            print("Raw response:", applications)
+            
+            # Adjust parsing logic based on the response structure
+            if isinstance(applications, dict) and 'applications' in applications:
+                applications = applications['applications']
+            
+            if isinstance(applications, list):
+                print("Organization applications retrieved successfully:")
+                for app in applications:
+                    # Updated key from 'title' to 'name'
+                    print(f"Name: {app['name']}, Client ID: {app['client_id']}")
+                return applications
+            else:
+                print("Unexpected response format.")
+                return []
+        except requests.exceptions.JSONDecodeError:
+            print("Error decoding JSON response:", response.text)
+            return []
+    else:
+        print(f"Failed to retrieve applications. Status code: {response.status_code}, Response: {response.text}")
+        return []
+
+def delete_organization_application(client_id):
+    url = f"{API_BASE_URL}/organization/{ORG_NAME}/applications/{client_id}"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}"
+    }
+    
     response = requests.delete(url, headers=headers)
     
-    # Check the response and print appropriate messages
-    if response.status_code == 200:
-        print("Tag deleted successfully")
+    if response.status_code == 204:
+        print(f"Application {client_id} deleted successfully.")
     else:
-        print("Failed to delete tag:", response.json())
+        print(f"Failed to delete application {client_id}. Status code: {response.status_code}, Response: {response.text}")
 
-# Execute the function
-delete_image_tag()
+def main():
+    applications = get_all_organization_applications()
+    for app in applications:
+        if app['name'] != "<admin_token_app>": <5>  # Skip the "admin-token-app" 
+            delete_organization_application(app['client_id'])
+        else:
+            print(f"Skipping deletion of application: {app['name']}")
+
+# Execute the main function
+main()
 ----
 <1> Includes the `import` library in your Python code.
 <2> The URL of your registry appended with `/api/v1`.
 <3> Your OAuth 2 access token.
-<4> The namespace that holds the image tag.
-<5> The repository that holds the image tag.
-<6> The tag name of the image.
+<4> The organization that holds the application.
+<5> The name of the application token to remain.
 
-. Save the script as `prune_images.py`.
+. Save the script as `prune_applications.py`.
 
 . Create a cron job that automatically runs the script:
 
@@ -65,10 +103,10 @@ delete_image_tag()
 $ crontab -e
 ----
 
-.. In the editor, add the cron job for running the script. The following example runs the script every minute:
+.. In the editor, add the cron job for running the script. The following example runs the script once per month:
 +
 [source,text]
 ----
-* * * * * sudo python /path/to/prune_images.py >> /var/log/prune_images.log 2>&1
+0 0 1 * * sudo python /path/to/prune_images.py >> /var/log/prune_images.log 2>&1
 ----
 
