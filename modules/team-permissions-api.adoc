@@ -1,0 +1,70 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_content-type: CONCEPT
+[id="repo-manage-team-permissions"]
+= Managing team permissions by using the {productname} API
+
+Use the following procedure to manage team permissions by using the {productname} API.
+
+. Permissions for a specified team can be returned by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#getteampermissions[`GET /api/v1/repository/{repository}/permissions/team/{teamname}`] endpoint:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <access_token>" \
+  "https://quay-server.example.com/api/v1/repository/<namespace>/<repository>/permissions/team/<teamname>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"role": "write"}
+----
+
+. Permissions for all teams can be returned with the link:[`GET /api/v1/repository/{repository}/permissions/team/`] endpoint. For example:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <access_token>" \
+  "https://quay-server.example.com/api/v1/repository/<namespace>/<repository>/permissions/team/"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"permissions": {"ironmanteam": {"role": "read", "name": "ironmanteam", "avatar": {"name": "ironmanteam", "hash": "8045b2361613622183e87f33a7bfc54e100a41bca41094abb64320df29ef458d", "color": "#969696", "kind": "team"}}, "sillyteam": {"role": "read", "name": "sillyteam", "avatar": {"name": "sillyteam", "hash": "f275d39bdee2766d2404e2c6dbff28fe290969242e9fcf1ffb2cde36b83448ff", "color": "#17becf", "kind": "team"}}}}
+----
+
+. Permissions for a specified team can be changed by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#changeteampermissions[`PUT /api/v1/repository/{repository}/permissions/team/{teamname}`] command. For example:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "<role>"}' \
+  "https://quay-server.example.com/api/v1/repository/<namespace>/<repository>/permissions/team/<teamname>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"role": "admin", "name": "superteam", "avatar": {"name": "superteam", "hash": "48cb6d114200039fed5c601480653ae7371d5a8849521d4c3bf2418ea013fc0f", "color": "#9467bd", "kind": "team"}}
+----
+
+. Team permissions can be deleted with the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#deleteteampermissions[`DELETE /api/v1/repository/{repository}/permissions/team/{teamname}`] command. For example:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer <access_token>" \
+  "https://quay-server.example.com/api/v1/repository/<namespace>/<repository>/permissions/team/<teamname>"
+----
++
+This command does not return output in the CLI.
