@@ -2,3 +2,121 @@
 = Managing auto-prune policies by using the {productname} API
 
 Auto-prune policies can be created, retrieved, changed, and delete for organizations, repositories, and users by using the {productname} API.
+
+.Procedure
+
+. Enter the following command to create a repository using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createrepo[`POST /api/v1/repository`] endpoint:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "repository": "<new_repository_name>",
+    "visibility": "<private>",
+    "description": "<This is a description of the new repository>."
+  }' \
+  "https://quay-server.example.com/api/v1/repository"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"namespace": "quayadmin", "name": "<new_repository_name>", "kind": "image"}
+----
+
+. You can list a repositories with the link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#listrepos[`GET /api/v1/repository`] endpoint. For example:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  "https://quay-server.example.com/api/v1/repository?public=true&starred=false&namespace=<NAMESPACE>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"repositories": [{"namespace": "quayadmin", "name": "busybox", "description": null, "is_public": false, "kind": "image", "state": "MIRROR", "is_starred": false, "quota_report": {"quota_bytes": 2280675, "configured_quota": 2199023255552}}]}
+----
+
+. Visibility can be changed from public to private with the link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#changerepovisibility[`POST /api/v1/repository/{repository}/changevisibility`] endpoint:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "visibility": "private"
+      }' \
+  "https://quay-server.example.com/api/v1/repository/<NAMESPACE>/<REPO_NAME>/changevisibility"
+----
+.Example output
++
+[source,terminal]
+----
+{"success": true}
+----
+
+. You can check the {productname} UI, or you can enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#getrepo[`GET /api/v1/repository/{repository}`] command to return details about a repository:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <bearer_token>" "<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>"
+----
++
+Example output
++
+[source,terminal]
+----
+{"detail": "Not Found", "error_message": "Not Found", "error_type": "not_found", "title": "not_found", "type": "http://quay-server.example.com/api/v1/error/not_found", "status": 404}
+----
+
+. Repository descriptions can be updated with the link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#updaterepo[`PUT /api/v1/repository/{repository}`] endpoint:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "description": "This is an updated description for the repository."
+      }' \
+  "https://quay-server.example.com/api/v1/repository/<NAMESPACE>/<REPOSITORY>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"success": true}
+----
+
+. Enter the following command to delete a repository using the link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#deleterepository[`DELETE /api/v1/repository/{repository}`] endpoint:
++
+[source,terminal]
+----
+$ curl -X DELETE   -H "Authorization: Bearer <bearer_token>" "<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>"
+----
++
+This command does not return output in the CLI.
+
+////
+. The link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#changerepostate[`PUT /api/v1/repository/{repository}/changestate`] API endpoint can be used to change the state of the repository:
++
+[source,terminal]
+----
+
+----
++
+.Example output
++
+[source,terminal]
+----
+
+----
+////
