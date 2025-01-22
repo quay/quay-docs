@@ -1,0 +1,110 @@
+[id="creating-repository-policy-api"]
+= Creating an auto-prune policy for a repository using the {productname} API
+
+You can use {productname} API endpoints to manage auto-pruning policies for an repository. 
+
+.Prerequisites
+
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file. 
+* You have created an OAuth access token. 
+* You have logged into {productname}. 
+
+.Procedure
+
+. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updateorganizationautoprunepolicy[`POST /api/v1/repository/{repository}/autoprunepolicy/`] command create a new policy that limits the number of tags allowed in an organization:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags","value": 2}' http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/
+----
++
+Alternatively, you can can set tags to expire for a specified time after their creation date:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "creation_date", "value": "7d"}' http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/
+----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7"}
+----
+
+. Optional. You can add an additional policy and pass in the `tagPattern` and `tagPatternMatches` fields to prune only tags that match the given regex pattern. For example:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "<creation_date>",
+    "value": "<7d>",
+    "tagPattern": "<^test.>*",
+    "tagPatternMatches": <false> <1>
+  }' \
+  "https://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/"
+----
+<1> Setting `tagPatternMatches` to `false` makes it so that tags that all tags that _do not_ match the given regex pattern are pruned. In this example, all tags _but_ `^test.` are pruned.
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "b53d8d3f-2e73-40e7-96ff-736d372cd5ef"}
+----
+
+. You can update your policy for the repository by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updaterepositoryautoprunepolicy[`PUT /api/v1/repository/{repository}/autoprunepolicy/{policy_uuid}`] command and passing in the UUID. For example:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "number_of_tags",
+    "value": "5",
+    "tagPattern": "^test.*",
+    "tagPatternMatches": true
+  }' \
+  "https://quay-server.example.com/api/v1/repository/<namespace>/<repo_name>/autoprunepolicy/<uuid>"
+----
++
+This command does not return output. Continue to the next step to check your auto-prune policy.
+
+. Check your auto-prune policy by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/
+----
++
+Alternatively, you can include the UUID:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7
+----
++
+.Example output
++
+[source,terminal]
+----
+{"policies": [{"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7", "method": "number_of_tags", "value": 10}]}
+----
+
+. You can delete the auto-prune policy by entering the following command. Note that deleting the policy requires the UUID.
++
+[source,terminal]
+----
+$ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7
+----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7"}
+----
