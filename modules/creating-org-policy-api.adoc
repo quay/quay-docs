@@ -1,0 +1,92 @@
+[id="creating-org-policy-api"]
+= Creating an auto-prune policy for a namespace by using the {productname} API
+
+You can use {productname} API endpoints to manage auto-pruning policies for an namespace. 
+
+.Prerequisites
+
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file. 
+* You have created an OAuth access token. 
+* You have logged into {productname}. 
+
+.Procedure 
+
+. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#createorganizationautoprunepolicy[`POST /api/v1/organization/{orgname}/autoprunepolicy/`] command create a new policy that limits the number of tags allowed in an organization:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags", "value": 10}' http://<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/
+----
++
+Alternatively, you can can set tags to expire for a specified time after their creation date:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{
+"method": "creation_date", "value": "7d"}' http://<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/
+----
++
+.Example output
+[source,terminal]
+----
+{"uuid": "73d64f05-d587-42d9-af6d-e726a4a80d6e"}
+----
+
+. Optional. You can add an additional policy to an organization and pass in the `tagPattern` and `tagPatternMatches` fields to prune only tags that match the given regex pattern. For example:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "creation_date",
+    "value": "7d",
+    "tagPattern": "^v*",
+    "tagPatternMatches": <true> <1>
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/"
+----
+<1> Setting `tagPatternMatches` to `true` makes it so that tags that match the given regex pattern will be pruned. In this example, tags that match `^v*` are pruned.
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "ebf7448b-93c3-4f14-bf2f-25aa6857c7b0"}
+----
+
+. You can update your organization's auto-prune policy by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updateorganizationautoprunepolicy[`PUT /api/v1/organization/{orgname}/autoprunepolicy/{policy_uuid}`] command. For example:
++
+[source,terminal]
+----
+$ curl -X PUT   -H "Authorization: Bearer <bearer_token>"   -H "Content-Type: application/json"   -d '{
+    "method": "creation_date",
+    "value": "4d",
+    "tagPattern": "^v*",
+    "tagPatternMatches": true
+  }'   "<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/<uuid>"
+----
++
+This command does not return output. Continue to the next step.
+
+. Check your auto-prune policy by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/
+----
++
+.Example output
++
+[source,terminal]
+----
+{"policies": [{"uuid": "ebf7448b-93c3-4f14-bf2f-25aa6857c7b0", "method": "creation_date", "value": "4d", "tagPattern": "^v*", "tagPatternMatches": true}, {"uuid": "da4d0ad7-3c2d-4be8-af63-9c51f9a501bc", "method": "number_of_tags", "value": 10, "tagPattern": null, "tagPatternMatches": true}, {"uuid": "17b9fd96-1537-4462-a830-7f53b43f94c2", "method": "creation_date", "value": "7d", "tagPattern": "^v*", "tagPatternMatches": true}]}
+----
+
+. You can delete the auto-prune policy for your organization by entering the following command. Note that deleting the policy requires the UUID.
++
+[source,terminal]
+----
+$ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/73d64f05-d587-42d9-af6d-e726a4a80d6e
+----

@@ -1,0 +1,66 @@
+[id="creating-policy-api-current-user"]
+= Creating an auto-prune policy for a namespace for the current user by using the API
+
+You can use {productname} API endpoints to manage auto-pruning policies for your account.
+
+[NOTE]
+====
+The use of `/user/` in the following commands represents the user that is currently logged into {productname}.
+====
+
+.Prerequisites
+
+* You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file. 
+* You have created an OAuth access token. 
+* You have logged into {productname}. 
+
+.Procedure 
+
+. Enter the following `POST` command create a new policy that limits the number of tags for the current user:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags", "value": 10}' http://<quay-server.example.com>/api/v1/user/autoprunepolicy/
+----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859"}
+----
+
+. Check your auto-prune policy by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/
+----
++
+Alternatively, you can include the UUID:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859
+----
++
+.Example output
++
+[source,terminal]
+----
+{"policies": [{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859", "method": "number_of_tags", "value": 10}]}
+----
+
+. You can delete the auto-prune policy by entering the following command. Note that deleting the policy requires the UUID.
++
+[source,terminal]
+----
+$ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/user/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859
+----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859"}
+----
