@@ -1,0 +1,58 @@
+
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+:_content-type: CONCEPT
+[id="search-api"]
+= Searching against registry context
+
+You can use `search` API endpoints to perform searches against all registry context.
+
+.Procedure
+
+* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#conductreposearch[`GET /api/v1/find/repositories`] endpoint to get a list of apps and repositories that match the specified query:
+
++
+[source,terminal]
+----
+$ curl -X GET "https://quay-server.example.com/api/v1/find/repositories?query=<repo_name>&page=1&includeUsage=true" \
+  -H "Authorization: Bearer <bearer_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"results": [], "has_additional": false, "page": 2, "page_size": 10, "start_index": 10}
+----
+
+* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#conductsearch[`GET /api/v1/find/all`] endpoint to get a list of entities and resources that match the specified query:
++
+[source,terminal]
+----
+$ curl -X GET "https://quay-server.example.com/api/v1/find/all?query=<mysearchterm>" \
+  -H "Authorization: Bearer <bearer_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"results": [{"kind": "repository", "title": "repo", "namespace": {"title": "user", "kind": "user", "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}, "name": "quayadmin", "score": 1, "href": "/user/quayadmin"}, "name": "busybox", "description": null, "is_public": false, "score": 4.0, "href": "/repository/quayadmin/busybox"}]}
+----
+
+* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#getmatchingentities[`GET /api/v1/entities/{prefix}`] endpoint to get a list of entities that match the specified prefix.
++
+[source,terminal]
+----
+$ curl -X GET "https://quay-server.example.com/api/v1/entities/<prefix>?includeOrgs=<true_or_false>&includeTeams=<true_or_false>&namespace=<namespace>" \
+  -H "Authorization: Bearer <bearer_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"results": [{"name": "quayadmin", "kind": "user", "is_robot": false, "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}}]}
+----
