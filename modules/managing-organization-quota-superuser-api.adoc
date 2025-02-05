@@ -1,0 +1,69 @@
+[id="managing-organization-quota-superuser-api"]
+= Managing organization quota with the {productname} API
+
+Quota can be managed with the {productname} API with superuser admin privileges. These endpoints allow superusers to manage quota policies for all organizations within the registry.
+
+.Procedure
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#createuserquotasuperuser[`POST /api/v1/superuser/organization/{namespace}/quota`] API endpoint to create a quota policy for an organization:
++
+[source,terminal]
+----
+$ curl -X POST "https://quay-server.example.com/api/v1/superuser/organization/<namespace>/quota" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "limit_bytes": 10737418240
+  }'
+----
++
+.Example output
++
+[source,terminal]
+----
+"Created"
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#listuserquotasuperuser[`GET /api/v1/superuser/organization/{namespace}/quota`] API endpoint to obtain information about the policy, including the quota ID:
++
+[source,terminal]
+----
+$ curl -X GET "https://quay-server.example.com/api/v1/superuser/organization/<namespace>/quota" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+----
++
+.Example output
++
+[source,terminal]
+----
+[{"id": 2, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [{"id": 1, "type": "Reject", "limit_percent": 90}], "default_config_exists": false}]
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#changeuserquotasuperuser[`PUT /api/v1/superuser/organization/{namespace}/quota/{quota_id}`] API endpoint to change the quota policy:
++
+[source,terminal]
+----
+$ curl -X PUT "https://quay-server.example.com/api/v1/superuser/organization/<namespace>/quota/<quota_id>" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "limit_bytes": <NEW_QUOTA_LIMIT>
+  }'
+----
++
+.Example output
++
+[source,terminal]
+----
+{"id": 2, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [{"id": 1, "type": "Reject", "limit_percent": 90}], "default_config_exists": false}
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#deleteuserquotasuperuser[`DELETE /api/v1/superuser/organization/{namespace}/quota/{quota_id}`] API endpoint to
++
+[source,terminal]
+----
+$ curl -X DELETE "https://quay-server.example.com/api/v1/superuser/organization/<namespace>/quota/<quota_id>" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+----
++
+This command does not return output in the CLI.
