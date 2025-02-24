@@ -1,0 +1,54 @@
+[id="listing-logs-superuser-api"]
+= Listing logs as a superuser with the {productname} API
+
+{productname} superusers can list usage logs for the current system.
+
+.Procedure
+
+* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#listalllogs[`GET /api/v1/superuser/logs`] endpoint to list the usage logs for the current system:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  "https://<quay_server>/api/v1/superuser/logs?starttime=<start_time>&endtime=<end_time>&page=<page_number>&next_page=<next_page_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"start_time": "Mon, 17 Feb 2025 19:29:14 -0000", "end_time": "Wed, 19 Feb 2025 19:29:14 -0000", "logs": [{"kind": "login_success", "metadata": {"type": "quayauth", "useragent": "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"}, "ip": "192.168.1.131", "datetime": "Tue, 18 Feb 2025 19:28:15 -0000", "namespace": {"kind": "user", "name": "quayadmin", "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}}}], "next_page": "gAAAAABntN-KbPJDI0PpcHmWjRCmQTLiCprE_KXiOSidbGZ7Ireu8pVTgGUIstijNhmiLzlAv_S3HOsCrKWnuBmoQYZ3F53Uxg=="}
+----
+
+* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#getregistrysize[`GET /api/v1/superuser/registrysize/`] end point to obtain information about the size of the registry:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  "https://<quay_server>/api/v1/superuser/registrysize/"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"size_bytes": 0, "last_ran": null, "running": false, "queued": false}
+----
+* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#getregistrysize[`POST /api/v1/superuser/registrysize/`] end point to define registry size information:
++
+[source,terminal]
+----
+$ curl -X POST "https://quay-server.example.com/api/v1/superuser/registrysize/" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "namespace": "<namespace>",
+    "last_ran": 1700000000,
+    "queued": true,
+    "running": false
+  }'
+----
++
+This command does not return output in the CLI.

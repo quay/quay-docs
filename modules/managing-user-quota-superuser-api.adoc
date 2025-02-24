@@ -1,0 +1,69 @@
+[id="managing-user-quota-superuser-api"]
+= Managing user quota with the {productname} API
+
+As a superuser, you can manage user quota for specified organizations.
+
+.Procedure
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#createorganizationquotasuperuser[`POST /api/v1/superuser/users/{namespace}/quota`] endpoint to create a quota policy for specific users within an organization:
++
+[source,terminal]
+----
+$ curl -X POST "https://quay-server.example.com/api/v1/superuser/users/<username>/quota" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "limit_bytes": <QUOTA_LIMIT>
+      }'
+----
++
+.Example output
++
+[source,terminal]
+----
+"Created"
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#listorganizationquotasuperuser[`GET /api/v1/superuser/users/{namespace}/quota`] endpoint to return a list of a user's allotted quota:
++
+[source,terminal]
+----
+$ curl -X GET "https://quay-server.example.com/api/v1/superuser/users/<username>/quota" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+----
++
+.Example output
++
+[source,terminal]
+----
+[{"id": 6, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}]
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#changeorganizationquotasuperuser[`PUT /api/v1/superuser/users/{namespace}/quota/{quota_id}`] endpoint to adjust the user's policy:
++
+[source,terminal]
+----
+$ curl -X PUT "https://quay-server.example.com/api/v1/superuser/users/<username>/quota/<quota_id>" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "limit_bytes": <NEW_QUOTA_LIMIT>
+  }'
+----
++
+.Example output
++
+[source,terminal]
+----
+{"id": 6, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.13/html-single/red_hat_quay_api_guide/index#deleteorganizationquotasuperuser[`DELETE /api/v1/superuser/users/{namespace}/quota/{quota_id}`] endpoint to delete a user's policy:
++
+[source,terminal]
+----
+$ curl -X DELETE "https://quay-server.example.com/api/v1/superuser/users/<username>/quota/<quota_id>" \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
+----
++
+This command does not return output in the CLI. 
