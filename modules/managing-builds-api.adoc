@@ -1,0 +1,84 @@
+[id="manage-builds-api"]
+= Managing builds by using the {productname} API
+
+Builds can be managed by using the {productname} API.
+
+.Procedure
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#listbuildtriggers[`GET /api/v1/repository/{repository}/trigger/`] endpoint to list the triggers for the specified repository:
++
+[source,terminal]
+----
+$ curl -X GET "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/" \
+  -H "Authorization: Bearer <your_access_token>"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"triggers": [{"id": "32ca5eae-a29f-46c7-8f44-3221ca417c92", "service": "custom-git", "is_active": false, "build_source": null, "repository_url": null, "config": {}, "can_invoke": true, "enabled": true, "disabled_reason": null}]}
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#activatebuildtrigger[`POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/activate`] endpoint to activate the specified build trigger.
++
+[source,terminal]
+----
+$ curl -X POST "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid/activate" \
+  -H "Authorization: Bearer <your_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "config": {
+      "branch": "main"
+    },
+    "pull_robot": "example+robot"
+  }'
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#manuallystartbuildtrigger[`POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/start`] endpoint to manually start the build from the specified trigger:
++
+[source,terminal]
+----
+$ curl -X POST "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid/start" \
+  -H "Authorization: Bearer <your_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "branch_name": "main",
+    "commit_sha": "abcdef1234567890",
+    "refs": "refs/heads/main"
+  }'
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#listtriggerrecentbuilds[`GET /api/v1/repository/{repository}/trigger/{trigger_uuid}/builds`] endpoint to list the builds started by the specified trigger:
++
+[source,terminal]
+----
+$ curl -X GET "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid/builds?limit=10" \
+  -H "Authorization: Bearer <your_access_token>"
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#getbuildtrigger[`GET /api/v1/repository/{repository}/trigger/{trigger_uuid}`] endpoint to get information for the specified build trigger:
++
+[source,terminal]
+----
+$ curl -X GET "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid" \
+  -H "Authorization: Bearer <your_access_token>"
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#updatebuildtrigger[`PUT /api/v1/repository/{repository}/trigger/{trigger_uuid}`] endpoint to update the specified build trigger:
++
+[source,terminal]
+----
+$ curl -X PUT "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid" \
+  -H "Authorization: Bearer <your_access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": true}'
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#deletebuildtrigger[`DELETE /api/v1/repository/{repository}/trigger/{trigger_uuid}`] endpoint to delete the specified build trigger:
++
+[source,terminal]
+----
+$ curl -X DELETE "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid" \
+  -H "Authorization: Bearer <your_access_token>"
+----
