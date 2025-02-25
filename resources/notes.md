@@ -157,9 +157,9 @@ quay.quaylab.lan image_uri="http://porkchop.redhat.com/released/RHEL-7/7.5/Serve
     	1. Follow the [automation scripts]() to standalone install.
         - Run `ansible-playbook -i quay.inv_sample quaylab.yml -k` and fill in the prompts 
         - You then need to install ceph - if you want to use it
-           - Note: https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/#installing-a-red-hat-ceph-storage-cluster 
+           - Note: https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/{producty}/html-single/installation_guide_for_red_hat_enterprise_linux/#installing-a-red-hat-ceph-storage-cluster 
            - You then need to create a USER: 
-               - https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html/object_gateway_guide_for_red_hat_enterprise_linux/configuration#creating_a_literal_radosgw_literal_user_for_s3_access
+               - https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/{producty}/html/object_gateway_guide_for_red_hat_enterprise_linux/configuration#creating_a_literal_radosgw_literal_user_for_s3_access
            - You then need to create a bucket: (use the python script for this in the test directory). 
                - `python s3bucket_create.py` << Be sure to edit variables in this using data from user create. 
 
