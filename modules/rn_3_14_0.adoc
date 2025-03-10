@@ -4,3 +4,124 @@
 
 The following sections detail _y_ and _z_ stream release information.
 
+[id="rn-3-14-0"]
+== RHBA-2024:8408 - {productname} 3.14.0 release
+
+Issued 2025-03-27
+
+{productname} release {producty} is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHBA-2025:2467[RHBA-2025:2467] advisory. For the most recent compatibility matrix, see link:https://access.redhat.com/articles/4067991[Quay Enterprise 3.x Tested Integrations]. For information the release cadence of {productname}, see the link:https://access.redhat.com/support/policy/updates/rhquay/[{productname} Life Cycle Policy].
+
+[id="documentation-changes-313"]
+== {productname} documentation changes
+
+The following documentation changes have been made with the {productname} {producty} release:
+
+* The {productname} API guide . . .
+
+[id="new-features-and-enhancements-314"]
+== {productname} new features and enhancements
+
+The following updates have been made to {productname}.
+
+[id="model-card-rendering"]
+=== User-interface model card rendering
+
+With the release of {productname} {producty}, model card rendering has been introduced to the v2 UI for machine learning models. When a manifest has a certain annotation and a model card stored as its layer, a *ModelCard* tab is displayed on the tag's information page. The information provided on the *ModelCard* page provides users with comprehensive insights into each model, and can help enhance a user's understanding of models stored within your registry.
+
+[NOTE]
+====
+Model card rendering is only available on the {productname} v2 UI.
+====
+
+For more information, see. . .
+
+[id="new-quay-config-fields-314"]
+== New {productname} configuration fields
+
+The following configuration fields have been added to {productname} {producty}.
+
+[id="model-card-rendering-configuration-field"]
+=== Model card rendering configuration fields
+
+The following configuration fields have been added for the model card rendering feature on the {productname} v2 UI:
+
+|===
+| Field | Type | Description 
+
+|*FEATURE_UI_MODELCARD* |Boolean | Enables modelcard image tab in UI. Defaults to `false`.
+|*UI_MODELCARD_ARTIFACT_TYPE* | String | Defines the modelcard artifact type.
+
+|===
+
+To enable model card rendering on the {productname} v2 UI, you must set `FEATURE_UI_MODELCARD: true` and `UI_MODELCARD_ARTIFACT_TYPE` in your `config.yaml` file. For example:
+
+.Example model card YAML
+[source,yaml]
+----
+FEATURE_UI_MODELCARD: true
+UI_MODELCARD_ARTIFACT_TYPE: application/x-mlmodel
+----
+
+For more information about this feature, see. . .
+
+[id="new-quay-footer-fields"]
+=== New {productname} footer fields
+
+The following configuration fields have been added to the original (v1) UI. You can use these fields to customize the footer of your on-prem v1 UI.
+
+[NOTE]
+====
+These fields are currently unavailable on the {productname} v2 UI. 
+====
+
+|===
+| Field | Type | Description 
+
+|*FOOTER_LINKS* |Object | Enable customization of footer links in {productname}'s UI for on-prem installations.
+|*.TERMS_OF_SERVICE_URL* | String | Custom terms of service for on-prem installations.
+|*.PRIVACY_POLICY_URL* | String | Custom privacy policy for on-prem installations
+|*.SECURITY_URL* | String | Custom security page for on-prem installations.
+|*.ABOUT_URL* | String | Custom about page for on-prem installations.
+
+|===
+
+.Example footer links YAML
+[source,yaml]
+----
+FOOTER_LINKS:
+  "TERMS_OF_SERVICE_URL": "https://www.index.hr"
+  "PRIVACY_POLICY_URL": "https://www.example.hr"
+  "SECURITY_URL": "https://www.example.hr"
+  "ABOUT_URL": "https://www.example.hr"
+----
+
+[id="new-api-endpoints-314"]
+== API endpoint enhancements
+
+[id="known-issues-and-limitations-314"]
+== {productname} {producty} known issues and limitations
+
+The following sections note known issues and limitations for {productname} {producty}.
+
+[id="example-known-issue"]
+=== Example known issue
+
+[id="bug-fixes-313"]
+== {productname} bug fixes
+
+The following issues were fixed with {productname} {producty}:
+
+* link:https://issues.redhat.com/browse/PROJQUAY-8532[*PROJQUAY-8532*]. Previously, there was an issue when updating Clair when deployed with Amazon Web Services (AWS) Relational Database Service (RDS) from version 12.19 to 15.7. After upgrading, scanning new images would result images being stuck in a `Queued` state and be unable to procedure a bug report. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-8131[*PROJQUAY-8131*]. Previously, users could receive an unknown exception when trying to serialize manifest type for caching on a referrer's endpoint. . This resulted in the following error: `Object of type Manifest is not JSON serializable`. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-8171[*PROJQUAY-8171*]. Previously, when configuring tag expiration for {productname}, the `yearly` option was unavailable on the {productname} v2 UI. With this update, users can now configure default tag expiration to occur yearly on the {productname} v2 UI. This can be set by using the {productname} UI or in your `config.yaml` file. For example:
++
+[source,yaml]
+----
+DEFAULT_TAG_EXPIRATION: 1y
+TAG_EXPIRATION_OPTIONS:
+  - 1y
+----
+* link:https://issues.redhat.com/browse/PROJQUAY-8272[*PROJQUAY-8272*]. Previously, nested indexes, or intexes referring to another index, were broke in {productname}. This coiuld result in the following response when pushing to a registry: `Error response from registry: recognizable error message not found: PUT "https://quay.io/v2/arewm/oci-spec-1217/manifests/nested-index": response status code 500: Internal Server Error`. This issue has been resolved.
+* link:https://issues.redhat.com/browse/PROJQUAY-8559[*PROJQUAY-8559*]. Previously, a passport field in NGINX logs was not obfuscated. This issue has been resolved, and the `repeatPassword` value is hidden.
+* link:https://issues.redhat.com/browse/PROJQUAY-8412[*PROJQUAY-8412*].
+* link:https://issues.redhat.com/browse/PROJQUAY-8667[*PROJQUAY-8667*]. 
