@@ -2,32 +2,29 @@
 [id="standalone-upgrade"]
 = Standalone upgrade
 
-In general, {productname} supports upgrades from a prior (N-1) minor version only. For example, upgrading directly from {productname} 3.8 to the latest version of {producty} is not supported. Instead, users would have to upgrade as follows:
+In general, single-step upgrades from prior (N-2, N-3) minor versions. This helps simplify the upgrade procedure for customers on older releases. The following upgrade paths are supported for {productname} {productmin}:
 
-. 3.8.z -> 3.9.z
-. 3.9.z -> 3.10.z
-. 3.10.z -> 3.11.z
-. 3.11.z -> 3.12.z
-. 3.12.z -> 3.13.z
+* 3.11.z -> {productmin}
+* 3.12.z -> {productmin}
+* 3.13.z -> {productmin}
 
-This is required to ensure that any necessary database migrations are done correctly and in the right order during the upgrade.
-
-In some cases, {productname} supports direct, single-step upgrades from prior (N-2, N-3) minor versions. This exception to the normal, prior minor version-only, upgrade simplifies the upgrade procedure for customers on older releases. The following upgrade paths are supported for {productname} {producty}:
-
-* 3.10.z -> 3.13.z
-* 3.11.z -> 3.13.z
-* 3.12.z -> 3.13.z
+Upgrading to {productmin} from releases older than those listed above is unsupported. This helps ensure that any necessary database migrations are done correctly and in the right order during the upgrade.
 
 For users wanting to upgrade the {productname} Operator, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrading_quay_by_upgrading_the_quay_operator[Upgrading the {productname} Operator Overview].
 
 This document describes the steps needed to perform each individual upgrade. Determine your current version and then follow the steps in sequential order, starting with your current version and working up to your desired target version.
 
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_14_z_from_3_13_z[Upgrade to 3.14.z from 3.13.z]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_14_z_from_3_12_z[Upgrade to 3.14.z from 3.12.z]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_14_z_from_3_11_z[Upgrade to 3.14.z from 3.11.z]
+
+////
 //3.13
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_13_z_from_3_12_z[Upgrade to 3.13.z from 3.12.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_13_z_from_3_11_z[Upgrade to 3.13.z from 3.11.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_13_z_from_3_10_z[Upgrade to 3.13.z from 3.10.z]
 
-////
+
 //3.12
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_12_z_from_3_11_z[Upgrade to 3.12.z from 3.11.z]
 * link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#upgrade_to_3_12_z_from_3_10_z[Upgrade to 3.12.z from 3.10.z]
@@ -68,10 +65,10 @@ See the link:https://access.redhat.com/documentation/en-us/red_hat_quay/{product
 
 The general procedure for a manual upgrade consists of the following steps:
 
-. Stop the Quay and Clair containers.
+. Stop the `Quay` and `Clair` containers.
 . Backup the database and image storage (optional but recommended).
 . Start Clair using the new version of the image.
-. Wait until Clair is ready to accept connections before starting the new version of Quay.
+. Wait until Clair is ready to accept connections before starting the new version of {productname}.
 
 [id="accessing-images"]
 == Accessing images
@@ -79,10 +76,11 @@ The general procedure for a manual upgrade consists of the following steps:
 {productname} image from version 3.4.0 and later are available from link:https://registry.redhat.io[registry.redhat.io] and
 link:https://registry.access.redhat.com[registry.access.redhat.com], with authentication set up as described in link:https://access.redhat.com/RegistryAuthentication[Red Hat Container Registry Authentication].
 
+////
 [id="upgrading-clair-postgresql-database"]
 == Upgrading the Clair PostgreSQL database
 
-If you are upgrading {productname} to version 13, you must migrate your Clair PostgreSQL database version from PostgreSQL version 13 -> version 15. This requires bringing down your Clair PostgreSQL 13 database and running a migration script to initiate the process.
+If you are upgrading {productname} to version {productmin}, you must migrate your Clair PostgreSQL database version from PostgreSQL version 13 -> version 15. This requires bringing down your Clair PostgreSQL 13 database and running a migration script to initiate the process.
 
 Use the following procedure to upgrade your Clair PostgreSQL database from version 13 -> to version 15. 
 
@@ -178,7 +176,51 @@ registry.redhat.io/quay/clair-rhel8:{productminv}
 ----
 
 For more information, see link:https://github.com/sclorg/postgresql-container/tree/master/13#data-migration[Data Migration].
+////
 
+== Upgrade to 3.14.z from 3.13.z
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+ifdef::downstream[]
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+endif::downstream[]
+ifdef::upstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::upstream[]
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
+* **Clair-PosgreSQL:** registry.redhat.io/rhel8/postgresql-15
+
+== Upgrade to 3.14.z from 3.12.z
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+ifdef::downstream[]
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+endif::downstream[]
+ifdef::upstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::upstream[]
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
+* **Clair-PosgreSQL:** registry.redhat.io/rhel8/postgresql-15
+
+== Upgrade to 3.14.z from 3.11.z
+
+=== Target images
+* **Quay:** {productrepo}/{quayimage}:{productminv}
+ifdef::downstream[]
+* **Clair:** {productrepo}/{clairimage}:{productminv}
+endif::downstream[]
+ifdef::upstream[]
+* **Clair:** {productrepo}/{clairimage}:{clairproductminv}
+endif::upstream[]
+* **PostgreSQL:** {postgresimage}
+* **Redis:** {redisimage}
+* **Clair-PosgreSQL:** registry.redhat.io/rhel8/postgresql-15
+
+////
 == Upgrade to 3.13.z from 3.12.z
 
 === Target images
@@ -221,7 +263,7 @@ endif::upstream[]
 * **Redis:** {redisimage}
 * **Clair-PosgreSQL:** registry.redhat.io/rhel8/postgresql-15
 
-////
+
 == Upgrade to 3.12.z from 3.11.z
 
 === Target images
