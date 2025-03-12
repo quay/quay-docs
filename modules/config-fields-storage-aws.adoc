@@ -50,3 +50,35 @@ DISTRIBUTED_STORAGE_PREFERENCE:
 <2> The generated AWS S3 user access key.
 <3> The generated AWS S3 user secret key.
 <4> Optional. The Amazon Web Services region. Defaults to `us-east-1`.
+
+[id="aws-cloudfront-storage-example"]
+== AWS Cloudfront storage
+
+Use the following example when configuring AWS Cloudfront for your {productname} deployment.
+
+[NOTE]
+====
+* When configuring AWS Cloudfront storage, the following conditions must be met for proper use with {productname}:
+** You must set an *Origin path* that is consistent with {productname}'s storage path as defined in your `config.yaml` file. Failure to meet this require results in a `403` error when pulling an image. For more information, see link:https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesOriginPath[Origin path].
+** You must configure a link:https://docs.aws.amazon.com/whitepapers/latest/secure-content-delivery-amazon-cloudfront/s3-origin-with-cloudfront.html[*Bucket policy*] and a link:https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html[*Cross-origin resource sharing (CORS)*] policy. 
+====
+
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+    default:
+      - CloudFrontedS3Storage
+      - cloudfront_distribution_domain: <CLOUDFRONT_DISTRIBUTION_DOMAIN>
+        cloudfront_key_id: <CLOUDFRONT_KEY_ID>
+        cloudfront_privatekey_filename: <CLOUDFRONT_PRIVATE_KEY_FILENAME>
+        host: <S3_HOST>
+        s3_access_key: <S3_ACCESS_KEY>
+        s3_bucket: <S3_BUCKET_NAME>
+        s3_secret_key: <S3_SECRET_KEY>
+        storage_path: <STORAGE_PATH>
+        s3_region: <S3_REGION>
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+  - default
+DISTRIBUTED_STORAGE_PREFERENCE:
+  - default
+----
