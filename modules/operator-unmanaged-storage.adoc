@@ -37,6 +37,7 @@ Use the following example when configuring AWS Cloudfront for your {productname}
 ** You must configure a link:https://docs.aws.amazon.com/whitepapers/latest/secure-content-delivery-amazon-cloudfront/s3-origin-with-cloudfront.html[*Bucket policy*] and a link:https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html[*Cross-origin resource sharing (CORS)*] policy. 
 ====
 
+.Cloudfront S3 example YAML
 [source,yaml]
 ----
 DISTRIBUTED_STORAGE_CONFIG:
@@ -55,6 +56,33 @@ DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
   - default
 DISTRIBUTED_STORAGE_PREFERENCE:
   - default
+----
+
+.Bucket policy example
+[source,json]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::<AWS_ACCOUNT_ID>:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
+            },
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::<S3_BUCKET_NAME>/*"
+        },
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::<AWS_ACCOUNT_ID>:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
+            },
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::<S3_BUCKET_NAME>"
+        }
+    ]
+}
+
 ----
 
 [id="gcp-storage-example"]
