@@ -1,0 +1,37 @@
+[id="viewing-model-card-information"]
+= Viewing model card information by using the UI
+ 
+Model card information can be viewed on the v2 UI. Model cards are essentially markdown (`.md`) files with additional metadata that provide information about a machine learning application. To view model card information, a manifest must have an annotation that is defined in your `config.yaml` file (for example, `application/x-mlmodel`) and include a model card stored as a layer in the manifest. When these conditions are met, a *ModelCard* tab appears on the *Details* page of a tag.
+
+* You have pushed an artifact of that annotation type, and it includes a model card (`.md`) file.
+
+.Procedure
+
+. Update your `config.yaml` file to include the following information:
++
+.Example model card YAML
+[source,yaml]
+----
+FEATURE_UI_MODELCARD: true <1>
+UI_MODELCARD_ARTIFACT_TYPE: application/x-mlmodel <2>
+UI_MODELCARD_ANNOTATION: <3>
+  org.opencontainers.image.description: "Model card metadata"
+UI_MODELCARD_LAYER_ANNOTATION: <4>
+  org.opencontainers.image.title: README.md
+----
+<1> Enables the ModelCard image tab in the UI.
+<2> Defines the model card artifact type. In this example, the artifact type is `application/x-mlmodel`.
+<3> Optional. If an image does not have an `artifactType` defined, this field is checked at the manifest level. If a matching annotation is found, the system then searches for a layer with an annotation matching `UI_MODELCARD_LAYER_ANNOTATION`.
+<4> Optional. If an image has an `artifactType` defined and multiple layers, this field is used to locate the specific layer containing the model card.
+
+. Push an artifact of that annotation type, and one that includes a model card (`.md`) file, to your repository.
+ 
+. On the v2 UI, click *Repositories*. 
+
+. Click the name of a repository.
+
+. Click the name of a tag. You are taken to the *Details* page of that tag.
+
+. Click *ModelCard* to view information about the image. For example:
++
+image::modelcard.png[Modelcard information]
