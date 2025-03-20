@@ -1,0 +1,41 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: REFERENCE
+[id="managing-restricted-users"]
+= Managing restricted users
+
+By default, all {productname} members part of a registry can create repositories and upload content to their own user account. For example, when `user1` pushes an artifact tag such as `/<user1>/<image>:<tag>`, a repository of the name `user1/image` is created. Inside of that repository is information about the artifact tag. 
+
+With the `FEATURE_RESTRICTED_USERS` configuration field, {productname} administrators can restrict all users that are part of their registry from pushing images or artifacts to the registry. This configuration field effectively renders all users from creating new organizations or pushing content altogether _unless they are already part of that organization and defined as a team member of that organization_; that is, restricted users still have normal permissions in organizations based on the teams that they are members of.
+
+For example, a {productname} administrator sets the `FEATURE_RESTRICTED_USERS` configuration field in their `config.yaml` file as follows:
+
+[source,yaml]
+----
+FEATURE_RESTRICTED_USERS: true
+----
+
+When set as shown, `user1` is unable to create a new organization by using the {productname} UI. Upon attempt, the following error message is returned: `Unauthorized`. Additionally, if `user1` attempts to push an image to their own namespace by using the CLI (that is, `/<user1>/<image>:<tag>`), the following error message is returned: `Error: writing blob: initiating layer upload to /v2/user1/<image>/blobs/uploads/ in <quay-server.example.com>: unauthorized: access to the requested resource is not authorized`. However, if `user1` is part of an organization's team as defined by an administrator, they maintain the permissions capable of that team. For example, if `user1` is added to an organization's team and given the *Admin* role, they have administrative privileges for that organization. If they are given the 
+
+When `FEATURE_RESTRICTED_USERS` is leveraged with the `RESTRICTED_USERS_WHITELIST` configuration field, however, {productname} administrators can allow specified members the ability to continue to push to the registry or make organizations. In general, when `FEATURE_RESTRICTED_USERS` is set, {productname} administrators might also set `RESTRICTED_USERS_WHITELIST`, otherwise all members of the registry (with the exception of those defined by a team) are rendered incapable of doing basic tasks.
+
+For example, a {productname} administrator sets the `FEATURE_RESTRICTED_USERS` and `RESTRICTED_USERS_WHITELIST` configuration fields in their `config.yaml` file as follows:
+
+[source,yaml]
+----
+# ...
+FEATURE_RESTRICTED_USERS: true
+RESTRICTED_USERS_WHITELIST:
+      - user2
+# ...
+----
+
+With this configuration, all users _except_ `user2` are restricted from pushing images or creating organizations. Other users part of a team will also have these privileges. Users part of the registry that are either not defined by the `RESTRICTED_USERS_WHITELIST` field or part of an organization's team have no permissions within the registry, and will therefor be unable to perform basic tasks.
+
+[NOTE]
+====
+This feature works differently for LDAP deployment types. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/manage_red_hat_quay/index#ldap-authentication-setup-for-quay-enterprise[LDAP authentication setup for {productname}].
+====
