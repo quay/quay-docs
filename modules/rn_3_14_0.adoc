@@ -28,22 +28,24 @@ The following documentation changes have been made with the {productname} 3.14 r
 The following updates have been made to {productname}.
 
 [id="model-card-rendering"]
-=== User-interface modelcard rendering
+=== Model card rendering on the v2 UI
 
-With the release of {productname} 3.14, modelcard rendering has been introduced to the v2 UI for machine learning models. When a manifest has a certain annotation and a modelcard stored as its layer, a *ModelCard* tab is displayed on the tag's information page. The information provided on the *ModelCard* page provides users with comprehensive insights into each model, and can help enhance a user's understanding of models stored within your registry.
+With the release of {productname} 3.14, the v2 UI now renders model card information for machine learning models that include a model card. When a manifest has a certain annotation (for example, `application/x-mlmodel`) and a model card stored as a layer in the manifest, a *Model Card* tab is displayed on the tag's information page. The information on the *Model Card* page provides users with comprehensive insights into each model, and can help enhance a user's understanding of models stored within their registry.
 
 [NOTE]
 ====
-Modelcard rendering is only available on the {productname} v2 UI.
+The *Model Card* rendering page is only available on the {productname} v2 UI.
 ====
 
-For more information, see. . .
+To view model card information, {productname} users or administrators must push an artifact to a repository. The artifact must have have an accompanying model card. This information renders under *Repository* -> *<tag_name>* -> *Model Card*.
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/use_red_hat_quay/index#viewing-model-card-information[Viewing model card information by using the v2 UI].
 
 [id="tag-expiration-enhancement"]
 === Tag expiration enhancement
 
 Previously, when configuring tag expiration for {productname}, the `yearly` option was unavailable on the {productname} v2 UI. With this update, users can now configure default tag expiration to occur yearly on the {productname} v2 UI. This can be set by using the {productname} UI or in your `config.yaml` file. For example:
-+
+
 [source,yaml]
 ----
 DEFAULT_TAG_EXPIRATION: 1y
@@ -54,7 +56,7 @@ TAG_EXPIRATION_OPTIONS:
 [id="new-quay-config-fields-314"]
 == {productname} configuration fields updates and changes
 
-The following configuration fields have been added to {productname} {producty}.
+The following configuration fields have been added to {productname} 3.14.
 
 [id="model-card-rendering-configuration-field"]
 === Model card rendering configuration fields
@@ -70,19 +72,20 @@ The following configuration fields have been added for the model card rendering 
 |*UI_MODELCARD_LAYER_ANNOTATION* |Object | This optional field defines the layer annotation of the model card stored in an OCI image.
 |===
 
-To enable model card rendering on the {productname} v2 UI, you must set `FEATURE_UI_MODELCARD: true` and `UI_MODELCARD_ARTIFACT_TYPE` in your `config.yaml` file. For example:
+These configuration fields are enabled and set by default in your `config.yaml` file:
 
 .Example model card YAML
 [source,yaml]
 ----
-FEATURE_UI_MODELCARD: true <1>
-UI_MODELCARD_ARTIFACT_TYPE: application/x-mlmodel <2>
-UI_MODELCARD_ANNOTATION: <3>
+FEATURE_UI_MODELCARD: true
+UI_MODELCARD_ARTIFACT_TYPE: application/x-mlmodel
+UI_MODELCARD_ANNOTATION:
   org.opencontainers.image.description: "Model card metadata"
-UI_MODELCARD_LAYER_ANNOTATION: <4>
+UI_MODELCARD_LAYER_ANNOTATION:
   org.opencontainers.image.title: README.md
 ----
-For more information about this feature, see. . .
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/use_red_hat_quay/index#viewing-model-card-information[Viewing model card information by using the v2 UI].
 
 [id="ignore-unknown-mediatype-removal"]
 === IGNORE_UNKNOWN_MEDIATYPES configuration field removal
