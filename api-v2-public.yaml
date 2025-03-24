@@ -1,0 +1,521 @@
+openapi: 3.0.3
+info:
+  title: Quay API
+  version: 1.0.0
+servers:
+  - url: "{protocol}://{host}"
+    description: "Set your own Quay registry URL"
+    variables:
+      protocol:
+        default: "https"
+        enum:
+          - "http"
+          - "https"
+      host:
+        default: "quay-server.example.com"
+        description: "Enter your Quay registry hostname"
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: "Application specific tokens"
+    description: "Manage application-specific tokens by using the API"
+  - name: Builds
+    description: API endpoints for managing Quay repository builds
+  - name: Discovery
+    description: API discovery information
+  - name: Error
+    description: Obtain error details by using the API
+paths:
+  /api/v1/user/apptoken:
+    get:
+      tags:
+        - "Application specific tokens"
+      summary: List app-specific tokens
+      description: Retrieves a list of application-specific tokens for the user.
+      operationId: listAppTokens
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: expiring
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: "If true, only returns those tokens expiring soon"
+      responses:
+        '200':
+          description: Successful invocation
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    post:
+      tags:
+        - "Application specific tokens"
+      summary: Create a new app-specific token
+      description: Creates a new application-specific token for the user.
+      operationId: createAppToken
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "MyAppToken"
+      responses:
+        '201':
+          description: Successful creation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "abc123xyz"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/user/apptoken/{token_uuid}:
+    get:
+      tags:
+        - "Application specific tokens"
+      summary: Get details of a specific app token
+      description: Retrieves details for a specific application token.
+      operationId: getAppToken
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: token_uuid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful invocation
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    delete:
+      tags:
+        - "Application specific tokens"
+      summary: Revoke a specific app token
+      description: Revokes a specific application token for the user.
+      operationId: revokeAppToken
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: token_uuid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+#build
+  /api/v1/repository/{repository}/build/{build_uuid}/status:
+    get:
+      tags:
+        - "Builds"
+      summary: Return the status for the builds specified by the build UUID
+      parameters:
+        - name: repository
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The full path of the repository (e.g., namespace/name)
+        - name: build_uuid
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The UUID of the build
+      responses:
+        "200":
+          description: Successful invocation
+        "400":
+          description: Bad Request
+        "401":
+          description: Session required
+        "403":
+          description: Unauthorized access
+        "404":
+          description: Not found
+
+  /api/v1/repository/{repository}/build/{build_uuid}/logs:
+    get:
+      tags:
+        - "Builds"
+      summary: Return the build logs for the specified build UUID
+      parameters:
+        - name: repository
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: build_uuid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful invocation
+        "400":
+          description: Bad Request
+        "401":
+          description: Session required
+        "403":
+          description: Unauthorized access
+        "404":
+          description: Not found
+
+  /api/v1/repository/{repository}/build/{build_uuid}:
+    get:
+      tags:
+        - "Builds"
+      summary: Returns information about a build
+      parameters:
+        - name: repository
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: build_uuid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful invocation
+        "400":
+          description: Bad Request
+        "401":
+          description: Session required
+        "403":
+          description: Unauthorized access
+        "404":
+          description: Not found
+
+    delete:
+      tags:
+        - "Builds"
+      summary: Cancel a repository build
+      parameters:
+        - name: repository
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: build_uuid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "400":
+          description: Bad Request
+        "401":
+          description: Session required
+        "403":
+          description: Unauthorized access
+        "404":
+          description: Not found
+
+  /api/v1/repository/{repository}/build/:
+    post:
+      tags:
+        - "Builds"
+      summary: Request a repository build and push
+      parameters:
+        - name: repository
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file_id:
+                  type: string
+                archive_url:
+                  type: string
+                subdirectory:
+                  type: string
+                dockerfile_path:
+                  type: string
+                context:
+                  type: string
+                pull_robot:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "201":
+          description: Successful creation
+        "400":
+          description: Bad Request
+        "401":
+          description: Session required
+        "403":
+          description: Unauthorized access
+        "404":
+          description: Not found
+    get:
+      tags:
+        - "Builds"
+      summary: Get the list of repository builds
+      parameters:
+        - name: repository
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: since
+          in: query
+          schema:
+            type: integer
+          description: Returns all builds since the given Unix timestamp
+        - name: limit
+          in: query
+          schema:
+            type: integer
+          description: The maximum number of builds to return
+      responses:
+        "200":
+          description: Successful invocation
+        "400":
+          description: Bad Request
+        "401":
+          description: Session required
+        "403":
+          description: Unauthorized access
+        "404":
+          description: Not found
+  /api/v1/discovery:
+    get:
+      tags:
+        - "Discovery"
+      summary: List all available API endpoints
+      description: Returns a list of all API endpoints available in the Swagger API format.
+      operationId: getDiscovery
+      parameters:
+        - name: internal
+          in: query
+          description: Whether to include internal APIs.
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful invocation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/error/{error_type}:
+    get:
+      tags:
+        - "Error"
+      summary: Get a detailed description of the error
+      description: Retrieves a detailed description of the specified error type.
+      operationId: getErrorDescription
+      parameters:
+        - name: error_type
+          in: path
+          description: The error code identifying the type of error.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful invocation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorDescription'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: Unauthorized access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ApiError:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: HTTP status code of the error.
+        detail:
+          type: string
+          description: A short message describing the error.
+    ApiErrorDescription:
+      type: object
+      properties:
+        error:
+          type: string
+          description: The error code.
+        message:
+          type: string
+          description: A detailed description of the error.
