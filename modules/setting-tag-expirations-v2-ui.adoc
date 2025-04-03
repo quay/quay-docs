@@ -21,9 +21,11 @@ ifeval::["{context}" == "use-quay"]
 The {productname} superuser has no special privilege related to deleting expired images from user repositories. There is no central mechanism for the superuser to gather information and act on user repositories. It is up to the owners of each repository to manage expiration and the deletion of their images. 
 endif::[]
 
-Tag expiration can be set up in one of two ways: 
+Tag expiration can be set up in one of three ways: 
 
-* By setting the `quay.expires-after=` label in the Dockerfile when the image is created. This sets a time to expire from when the image is built.
+* By setting the `quay.expires-after=` label in the Dockerfile when the image is created. This sets a time to expire from when the image is built. This label only works for image manifests.
+
+* By setting the `quay.expires-after=` annotation label in the Dockerfile when the image is created. `--annotation` can be passed in for both image manifests and image indexes.
 
 * By selecting an expiration date on the
 ifeval::["{context}" == "quay-io"]
@@ -74,9 +76,115 @@ Expiration begins from the time that the image is pushed to the registry.
 
 .Procedure 
 
-* Enter the following `docker label` command to add a label to the desired image tag. The label should be in the format `quay.expires-after=20h` to indicate that the tag should expire after 20 hours. Replace 20h with the desired expiration time. For example:
+* Enter the following `docker label` command to add a label to the desired image tag. The label should be in the format `quay.expires-after=20h` to indicate that the tag should expire after 20 hours. Replace `20h` with the desired expiration time. For example:
 +
 [source,terminal]
 ----
 $ docker label quay.expires-after=20h quay-server.example.com/quayadmin/<image>:<tag>
 ----
+
+[id="setting-tag-expiration-annotation"]
+== Setting tag expiration using annotations
+
+You can add an annotation, for example, `quay.expires-after=20h`, to an image tag using the `--annotation` flag when pushing an image to the registry. This annotation causes the tag to automatically expire after the specified time. The annotation can be applies to both image manifests and image indexes. The following values for hours, days, or weeks are accepted:
+
+* `1h`
+* `2d`
+* `3w`
+
+Expiration begins from the time that the image is pushed to the registry.
+
+[NOTE]
+====
+Using the `--annotation` flag is simplest using the `oras` CLI tool.
+====
+
+.Prerequisites
+
+* You have downloaded the `oras` CLI. For more information, see link:https://oras.land/docs/installation[Installation].
+
+.Procedure
+
+. Enter the following `oras push --annotation` command to add an annotation to the desired image tag. The annotation should be in the format `quay.expires-after=<value>` to indicate that the tag should expire the set time. For example:
++
+[source,terminal]
+----
+$ oras push --annotation quay.expires-after=<value> \
+  <quay-server.example.com>/<organization>/<repository>:<tag> \
+  <file_path>:<media_type>
+----
++
+.Example output
++
+[source,terminal]
+----
+✓ Uploaded  hello.txt                                                                                                       12/12  B 100.00%  321ms
+  └─ sha256:74b9e308133afb3bceae961097cb2aa481483869d695ce1414cd2bc7f046027c
+✓ Uploaded  application/vnd.oci.empty.v1+json                                                                                 2/2  B 100.00%  328ms
+  └─ sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+✓ Uploaded  application/vnd.oci.image.manifest.v1+json                                                                    620/620  B 100.00%     0s
+  └─ sha256:c370e931b5eca44fd753bd92e6991ed3be70008e8df15078083359409111f8c3
+Pushed [registry] quay-server.example.com/fortestuser/busybox:test2
+ArtifactType: application/vnd.unknown.artifact.v1
+----
+
+. Confirm that the expiration date has been applied by checking the {productname} UI, or by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>/tag/?specificTag=<tag>" \
+----
++
+.Example output
++
+[source,terminal]
+----
+{"tags": [{"name": "test2", "reversion": false, "start_ts": 1743706344, "end_ts": 1743778344, "manifest_digest": "sha256:c370e931b5eca44fd753bd92e6991ed3be70008e8df15078083359409111f8c3", "is_manifest_list": false, "size": 12, "last_modified": "Thu, 03 Apr 2025 18:52:24 -0000", "expiration": "Fri, 04 Apr 2025 14:52:24 -0000"}, {"name": "test2", "reversion": false, "start_ts": 1742493776, "end_ts": 1743706344, "manifest_digest": "sha256:d80aa3d7f5f5388cfae543b990d3cd3d47ff51c48ef29ff66102427bf7bc0a88", "is_manifest_list": false, "size": 2266046, "last_modified": "Thu, 20 Mar 2025 18:02:56 -0000", "expiration": "Thu, 03 Apr 2025 18:52:24 -0000"}], "page": 1, "has_additional": false}
+----
+
+[id="removing-tag-expiration-annotation"]
+== Removing tag expiration using annotations
+
+With the `oras` CLI tool, you can unset previously established expiration times. 
+
+.Prerequisites
+
+* You have downloaded the `oras` CLI. For more information, see link:https://oras.land/docs/installation[Installation].
+* You have pushed an image with the `quay.expires-after=<value>` annotation.
+
+.Procedure
+
+. Enter the following `oras push --annotation` command to remove an annotation to the desired image tag. The annotation should be in the format `quay.expires-after=never`. For example:
++
+[source,terminal]
+----
+$ oras push --annotation quay.expires-after=never \
+  <quay-server.example.com>/<organization>/<repository>:<tag> \
+  <file_path>:<media_type>
+----
++
+.Example output
++
+[source,terminal]
+----
+✓ Uploaded  hello.txt                                                                                                       12/12  B 100.00%  321ms
+  └─ sha256:74b9e308133afb3bceae961097cb2aa481483869d695ce1414cd2bc7f046027c
+✓ Uploaded  application/vnd.oci.empty.v1+json                                                                                 2/2  B 100.00%  328ms
+  └─ sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+✓ Uploaded  application/vnd.oci.image.manifest.v1+json                                                                    620/620  B 100.00%     0s
+  └─ sha256:c370e931b5eca44fd753bd92e6991ed3be70008e8df15078083359409111f8c3
+Pushed [registry] quay-server.example.com/fortestuser/busybox:test2
+ArtifactType: application/vnd.unknown.artifact.v1
+----
+
+. The latest manifest will no longer have an expiration time. Confirm that the expiration date has been removed by checking the {productname} UI, or by entering the following command:
++
+[source,terminal]
+----
+{"tags": [{"name": "test2", "reversion": false, "start_ts": 1743708135, "manifest_digest": "sha256:19e3a3501b4125cce9cb6bb26ac9207c325259bef94dc66490b999f93c4c83a9", "is_manifest_list": false, "size": 12, "last_modified": "Thu, 03 Apr 2025 19:22:15 -0000"}, {"name": "test2", "reversion": false, "start_ts": 1743706344, "end_ts": 1743708135}]}
+----
++
+Note that no expiration time is listed.
