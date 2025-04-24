@@ -1,0 +1,37 @@
+ 
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * quay_io/master.adoc
+
+:_content-type: REFERENCE
+
+[id="preparing-registry-large-artifacts"]
+= Preparing your registry to accept large artifacts
+
+[IMPORTANT]
+====
+Before altering the `minimum_chunk_size_mb` configuration field, it is recommended to open a support case with link:https://access.redhat.com/support[Red{nbsp} Support]. Altering `minimum_chunk_size_mb` can have untended consequences for your registry. 
+
+Altering this field can also slow down uploads. You should only alter this field if necessary.
+====
+
+Artificial intelligent (AI) or machine learning (ML) artifacts such as large-language models (LLMs), vector graphics, trained model files, or large datasets often require that {productname} administrators modify their registry to suit the needs of pushing such larger artifacts. By default, {productname} is configured with a minimum chunk size (or the pieces that a large file is split into during upload) of 5 MB. This means that larger layers, for example, 50 GB, result in 10,000 chunks. This can be confirmed based on the following formula:
+
+* 50 GB = 50,000 MB
+* 50,000 MB divided by {productname}'s default minimum chunk size of 5 MB = 10,000 chunks
+
+Some backend storage providers, for example, Amazon Web Services (AWS) S3, are unable to store artifacts larger than 50 GB because of a strict limitation of 10,000 parts per upload; attempting to push an artifact larger than 50 GB with {productname}'s default of 5 MB results in S3 protocol violations.
+
+As a workaround to this limitation, you can set the `minimum_chunk_size_mb` field in your `config.yaml` file to a value larger than 5 MB. For example:
+
+[source,yaml]
+----
+# ...
+minimum_chunk_size_mb: 20
+# ...
+----
+
+Configuring `minimum_chunk_size_mb` to more than 5 MB allows your registry backend to accept artifacts larger than 50 GB and up to 200 GB. In the event that your artifact is larger than 200 GB, you could increase the `minimum_chunk_size_mb` value. 
+
+Consult with link:https://access.redhat.com/support[Red{nbsp} Support] before altering the `minimum_chunk_size_mb` configuration field.
