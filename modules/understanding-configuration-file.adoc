@@ -1,0 +1,101 @@
+ 
+// module included in the following assemblies:
+
+// * config_quay/master.adoc
+
+:_content-type: REFERENCE
+
+[id="understanding-configuration-file"]
+= Understanding the {productname} configuration file
+
+Whether deployed on premise of by the {productname-ocp} Operator, the registry's behavior is defined by the `config.yaml` file. The `config.yaml` file must include all required configuration fields for the registry to start. {productname} administrators can also define optional parameters that customize their registry, such as authentication parameters, storage parameters, proxy cache parameters, and so on.
+
+The `config.yaml` file must be written using valid YAML ("YAML Ain't Markup Language") syntax, and {productname} cannot start if the file itself contains any formatting errors or missing required fields. Regardless of deployment type, whether that is on premise or {productname-ocp} that is configured by the Operator, the YAML principles stay the same, even if the required configuration fields are slightly different.
+
+The following section outlines basic YAML syntax relevant to creating and editing the {productname} `config.yaml` file. For a more complete overview of YAML, see link:https://www.redhat.com/en/topics/automation/what-is-yaml[What is YAML]. 
+
+[id="key-value-pairs"]
+== Key-value pairs
+
+Configuration fields within a `config.yaml` file are written as key-value pairs in the following form:
+
+[source,yaml]
+----
+# ... <1>
+EXAMPLE_FIELD_NAME: <value>
+# ... <1>
+----
+<1> Denotes that there are fields before and after this specific field. Note that by supplying the `#`, or hash symbol, comments can be provided within the YAML file.
+
+Each line within a `config.yaml` file contains a field name, followed by a colon, a space, and then an appropriate value that matches with the key. The following example shows you how the `AUTHENTICATION_TYPE` configuration field must be formatted in your `config.yaml` file.
+
+[source,yaml]
+----
+AUTHENTICATION_TYPE: Database <1>
+# ...
+----
+<1> The authentication engine to use for credential authentication.
+
+In the previous example, the `AUTHENTICATION_TYPE` is set to `Database`, however, different deployment types require a different value. The following example shows you how your `config.yaml` file might look if `LDAP`, or Lightweight Directory Access Protocol, was used for authentication:
+
+[source,yaml]
+----
+AUTHENTICATION_TYPE: LDAP
+# ...
+----
+
+[id="indentation-nesting"]
+== Indentation and nesting
+
+Many {productname} configuration fields require indentation to indicate nested structures. Indentation must be done by using _white spaces_, or literal space characters; tab characters are not allowed by design. Indentation must be consistent across the file. The following YAML snippet shows you how the `BUILDLOGS_REDIS` field uses indentation for the required `host`, `password,` and `port` fields:
+
+[source,yaml]
+----
+# ...
+BUILDLOGS_REDIS:
+    host: quay-server.example.com
+    password: example-password
+    port: 6379
+# ...
+----
+
+[id="lists"]
+== Lists
+
+In some cases, the {productname} configuration field relies on lists to define certain values. Lists are formatted by using a hyphen (`-`) followed by a space. The following example shows you how the `SUPER_USERS` configuration field uses a list to define superusers:
+
+[source,yaml]
+----
+# ...
+SUPER_USERS:
+- quayadmin
+# ...
+----
+
+[id="quoted-values"]
+== Quoted values
+
+Some {productname} configuration fields require the use of quotation marks (`""`) to properly define a variable. This is generally not required. The following examples shows you how the `FOOTER_LINKS` configuration field uses quotation marks to define the `TERMS_OF_SERVICE_URL`, `PRIVACY_POLICY_URL`, `SECURITY_URL`, and `ABOUT_URL`:
+
+[source,yaml]
+----
+FOOTER_LINKS:
+  "TERMS_OF_SERVICE_URL": "https://www.index.hr"
+  "PRIVACY_POLICY_URL": "https://www.jutarnji.hr"
+  "SECURITY_URL": "https://www.bug.hr"
+  "ABOUT_URL": "https://www.zagreb.hr"
+----
+
+[id="comments"]
+== Comments
+
+The hash symbol, or `#`, can be placed at the beginning of a line to add comments or to temporarily disable a configuration field. They are ignored by the configuration parser and will not affect the behavior of the registry. For example:
+
+[source,yaml]
+----
+# ...
+# FEATURE_UI_V2: true
+# ...
+----
+
+In this example, the `FEATURE_UI_V2` configuration is ignored by the parser, meaning that the option to use the v2 UI is disabled. Using the `#` symbol on a required configuration field results in failure for the registry to start.
