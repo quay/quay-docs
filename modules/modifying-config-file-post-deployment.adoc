@@ -1,0 +1,97 @@
+ 
+// module included in the following assemblies:
+
+// * config_quay/master.adoc
+
+:_content-type: REFERENCE
+
+[id="modifying-config-file-post-deployment-on-prem"]
+= Modifying your configuration file after deployment
+
+After deploying a {productname} registry with an initial `config.yaml` file, {productname} administrators can update the configuration file to enable or disable features as needed. This flexibility allows administrators to tailor the registry to fit their specific environment needs, or to meet certain security policies.
+
+[NOTE]
+====
+Because the `config.yaml` file is not dynamically reloaded, you must restart the {productname} container after making changes for them to take effect.
+====
+
+The following procedure shows you how to retrieve the `config.yaml` file from the `quay-registry` container, how to enable a new feature by adding that feature's configuration field to the file, and how to restart the `quay-registry` container using Podman.
+
+.Prerequisites
+
+* You have deployed {productname}.
+* You are a registry administrator.
+
+.Procedure
+
+. If you have access to the `config.yaml` file:
+
+.. Navigate to the directory that is storing the `config.yaml` file. For example:
++
+[source,terminal]
+----
+$ cd /home/<username>/<quay-deployment-directory>/config
+----
+
+.. Make changes to the `config.yaml` file by adding a new feature flag. The following example enables the v2 UI:
++
+[source,yaml]
+----
+# ...
+FEATURE_UI_V2: true
+# ...
+----
+
+.. Save the changes made to the `config.yaml` file.
+
+.. Restart the `quay-registry` pod by entering the following command:
++
+[source,terminal]
+----
+$ podman restart <container_id>
+----
+
+. If you do not have access to the `config.yaml` file and need to create a new file while keeping the same credentials: 
+
+.. Retrieve the container ID of your `quay-registry` pod by entering the following command:
++
+[source,terminal]
+----
+$ podman ps
+----
++
+.Example output
++
+[source,terminal]
+----
+CONTAINER ID  IMAGE                                                                     COMMAND         CREATED       STATUS       PORTS                                                                       NAMES
+5f2297ef53ff  registry.redhat.io/rhel8/postgresql-13:1-109                              run-postgresql  20 hours ago  Up 20 hours  0.0.0.0:5432->5432/tcp                                                      postgresql-quay
+3b40fb83bead  registry.redhat.io/rhel8/redis-5:1                                        run-redis       20 hours ago  Up 20 hours  0.0.0.0:6379->6379/tcp                                                      redis
+0b4b8fbfca6d  registry-proxy.engineering.redhat.com/rh-osbs/quay-quay-rhel8:v3.14.0-14  registry        20 hours ago  Up 20 hours  0.0.0.0:80->8080/tcp, 0.0.0.0:443->8443/tcp, 7443/tcp, 9091/tcp, 55443/tcp  quay
+----
+
+.. Copy the `config.yaml` file from the `quay-registry` pod to a directory by entering the following command:
++
+[source,terminal]
+----
+$ podman cp <container_id>:/quay-registry/conf/stack/config.yaml ./config.yaml
+----
+
+.. Make changes to the `config.yaml` file by adding a new feature flag. The following example sets the `AUTHENTICATION_TYPE` to `LDAP`
++
+[source,yaml]
+----
+# ...
+AUTHENTICATION_TYPE: LDAP
+# ...
+----
+
+.. Re-deploy the registry, mounting the `config.yaml` file into the `quay-registry` configuration volume by entering the following command:
++
+[source,terminal]
+----
+$ sudo podman run -d --rm -p 80:8080 -p 443:8443 \
+   --name=quay \
+   -v /home/<username>/<quay-deployment-directory>/config:/conf/stack:Z \
+   registry.redhat.io/quay/quay-rhel8:v3.14.0
+----
