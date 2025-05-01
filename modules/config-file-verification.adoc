@@ -1,0 +1,37 @@
+:_content-type: REFERENCE
+[id="config-file-verification"]
+= Troubleshooting the configuration file
+
+Failure to add all of the required configuration field, or to provide the proper information for some parameters, might result in the `quay-registry` container failing to deploy. Use the following procedure to view and troubleshoot a failed on premise deployment type.
+
+.Prerequisites
+
+* You have created a minimal configuration file.
+
+.Procedure
+
+* Attempt to deploy the `quay-registry` container by entering the following command. Note that this command uses the `-it`, which shows you debugging information:
++
+[source,terminal]
+----
+$ podman run -it --rm -p 80:8080 -p 443:8443 --name=quay -v /home/<username>/<quay-deployment-directory>/config:/conf/stack:Z    -v /home/<username>/<quay-deployment-directory>/storage:/datastorage:Z 33f1c3dc86be
+----
++
+.Example output
++
+[source,terminal]
+----
+---
++------------------------+-------+--------+
+| LDAP                   | -     | X      |
++------------------------+-------+--------+
+| LDAP_ADMIN_DN is required      | X      |
++-----------------------------------------+
+| LDAP_ADMIN_PSSWD is required   | X      |
++-----------------------------------------+
+| . . . Connection refused       | X      |
++-----------------------------------------+
+---
+----
++
+In this example, the `quay-registry` container failed to deploy because improper LDAP credentials were provided.

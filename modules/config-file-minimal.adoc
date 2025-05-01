@@ -1,105 +1,129 @@
-:_content-type: CONCEPT
+:_content-type: REFERENCE
 [id="config-file-minimal"]
-= Minimal configuration
+= Required configuration fields
 
-The following configuration options are required for a standalone deployment of {productname}:
+The following configuration fields are required for an on premise deployment of {productname}:
 
-* Server hostname
-* HTTP or HTTPS
-* Authentication type, for example, Database or Lightweight Directory Access Protocol (LDAP)
-* Secret keys for encrypting data
-* Storage for images
-* Database for metadata
-* Redis for build logs and user events
-* Tag expiration options
+|===
+| *Field* | *Type* | *Description* 
+| **AUTHENTICATION_TYPE** +
+(Required) | String | The authentication engine to use for credential authentication. + 
+ + 
+**Values:** + 
+One of `Database`, `LDAP`, `JWT`, `Keystone`, `OIDC` + 
+ + 
+**Default:** `Database`
+
+| **BUILDLOGS_REDIS** +
+(Required) | Object | Redis connection details for build logs caching.
+|**.host**  +
+(Required)| String | The hostname at which Redis is accessible.
+|**.password** | String | The password to connect to the Redis instance.
+
+| **DATABASE_SECRET_KEY**  +
+(Required) | String | Key used to encrypt sensitive fields within the database. This value should never be changed once set, otherwise all reliant fields, for example, repository mirror username and password configurations, are invalidated. +
+This value is set automatically by the {productname} Operator for Operator-based deployments. For standalone deployments, administrators can provide their own key using Open SSL or a similar tool. Key length should not exceed 63 characters.
+
+| **DB_URI** +
+(Required) | String | The URI for accessing the database, including any credentials.
+
+| **DISTRIBUTED_STORAGE_CONFIG** +
+(Required) | Object | Configuration for storage engine(s) to use in {productname}. Each key represents an unique identifier for a storage engine. The value consists of a tuple of (key, value) forming an object describing the storage engine parameters. +
+ +
+ **Default:** `[]`
+
+| **SECRET_KEY** +
+(Required) | String | Key used to encrypt the session cookie and the CSRF token needed for correct interpretation of the user session. The value should not be changed when set. Should be persistent across all {productname} instances. If not persistent across all instances, login failures and other errors related to session persistence might occur.
+
+| **SERVER_HOSTNAME**  +
+(Required) | String | The URL at which {productname} is accessible, without the scheme.
+
+| **SETUP_COMPLETE**  +
+(Required) | Boolean | This is an artifact left over from earlier versions of the software and currently it **must** be specified with a value of `true`.
+
+| **USER_EVENTS_REDIS** +
+(Required) | Object | Redis connection details for user event handling.
+|**.host**  +
+(Required)| String | The hostname at which Redis is accessible.
+|**.port**  +
+(Required)| Number | The port at which Redis is accessible.
+|**.password** | String | The password to connect to the Redis instance.
+|===
+
 
 [id="sample-config-file-minimal"]
-== Sample minimal configuration file
+== Minimal configuration file examples
 
-The following example shows a sample minimal configuration file that uses local storage for images:
+This section provides two examples of a minimal configuration file: one example that uses local storage, and another example that uses cloud-based storage with Google Cloud Platform.
 
+[id="minimal-configuration-local-storage"]
+=== Minimal configuration using local storage
+
+The following example shows a sample minimal configuration file that uses local storage for images.
+
+[IMPORTANT]
+====
+Only use local storage when deploying a registry for proof of concept purposes. It is not intended for production purposes. When using local storage, you must map the registry to a local directory to the `datastorage` path in the container when starting the registry. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/proof_of_concept_-_deploying_red_hat_quay[Proof of Concept - Deploying {productname}]
+====
+
+.Local storage minimal configuration
 [source,yaml]
 ----
 AUTHENTICATION_TYPE: Database
 BUILDLOGS_REDIS:
-    host: quay-server.example.com
-    password: strongpassword
-    port: 6379
-    ssl: false
-DATABASE_SECRET_KEY: 0ce4f796-c295-415b-bf9d-b315114704b8
-DB_URI: postgresql://quayuser:quaypass@quay-server.example.com:5432/quay
-DEFAULT_TAG_EXPIRATION: 2w
+    host: <quay-server.example.com>
+    password: <password>
+    port: <port>
+DATABASE_SECRET_KEY: <example_database_secret_key>
+DB_URI: postgresql://<username>:<password>@<registry_url>.com:<port>/quay
 DISTRIBUTED_STORAGE_CONFIG:
-    default:
-        - LocalStorage
-        - storage_path: /datastorage/registry
-DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
-DISTRIBUTED_STORAGE_PREFERENCE:
-    - default
-PREFERRED_URL_SCHEME: http
-SECRET_KEY: e8f9fe68-1f84-48a8-a05f-02d72e6eccba
-SERVER_HOSTNAME: quay-server.example.com
+  default:
+    - LocalStorage
+    - storage_path: /datastorage/registry
+SECRET_KEY: <example_secret_key>
+SERVER_HOSTNAME: <server_host_name>
 SETUP_COMPLETE: true
-TAG_EXPIRATION_OPTIONS:
-    - 0s
-    - 1d
-    - 1w
-    - 2w
-    - 4w
-    - 3y
 USER_EVENTS_REDIS:
-    host: quay-server.example.com
-    port: 6379
-    ssl: false
+  host: <redis_events_url>
+  password: <password>
+  port: <port>
 ----
 
-[id="config-local-storage"]
-== Local storage
+[id="minimal-configuration-cloud-based-storage"]
+=== Minimal configuration using cloud-based storage
 
-Using local storage for images is only recommended when deploying a registry for _proof of concept_ purposes.
+In most production environments, {productname} administrators use cloud or enterprise-grade storage backends provided by supported vendors. The following example shows you how to configure {productname} to use Google Cloud Platform for image storage. For a complete list of supported storage providers, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3.14/html-single/configure_red_hat_quay/index#config-fields-storage[Image storage].
 
-When configuring local storage, storage is specified on the command line when starting the registry. 
+[NOTE]
+====
+When using a cloud or enterprise-grade storage backend, additional configuration, such as mapping the registry to a local directory, is not required.
+====
 
-The following command maps a local directory, `$QUAY/storage` to the `datastorage` path in the container:
-
-[subs="verbatim,attributes"]
-----
-$ sudo podman run -d --rm -p 80:8080 -p 443:8443 \
-   --name=quay \
-   -v $QUAY/config:/conf/stack:Z \
-   -v $QUAY/storage:/datastorage:Z \
-   {productrepo}/{quayimage}:{productminv}
-----
-
-[id="config-cloud-storage"]
-== Cloud storage
-
-Storage configuration is detailed in the xref:config-fields-storage[Image storage] section. For some users, it might be useful to compare the difference between Google Cloud Platform and local storage configurations. For example, the following YAML presents a Google Cloud Platform storage configuration:
-
-.$QUAY/config/config.yaml
+.Cloud storage minimal configuration
 [source,yaml]
 ----
+AUTHENTICATION_TYPE: Database
+BUILDLOGS_REDIS:
+    host: <quay-server.example.com>
+    password: <password>
+    port: <port>
+DATABASE_SECRET_KEY: <example_database_secret_key>
+DB_URI: postgresql://<username>:<password>@<registry_url>.com:<port>/quay
 DISTRIBUTED_STORAGE_CONFIG:
     default:
         - GoogleCloudStorage
-        - access_key: GOOGQIMFB3ABCDEFGHIJKLMN
-          bucket_name: quay_bucket
-          secret_key: FhDAYe2HeuAKfvZCAGyOioNaaRABCDEFGHIJKLMN
+        - access_key: <access_key>
+          bucket_name: <bucket_name>
+          secret_key: <secret_key>
           storage_path: /datastorage/registry
-          boto_timeout: 120 <1>
 DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
 DISTRIBUTED_STORAGE_PREFERENCE:
     - default
+SECRET_KEY: <example_secret_key>
+SERVER_HOSTNAME: <server_host_name>
+SETUP_COMPLETE: true
+USER_EVENTS_REDIS:
+  host: <redis_events_url>
+  password: <password>
+  port: <port>
 ----
-<1> Optional. The time, in seconds, until a timeout exception is thrown when attempting to read from a connection. The default is `60` seconds. Also encompasses the time, in seconds, until a timeout exception is thrown when attempting to make a connection. The default is `60` seconds. 
-
-When starting the registry using cloud storage, no configuration is required on the command line. For example:
-
-[subs="verbatim,attributes"]
-----
-$ sudo podman run -d --rm -p 80:8080 -p 443:8443 \
-   --name=quay \
-   -v $QUAY/config:/conf/stack:Z \
-   {productrepo}/{quayimage}:{productminv}
-----
-
