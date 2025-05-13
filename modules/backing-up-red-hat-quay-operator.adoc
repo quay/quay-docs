@@ -97,6 +97,20 @@ $ oc get secret -n <quay-namespace>  $(oc get quayregistry <quay_registry_name> 
 $ oc exec -it quay_pod_name -- cat /conf/stack/config.yaml > quay_config.yaml
 ----
 
+. Obtain the `Quay` database name:
++
+[source,terminal]
+----
+$ oc -n <quay_namespace> rsh $(oc get pod -l app=quay -o NAME -n <quay_namespace> |head -n 1) cat /conf/stack/config.yaml|awk -F"/" '/^DB_URI/ {print $4}'
+----
++
+.Example output
++
+[source,terminal]
+----
+quayregistry-quay-database
+----
+
 [id="scaling-down-quay-deployment"]
 == Scaling down your {productname} deployment
 
@@ -213,14 +227,6 @@ Example output:
 [source,terminal]
 ----
 quayregistry-quay-database-59f54bb7-58xs7
-----
-
-. Obtain the Quay database name:
-+
-[source,terminal]
-----
-$ oc -n <quay_namespace> rsh $(oc get pod -l app=quay -o NAME -n <quay_namespace> |head -n 1) cat /conf/stack/config.yaml|awk -F"/" '/^DB_URI/ {print $4}'
-quayregistry-quay-database
 ----
 
 . Download a backup database:
