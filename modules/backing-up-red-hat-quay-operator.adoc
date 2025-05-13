@@ -54,12 +54,12 @@ $ oc get quayregistry <quay_registry_name> -n <quay_namespace> -o yaml > quay-re
 +
 [NOTE]
 ====
-If you are running a version older than {productname} 3.7.0, this step can be skipped. Some secrets are automatically generated while deploying {productname} for the first time. These are stored in a secret called `<quay_registry_name>-quay_registry_managed_secret_keys` in the namespace of the `QuayRegistry` resource.
+If you are running a version older than {productname} 3.7.0, this step can be skipped. Some secrets are automatically generated while deploying {productname} for the first time. These are stored in a secret called `<quay_registry_name>-quay-registry-managed-secret-keys` in the namespace of the `QuayRegistry` resource.
 ====
 +
 [source,terminal]
 ----
-$ oc get secret -n <quay_namespace> <quay_registry_name>_quay_registry_managed_secret_keys -o yaml > managed_secret_keys.yaml
+$ oc get secret -n <quay_namespace> <quay_registry_name>-quay-registry-managed-secret-keys -o yaml > managed_secret_keys.yaml
 ----
 
 . Edit the resulting `managed_secret_keys.yaml` file and remove the entry `metadata.ownerReferences`. Your `managed_secret_keys.yaml` file should look similar to the following:
@@ -70,7 +70,7 @@ apiVersion: v1
 kind: Secret
 type: Opaque
 metadata:
-  name: <quayname>_quay_registry_managed_secret_keys>
+  name: <quay_registry_name>-quay-registry-managed-secret-keys
   namespace: <quay_namespace>
 data:
   CONFIG_EDITOR_PW: <redacted>
