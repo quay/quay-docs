@@ -95,6 +95,16 @@ Issued 2024-09-3
 * link:https://issues.redhat.com/browse/PROJQUAY-7598[PROJQUAY-7598]. Invalid manifests are now returned when using the API.
 * link:https://issues.redhat.com/browse/PROJQUAY-7689[PROJQUAY-7689]. Previously, there was a bug affecting STS S3Storage engines, in which a `config` error was returned. This bug has been resolved.
 
+[id="known-issues-312-2"]
+=== {productname} 3.12.2 known issues
+
+* In {ocp} clusters with multiple ingress controllers defined, the {productname} Operator iterates through the list of available ingress controllers are uses the first one that it encounters to determine the cluster hostname. However, the order of ingress controllers in this list is not guaranteed to be consistent across reconciliation cycles. Consequently, the Operator might pick a different ingress controller, leading it to detect a change in the cluster hostname and initiate a new reconciliation process. This can lead to instability in `quay` pods and your {productname-ocp} deployment.
++
+Use one of the following methods to avoid this issue:
++
+** Set the `route` and `tls` components of the `QuayRegistry` resource to be unmanaged (`managed: false`), and create a custom Route for {productname}. For more information about creating a custom Route, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-unmanaged-route[Disabling the Route component].
+** Ensure that only one ingress controller matches the {productname} `route` resource, which can be done with ingress controller sharding. For more information, see link:https://docs.redhat.com/en/documentation/openshift_container_platform/{ocp-ver}/html-single/networking/index#nw-ingress-sharding-concept_configuring-ingress-cluster-traffic-ingress-controller[Ingress sharding in {ocp}].
+
 [id="rn-3-12-1"]
 == RHBA-2024:5039 - {productname} 3.12.1 release
 
