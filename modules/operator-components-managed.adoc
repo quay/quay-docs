@@ -1,39 +1,63 @@
 :_content-type: REFERENCE
 [id="operator-components-managed"]
-= Using managed components
+= Managed components
 
-Unless your `QuayRegistry` custom resource specifies otherwise, the {productname} Operator uses defaults for the following managed components:
+By default, the Operator handles all required configuration and installation needed for {productname}'s managed components. 
 
-* **quay:** Holds overrides for deployment of {productname-ocp}, for example, environment variables and number of replicas. This component is new as of {productname} 3.7 and cannot be set to unmanaged.
+If the opinionated deployment performed by the {productname} Operator is unsuitable for your environment, you can provide the {productname} Operator with `unmanaged` resources, or overrides, as described in link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-components-managed[Using unmanaged components].
 
-* **postgres:**  For storing the registry metadata,
-ifeval::["{productname}" == "Red Hat Quay"]
-As of {productname} 3.9, uses a version of PostgreSQL 13 from link:https://www.softwarecollections.org/en/[Software Collections].
-+
-[NOTE]
-====
-When upgrading from {productname} 3.8 -> 3.9, the Operator automatically handles upgrading PostgreSQL 10 to PostgreSQL 13. This upgrade is required. PostgreSQL 10 had its final release on November 10, 2022 and is no longer supported.
-====
-endif::[]
-ifeval::["{productname}" == "Project Quay"]
-As of {productname} 3.9, uses an upstream (CentOS) version of PostgreSQL 13. 
-endif::[]
-* **clair:**  Provides image vulnerability scanning.
+.QuayRegistry required fields
+[cols="2a,1a,2a",options="header"]
+|===
+| Field | Type | Description
 
-* **redis:**  Stores live builder logs and the {productname} tutorial. Also includes the locking mechanism that is required for garbage collection.
+|`quay` |Boolean | Holds overrides for deployment of {productname-ocp}, such as environment variables and number of replicas. This component cannot be set to unmanaged (`managed: false`).
+|`postgres` |Boolean | Used for storing registry metadata. Currently, PostgreSQL version 13 is used.
+|`clair` |Boolean | Provides image vulnerability scanning. 
+|`redis` |Boolean | Storage live builder logs and the locking mechanism that is required for garbage collection.
+|`horizontalpodautoscaler` |Boolean | Adjusts the number of `quay` pods depending on your memory and CPU consumption.
+|`objectstorage` |Boolean | Stores image layer blobs. When set to `managed: true`, utilizes the `ObjectBucketClaim` Kubernetes API which is provided by NooBaa or {odf}. Setting this field to `managed: false` requires you to provide your own object storage.
+|`route` |Boolean | Provides an external entrypoint to the {productname} registry from outside of {ocp}.
+|`mirror` |Boolean | Configures repository mirror workers to support optional repository mirroring.
+|`monitoring` |Boolean | Features include a Grafana dashboard, access to individual metrics, and notifications for frequently restarting `quay` pods.
+|`tls` |Boolean | Configures whether SSL/TLS is automatically handled.
+|`clairpostgres` |Boolean | Configures a managed Clair database. This is a separate database than the PostgreSQL database that is used to deploy {productname}. 
 
-* **horizontalpodautoscaler:**  Adjusts the number of `Quay` pods depending on memory/cpu consumption.
+|===
 
-* **objectstorage:**  For storing image layer blobs,  utilizes the `ObjectBucketClaim` Kubernetes API which is provided by Noobaa or {odf}.
+The following example shows you the default configuration for the `QuayRegistry` custom resource provided by the {productname} Operator. It is available on the {ocp} web console.
 
-* **route:**  Provides an external entrypoint to the {productname} registry from outside of {ocp}.
-
-* **mirror:**  Configures repository mirror workers to support optional repository mirroring.
-
-* **monitoring:** Features include a Grafana dashboard, access to individual metrics, and notifications for frequently restarting `Quay` pods.
-
-* **tls:** Configures whether {productname} or {ocp} handles SSL/TLS.
-
-* **clairpostgres:** Configures a managed Clair database. This is a separate database than the PostgreSQL database used to deploy {productname}. 
-
-The {productname} Operator handles any required configuration and installation work needed for {productname} to use the managed components. If the opinionated deployment performed by the {productname} Operator is unsuitable for your environment, you can provide the {productname} Operator with `unmanaged` resources, or overrides, as described in the following sections.
+.Example `QuayRegistry` custom resource
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: <example_registry>
+  namespace: <namespace>
+  spec:
+    configBundleSecret: config-bundle-secret
+    components:
+    - kind: quay
+      managed: true
+    - kind: postgres
+      managed: true
+    - kind: clair
+      managed: true
+    - kind: redis
+      managed: true
+    - kind: horizontalpodautoscaler
+      managed: true
+    - kind: objectstorage
+      managed: true
+    - kind: route
+      managed: true
+    - kind: mirror
+      managed: true
+    - kind: monitoring
+      managed: true
+    - kind: tls
+      managed: true
+    - kind: clairpostgres
+      managed: true
+----

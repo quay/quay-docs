@@ -1,45 +1,11 @@
 :_content-type: CONCEPT
 [id="operator-components-intro"]
-= {productname} Operator components
+= {productname} Operator configuration overview
 
-{productname} has many dependencies. These dependencies include a database, object storage, Redis, and others. The {productname} Operator manages an opinionated deployment of {productname} and its dependencies on Kubernetes. These dependencies are treated as _components_ and are configured through the `QuayRegistry` API.
+When deploying {productname} using the Operator on {ocp}, configuration is managed declaratively through the `QuayRegistry` custom resource (CR). This model allows cluster administrators to define the desired state of the {productname} deployment, including which components are enabled, storage backends, SSL/TLS configuration, and other core features.
 
-In the `QuayRegistry` custom resource, the `spec.components` field configures components. Each component contains two fields: `kind` (the name of the component), and `managed` (a boolean that addresses whether the component lifecycle is handled by the {productname} Operator). 
+After deploying {productname-ocp} with the Operator, administrators can further customize their registry by updating the `config.yaml` file and referencing it in a Kubernetes secret. This configuration bundle is linked to the `QuayRegistry` CR through the `configBundleSecret` field.
 
-By default, all components are managed and auto-filled upon reconciliation for visibility:
+The Operator reconciles the state defined in the `QuayRegistry` CR and its associated configuration, automatically deploying or updating registry components as needed.
 
-.Example `QuayRegistry` resource
-[source,yaml]
-----
-apiVersion: quay.redhat.com/v1
-kind: QuayRegistry
-metadata:
-  name: example-registry
-  namespace: quay-enterprise
-  spec:
-    configBundleSecret: config-bundle-secret
-    components:
-    - kind: quay
-      managed: true
-    - kind: postgres
-      managed: true
-    - kind: clair
-      managed: true
-    - kind: redis
-      managed: true
-    - kind: horizontalpodautoscaler
-      managed: true
-    - kind: objectstorage
-      managed: true
-    - kind: route
-      managed: true
-    - kind: mirror
-      managed: true
-    - kind: monitoring
-      managed: true
-    - kind: tls
-      managed: true
-    - kind: clairpostgres
-      managed: true
-----
-
+This guide covers the basic concepts behind the `QuayRegistry` CR and modifying your `config.yaml` file on {productname-ocp} deployments. More advanced topics, such as using unmanaged components within the `QuayRegistry` CR, can be found in link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index[Deploying {productname} Operator on {ocp}].
