@@ -1,6 +1,6 @@
 :_content-type: CONCEPT
 [id="config-fields-db"]
-= Database configuration
+= Database configuration fields
 
 This section describes the database configuration fields available for {productname} deployments.
 
@@ -23,12 +23,18 @@ Example `DB_URI` field:
 *postgresql://quayuser:quaypass@quay-server.example.com:5432/quay*
 |===
 
+.Database URI example
+[source,yaml]
+----
+# ...
+DB_URI: postgresql://quayuser:quaypass@quay-server.example.com:5432/quay
+# ...
+----
+
 [id="database-connection-arguments"]
 == Database connection arguments
 
 Optional connection arguments are configured by the `DB_CONNECTION_ARGS` parameter. Some of the key-value pairs defined under `DB_CONNECTION_ARGS` are generic, while others are database specific.
-
-The following table describes database connection arguments:
 
 .Database connection arguments
 [cols="3a,1a,2a",options="header"]
@@ -36,56 +42,53 @@ The following table describes database connection arguments:
 | Field | Type | Description
 | **DB_CONNECTION_ARGS** | Object | Optional connection arguments for the database, such as timeouts and SSL/TLS.
 | **.autorollback**| Boolean | Whether to use thread-local connections. +
-Should always be `true`
+Should *always* be `true`.
 | **.threadlocals**| Boolean | Whether to use auto-rollback connections. +
-Should always be `true`
-// TODO 36 max_connections, timeout, stale_timeout
-// | {nbsp}{nbsp}{nbsp}.max_connections| Number |
-// | {nbsp}{nbsp}{nbsp}.timeout | Number |
-// | {nbsp}{nbsp}{nbsp}.stale_timeout | Number |
+Should *always* be `true`.
 |===
 
-[id="config-fields-postgres"]
-=== PostgreSQL SSL/TLS connection arguments
-
-With SSL/TLS, configuration depends on the database you are deploying. The following example shows a PostgreSQL SSL/TLS configuration:
-
+.Database connection arguments example
 [source,yaml]
 ----
+# ...
+DB_URI: postgresql://quayuser:quaypass@quay-server.example.com:5432/quay
 DB_CONNECTION_ARGS:
-  sslmode: verify-ca
-  sslrootcert: /path/to/cacert
+  autorollback: true
+  threadlocals: true
+# ...
 ----
+
+[id="config-fields-postgres"]
+=== SSL/TLS connection arguments
+
+With SSL/TLS, configuration depends on the database you are deploying.
 
 The `sslmode` option determines whether, or with, what priority a secure SSL/TLS TCP/IP connection will be negotiated with the server. There are six modes:
 
-.SSL/TLS options
+.`sslmode` options
 [options="header"]
 |===
 |Mode |Description
+| **sslmode** |  Determines whether, or with, what priority a secure SSL/TLS or TCP/IP connection is negotiated with the server. 
 
-| **disable** | Your configuration only tries non-SSL/TLS connections.
-| **allow** | Your configuration first tries a non-SSL/TLS connection. Upon failure, tries an SSL/TLS connection.
-| **prefer** +
-(Default) | Your configuration first tries an SSL/TLS connection. Upon failure, tries a non-SSL/TLS connection.
-| **require** | Your configuration only tries an SSL/TLS connection. If a root CA file is present, it verifies the certificate in the same way as if verify-ca was specified.
-| **verify-ca** | Your configuration only tries an SSL/TLS connection, and verifies that the server certificate is issued by a trusted certificate authority (CA).
-| **verify-full** | Only tries an SSL/TLS connection, and verifies that the server certificate is issued by a trusted CA and that the requested server hostname matches that in the certificate.
+| ** {nbsp}{nbsp}{nbsp}*: disable** | Your configuration only tries non-SSL/TLS connections.
+| ** {nbsp}{nbsp}{nbsp}*: allow** | Your configuration first tries a non-SSL/TLS connection. Upon failure, tries an SSL/TLS connection.
+| ** {nbsp}{nbsp}{nbsp}*: prefer** +
+{nbsp}{nbsp}{nbsp} (Default) | Your configuration first tries an SSL/TLS connection. Upon failure, tries a non-SSL/TLS connection.
+| ** {nbsp}{nbsp}{nbsp}*: require** | Your configuration only tries an SSL/TLS connection. If a root CA file is present, it verifies the certificate in the same way as if verify-ca was specified.
+| ** {nbsp}{nbsp}{nbsp}*: verify-ca** | Your configuration only tries an SSL/TLS connection, and verifies that the server certificate is issued by a trusted certificate authority (CA).
+| ** {nbsp}{nbsp}{nbsp}*: verify-full** | Only tries an SSL/TLS connection, and verifies that the server certificate is issued by a trusted CA and that the requested server hostname matches that in the certificate.
 |===
 
 For more information on the valid arguments for PostgreSQL, see link:https://www.postgresql.org/docs/current/libpq-connect.html[Database Connection Control Functions].
 
+.PostgreSQL SSL/TLS configuration
 
-[id="mysql-ssl-connection-arguments"]
-=== MySQL SSL/TLS connection arguments
-
-The following example shows a sample MySQL SSL/TLS configuration:
-
-[source.yaml]
+[source,yaml]
 ----
+# ...
 DB_CONNECTION_ARGS:
-  ssl:
-    ca: /path/to/cacert
+  sslmode: <value>
+  sslrootcert: path/to/.postgresql/root.crt
+# ...
 ----
-
-Information on the valid connection arguments for MySQL is available at link:https://dev.mysql.com/doc/refman/8.0/en/connecting-using-uri-or-key-value-pairs.html[Connecting to the Server Using URI-Like Strings or Key-Value Pairs].
