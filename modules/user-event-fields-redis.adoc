@@ -1,0 +1,68 @@
+:_content-type: CONCEPT
+[id="user-event-fields-redis"]
+= User events
+
+User events track activity across {productname}, such as repository pushes, tag creations, deletions, and permission changes. These events are recorded in Redis as part of the activity stream and can be accessed through the API or web interface.
+
+The following user event fields are available for Redis deployments. 
+
+.User events config
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+| **USER_EVENTS_REDIS** +
+(Required) | Object | Redis connection details for user event handling.
+|**.host**  +
+(Required)| String | The hostname at which Redis is accessible. +
+**Example:** +
+`quay-server.example.com`
+|**.port**  +
+(Required)| Number | The port at which Redis is accessible. +
+**Example:** +
+`6379`
+|**.password** | String | The password to connect to the Redis instance. +
+**Example:** +
+`strongpassword`
+| **.ssl** | Boolean | Whether to enable TLS communication between Redis and Quay. Defaults to false.
+| **.ssl_keyfile** +
+(Optional) | String | The name of the key database file, which houses the client certificate to be used. +
+**Example:** +
+`ssl_keyfile: /path/to/server/privatekey.pem`
+| **.ssl_certfile** +
+(Optional) | String | Used for specifying the file path of the SSL certificate. +
+**Example:** +
+`ssl_certfile: /path/to/server/certificate.pem`
+| **.ssl_cert_reqs** +
+(Optional) | String | Used to specify the level of certificate validation to be performed during the SSL/TLS handshake. +
+**Example:** +
+`ssl_cert_reqs: CERT_REQUIRED`
+| **.ssl_ca_certs** +
+(Optional) | String | Used to specify the path to a file containing a list of trusted Certificate Authority (CA) certificates. +
+**Example:** +
+`ssl_ca_certs: /path/to/ca_certs.pem`
+| **.ssl_ca_data** +
+(Optional) | String | Used to specify a string containing the trusted CA certificates in PEM format. +
+**Example:** +
+`ssl_ca_data: <certificate>`
+| **.ssl_check_hostname ** +
+(Optional) | Boolean | Used when setting up an SSL/TLS connection to a server. It specifies whether the client should check that the hostname in the server's SSL/TLS certificate matches the hostname of the server it is connecting to. +
+**Example:** +
+`ssl_check_hostname: true`
+|===
+
+.Redis user events  example
+[source,yaml]
+----
+# ...
+USER_EVENTS_REDIS:
+  host: <quay-redis.example.com>
+  port: 6379
+  password: <example_password>
+  ssl: true
+  ssl_keyfile: /etc/ssl/private/redis-client.key
+  ssl_certfile: /etc/ssl/certs/redis-client.crt
+  ssl_cert_reqs: <required_certificate>
+  ssl_ca_certs: /etc/ssl/certs/ca-bundle.crt
+  ssl_check_hostname: true
+# ...
+----
