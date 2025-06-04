@@ -1,0 +1,41 @@
+:_content-type: REFERENCE
+[id="config-fields-redis-build-logs"]
+= Build logs
+
+Build logs are generated during the image build process and provide insights for debugging and auditing. {productname} uses Redis to temporarily store these logs before they are accessed through the user interface or API.
+
+The following build logs configuration fields are available for Redis deployments. 
+
+.Build logs configuration fields
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+| **BUILDLOGS_REDIS** +
+(Required) | Object | Redis connection details for build logs caching.
+|**.host**  +
+(Required)| String | The hostname at which Redis is accessible. +
+**Example:** +
+`quay-server.example.com`
+|**.port**  +
+(Required)| Number | The port at which Redis is accessible. +
+**Example:** +
+`6379`
+|**.password** | String | The password to connect to the Redis instance. +
+**Example:** +
+`strongpassword`
+| **.ssl** +
+(Optional) | Boolean | Whether to enable TLS communication between Redis and Quay. Defaults to false.
+|===
+
+.Build logs configuration example
+[source,yaml]
+----
+# ...
+BUILDLOGS_REDIS:
+  host: <quay-server.example.com>
+  password: <example_password>
+  port: 6379 <1>
+  ssl: true <1>
+# ...
+----
+<1> If your deployment uses Azure Cache for Redis and `ssl` is set to `true`, the port defaults to `6380`.
