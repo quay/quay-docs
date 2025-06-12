@@ -1,0 +1,75 @@
+:_content-type: REFERENCE
+[id="config-fields-web-ui"]
+= Web UI and user experience configuration fields
+
+These configuration fields control the behavior and appearance of the {productname} web interface and overall user experience. Options in this section allow administrators to customize login behavior, avatar display, user autocomplete, session handling, and catalog visibility.
+
+.Web UI and UX configuration fields
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+
+| **AVATAR_KIND** | String | The types of avatars to display, either generated inline (local) or Gravatar (gravatar) +
+ +
+ **Values:** `local`, `gravatar`
+
+| **FRESH_LOGIN_TIMEOUT** | String |  The time after which a fresh login requires users to re-enter their password +
+ +
+**Example:** `5m`
+
+| **FEATURE_UI_V2** | Boolean | When set, allows users to try the v2 beta UI environment. 
+
+*Default:* `True`
+
+|**FEATURE_UI_V2_REPO_SETTINGS** |Boolean | When set to `True`, enables repository settings in the {productname} v2 UI.
++
+*Default:* `False` 
+
+| **FEATURE_DIRECT_LOGIN** | Boolean | Whether users can directly login to the UI + 
+  + 
+**Default:** True
+
+| **FEATURE_PARTIAL_USER_AUTOCOMPLETE**  | Boolean | If set to true, autocompletion will apply to partial usernames+ 
+  + 
+**Default:** True
+
+| **FEATURE_LIBRARY_SUPPORT**  | Boolean | Whether to allow for "namespace-less" repositories when pulling and pushing from Docker + 
+  + 
+**Default:** True
+
+| **FEATURE_PERMANENT_SESSIONS**  | Boolean | Whether sessions are permanent + 
+  + 
+**Default:** True
+
+| **FEATURE_PUBLIC_CATALOG**  | Boolean | If set to true, the `_catalog` endpoint returns public repositories. Otherwise, only private repositories can be returned. + 
+  + 
+**Default:** False
+|===
+
+.Example YAML
+[source,yaml]
+----
+# ...
+AVATAR_KIND: local
+FRESH_LOGIN_TIMEOUT: 5m
+FEATURE_UI_V2: true
+FEATURE_UI_V2_REPO_SETTINGS: false
+FEATURE_DIRECT_LOGIN: true
+FEATURE_PARTIAL_USER_AUTOCOMPLETE: true
+FEATURE_LIBRARY_SUPPORT: true
+FEATURE_PERMANENT_SESSIONS: true
+FEATURE_PUBLIC_CATALOG: false
+# ...
+----
+
+[id="reference-miscellaneous-v2-ui"]
+== v2 user interface configuration
+
+With `FEATURE_UI_V2` enabled, you can toggle between the current version of the user interface and the new version of the user interface. 
+
+[IMPORTANT]
+====
+* This UI is currently in beta and subject to change. In its current state, users can only create, view, and delete organizations, repositories, and image tags. 
+* When running {productname} in the old UI, timed-out sessions would require that the user input their password again in the pop-up window. With the new UI, users are returned to the main page and required to input their username and password credentials. This is a known issue and will be fixed in a future version of the new UI. 
+* There is a discrepancy in how image manifest sizes are reported between the legacy UI and the new UI. In the legacy UI, image manifests were reported in mebibytes. In the new UI, {productname} uses the standard definition of megabyte (MB) to report image manifest sizes. 
+====

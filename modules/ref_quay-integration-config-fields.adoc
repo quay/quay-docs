@@ -1,24 +1,51 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
 :_content-type: REFERENCE
 [id="quay-integration-config-fields"]
 = QuayIntegration configuration fields
 
-The following configuration fields are available for the QuayIntegration custom resource:
+The `QuayIntegration` custom resource enables integration between your {ocp} cluster and a {productname} registry instance. 
 
+.QuayIntegration configuration fields
 [cols="4a,2a,2a",options="header"]
 |===
 |Name |Description |Schema
-|allowlistNamespaces +
+|*allowlistNamespaces* +
 (Optional) | A list of namespaces to include. |Array
-|clusterID +
+|*clusterID* +
 (Required) |The ID associated with this cluster. |String
-|credentialsSecret.key +
+|*credentialsSecret*.key +
 (Required) | The secret containing credentials to communicate with the Quay registry. |Object
-|denylistNamespaces +
+|*denylistNamespaces* +
 (Optional) | A list of namespaces to exclude. |Array
-|insecureRegistry +
+|*insecureRegistry* +
 (Optional) |Whether to skip TLS verification to the Quay registry |Boolean
-|quayHostname +
+|*quayHostname* +
 (Required) |The hostname of the Quay registry. |String
-|scheduledImageStreamImport +
+|*scheduledImageStreamImport* +
 (Optional) | Whether to enable image stream importing. |Boolean
 |===
+
+.QuayIntegration example CR
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayIntegration
+metadata:
+  name: example-quayintegration
+spec:
+  clusterID: 1df512fc-bf70-11ee-bb31-001a4a160100
+  quayHostname: quay.example.com
+  credentialsSecret:
+    name: quay-creds-secret
+    key: token
+  allowlistNamespaces:
+    - dev-team
+    - prod-team
+  denylistNamespaces:
+    - test
+  insecureRegistry: false
+  scheduledImageStreamImport: true
+----

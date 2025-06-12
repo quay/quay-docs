@@ -1,9 +1,14 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
+:_content-type: REFERENCE
 [id="config-fields-actionlog"]
-= Action log configuration fields
+= Action log storage configuration fields
 
-== Action log storage configuration
+{productname} maintains a detailed action log to track user and system activity, including repository events, authentication actions, and image operations. By default, this log data is stored in the database, but administrators can configure their deployment to export or forward logs to external systems like Elasticsearch or Splunk for advanced analysis, auditing, or compliance.
 
-.Action log storage configuration
+.Action log storage configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
@@ -21,123 +26,26 @@
  **Default:** False
 |===
 
-[id="elasticsearch-log-configuration-fields"]
-=== Elasticsearch configuration fields 
-
-The following fields are available when configuring Elasticsearch for {productname}.
-
-* **LOGS_MODEL_CONFIG** [object]: Logs model config for action logs.
-** **elasticsearch_config** [object]: Elasticsearch cluster configuration.
-*** **access_key** [string]: Elasticsearch user (or IAM key for AWS ES).
-**** **Example**: `some_string`
-*** **host** [string]: Elasticsearch cluster endpoint.
-**** **Example**: `host.elasticsearch.example`
-*** **index_prefix** [string]: Elasticsearch's index prefix.
-**** **Example**: `logentry_`
-*** **index_settings** [object]: Elasticsearch's index settings
-*** **use_ssl** [boolean]: Use ssl for Elasticsearch. Defaults to `True`.
-**** **Example**: `True`
-*** **secret_key** [string]: Elasticsearch password (or IAM secret for AWS ES).
-**** **Example**: `some_secret_string`
-*** **aws_region** [string]: Amazon web service region.
-**** **Example**: `us-east-1`
-*** **port** [number]: Elasticsearch cluster endpoint port.
-**** **Example**: `1234`
-** **kinesis_stream_config** [object]: AWS Kinesis Stream configuration.
-*** **aws_secret_key** [string]: AWS secret key.
-**** **Example**: `some_secret_key`
-*** **stream_name** [string]: Kinesis stream to send action logs to.
-**** **Example**: `logentry-kinesis-stream`
-*** **aws_access_key** [string]: AWS access key.
-**** **Example**: `some_access_key`
-*** **retries** [number]: Max number of attempts made on a single request.
-**** **Example**: `5`
-*** **read_timeout** [number]: Number of seconds before timeout when reading from a connection.
-**** **Example**: `5`
-*** **max_pool_connections** [number]: The maximum number of connections to keep in a connection pool.
-**** **Example**: `10`
-*** **aws_region** [string]: AWS region.
-**** **Example**: `us-east-1`
-*** **connect_timeout** [number]: Number of seconds before timeout when attempting to make a connection.
-**** **Example**: `5`
-** **producer** [string]: Logs producer if logging to Elasticsearch.
-*** **enum**: kafka, elasticsearch, kinesis_stream
-*** **Example**: `kafka`
-** **kafka_config** [object]: Kafka cluster configuration.
-*** **topic** [string]: Kafka topic to publish log entries to.
-**** **Example**: `logentry`
-*** **bootstrap_servers** [array]: List of Kafka brokers to bootstrap the client from.
-*** **max_block_seconds** [number]: Max number of seconds to block during a `send()`, either because the buffer is full or metadata unavailable.
-**** **Example**: `10`
-
-[id="splunk-configuration-fields"]
-=== Splunk configuration fields
-
-The following fields are available when configuring Splunk for {productname}.
-
-//splunk
-** **producer** [string]: `splunk`. Use when configuring Splunk.
-** **splunk_config** [object]: Logs model configuration for Splunk action logs or the Splunk cluster configuration.
-*** **host** [string]: Splunk cluster endpoint.
-*** **port** [integer]: Splunk management cluster endpoint port.
-*** **bearer_token** [string]: The bearer token for Splunk.
-*** **verify_ssl** [boolean]: Enable (`True`) or disable (`False`) TLS/SSL verification for HTTPS connections.
-*** **index_prefix** [string]: Splunk's index prefix.
-*** **ssl_ca_path** [string]: The relative container path to a single `.pem` file containing a certificate authority (CA) for SSL validation.
-
-.Example Splunk configuration
+.Action log storage example YAML
 [source,yaml]
 ----
 # ...
-LOGS_MODEL: splunk
+FEATURE_LOG_EXPORT: true
+LOGS_MODEL: elasticsearch
 LOGS_MODEL_CONFIG:
-    producer: splunk
-    splunk_config:
-        host: http://<user_name>.remote.csb
-        port: 8089
-        bearer_token: <bearer_token>
-        url_scheme: <http/https>
-        verify_ssl: False
-        index_prefix: <splunk_log_index_name>
-        ssl_ca_path: <location_to_ssl-ca-cert.pem>
+  elasticsearch:
+    endpoint: http://elasticsearch.example.com:9200
+    index_prefix: quay-logs
+    username: elastic
+    password: changeme
+ALLOW_WITHOUT_STRICT_LOGGING: true
 # ...
 ----
 
-[id="splunk-hec-configuration-fields"]
-=== Splunk HEC configuration fields
-
-The following fields are available when configuring Splunk HTTP Event Collector (HEC) for {productname}.
-
-** **producer** [string]: `splunk_hec`. Use when configuring Splunk HEC.
-** **splunk_hec_config** [object]: Logs model configuration for Splunk HTTP event collector action logs configuration.
-*** **host** [string]: Splunk cluster endpoint.
-*** **port** [integer]: Splunk management cluster endpoint port.
-*** **hec_token** [string]: HEC token for Splunk.
-*** **url_scheme** [string]: The URL scheme for access the Splunk service. If Splunk is behind SSL/TLS, must be `https`.
-*** **verify_ssl** [boolean]: Enable (`true`) or disable (`false`) SSL/TLS verification for HTTPS connections.
-*** **index** [string]: The Splunk index to use.
-*** **splunk_host** [string]: The host name to log this event.
-*** **splunk_sourcetype** [string]: The name of the Splunk `sourcetype` to use.
-
-[source,yaml]
-----
-# ...
-LOGS_MODEL: splunk
-LOGS_MODEL_CONFIG:
-  producer: splunk_hec
-  splunk_hec_config: <1>
-    host: prd-p-aaaaaq.splunkcloud.com <2>
-    port: 8088 <3>
-    hec_token: 12345678-1234-1234-1234-1234567890ab <4>
-    url_scheme: https <5>
-    verify_ssl: False <6>
-    index: quay <7>
-    splunk_host: quay-dev <8>
-    splunk_sourcetype: quay_logs <9>
-# ...
-----
-
+[id="action-log-rotation-archiving-configuration-fields"]
 == Action log rotation and archiving configuration
+
+This section describes configuration fields related to action log rotation and archiving in {productname}. When enabled, older logs can be automatically rotated and archived to designated storage locations, helping to manage log retention and storage utilization efficiently.
 
 .Action log rotation and archiving configuration
 [cols="3a,1a,2a",options="header"]
@@ -158,7 +66,21 @@ LOGS_MODEL_CONFIG:
 **Example:** `30d`
 |===
 
+.Action log rotation and archiving example YAML
+[source,yaml]
+----
+# ...
+FEATURE_ACTION_LOG_ROTATION: true
+ACTION_LOG_ARCHIVE_LOCATION: s3_us_east
+ACTION_LOG_ARCHIVE_PATH: archives/actionlogs
+ACTION_LOG_ROTATION_THRESHOLD: 30d
+# ...
+----
+
+[id="action-log-audit-configuration-fields"]
 == Action log audit configuration
+
+This section covers the configuration fields for audit logging within {productname}. When enabled, audit logging tracks detailed user activity such as UI logins, logouts, and Docker logins for regular users, robot accounts, and token-based accounts. 
 
 .Audit logs configuration field
 [cols="2a,1a,2a",options="header"]
@@ -168,3 +90,11 @@ LOGS_MODEL_CONFIG:
  +
 **Default:** `True`
 |===
+
+.Audit logs configuration example YAML
+[source,yaml]
+----
+# ...
+ACTION_LOG_AUDIT_LOGINS: true
+# ...
+----

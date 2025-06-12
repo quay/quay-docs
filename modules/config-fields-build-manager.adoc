@@ -1,5 +1,14 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
+:_content-type: REFERENCE
 [id="config-fields-build-manager"]
 = Build manager configuration fields
+
+The following configuration fields control how the build manager component of {productname} orchestrates and manages container image builds. This includes settings for Redis coordination, executor backends such as Kubernetes or EC2, builder image configuration, and advanced scheduling and retry policies.
+
+These fields must be configured to align with your infrastructure environment and workload requirements.
 
 .Build manager configuration fields
 [cols="3a,1a,2a",options="header"]
@@ -48,3 +57,34 @@ endif::downstream[]
 |*SSH_AUTHORIZED_KEYS* |Object | List of SSH keys to bootstrap in the `ignition` config. This allows other keys to be used to SSH into the EC2 instance or QEMU virtual machine (VM). 
 |===
 
+.Build manager configuration fields
+[source,yaml]
+----
+# ...
+ALLOWED_WORKER_COUNT: "1"
+ORCHESTRATOR_PREFIX: "quaybuild:"
+REDIS_HOST: redis.example.com
+REDIS_PASSWORD: examplepassword
+REDIS_SSL: true
+REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+EXECUTOR: kubernetes
+BUILDER_NAMESPACE: quay-builder
+K8S_API_SERVER: https://api.openshift.example.com:6443
+K8S_API_TLS_CA: /etc/ssl/certs/ca.crt
+KUBERNETES_DISTRIBUTION: openshift
+CONTAINER_RUNTIME: podman
+CONTAINER_MEMORY_LIMITS: 2Gi
+NODE_SELECTOR_ROLE: quay-build-node
+SERVICE_ACCOUNT_NAME: quay-builder-sa
+QUAY_USERNAME: quayuser
+QUAY_PASSWORD: quaypassword
+WORKER_IMAGE: quay.io/quay/quay-builder
+WORKER_TAG: latest
+BUILDER_VM_CONTAINER_IMAGE: quay.io/quay/vm-builder:latest
+SETUP_TIME: "500"
+MINIMUM_RETRY_THRESHOLD: "1"
+SSH_AUTHORIZED_KEYS:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsomekey user@example.com
+  - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAnotherkey user2@example.com
+# ...
+----

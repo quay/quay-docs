@@ -1,7 +1,15 @@
-[[config-fields-basic]]
-= Basic configuration fields
+:_content-type: REFERENCE
+[id="config-fields-basic"]
+= Registry branding and identity fields
 
-.Basic configuration
+The following configuration fields allow you to modify the branding, identity, and contact information displayed in your {productname} deployment. With these fields, you can customize how the registry appears to users by specifying titles, headers, footers, and organizational contact links shown throughout the UI. 
+
+[NOTE]
+====
+Some of the following fields are not available on the {productname} v2 UI.
+====
+
+.Registry branding and identity configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
@@ -42,3 +50,75 @@
 **Example:** +
 `https://twitter.com/quayio`
 |===
+
+.Branding configuration fields
+[cols="3a,1a,2a",options="header"]
+|===
+|Field | Type |Description
+| **BRANDING** | Object | Custom branding for logos and URLs in the {productname} UI.
+
+| **.logo** +
+(Required) |  String |  Main logo image URL. +
+
+The header logo defaults to 205x30 PX. The form logo on the {productname} sign in screen of the web UI defaults to 356.5x39.7 PX.
+ +
+**Example:** +
+`/static/img/quay-horizontal-color.svg`
+| **.footer_img** | String |  Logo for UI footer. Defaults to 144x34 PX. +
+ +
+**Example:** +
+`/static/img/RedHat.svg`
+| **.footer_url** | String | Link for footer image. +
+ +
+**Example:** +
+`https://redhat.com`
+|===
+
+.Footer links configuration fields
+|===
+| Field | Type | Description 
+
+|*FOOTER_LINKS* |Object | Enable customization of footer links in {productname}'s UI for on-prem installations.
+
+|*.TERMS_OF_SERVICE_URL* | String | Custom terms of service for on-prem installations. +
+ +
+**Example:** +
+`https://index.hr`
+
+|*.PRIVACY_POLICY_URL* | String | Custom privacy policy for on-prem installations. +
+ +
+**Example:** +
+`https://example.hr`
+|*.SECURITY_URL* | String | Custom security page for on-prem installations. +
+ +
+**Example:** +
+`https://example.hr`
+
+| **.ABOUT_URL** | String | Custom about page for on-prem installations. +
+ +
+**Example:** +
+`https://example.hr`
+|===
+
+.Registry branding and identity example YAML
+[source,yaml]
+----
+# ...
+REGISTRY_TITLE: "Example Container Registry"
+REGISTRY_TITLE_SHORT: "Example Quay"
+CONTACT_INFO:
+  - mailto:support@example.io
+  - irc://chat.freenode.net:6665/examplequay
+  - tel:+1-800-555-1234
+  - https://support.example.io
+BRANDING:
+    logo: https://www.mend.io/wp-content/media/2020/03/5-tips_small.jpg
+    footer_img: https://www.mend.io/wp-content/media/2020/03/5-tips_small.jpg
+    footer_url: https://opensourceworld.org/
+FOOTER_LINKS:
+  "TERMS_OF_SERVICE_URL": "https://www.index.hr"
+  "PRIVACY_POLICY_URL": "https://www.example.hr"
+  "SECURITY_URL": "https://www.example.hr"
+  "ABOUT_URL": "https://www.example.hr"
+# ...
+----

@@ -1,0 +1,48 @@
+:_content-type: REFERENCE
+[id="config-fields-namespace-repository-management"]
+= Namespace and repository management configuration fields
+
+The following configuration fields govern how {productname} manages namespaces and repositories, including behavior during automated image pushes, visibility defaults, and rate limiting exceptions.
+
+.Namespace and repository management configuration fields
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+| **DEFAULT_NAMESPACE_MAXIMUM_BUILD_COUNT** | Number | The default maximum number of builds that can be queued in a namespace. +
+ +
+**Default:** None
+
+| **CREATE_PRIVATE_REPO_ON_PUSH** | Boolean | Whether new repositories created by push are set to private visibility +
+ +
+**Default:** True
+
+| **CREATE_NAMESPACE_ON_PUSH** | Boolean | Whether new push to a non-existent organization creates it +
+ +
+**Default:** False
+
+| **PUBLIC_NAMESPACES** | Array of String | If a namespace is defined in the public namespace list, then it will appear on *all* users' repository list pages, regardless of whether the user is a member of the namespace. Typically, this is used by an enterprise customer in configuring a set of "well-known" namespaces.
+
+| **NON_RATE_LIMITED_NAMESPACES**  | Array of String | If rate limiting has been enabled using `FEATURE_RATE_LIMITS`,  you can override it for specific namespace that require unlimited access.
+
+|*DISABLE_PUSHES* |Boolean | Disables pushes of new content to the registry while retaining all other functionality. Differs from `read-only` mode because database is not set as `read-only`. When `DISABLE_PUSHES` is set to `true`, the {productname} garbage collector is disabled. As a result, when `PERMANENTLY_DELETE_TAGS` is enabled, using the {productname} UI to permanently delete a tag does not result in the immediate deletion of a tag. Instead, the image stays in the backend storage until `DISABLE_PUSHES` is set to `false`, which re-enables the garbage collector. {productname} administrators should be aware of this caveat when using `DISABLE_PUSHES` and `PERMANENTLY_DELETE_TAGS` together. +
+ +
+ **Default:** False
+|===
+
+.Namespace and repository management example YAML
+[source,yaml]
+----
+# ...
+DEFAULT_NAMESPACE_MAXIMUM_BUILD_COUNT: 10
+CREATE_PRIVATE_REPO_ON_PUSH: true
+CREATE_NAMESPACE_ON_PUSH: false
+PUBLIC_NAMESPACES:
+  - redhat
+  - opensource
+  - infra-tools
+NON_RATE_LIMITED_NAMESPACES:
+  - ci-pipeline
+  - trusted-partners
+DISABLE_PUSHES: false
+# ...
+----

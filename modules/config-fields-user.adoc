@@ -1,7 +1,12 @@
-:_content-type: CONCEPT
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
+:_content-type: REFERENCE
 [id="config-fields-user"]
 = User configuration fields
 
+The user configuration fields define how user accounts behave in your {productname} deployment. These fields enable control over user creation, access levels, metadata tracking, recovery options, and namespace management. You can also enforce restrictions, such as invite-only creation or superuser privileges, to match your organization's governance and security policies.
 
 .User configuration fields
 [cols="3a,1a,2a",options="header"]
@@ -67,67 +72,25 @@
 
 |===
 
-[id="user-config-field-reference"]
-== User configuration fields references
-
-Use the following references to update your `config.yaml` file with the desired configuration field. 
-
-[id="configuring-superusers-full-access"]
-=== FEATURE_SUPERUSERS_FULL_ACCESS configuration reference
-
+.User example YAML
 [source,yaml]
 ----
----
-SUPER_USERS:
-- quayadmin
-FEATURE_SUPERUSERS_FULL_ACCESS: True
----
-----
-
-[id="configuring-global-readonly-super-users"]
-=== GLOBAL_READONLY_SUPER_USERS configuration reference
-
-[source,yaml]
-----
----
+# ...
+FEATURE_SUPER_USERS: true
+FEATURE_USER_CREATION: true
+FEATURE_INVITE_ONLY_USER_CREATION: false
+FEATURE_USER_RENAME: true
+FEATURE_SUPERUSERS_FULL_ACCESS: true
+FEATURE_SUPERUSERS_ORG_CREATION_ONLY: false
+FEATURE_RESTRICTED_USERS: true
+RESTRICTED_USERS_WHITELIST: <1>
+      - user1
 GLOBAL_READONLY_SUPER_USERS:
-      - user1
----
+      - quayadmin
+FRESH_LOGIN_TIMEOUT: "5m"
+USER_RECOVERY_TOKEN_LIFETIME: "30m"
+USERFILES_LOCATION: "s3_us_east"
+USERFILES_PATH: "userfiles"
+# ...
 ----
-
-[id="configuring-feature-restricted-users"]
-=== FEATURE_RESTRICTED_USERS configuration reference
-
-[source,yaml]
-----
----
-AUTHENTICATION_TYPE: Database
----
----
-FEATURE_RESTRICTED_USERS: true
----
-----
-
-[id="configuring-restricted-users-whitelist"]
-=== RESTRICTED_USERS_WHITELIST configuration reference
-
-.Prerequisites 
-
-* `FEATURE_RESTRICTED_USERS` is set to `true` in your `config.yaml` file. 
-
-[source,yaml]
-----
----
-AUTHENTICATION_TYPE: Database
----
----
-FEATURE_RESTRICTED_USERS: true
-RESTRICTED_USERS_WHITELIST:
-      - user1
----
-----
-
-[NOTE]
-====
-When this field is set, whitelisted users can create organizations, or read or write content from the repository even if `FEATURE_RESTRICTED_USERS` is set to `true`. Other users, for example, `user2`, `user3`, and `user4` are restricted from creating organizations, reading, or writing content 
-====
+<1> When the `RESTRICTED_USERS_WHITELIST` field is set, whitelisted users can create organizations, or read or write content from the repository even if `FEATURE_RESTRICTED_USERS` is set to `true`. Other users, for example, `user2`, `user3`, and `user4` are restricted from creating organizations, reading, or writing content.

@@ -1,6 +1,12 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
 :_content-type: REFERENCE
 [id="config-fields-oauth"]
 = OAuth configuration fields
+
+The following fields define the behavior of {productname} when handling authentication through external identity providers using OAuth. You can configure global OAuth options such as token assignment and whitelisted client IDs, as well as provider-specific settings for GitHub and Google.
 
 .OAuth fields
 [cols="3a,1a,2a",options="header"]
@@ -9,13 +15,20 @@
 | **DIRECT_OAUTH_CLIENTID_WHITELIST** | Array of String | A list of client IDs for **Quay-managed** applications that are allowed to perform direct OAuth approval without user approval.
 
 |*FEATURE_ASSIGN_OAUTH_TOKEN* | Boolean| Allows organization administrators to assign OAuth tokens to other users.
-
 |===
 
-[id="github-oauth-config-fields"]
-== GitHub OAuth configuration fields
+.Global OAuth example YAML
+[source,yaml]
+----
+# ...
+DIRECT_OAUTH_CLIENTID_WHITELIST:
+  - <quay_robot_client>
+  - <quay_app_token_issuer>
+FEATURE_ASSIGN_OAUTH_TOKEN: true
+# ...
+----
 
-.GitHub OAuth fields
+.GitHub OAuth configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
@@ -30,11 +43,11 @@
 | {nbsp}{nbsp}{nbsp}**.CLIENT_ID** + 
 {nbsp}{nbsp}{nbsp}(Required) | String |   The registered client ID for this {productname} instance; cannot be shared with `GITHUB_TRIGGER_CONFIG`. + 
  + 
-**Example:** `0e8dbe15c4c7630b6780`
+**Example:** `<client_id>`
 | {nbsp}{nbsp}{nbsp}**.CLIENT_SECRET** + 
 {nbsp}{nbsp}{nbsp}(Required)  | String | The registered client secret for this {productname} instance. + 
  + 
-**Example:** `e4a58ddd3d7408b7aec109e85564a0d153d3e846`
+**Example:** `<client_secret>`
 | {nbsp}{nbsp}{nbsp}**.GITHUB_ENDPOINT**  + 
 {nbsp}{nbsp}{nbsp}(Required) | String |  The endpoint for GitHub (Enterprise). + 
  + 
@@ -42,10 +55,24 @@
 | {nbsp}{nbsp}{nbsp}**.ORG_RESTRICT** | Boolean | If true, only users within the organization whitelist can login using this provider.
 |===
 
-[id="google-oauth-config-fields"]
-== Google OAuth configuration fields
+.Github OAth example YAML
+[source,yaml]
+----
+# ...
+FEATURE_GITHUB_LOGIN: true
+GITHUB_LOGIN_CONFIG:
+  ALLOWED_ORGANIZATIONS:
+    - <myorg>
+    - <dev-team>
+  API_ENDPOINT: <https://api.github.com/>
+  CLIENT_ID: <client_id>
+  CLIENT_SECRET: <client_secret>
+  GITHUB_ENDPOINT: <https://github.com/>
+  ORG_RESTRICT: true
+# ...
+----
 
-.Google OAuth fields
+.Google OAuth configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
@@ -56,9 +83,20 @@
 | {nbsp}{nbsp}{nbsp}**.CLIENT_ID** + 
 {nbsp}{nbsp}{nbsp}(Required)  | String | The registered client ID for this {productname} instance. + 
  + 
-**Example:** `0e8dbe15c4c7630b6780`
+**Example:** `<client_id>`
 | {nbsp}{nbsp}{nbsp}**.CLIENT_SECRET** + 
 {nbsp}{nbsp}{nbsp}(Required)  | String | The registered client secret for this {productname} instance. + 
  + 
-**Example:** `e4a58ddd3d7408b7aec109e85564a0d153d3e846`
+**Example:** `<client_secret>`
 |===
+
+.Google OAuth example YAML
+[source,yaml]
+----
+# ...
+FEATURE_GOOGLE_LOGIN: true
+GOOGLE_LOGIN_CONFIG:
+  CLIENT_ID: <client_id>
+  CLIENT_SECRET: <client_secret>
+# ...
+----

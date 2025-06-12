@@ -1,65 +1,81 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
+:_content-type: REFERENCE
 [id="oidc-config-fields"]
 = OIDC configuration fields
 
+You can configure {productname} to authenticate users through any OpenID Connect (OIDC)-compatible identity provider, including Azure Entra ID (formerly Azure AD), Okta, Keycloak, and others. These fields define the necessary client credentials, endpoints, and token behavior used during the OIDC login flow.
+
 .OIDC fields
+[cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
 | **<string>_LOGIN_CONFIG** +
 (Required) | String | The parent key that holds the OIDC configuration settings. Typically the name of the OIDC provider, for example, `AZURE_LOGIN_CONFIG`, however any arbitrary string is accepted. 
-| **.CLIENT_ID** + 
+| **{nbsp}{nbsp}{nbsp}.CLIENT_ID** + 
 (Required) | String | The registered client ID for this {productname} instance. +
  +
 **Example:** `0e8dbe15c4c7630b6780`
-| **.CLIENT_SECRET** + 
+| **{nbsp}{nbsp}{nbsp}.CLIENT_SECRET** + 
 (Required)  | String | The registered client secret for this {productname} instance. +
  +
 **Example:** `e4a58ddd3d7408b7aec109e85564a0d153d3e846`
-| **.DEBUGLOG** |Boolean | Whether to enable debugging. 
-| **.LOGIN_BINDING_FIELD** |String | Used when the internal authorization is set to LDAP. {productname} reads this parameter and tries to search through the LDAP tree for the user with this username. If it exists, it automatically creates a link to that LDAP account.
-| **.LOGIN_SCOPES** | Object | Adds additional scopes that {productname} uses to communicate with the OIDC provider. 
-| **.OIDC_ENDPOINT_CUSTOM_PARAMS** | String | Support for custom query parameters on OIDC endpoints. The following endpoints are supported:
+| **{nbsp}{nbsp}{nbsp}.DEBUGLOG** |Boolean | Whether to enable debugging. 
+| **{nbsp}{nbsp}{nbsp}.LOGIN_BINDING_FIELD** |String | Used when the internal authorization is set to LDAP. {productname} reads this parameter and tries to search through the LDAP tree for the user with this username. If it exists, it automatically creates a link to that LDAP account.
+| **{nbsp}{nbsp}{nbsp}.LOGIN_SCOPES** | Object | Adds additional scopes that {productname} uses to communicate with the OIDC provider. 
+| **{nbsp}{nbsp}{nbsp}.OIDC_ENDPOINT_CUSTOM_PARAMS** | String | Support for custom query parameters on OIDC endpoints. The following endpoints are supported:
 `authorization_endpoint`, `token_endpoint`, and `user_endpoint`.
-| **.OIDC_ISSUER** | String | Allows the user to define the issuer to verify. For example, JWT tokens container a parameter known as `iss` which defines who issued the token. By default, this is read from the `.well-know/openid/configuration` endpoint, which is exposed by every OIDC provider. If this verification fails, there is no login. 
-| **.OIDC_SERVER** +
+| **{nbsp}{nbsp}{nbsp}.OIDC_ISSUER** | String | Allows the user to define the issuer to verify. For example, JWT tokens container a parameter known as `iss` which defines who issued the token. By default, this is read from the `.well-know/openid/configuration` endpoint, which is exposed by every OIDC provider. If this verification fails, there is no login. 
+| **{nbsp}{nbsp}{nbsp}.OIDC_SERVER** +
 (Required) | String | The address of the OIDC server that is being used for authentication. +
  +
 **Example:** `\https://sts.windows.net/6c878.../`
-| **.PREFERRED_USERNAME_CLAIM_NAME** |String |Sets the preferred username to a parameter from the token.
-| **.SERVICE_ICON** | String | Changes the icon on the login screen.
+| **{nbsp}{nbsp}{nbsp}.PREFERRED_USERNAME_CLAIM_NAME** |String |Sets the preferred username to a parameter from the token.
+| **{nbsp}{nbsp}{nbsp}.SERVICE_ICON** | String | Changes the icon on the login screen.
 
-| **.SERVICE_NAME** +
+| **{nbsp}{nbsp}{nbsp}.SERVICE_NAME** +
 (Required) | String | The name of the service that is being authenticated. +
  +
 **Example:** `Microsoft Entra ID`
-| **.VERIFIED_EMAIL_CLAIM_NAME** | String | The name of the claim that is used to verify the email address of the user.
+| **{nbsp}{nbsp}{nbsp}.VERIFIED_EMAIL_CLAIM_NAME** | String | The name of the claim that is used to verify the email address of the user.
 
-| **.PREFERRED_GROUP_CLAIM_NAME** | String | The key name within the OIDC token payload that holds information about the user's group memberships.
+| **{nbsp}{nbsp}{nbsp}.PREFERRED_GROUP_CLAIM_NAME** | String | The key name within the OIDC token payload that holds information about the user's group memberships.
 
-| **.OIDC_DISABLE_USER_ENDPOINT** | Boolean | Whether to allow or disable the `/userinfo` endpoint. If using Azure Entra ID, this field must be set to `true` because Azure obtains the user's information from the token instead of calling the `/userinfo` endpoint. +
+| **{nbsp}{nbsp}{nbsp}.OIDC_DISABLE_USER_ENDPOINT** | Boolean | Whether to allow or disable the `/userinfo` endpoint. If using Azure Entra ID, this field must be set to `true` because Azure obtains the user's information from the token instead of calling the `/userinfo` endpoint. +
  +
  **Default:** `false`
 |===
 
-[id="oidc-config"]
-== OIDC configuration 
-
-The following example shows a sample OIDC configuration. 
-
-.Example OIDC configuration
+.OIDC example YAML
 [source,yaml]
 ----
 AUTHENTICATION_TYPE: OIDC
 # ...
-AZURE_LOGIN_CONFIG:
-    CLIENT_ID: <client_id>
-    CLIENT_SECRET: <client_secret>
-    OIDC_SERVER: <oidc_server_address_>
-    DEBUGGING: true
-    SERVICE_NAME: Microsoft Entra ID
-    VERIFIED_EMAIL_CLAIM_NAME: <verified_email>
-    OIDC_DISABLE_USER_ENDPOINT: true
-    OIDC_ENDPOINT_CUSTOM_PARAMS": 
-                "authorization_endpoint": 
-                    "some": "param",
+<oidc_provider>_LOGIN_CONFIG:
+  CLIENT_ID: <client_id>
+  CLIENT_SECRET: <client_secret>
+  DEBUGLOG: true
+  LOGIN_BINDING_FIELD: <login_binding_field>
+  LOGIN_SCOPES:
+    - openid
+    - email
+    - profile
+  OIDC_ENDPOINT_CUSTOM_PARAMS:
+    authorization_endpoint:
+      some: "param"
+    token_endpoint:
+      some: "param"
+    user_endpoint:
+      some: "param"
+  OIDC_ISSUER: <oidc_issuer_url>
+  OIDC_SERVER: <oidc_server_address>
+  PREFERRED_USERNAME_CLAIM_NAME: <preferred_username_claim>
+  SERVICE_ICON: <service_icon_url>
+  SERVICE_NAME: <service_name>
+  VERIFIED_EMAIL_CLAIM_NAME: <verified_email_claim>
+  PREFERRED_GROUP_CLAIM_NAME: <preferred_group_claim>
+  OIDC_DISABLE_USER_ENDPOINT: true
 # ...
 ----

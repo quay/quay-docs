@@ -1,8 +1,8 @@
-:_content-type: CONCEPT
+:_content-type: REFERENCE
 [id="config-fields-tag-expiration"]
 = Tag expiration configuration fields
 
-The following tag expiration configuration fields are available with {productname}: 
+The following configuration options are available to automate tag expiration and garbage collection. These features help manage storage usage by enabling cleanup of unused or expired tags based on defined policies.
 
 .Tag expiration configuration fields
 [cols="3a,1a,2a",options="header"]
@@ -51,47 +51,35 @@ Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y
 
 |===
 
-[id="example-config-fields-tag-expiration"]
-== Example tag expiration configuration
-
-The following YAML example shows you a sample tag expiration configuration.
-
+.Example tag expiration example YAML
 [source,yaml]
 ----
 # ...
-DEFAULT_TAG_EXPIRATION: 2w
+FEATURE_GARBAGE_COLLECTION: true
 TAG_EXPIRATION_OPTIONS:
-    - 0s
-    - 1d
-    - 1w
-    - 2w
-    - 4w
-    - 3y
-# ...
-----
-
-[id="example-auto-prune-policy-registry"]
-== Registry-wide auto-prune policies examples
-
-The following YAML examples show you registry-wide auto-pruning examples by both number of tags and creation date.
-
-.Example registry auto-prune policy by number of tags
-[source,yaml]
-----
-# ...
+  - 1w
+  - 2w
+  - 1m
+  - 90d
+DEFAULT_TAG_EXPIRATION: 2w
+FEATURE_CHANGE_TAG_EXPIRATION: true
+FEATURE_AUTO_PRUNE: true
+NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES: 300
 DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
   method: number_of_tags
   value: 10 <1>
+AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD: 86400
 # ...
 ----
-<1> In this scenario, ten tags remain.
+<1> Specifies ten tags to remain.
 
-.Example registry auto-prune policy by creation date
+.Registry auto-prune policy by creation date example YAML
 [source,yaml]
 ----
 # ...
 DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
   method: creation_date
-  value: 1y
+  value: 1y <1>
 # ...
 ----
+<1> Specifies tags to be pruned one year after their creation date.
