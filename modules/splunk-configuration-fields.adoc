@@ -1,0 +1,99 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
+:_content-type: REFERENCE
+[id="splunk-configuration-fields"]
+= Splunk configuration fields
+
+Use the following fields to configure {productname} to export action logs to a Splunk endpoint. This configuration allows audit and event logs to be sent to an external Splunk server for centralized analysis, search, and long-term storage.
+
+.Splunk configuration fields
+[cols="2a,1a,4a", options="header"]
+|===
+| Field | Type | Description
+
+| **producer** | String | Must be set to `splunk` when configuring Splunk as the log exporter.
+
+| **splunk_config** | Object | Logs model configuration for Splunk action logs or Splunk cluster configuration.
+
+| *.host* | String | The Splunk cluster endpoint.
+
+| *.port* | Integer | The port number for the Splunk management cluster endpoint.
+
+| *.bearer_token* | String | The bearer token used for authentication with Splunk.
+
+| *.verify_ssl* | Boolean | Enable (`True`) or disable (`False`) TLS/SSL verification for HTTPS connections.
+
+| *.index_prefix* | String | The index prefix used by Splunk.
+
+| *.ssl_ca_path* | String | The relative container path to a `.pem` file containing the certificate authority (CA) for SSL validation.
+|===
+
+.Splunk configuration example YAML
+[source,yaml]
+----
+# ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+    producer: splunk
+    splunk_config:
+        host: http://<user_name>.remote.csb
+        port: 8089
+        bearer_token: <bearer_token>
+        url_scheme: <http/https>
+        verify_ssl: False
+        index_prefix: <splunk_log_index_name>
+        ssl_ca_path: <location_to_ssl-ca-cert.pem>
+# ...
+----
+
+[id="splunk-hec-configuration-fields"]
+== Splunk HEC configuration fields
+
+The following fields are available when configuring Splunk HTTP Event Collector (HEC) for {productname}.
+
+.Splunk HEC configuration fields
+[cols="3a,1a,4a", options="header"]
+|===
+| Field | Type | Description
+
+| **producer** | String | Must be set to `splunk_hec` when configuring Splunk HTTP Event Collector (HEC).
+
+| **splunk_hec_config** | Object | Logs model configuration for Splunk HTTP Event Collector action logs.
+
+| *.host* | String | Splunk cluster endpoint.
+
+| *.port* | Integer | Splunk management cluster endpoint port.
+
+| *.hec_token* | String | HEC token used for authenticating with Splunk.
+
+| *.url_scheme*| String | URL scheme to access the Splunk service. Use `https` if Splunk is behind SSL/TLS.
+
+| *.verify_ssl* | Boolean | Enable (`true`) or disable (`false`) SSL/TLS verification for HTTPS connections.
+
+| *.index* | String | The Splunk index to use for log storage.
+
+| *.splunk_host* | String | The hostname to assign to the logged event.
+
+| *.splunk_sourcetype* | String | The Splunk `sourcetype` to associate with the event.
+|===
+
+.Splunk HEC example YAML
+[source,yaml]
+----
+# ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  producer: splunk_hec
+  splunk_hec_config:
+    host: prd-p-aaaaaq.splunkcloud.com
+    port: 8088
+    hec_token: 12345678-1234-1234-1234-1234567890ab
+    url_scheme: https
+    verify_ssl: False
+    index: quay
+    splunk_host: quay-dev
+    splunk_sourcetype: quay_logs
+# ...
+----

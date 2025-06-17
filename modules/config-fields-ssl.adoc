@@ -1,8 +1,10 @@
-:_content-type: CONCEPT
+:_content-type: REFERENCE
 [id="config-fields-ssl"]
-= SSL configuration fields
+= SSL/TLS configuration fields
 
-.SSL configuration
+This section describes the available configuration fields for enabling and managing SSL/TLS encryption in your {productname} deployment.
+
+.SSL configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
@@ -32,29 +34,22 @@ False +
  +
 **Recommendation:** +
 Set to True for all installations using SSL
+
+| **EXTERNAL_TLS_TERMINATION** | Boolean | Set to `true` if TLS is supported, but terminated at a layer before Quay. Set to `false` when Quay is running with its own SSL certificates and receiving TLS traffic directly. 
+
 |===
 
-
-
-== Configuring SSL
-
- . Copy the certificate file and primary key file to your configuration directory, ensuring they are named `ssl.cert` and `ssl.key` respectively:
-+
-```
-$ cp ~/ssl.cert $QUAY/config
-$ cp ~/ssl.key $QUAY/config
-$ cd $QUAY/config
-```
-
-. Edit the `config.yaml` file and specify that you want Quay to handle TLS:
-+
-.config.yaml
+.SSL configuration example YAML
 [source,yaml]
 ----
-...
-SERVER_HOSTNAME: quay-server.example.com
-...
+# ...
 PREFERRED_URL_SCHEME: https
-...
+SERVER_HOSTNAME: quay-server.example.com
+SSL_CIPHERS:
+  - ECDHE-RSA-AES128-GCM-SHA256
+SSL_PROTOCOLS:
+  - TLSv1.3
+SESSION_COOKIE_SECURE: true
+EXTERNAL_TLS_TERMINATION: true
+# ...
 ----
-. Stop the `Quay` container and restart the registry

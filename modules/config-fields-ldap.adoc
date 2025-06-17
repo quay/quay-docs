@@ -2,6 +2,14 @@
 [id="config-fields-ldap"]
 = LDAP configuration fields
 
+The following configuration fields allow administrators to integrate {productname} with an LDAP-based authentication system. When `AUTHENTICATION_TYPE` is set to `LDAP`, {productname} can authenticate users against an LDAP directory and support additional, optional features such as team synchronization, superuser access control, restricted user roles, and secure connection parameters.
+
+This section provides YAML examples for the following LDAP scenarios:
+
+* Basic LDAP configuration
+* LDAP restricted user configuration
+* LDAP superuser configuration 
+
 .LDAP configuration
 [cols="2a,1a,2a",options="header"]
 |===
@@ -57,24 +65,14 @@ This field requires that your `AUTHENTICATION_TYPE` is set to `LDAP`.
 | **LDAP_NETWORK_TIMEOUT** |Integer | Specifies the time limit, in seconds, for establishing a connection to the LDAP server. This is the maximum time {productname} waits for a response during network operations, similar to the `-o nettimeout` option in `ldapsearch`. +
  +
 **Default:** `10`
-
 |===
 
-[id="ldap-config-field-reference"]
-== LDAP configuration references
-
-Use the following references to update your `config.yaml` file with the desired LDAP settings. 
-
-[id="reference-ldap-user"]
-=== Basic LDAP configuration
-
-Use the following reference for a basic LDAP configuration.
-
+.Basic LDAP configuration example YAML
 [source,yaml]
 ----
----
+# ...
 AUTHENTICATION_TYPE: LDAP <1>
----
+# ...
 LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com <2>
 LDAP_ADMIN_PASSWD: ABC123 <3>
 LDAP_ALLOW_INSECURE_FALLBACK: false <4>
@@ -105,11 +103,7 @@ LDAP_SECONDARY_USER_RDNS: <11>
 <10> Required. The user RDN for LDAP authentication.
 <11> Optional. Secondary User Relative DNs if there are multiple Organizational Units where user objects are located.
 
-[id="reference-ldap-restricted-user"]
-=== LDAP restricted user configuration
-
-Use the following reference for an LDAP restricted user configuration.
-
+.LDAP restricted user configuration example YAML
 [source,yaml]
 ----
 # ...
@@ -139,12 +133,7 @@ LDAP_USER_RDN:
 <1> Must be set to `true` when configuring an LDAP restricted user.
 <2> Configures specified users as restricted users.
 
-[id="reference-ldap-super-user"]
-=== LDAP superuser configuration reference
-
-Use the following reference for an LDAP superuser configuration.
-
-
+.LDAP superuser configuration reference example YAML
 [source,yaml]
 ----
 # ...

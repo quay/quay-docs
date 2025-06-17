@@ -1,6 +1,8 @@
 :_content-type: REFERENCE
 [id="config-fields-scanner"]
-= Security scanner configuration fields
+= Clair security scanner configuration fields
+
+{productname} can leverage Clair security scanner to detect vulnerabilities in container images. These configuration fields control how the scanner is enabled, how frequently it indexes new content, which endpoints are used, and how notifications are handled.
 
 .Security scanner configuration
 [cols="3a,1a,2a",options="header"]
@@ -49,23 +51,10 @@
  **Default**: `8G`
 |===
 
-[id="reindexing-clair-v4"]
-== Re-indexing with Clair v4
-
-When Clair v4 indexes a manifest, the result should be deterministic. For example, the same manifest should produce the same index report. This is true until the scanners are changed, as using different scanners will produce different information relating to a specific manifest to be returned in the report. Because of this, Clair v4 exposes a state representation of the indexing engine (`/indexer/api/v1/index_state`) to determine whether the scanner configuration has been changed. 
-
-{productname} leverages this index state by saving it to the index report when parsing to Quay's database. If this state has changed since the manifest was previously scanned, {productname} will attempt to re-index that manifest during the periodic indexing process. 
-
-By default this parameter is set to 30 seconds. Users might decrease the time if they want the indexing process to run more frequently, for example, if they did not want to wait 30 seconds to see security scan results in the UI after pushing a new tag. Users can also change the parameter if they want more control over the request pattern to Clair and the pattern of database operations being performed on the {productname} database. 
-
-[id="example-security-scanner-config"]
-== Example security scanner configuration
-
-The following YAML is the suggested configuration when enabling the security scanner feature.
-
 .Security scanner YAML configuration
 [source,yaml]
 ----
+# ...
 FEATURE_SECURITY_NOTIFICATIONS: true
 FEATURE_SECURITY_SCANNER: true
 FEATURE_SECURITY_SCANNER_NOTIFY_ON_NEW_INDEX: true
@@ -76,6 +65,15 @@ SECURITY_SCANNER_V4_ENDPOINT: http://quay-server.example.com:8081
 SECURITY_SCANNER_V4_PSK: MTU5YzA4Y2ZkNzJoMQ==
 SERVER_HOSTNAME: quay-server.example.com
 SECURITY_SCANNER_V4_INDEX_MAX_LAYER_SIZE: 8G <1>
-...
+# ...
 ----
 <1> Recommended maximum is `10G`.
+
+[id="reindexing-clair-v4"]
+== Re-indexing with Clair v4
+
+When Clair v4 indexes a manifest, the result should be deterministic. For example, the same manifest should produce the same index report. This is true until the scanners are changed, as using different scanners will produce different information relating to a specific manifest to be returned in the report. Because of this, Clair v4 exposes a state representation of the indexing engine (`/indexer/api/v1/index_state`) to determine whether the scanner configuration has been changed. 
+
+{productname} leverages this index state by saving it to the index report when parsing to Quay's database. If this state has changed since the manifest was previously scanned, {productname} will attempt to re-index that manifest during the periodic indexing process. 
+
+By default this parameter is set to 30 seconds. Users might decrease the time if they want the indexing process to run more frequently, for example, if they did not want to wait 30 seconds to see security scan results in the UI after pushing a new tag. Users can also change the parameter if they want more control over the request pattern to Clair and the pattern of database operations being performed on the {productname} database.

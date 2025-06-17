@@ -1,5 +1,12 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
+:_content-type: REFERENCE
 [id="config-fields-dockerfile-build"]
 = Dockerfile build triggers fields
+
+This section describes the configuration fields used to enable and manage automated builds in {productname} from Dockerfiles and source code repositories. These fields allow you to define build behavior, enable or disable support for GitHub, GitLab, and Bitbucket triggers, and provide OAuth credentials and endpoints for each SCM provider.
 
 .Dockerfile build support
 [cols="3a,1a,2a",options="header"]
@@ -17,7 +24,15 @@
 **Default:**  `5`
 |===
 
-== GitHub build triggers
+.Dockerfile build support example YAML
+[source,yaml]
+----
+# ...
+FEATURE_BUILD_SUPPORT: true
+SUCCESSIVE_TRIGGER_FAILURE_DISABLE_THRESHOLD: 100
+SUCCESSIVE_TRIGGER_INTERNAL_ERROR_DISABLE_THRESHOLD: 5
+# ...
+----
 
 .GitHub build triggers
 [cols="3a,1a,2a",options="header"]
@@ -26,7 +41,6 @@
 | **FEATURE_GITHUB_BUILD** | Boolean | Whether to support GitHub build triggers. + 
  + 
 **Default:** `False`
-| {nbsp} | {nbsp} | {nbsp}
 | **GITHUB_TRIGGER_CONFIG** | Object | Configuration for using GitHub Enterprise for build triggers.
 | {nbsp}{nbsp}{nbsp}**.GITHUB_ENDPOINT** + 
 {nbsp}{nbsp}{nbsp}(Required) | String | The endpoint for GitHub Enterprise. + 
@@ -41,7 +55,18 @@
 {nbsp}{nbsp}{nbsp}(Required) | String | The registered client secret for this {productname} instance.
 |===
 
-== BitBucket build triggers
+.Github build triggers example YAML
+[source,yaml]
+----
+# ...
+FEATURE_GITHUB_BUILD: true
+GITHUB_TRIGGER_CONFIG:
+  GITHUB_ENDPOINT: https://github.com/
+  API_ENDPOINT: https://api.github.com/
+  CLIENT_ID: your-client-id
+  CLIENT_SECRET: your-client-secret
+# ...
+----
 
 .BitBucket build triggers
 [cols="3a,1a,2a",options="header"]
@@ -50,7 +75,6 @@
 | **FEATURE_BITBUCKET_BUILD** | Boolean | Whether to support Bitbucket build triggers. + 
  + 
 **Default:** False
-| {nbsp} | {nbsp} | {nbsp}
 | **BITBUCKET_TRIGGER_CONFIG** | Object | Configuration for using BitBucket for build triggers.
 | {nbsp}{nbsp}{nbsp}**.CONSUMER_KEY** + 
 {nbsp}{nbsp}{nbsp}(Required) | String | The registered consumer key (client ID) for this {productname} instance.
@@ -58,7 +82,16 @@
 {nbsp}{nbsp}{nbsp}(Required) | String | The registered consumer secret (client secret) for this  {productname} instance.
 |===
 
-== GitLab build triggers
+.Bitbucket build triggers example YAML
+[source,yaml]
+----
+# ...
+FEATURE_BITBUCKET_BUILD: true
+BITBUCKET_TRIGGER_CONFIG:
+  CONSUMER_KEY: <your_consumer_key>
+  CONSUMER_SECRET: <your-consumer-secret>
+# ...
+----
 
 .GitLab build triggers
 [cols="3a,1a,2a",options="header"]
@@ -67,7 +100,6 @@
 | **FEATURE_GITLAB_BUILD** | Boolean | Whether to support GitLab build triggers. + 
  + 
 **Default:** False
-| {nbsp} | {nbsp} | {nbsp}
 | **GITLAB_TRIGGER_CONFIG** | Object | Configuration for using Gitlab for build triggers.
 | {nbsp}{nbsp}{nbsp}**.GITLAB_ENDPOINT** + 
 {nbsp}{nbsp}{nbsp}(Required) | String | The endpoint at which Gitlab Enterprise is running.
@@ -76,3 +108,15 @@
 | {nbsp}{nbsp}{nbsp}**.CLIENT_SECRET** + 
 {nbsp}{nbsp}{nbsp}(Required) | String | The registered client secret for this {productname} instance.
 |===
+
+.GitLab build triggers example YAML
+[source,yaml]
+----
+# ...
+FEATURE_GITLAB_BUILD: true
+GITLAB_TRIGGER_CONFIG:
+  GITLAB_ENDPOINT: https://gitlab.example.com/
+  CLIENT_ID: <your_gitlab_client_id>
+  CLIENT_SECRET: <your_gitlab_client_secret>
+# ...
+----

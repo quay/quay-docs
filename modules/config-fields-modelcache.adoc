@@ -1,5 +1,84 @@
-:_content-type: CONCEPT
+:_content-type: REFERENCE
 [id="config-fields-modelcache"]
-= ModelCache configuration options
+= ModelCache configuration fields
 
-The following options are available on {productname} for configuring ModelCache. 
+ModelCache is a caching mechanism used by {productname} to store accessed data and reduce database load. Quay supports multiple backends for caching, including the default Memcache, as well as Redis and Redis Cluster.
+
+* *Memcache* (default): requires no additional configuration.
+* *Redis*: can be configured as a single instance or with a read-only replica.
+* *Redis Cluster*: provides high availability and sharding for larger deployments.
+
+.ModelCache configuration fields
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+
+| **DATA_MODEL_CACHE_CONFIG.engine** | String | The cache backend engine. +
+**Values:** `memcache`, `redis`, `rediscluster` +
+**Default:** `memcache`
+
+| **.redis_config.primary.host** | String | The hostname of the primary Redis instance when using the `redis` engine.
+
+| **.redis_config.primary.port** | Number | The port used by the primary Redis instance.
+
+| **.redis_config.primary.password** | String | The password for authenticating with the primary Redis instance. Only required if `ssl` is set to `true`.
+
+| **.redis_config.primary.ssl** | Boolean | Whether to use SSL/TLS for the primary Redis connection.
+
+| **.redis_config.startup_nodes** | Array of Map | For `rediscluster` engine. The list of initial Redis cluster nodes with `host` and `port`.
+
+| **redis_config.password** | String | Password used for authentication with the Redis cluster. Required if `ssl` is `true`.
+
+| **.redis_config.read_from_replicas** | Boolean | Whether to allow read operations from Redis cluster replicas.
+
+| **.redis_config.skip_full_coverage_check** | Boolean | If set to true, skips the Redis cluster full coverage check.
+
+| **.redis_config.ssl** | Boolean | Whether to use SSL/TLS for Redis cluster communication.
+
+| **.replica.host** | String | The hostname of the Redis replica instance. Optional.
+
+| **.replica.port** | Number | The port used by the Redis replica instance.
+
+| **.replica.password** | String | The password for the Redis replica. Required if `ssl` is `true`.
+
+| **.replica.ssl** | Boolean | Whether to use SSL/TLS for the Redis replica connection.
+|===
+
+.Single Redis with optional replica example YAML
+[source,yaml]
+----
+# ...
+DATA_MODEL_CACHE_CONFIG:
+  engine: redis
+  redis_config:
+    primary:
+      host: <redis-primary.example.com>
+      port: 6379
+      password: <redis_password>>
+      ssl: true
+    replica:
+      host: <redis-replica.example.com>
+      port: 6379
+      password: <redis_password>
+      ssl: true
+# ...
+----
+
+.Clustered Redis example YAML
+[source,yaml]
+----
+# ...
+DATA_MODEL_CACHE_CONFIG:
+  engine: <rediscluster>
+  redis_config:
+    startup_nodes:
+      - host: <redis-node-1.example.com>
+        port: 6379
+      - host: <redis-node-2.example.com>
+        port: 6379
+    password: <cluster_password>
+    read_from_replicas: true
+    skip_full_coverage_check: true
+    ssl: true
+# ...
+----

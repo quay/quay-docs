@@ -1,0 +1,100 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
+:_content-type: REFERENCE
+
+[id="elasticsearch-log-configuration-fields"]
+= Elasticsearch configuration fields 
+
+Use the following configuration fields to integrate {productname} with an external Elasticsearch service. This enables storing and querying structured data such as action logs, repository events, and other operational records outside of the internal database.
+
+.Logs model configuration (LOGS_MODEL_CONFIG) fields
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+
+| **LOGS_MODEL_CONFIG.elasticsearch_config.access_key** | String | Elasticsearch user (or IAM key for AWS ES). +
+**Example**: `some_string`
+
+| **.elasticsearch_config.host** | String | Elasticsearch cluster endpoint. +
+**Example**: `host.elasticsearch.example`
+
+| **.elasticsearch_config.index_prefix** | String | Prefix for Elasticsearch indexes. +
+**Example**: `logentry_`
+
+| **.elasticsearch_config.index_settings** | Object | Index settings for Elasticsearch.
+
+| **LOGS_MODEL_CONFIG.elasticsearch_config.use_ssl** | Boolean | Whether to use SSL for Elasticsearch. +
+**Default**: `True` +
+**Example**: `True`
+
+| **.elasticsearch_config.secret_key** | String | Elasticsearch password (or IAM secret for AWS ES). +
+**Example**: `some_secret_string`
+
+| **.elasticsearch_config.aws_region** | String | AWS region. +
+**Example**: `us-east-1`
+
+| **.elasticsearch_config.port** | Number | Port of the Elasticsearch cluster. +
+**Example**: `1234`
+
+| **.kinesis_stream_config.aws_secret_key** | String | AWS secret key. +
+**Example**: `some_secret_key`
+
+| **.kinesis_stream_config.stream_name** | String | AWS Kinesis stream to send action logs to. +
+**Example**: `logentry-kinesis-stream`
+
+| **.kinesis_stream_config.aws_access_key** | String | AWS access key. +
+**Example**: `some_access_key`
+
+| **.kinesis_stream_config.retries** | Number | Max number of retry attempts for a single request. +
+**Example**: `5`
+
+| **.kinesis_stream_config.read_timeout** | Number | Read timeout in seconds. +
+**Example**: `5`
+
+| **.kinesis_stream_config.max_pool_connections** | Number | Max number of connections in the pool. +
+**Example**: `10`
+
+| **.kinesis_stream_config.aws_region** | String | AWS region. +
+**Example**: `us-east-1`
+
+| **.kinesis_stream_config.connect_timeout** | Number | Connection timeout in seconds. +
+**Example**: `5`
+
+| **.producer** | String | Logs producer type. +
+**Accepted values**: `kafka`, `elasticsearch`, `kinesis_stream` +
+**Example**: `kafka`
+
+| **.kafka_config.topic** | String | Kafka topic used to publish log entries. +
+**Example**: `logentry`
+
+| **.kafka_config.bootstrap_servers** | Array | List of Kafka brokers used to bootstrap the client.
+
+| **.kafka_config.max_block_seconds** | Number | Max seconds to block during a `send()` operation. +
+**Example**: `10`
+
+|===
+
+.Elasticsearch example YAML
+[source,yaml]
+----
+# ...
+FEATURE_LOG_EXPORT: true
+LOGS_MODEL: elasticsearch
+LOGS_MODEL_CONFIG:
+  producer: elasticsearch
+  elasticsearch_config:
+    access_key: elastic_user
+    secret_key: elastic_password
+    host: es.example.com
+    port: 9200
+    use_ssl: true
+    aws_region: us-east-1
+    index_prefix: logentry_
+    index_settings:
+      number_of_shards: 3
+      number_of_replicas: 1
+ALLOW_WITHOUT_STRICT_LOGGING: true
+# ...
+----
