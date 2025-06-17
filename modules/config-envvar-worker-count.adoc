@@ -4,7 +4,7 @@
 
 You can control the number of worker processes that handle incoming requests in {productname} using environment variables. These values define how many parallel processes are started to handle tasks for different components of the system, such as the registry, the web UI, and security scanning.
 
-If not explicitly set, {productname} calculates the number of worker processes automatically based on the number of available CPU cores. While this dynamic scaling can optimize performance on larger machines, it may also lead to unnecessary resource usage in smaller or more controlled environments.
+If not explicitly set, {productname} calculates the number of worker processes automatically based on the number of available CPU cores. While this dynamic scaling can optimize performance on larger machines, it might also lead to unnecessary resource usage in smaller environments.
 
 In {productname-ocp} deployments, the Operator sets the following default values:
 
@@ -12,22 +12,21 @@ In {productname-ocp} deployments, the Operator sets the following default values
 * `WORKER_COUNT_WEB`: 4
 * `WORKER_COUNT_SECSCAN`: 2
 
-.Worker count configuration variables
+.Worker count variables
 [cols="3a,1a,2a",options="header"]
 |===
 | Variable | Type | Description
-| **WORKER_COUNT** | Number | Global override for the number of worker processes across all components. +
- +
-If set, this value applies to all component-specific worker counts unless they are explicitly overridden.
-| **WORKER_COUNT_REGISTRY** | Number | Number of worker processes assigned to handle registry API traffic. +
- +
-Recommended range: 8–64
-| **WORKER_COUNT_WEB** | Number | Number of worker processes assigned to handle web UI and user interface requests. +
- +
-Recommended range: 2–32
-| **WORKER_COUNT_SECSCAN** | Number | Number of worker processes assigned to handle security scanning operations (e.g., Clair integration). +
- +
-Because the Operator requests 2 vCPUs by default for this component, setting this value between 2 and 4 is generally safe. Higher values (e.g., 16) can be used in performance-sensitive environments.
+
+| **WORKER_COUNT** | Number | Generic override for number of processes
+| **WORKER_COUNT_REGISTRY** | Number | Specifies the number of processes to handle Registry requests within the `Quay` container + 
+ + 
+**Values:** Integer between `8` and `64`
+| **WORKER_COUNT_WEB** | Number | Specifies the number of processes to handle UI/Web requests within the container + 
+ + 
+ **Values:** Integer between `2` and `32`
+| **WORKER_COUNT_SECSCAN** | Number | Specifies the number of processes to handle Security Scanning (e.g. Clair) integration within the container + 
+ + 
+**Values:** Integer. Because the Operator specifies 2 vCPUs for resource requests and limits, setting this value between `2` and `4` is safe. However, users can run more, for example, `16`, if warranted.
 |===
 
 .Worker count configuration for standalone {productname} deployments
