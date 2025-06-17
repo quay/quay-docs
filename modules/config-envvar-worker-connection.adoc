@@ -2,22 +2,53 @@
 [id="config-envvar-worker-connection"]
 = HTTP connection counts
 
-It is possible to specify the quantity of simultaneous HTTP connections using environment variables. These can be specified as a whole, or for a specific component. The default for each is `50` parallel connections per process.
+You can control the number of simultaneous HTTP connections handled by {productname} using environment variables. These limits apply either globally or can be scoped to individual components (registry, web UI, or security scanning). By default, each worker process allows up to `50` parallel connections.
 
-.HTTP connection counts configuration
+This setting is distinct from the number of _worker processes_.
+
+These connection-related environment variables can be configured differently depending on your deployment type:
+
+* In **standalone deployments**, configure connection counts in the `config.yaml` file.
+* In **{productname-ocp} deployments**, define the values in the `env` block of the `QuayRegistry` CR.
+
+.HTTP connection count configuration variables
 [cols="3a,1a,2a",options="header"]
 |===
 | Variable | Type | Description
-| **WORKER_CONNECTION_COUNT** | Number | Simultaneous HTTP connections  + 
- + 
+| **WORKER_CONNECTION_COUNT** | Number | Global default for the maximum number of HTTP connections per worker process. +
+ +
 **Default:** 50
-| **WORKER_CONNECTION_COUNT_REGISTRY** | Number |  Simultaneous HTTP connections for registry + 
- + 
-**Default:** WORKER_CONNECTION_COUNT
-| **WORKER_CONNECTION_COUNT_WEB** | Number |  Simultaneous HTTP connections for web UI + 
- + 
-**Default:** WORKER_CONNECTION_COUNT
-| **WORKER_CONNECTION_COUNT_SECSCAN** | Number |  Simultaneous HTTP connections for Clair + 
- + 
-**Default:** WORKER_CONNECTION_COUNT 
+| **WORKER_CONNECTION_COUNT_REGISTRY** | Number | HTTP connections per registry worker. +
+ +
+**Default:** `WORKER_CONNECTION_COUNT`
+| **WORKER_CONNECTION_COUNT_WEB** | Number | HTTP connections per web UI worker. +
+ +
+**Default:** `WORKER_CONNECTION_COUNT`
+| **WORKER_CONNECTION_COUNT_SECSCAN** | Number | HTTP connections per Clair security scanner worker. +
+ +
+**Default:** `WORKER_CONNECTION_COUNT`
 |===
+
+.HTTP connection configuration for standalone {productname} deployments
+[source,yaml]
+----
+# config.yaml
+WORKER_CONNECTION_COUNT: 10
+WORKER_CONNECTION_COUNT_REGISTRY: 10
+WORKER_CONNECTION_COUNT_WEB: 10
+WORKER_CONNECTION_COUNT_SECSCAN: 10
+----
+
+.HTTP connection configuration for {productname-ocp}
+[source,yaml]
+----
+env:
+  - name: WORKER_CONNECTION_COUNT
+    value: "10"
+  - name: WORKER_CONNECTION_COUNT_REGISTRY
+    value: "10"
+  - name: WORKER_CONNECTION_COUNT_WEB
+    value: "10"
+  - name: WORKER_CONNECTION_COUNT_SECSCAN
+    value: "10"
+----
