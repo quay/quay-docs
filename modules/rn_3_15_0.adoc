@@ -23,11 +23,22 @@ Additionally, the configuration fields have been re-organized into associated to
 
 The following updates have been made to {productname}.
 
-[id="example-feature-1"]
-=== Example feature 1
+[id="v2-ui-notification-drawer"]
+=== v2 UI notification drawer
 
-[id="example-feature-2"]
-=== Example feature 2
+With this release, a _notification drawer_ has been added to the {productname} v2 UI. Administrators and users can view notifications from any page in the new UI via the navigation bar by clicking the _bell_ icon. After clicking this icon, all notifications are shown in a popup box. Notifications can be cleared by clicking the *X* button for respective notifications.
+
+[NOTE]
+====
+Currently, the v2 UI does not support the *{productname} Notification* option when selecting a notification method. You can select the *{productname} Notification* method by using the v1 UI.
+====
+
+[id="proxy-cache-enhancements"]
+=== Proxy cache enhancements
+
+Previously, when pulling from a proxied repository, only the layers explicitly requested by the client were cached in the {productname} registry. This behavior stemmed from {productname} only caching layers for which it received a request to the v2 blobs endpoint. Consequently, clients with existing layers on their local machines would not re-request those layers, preventing {productname} from pulling them into the registry. This limitation led to two key issues: Clair was unable to perform complete scans of these partial images due to missing layers, and the images became un-pullable if the upstream registry went down.
+
+With this release, {productname} now caches all layers when an image is pulled from a proxied repository. This enhancement ensures that Clair can scan all images and that images remain pullable even if the upstream registry becomes unavailable.
 
 [id="clair-enhancements"]
 === Clair enhancements
@@ -79,15 +90,18 @@ See the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.14/html/red
 
 The following sections note known issues and limitations for {productname} 3.15.
 
+[id="repository-mirroring-known-issue"]
+=== Repository mirroring known issue
+
+There is a known issue affecting the mirroring feature of {productname}. When the mirroring process fails, the UI shows a *Mirror success* report, even though it has failed. This will be fixed in a future version of {productname}.
+
 [id="limitation-one"]
-=== Limitation
+=== Limitation 1
 
-When pushing an unsupported image type, for example, an AI model, to a {productname} registry, the *Security Report* and *Packages* pages on the UI fail to load. This occurs because these image types are stuck in a `Querying` status and, as a result, the pages of these tabs are left blank. This is a known issue and will be fixed in a future version of {productname}.
+[id="deprecations-315"]
+== Future deprecations
 
-[id="limitation-two"]
-=== Limitation 2
-
-When pushing an unsupported image type, for example, an AI model, to a {productname} registry, the *Security Report* and *Packages* pages on the UI fail to load. This occurs because these image types are stuck in a `Querying` status and, as a result, the pages of these tabs are left blank. This is a known issue and will be fixed in a future version of {productname}.
+* The {productname} v1 UI will be officially deprecated in a future release of {productname}.
 
 [id="bug-fixes-315"]
 == {productname} bug fixes
@@ -113,7 +127,7 @@ Some features available in previous releases have been deprecated or removed. De
 
 //Remove entries with the same status older than the latest three releases.
 
-.New features tracker
+.Features tracker
 [cols="4,1,1,1",options="header"]
 |===
 |Feature | Quay 3.15 | Quay 3.14 | Quay 3.13
