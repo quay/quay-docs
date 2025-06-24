@@ -1,0 +1,43 @@
+= getConfigDump
+Returns the full configuration dump of the Quay instance.
+
+[discrete]
+== GET /api/v1/superuser/config
+
+Authorizations: oauth2_implicit (super:user)
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+[discrete]
+== Response structure
+
+The JSON response includes the following top-level keys:
+
+[cols="3a,9a,4a",options="header"]
+|===
+|Name|Description|Schema
+|.config|All config.yaml and defaulted parameters used by the Flask app that are part of the defined schema.|object
+|.warning|Any parameters from config.yaml or defaults that are not defined in the schema.|object
+|.env|All environment variables available to the Flask app.|object
+|.schema|The complete config schema (CONFIG_SCHEMA) defining expected keys and types.|object
+|===
+
+[discrete]
+== Example command
+
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <bearer_token>"
+"https://<quay-server.example.com>/api/v1/superuser/config" | jq -r .config
+----
