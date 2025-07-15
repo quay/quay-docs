@@ -1,0 +1,48 @@
+:_content-type: PROCEDURE
+[id="creating-s3-role-aws-sts"]
+= Creating an S3 role
+
+Use the following procedure to create an S3 role for AWS STS. 
+
+.Prerequisites
+
+* You have created an IAM user and stored the access key and the secret access key.
+
+.Procedure
+
+. Navigate to the IAM dashboard.
+
+. In the navigation pane, click *Roles* under *Access management*. 
+
+. Click *Create role* -> *Custom Trust Policy*.
+
+. Under the `Principal` configuration field, add your AWS ARN information. For example:
++
+[source,json]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+   	 {
+   		 "Sid": "Statement1",
+   		 "Effect": "Allow",
+   		 "Principal": {
+   		 	"AWS": "arn:aws:iam::123456:user/quay-user"
+   		 },
+   		 "Action": "sts:AssumeRole"
+   	 }
+    ]
+}
+----
+
+. Click *Next*. 
+
+. On the *Add permissions* page, type `AmazonS3FullAccess` in the search box. Check the box to add that policy to the S3 role, then click *Next*. 
+
+. On the *Name, review, and create* page, enter the following information:
+
+.. Enter a role name, for example, `example-role`.
+
+.. Optional. Add a description.
+
+. Click the *Create role* button. You are navigated to the *Roles* page. Under *Role name*, the newly created S3 should be available.
