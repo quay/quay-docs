@@ -1,0 +1,142 @@
+:_content-type: PROCEDURE
+[id="configuring-quay-rosa-aws-sts"]
+= Configuring {productname} on {product-rosa} to use AWS STS
+
+Use the following procedure to configure {productname} to use AWS STS on {product-rosa} platforms.
+
+.Prerequisites
+
+* You have created an IAM user.
+* You have created an s3 Role ARN.
+* You have created a *Custom Trust Policy* that uses the Role ARN.
+
+.Procedure
+
+. Get the `serviceAccountIssuer` resource by entering the following command:
++
+[source,terminal]
+----
+$ oc get authentication.config.openshift.io cluster -o json | jq -r .spec.serviceAccountIssuer | sed -e "s/^https:\/\///"
+----
++
+.Example output
++
+[source,terminal]
+----
+oidc.op1.openshiftapps.com/123456
+----
+
+. On the Identity and Access Management (IAM) console of the Amazon Web Services (AWS) console:
+
+.. Click *Roles*.
+
+.. Click the name of the Role to be used with AWS STS, for example, `example-role`.
+
+.. Click the *Trust relationships* tab, which shows the JSON policy created during "Creating an S3 role". Update the JSON policy as follows:
++
+[source,json]
+----
+{
+	"Version": "2012-10-17",
+	"Statement": [
+    	{
+        	"Sid": "Statement1",
+        	"Effect": "Allow",
+        	"Principal": {
+            	"Federated": "arn:aws:iam::123456:oidc-provider/oidc.op1.openshiftapps.com/123456" <1>
+        	},
+        	"Action": "sts:AssumeRoleWithWebIdentity", <2>
+        	"Condition": {
+            	"StringEquals": {
+                	"oidc.op1.openshiftapps.com/123456:sub": "system:serviceaccount:quay:registry-quay-app" <3>
+            	}
+        	}
+    	}
+	]
+}
+----
+<1> Updates the `Principal` parameter of the JSON policy to `Federated:<your_user_ARN>:<serviceAccountIssuer_domain_path>`
+<2> Updates the `Action` parameter of the JSON policy to `sts:AssumeRoleWithWebIdentity`.
+<3> Updates the `Condition` parameter of the JSON policy to `StringEquals”: “<serviceAccountIssuer>:sub”: “system:serviceAccount:<quay_namespace>:<quay_registry_using_serviceAccount>`
+
+.. Verify that your User ARN is configured correct, then click *Next*. 
+
+.. On the *Add permissions* page, select *AmazonS3FullAccess*, then click *Next*. 
+
+.. On the *Name, review, and create* page, provide your role a name, a description, verify your configuration, add any optional tags. Then, click *Create Role*.
+
+. On the *Roles* page, click the new role and store the `Role ARN` resource. For example:
++
+[source,text]
+----
+arn:aws:iam::123456:role/test_s3_access
+----
+
+. On the {productname} web console:
+
+.. Click *Operators* -> *Installed Operators*. 
+
+.. Click *Red Hat Quay*. 
+
+.. Click *Quay Registry* and then the name of your {productname} registry. 
+
+.. Under *Config Bundle Secret*, click the name of your registry configuration bundle, for example, *quay-registry-config-bundle-12345*. 
+
+.. On the configuration bundle page, click *Actions* to reveal a drop-down menu. Then click *Edit Secret*. 
+
+.. Update your the `DISTRIBUTED_STORAGE_CONFIG` fields of your `config.yaml` file with the following information:
++
+[source,yaml]
+----
+# ...
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - STSS3Storage
+      s3_bucket: <s3_bucket_name> <1>
+      storage_path: <storage_path> <2> 
+      s3_region: <region> <3>
+# ...
+----
+<1> The name of your s3 bucket.
+<2> The storage path for data. Usually `/datastorage`.
+<3> The Amazon Web Services region. Defaults to `us-east-1`.
+
+. Click *Save*. Your `QuayRegistry` custom resource (CR) automatically restarts.
+
+. Annotate the Service Account (SA) that executes pods with the EKS configuration values. For example:
++
+[source,terminal]
+----
+$ oc annotate sa registry-quay-app "eks.amazonaws.com/role-arn"="arn:aws:iam::123456:role/test_s3_access" "eks.amazonaws.com/audience"="sts.amazonaws.com" "eks.amazonaws.com/sts-regional-endpoints"="true"
+----
+
+.Verification
+
+. Tag a sample image, for example, `busybox`, that will be pushed to the repository. For example:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<organization_name>/busybox:test
+----
+
+. Push the sample image by running the following command:
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<organization_name>/busybox:test
+----
+
+. Verify that the push was successful by navigating to the Organization that you pushed the image to in your {productname} registry -> *Tags*. 
+
+. Navigate to the Amazon Web Services (AWS) console and locate your s3 bucket. 
+
+. Click the name of your s3 bucket.
+
+. On the *Objects* page, click *datastorage/*.
+
+. On the *datastorage/* page, the following resources should seen:
++
+* *sha256/*
+* *uploads/* 
++
+These resources indicate that the push was successful, and that AWS STS is properly configured.
