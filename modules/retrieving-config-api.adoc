@@ -1,0 +1,60 @@
+// Document included in the following assemblies: 
+
+// Configuring Red hat Quay
+
+:_mod-docs-content-type: PROCEDURE
+[id="retrieving-config-file-api"]
+= Retrieving configuration settings by using the API
+
+Configuration settings can be returned on the CLI by leveraging the `FEATURE_SUPERUSER_CONFIGDUMP` configuration field alongside the  `v1/superuser/config` API endpoint. Together, {productname} superusers can return all Flask configuration fields that are set, which can be used to show proof of compliance for various security policies, such as PCI-DSS 4.0.
+
+.Prerequisites
+
+* You have set `FEATURE_SUPERUSER_CONFIGDUMP: true` in your `config.yaml` file.
+* You have assigned the superuser role to a user in your `config.yaml` file.
+* You have generated an OAuth 2 access token for the superuser.
+
+.Procedure
+
+* Retrieve configuration settings by using the `v1/superuser/config` API endpoint. For example:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <bearer_token>" "http://<quay-server.example.com>/api/v1/superuser/config" | jq -r .config
+----
++
+.Example output
++
+[source,terminal]
+----
+...
+  "TEAM_RESYNC_STALE_TIME": "30m",
+  "UI_DELAY_AFTER_WRITE_SECONDS": 3,
+  "UI_MODELCARD_ANNOTATION": {},
+  "UI_MODELCARD_ARTIFACT_TYPE": "application/x-mlmodel",
+  "UI_MODELCARD_LAYER_ANNOTATION": {
+    "org.opencontainers.image.title": "README.md"
+  }
+...
+----
+
+* You can pass in one of `.config`, `.env`, `.warning`, or `.schema` to return specific information. For example:
++
+[source,terminal]
+----
+$ curl -X GET -H "Authorization: Bearer <bearer_token>" "http://<quay-server.example.com>/api/v1/superuser/config" | jq -r .warning
+----
++
+.Example output
++
+[source,terminal]
+----
+...
+  "BILLING_TYPE": "FakeStripe",
+  "BUILDLOGS_OPTIONS": [],
+  "BUILD_MANAGER": null,
+  "CDN_SPECIFIC_NAMESPACES": [],
+  "CHANNEL_COLORS": [
+  ]
+...
+----
