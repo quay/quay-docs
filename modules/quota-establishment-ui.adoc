@@ -1,152 +1,98 @@
-:_content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 [id="quota-establishment-ui"]
-= Establishing quota in {productname} UI
+= Establishing quota for an organization by using the {productname} UI
 
-The following procedure describes how you can report storage consumption and establish storage quota limits.
+The following procedure describes how you can report storage consumption and establish storage quota limits for a repository.
 
 .Prerequisites
 
-* A {productname} registry.
 * A superuser account.
 * Enough storage to meet the demands of quota limitations.
 
 .Procedure
 
-. Create a new organization or choose an existing one. Initially, no quota is configured, as can be seen on the *Organization Settings* tab:
+. Set `FEATURE_QUOTA_MANAGEMENT: True` in your `config.yaml` file and then restart your registry. For example:
 +
-image:quota-none-org-settings.png[No Quota Configured]
+[source,yaml]
+----
+# ...
+FEATURE_QUOTA_MANAGEMENT: True
+# ...
+----
 
-. Log in to the registry as a superuser and navigate to the *Manage Organizations* tab on the *Super User Admin Panel*. Click the *Options* icon of the organization for which you want to create storage quota limits:
-+
-image:quota-su-org-options.png[Organization options]
+. Create a new organization or choose an existing one.
 
-. Click *Configure Quota* and enter the initial quota, for example, *10 MB*. Then click *Apply* and *Close*:
-+
-image:quota-su-init-10MB.png[Initial quota]
+. Log in to the registry as a superuser and navigate to the *Manage Organizations* tab on the *Super User Admin Panel*. Click the *Options* icon of the organization for which you want to create storage quota limits.
 
-. Check that the quota consumed shows *0 of 10 MB* on the *Manage Organizations* tab of the superuser panel:
-+
-image:quota-su-init-consumed.png[Initial consumed quota]
-+
-The consumed quota information is also available directly on the Organization page:
-+
-.Initial consumed quota
-image:quota-org-init-consumed.png[Initial consumed quota]
+. Click *Configure Quota*.
 
-. To increase the quota to 100MB, navigate to the *Manage Organizations* tab on the superuser panel. Click the *Options* icon and select *Configure Quota*, setting the quota to 100 MB. Click *Apply* and then *Close*:
-+
-image:quota-su-increase-100MB.png[Increase quota]
+. For *Set storage quota*, enter the initial quota, for example, *10 MiB*. Then, click *Apply*.
 
-. Pull a sample image by entering the following command:
+. Optional: For *Quota policy* select one of the following *Actions*. Then, enter a *Quota Threshold* and click *Add Limit*.
++
+* *Reject*: When this option is selected, any artifact that exceeds the established quota is rejected.
++
+* *Warning*: When this option is selected, users are notified of pushed artifacts that exceed the configured quota, however, the artifact successfully pushes.
++
+[NOTE]
+====
+The quota threshold percent determines when {productname} starts warning users that the repository is approaching its assigned storage quota.
+====
+
+.Verification
+
+. Pull a sample artifact by entering the following command:
 +
 [source,terminal]
 ----
-$ podman pull ubuntu:18.04
+$ podman pull busybox
 ----
 
-. Tag the sample image by entering the following command:
+. Tag the sample artifact by entering the following command:
 +
 [source,terminal]
 ----
-$ podman tag docker.io/library/ubuntu:18.04 example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:18.04
+$ podman tag docker.io/library/busybox quay-server.example.com/testorg/busybox:test
 ----
 
-. Push the sample image to the organization by entering the following command:
+. Push the sample artifact to the organization by entering the following command:
 +
 [source,terminal]
 ----
-$ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:18.04
+$ podman push --tls-verify=false quay-server.example.com/testorg/busybox:test
 ----
 
-. On the superuser panel, the quota consumed per organization is displayed:
-+
-image:quota-su-consumed-first.png[Total Quota Consumed for first image]
+. Navigate to the *Super User Admin Panel* on the {productname} UI, then click *Manage Organizations*. The *Organizations* page shows the total proportion of the quota used by the artifact.
 
-. The Organization page shows the total proportion of the quota used by the image:
-+
-.Total Quota Consumed for first image
-image:quota-org-consumed-first.png[Total Quota Consumed for first image]
-
-. Pull a second sample image by entering the following command:
+. Optional: Pull a second sample artifact with intentions of exceeding the established quota by entering the following command:
 +
 [source,terminal]
 ----
 $ podman pull nginx
 ----
 
-. Tag the second  image by entering the following command:
+. Optional: Tag the second artifact by entering the following command:
 +
 [source,terminal]
 ----
-$ podman tag docker.io/library/nginx example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/nginx
+$ podman tag docker.io/library/nginx quay-server.example.com/testorg/nginx
 ----
 
-. Push the second image to the organization by entering the following command:
+. Optional: Push the second artifact to the organization by entering the following command:
 +
 [source,terminal]
 ----
-$ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/nginx
+$ podman push --tls-verify=false quay-server.example.com/testorg/nginx
 ----
-
-. The Organization page shows the total proportion of the quota used by each repository in that organization:
 +
-.Total Quota Consumed for each repository
-image:quota-org-consumed-second.png[Total Quota Consumed for each repository]
-
-. Create _reject_ and _warning_ limits:
+If the artifact exceeds the defined quota, and you set the *Quota policy* to *Reject*, the following error message is returned:
 +
-From the superuser panel, navigate to the *Manage Organizations* tab. Click the *Options* icon for the organization and select *Configure Quota*. In the *Quota Policy* section, with the *Action* type set to *Reject*, set the *Quota Threshold* to *80* and click *Add Limit*:
-+
-image:quota-su-reject-80.png[Reject limit]
-
-. To create a _warning_ limit, select *Warning* as the *Action* type, set the *Quota Threshold* to *70* and click *Add Limit*:
-+
-image:quota-su-warning-70.png[Warning limit]
-
-. Click *Close* on the quota popup. The limits are viewable, but not editable, on the *Settings* tab of the *Organization* page:
-+
-image:quota-org-quota-policy.png[Quota policy in organization settings]
-
-. Push an image where the reject limit is exceeded:
-+
-Because the reject limit (80%) has been set to below the current repository size (~83%), the next pushed image is rejected automatically.
-+
-.Sample image push
 [source,terminal]
 ----
-$ podman pull ubuntu:20.04
-
-$ podman tag docker.io/library/ubuntu:20.04 example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:20.04
-
-$ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:20.04
+denied: Quota has been exceeded on namespace
 ----
 +
-.Sample output when quota exceeded
-[source,terminal]
-----
-Getting image source signatures
-Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
-Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
-Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-WARN[0002] failed, retrying in 1s ... (1/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
-Getting image source signatures
-Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
-Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
-Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-WARN[0005] failed, retrying in 1s ... (2/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
-Getting image source signatures
-Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
-Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
-Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-WARN[0009] failed, retrying in 1s ... (3/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
-Getting image source signatures
-Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
-Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
-Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
-----
-
-. When limits are exceeded, notifications are displayed in the UI:
+If the artifact exceeds the defined quota, and you set the *Quota policy* to *Warning*, no error message is returned, and the image is successfully pushed. 
 +
-.Quota notifications
-image:quota-notifications.png[Quota notifications]
+Notifications for both *Reject* and *Warning* policies are also returned on the {productname} UI by clicking the _bell_ icon.
+
