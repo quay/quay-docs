@@ -1,13 +1,18 @@
 :_mod-docs-content-type: PROCEDURE
 
 [id="quota-establishment-api"]
-= Establishing quota for an organization with the {productname} API
+= Managing quota limits by using the API
 
 When an organization is first created, it does not have an established quota. You can use the API to check, create, change, or delete quota limitations for an organization. 
 
 .Prerequisites
 
 * You have generated an OAuth access token.
+
+[id="setting-quota-api"]
+== Setting quota by using the API
+
+Use the following procedure to set quota limitations by using the {productname} API.
 
 .Procedure
 
@@ -61,35 +66,21 @@ $ curl -X PUT "https://<quay-server.example.com>/api/v1/organization/<orgname>/q
 {"id": 1, "limit_bytes": 21474836480, "limit": "20.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}
 ----
 
-== Pushing images
+[id="viewing-quota-usage-api"]
+== Viewing quota usage by using the API
 
-To see the storage consumed, push various images to the organization.
+Use the following procedure to view quota usage by using the {productname} API. 
 
-=== Pushing ubuntu:18.04
+.Procedure
 
-Push ubuntu:18.04 to the organization from the command line:
-
-.Sample commands
-[source,terminal]
-----
-$ podman pull ubuntu:18.04
-
-$ podman tag docker.io/library/ubuntu:18.04 example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:18.04
-
-$ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:18.04
-----
-
-
-=== Using the API to view quota usage
-
-To view the storage consumed, `GET` data from the */api/v1/repository* endpoint:
-
+* To view the storage consumed, `GET` data from the */api/v1/repository* endpoint:
++
 .Sample command
 [source,terminal]
 ----
 $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/repository?last_modified=true&namespace=testorg&popularity=true&public=true'  | jq
 ----
-
++
 .Sample output
 [source,json]
 ----
@@ -114,21 +105,7 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 }
 ----
 
-=== Pushing another image
-
-. Pull, tag, and push a second image, for example, `nginx`:
-+
-.Sample commands
-[source,terminal]
-----
-$ podman pull nginx
-
-$ podman tag docker.io/library/nginx example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/nginx
-
-$ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/nginx
-----
-
-. To view the quota report for the repositories in the organization, use the */api/v1/repository* endpoint:
+* To view the quota report for the repositories in the organization, use the */api/v1/repository* endpoint:
 +
 .Sample command
 [source,terminal]
@@ -175,7 +152,7 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 }
 ----
 
-. To view the quota information in the organization details, use the */api/v1/organization/{orgname}* endpoint:
+* To view the quota information in the organization details, use the */api/v1/organization/{orgname}* endpoint:
 +
 .Sample command
 [source,terminal]
@@ -203,41 +180,41 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 }
 ----
 
-== Rejecting pushes using quota limits
+[id="setting-reject-warning-limits"]
+== Setting reject and warning limits by using the API
 
-If an image push exceeds defined quota limitations, a soft or hard check occurs:
+You can set _reject_ and _warning_ limits by using the {productname} API.
 
-* For a soft check, or _warning_, users are notified.
-* For a hard check, or _reject_, the push is terminated.
+.Procedure
 
-=== Setting reject and warning limits
-
-To set _reject_ and _warning_ limits, POST data to the */api/v1/organization/{orgname}/quota/{quota_id}/limit* endpoint:
-
-.Sample reject limit command
+* To set _reject_ and _warning_ limits, `POST` data to the */api/v1/organization/{orgname}/quota/{quota_id}/limit* endpoint. For example:
++
 [source,terminal]
 ----
 $ curl -k -X POST -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{"type":"Reject","threshold_percent":80}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1/limit
 ----
-
-.Sample warning limit command
++
 [source,terminal]
 ----
 $ curl -k -X POST -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' -d '{"type":"Warning","threshold_percent":50}'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota/1/limit
 ----
 
-=== Viewing reject and warning limits
+[id="viewing-reject-warning-limits"]
+== Viewing reject and warning limits by using the API
 
-To view the _reject_ and _warning_ limits, use the */api/v1/organization/{orgname}/quota* endpoint:
+You can use the {productname} API to view reject and warning limits.
 
-.View quota limits
+.Procedure
+
+. View the _reject_ and _warning_ limits by using the */api/v1/organization/{orgname}/quota* endpoint. For example:
++
 [source,terminal]
 ----
 $  curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota | jq
 ----
-
-
-.Sample output for quota limits
++
+.Example output
++
 [source,json]
 ----
 [
@@ -261,52 +238,3 @@ $  curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicati
   }
 ]
 ----
-
-=== Pushing an image when the reject limit is exceeded
-
-In this example, the reject limit (80%) has been set to below the current repository size (~83%), so the next push should automatically be rejected.
-
-Push a sample image to the organization from the command line:
-
-.Sample image push
-[source,terminal]
-----
-$ podman pull ubuntu:20.04
-
-$ podman tag docker.io/library/ubuntu:20.04 example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:20.04
-
-$ podman push --tls-verify=false example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/testorg/ubuntu:20.04
-----
-
-.Sample output when quota exceeded
-[source,terminal]
-----
-Getting image source signatures
-Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
-Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
-Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-WARN[0002] failed, retrying in 1s ... (1/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
-Getting image source signatures
-Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
-Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
-Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-WARN[0005] failed, retrying in 1s ... (2/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
-Getting image source signatures
-Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
-Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
-Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-WARN[0009] failed, retrying in 1s ... (3/3). Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
-Getting image source signatures
-Copying blob d4dfaa212623 [--------------------------------------] 8.0b / 3.5KiB
-Copying blob cba97cc5811c [--------------------------------------] 8.0b / 15.0KiB
-Copying blob 0c78fac124da [--------------------------------------] 8.0b / 71.8MiB
-Error: Error writing blob: Error initiating layer upload to /v2/testorg/ubuntu/blobs/uploads/ in example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org: denied: Quota has been exceeded on namespace
-----
-
-
-=== Notifications for limits exceeded
-
-When limits are exceeded, a notification appears:
-
-.Quota notifications
-image:quota-notifications.png[Quota notifications]
