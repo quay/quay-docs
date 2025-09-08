@@ -1,78 +1,13 @@
-:_mod-docs-content-type: PROCEDURE
+:_mod-docs-content-type: CONCEPT
 [id="creating-quay-integration-cr"]
 = Creating the QuayIntegration custom resource
 
-In this procedure, you will create a `QuayIntegration` custom resource, which can be completed from either the web console or from the command line.
+Create a `QuayIntegration` custom resource (CR) to connect an {ocp} cluster to a {productname} registry. The `QuayIntegration` CR defines the {productname} hostname, authentication details, and configuration options that the {qbo} uses to synchronize {ocp} projects with {productname} organizations, robot accounts, and other features.
+
+The `QuayIntegration` custom resource can be created by using the {ocp} web console, or from the command-line interface.
 
 .Prerequisites
 
 * You have set up {productname} and obtained an access token.
 * You have deployed the {qbo} on {ocp}.
-* An {ocp} 4.6 or greater environment for which you have cluster administrator permissions.
-* Optional: You have installed the OpenShift CLI (oc).
-
-[id="creating-quay-integration-custom-resource-cli"]
-== Optional: Creating the QuayIntegration custom resource using the CLI
-
-Follow this procedure to create the `QuayIntegration` custom resource using the command line.
-
-.Procedure
-
-. Create a `quay-integration.yaml`:
-+
-----
-$ touch quay-integration.yaml
-----
-
-. Use the following configuration for a minimal deployment of the `QuayIntegration` custom resource:
-+
-[source,yaml]
-----
-  apiVersion: quay.redhat.com/v1
-  kind: QuayIntegration
-  metadata:
-    name: example-quayintegration
-  spec:
-    clusterID: openshift  <1>
-    credentialsSecret:
-      namespace: openshift-operators
-      name: quay-integration<2>
-    quayHostname: https://<QUAY_URL>   <3>
-    insecureRegistry: false <4>
-----
-<1> The clusterID value should be unique across the entire ecosystem. This value is required and defaults to `openshift`.
-<2> The `credentialsSecret` property refers to the namespace and name of the secret containing the token that was previously created.
-<3> Replace the `QUAY_URL` with the hostname of your {productname} instance.
-<4> If {productname} is using self signed certificates, set the property to `insecureRegistry: true`.
-
-For a list of all configuration fields, see "QuayIntegration configuration fields".
-
-. Create the `QuayIntegration` custom resource:
-+
-----
-$ oc create -f quay-integration.yaml
-----
-
-[id="creating-quay-integration-custom-resource-web-console"]
-== Optional: Creating the QuayIntegration custom resource using the web console
-
-Follow this procedure to create the `QuayIntegration` custom resource using the web console.
-
-.Procedure
-
-. Open the *Administrator* perspective of the web console and navigate to *Operators* -> *Installed Operators*.
-
-. Click *Red Hat {qbo}*.
-
-. On the *Details* page of the {qbo}, click *Create Instance* on the *Quay Integration* API card.
-
-. On the *Create QuayIntegration* page, enter the following required information in either *Form view* or *YAML view*:
-+
-* *Name*: The name that will refer to the `QuayIntegration` custom resource object.
-* *Cluster ID*: The ID associated with this cluster. This value should be unique across the entire ecosystem. Defaults to `openshift` if left unspecified.
-* *Credentials secret*: Refers to the namespace and name of the secret containing the token that was previously created.
-* *Quay hostname*: The hostname of the Quay registry.
-
-For a list of all configuration fields, see "link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#quay-integration-config-fields[QuayIntegration configuration fields]".
-
-After the `QuayIntegration` custom resource is created, your {ocp} cluster will be linked to your {productname} instance. Organizations within your {productname} registry should be created for the related namespace for the {ocp} environment.
+* Optional: You have installed the OpenShift CLI (`oc`).
