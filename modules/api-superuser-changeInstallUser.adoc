@@ -1,0 +1,68 @@
+
+= changeInstallUser
+Updates information about the specified user.
+
+[discrete]
+== PUT /api/v1/superuser/users/{username}
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+[discrete]
+== Path parameters
+
+[options="header", width=100%, cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|**username** + 
+_required_|The username of the user being managed|string
+|===
+
+
+[discrete]
+== Request body schema (application/json)
+
+Description of updates for a user
+
+[options="header", width=100%, cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**password** + 
+_optional_|The new password for the user|string
+|**email** + 
+_optional_|The new e-mail address for the user|string
+|**enabled** + 
+_optional_|Whether the user is enabled|boolean
+|===
+
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+
+[discrete]
+== Example command
+
+[source,terminal]
+----
+$ curl -X PUT "https://<quay-server.example.com>/api/v1/superuser/users/<username>" \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "password": "<N3wP@ssw0rd!>",
+    "email": "<updated-email@example.com>",
+    "enabled": true
+  }'
+----
