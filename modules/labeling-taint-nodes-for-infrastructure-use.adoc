@@ -1,0 +1,70 @@
+:_mod-docs-content-type: PROCEDURE
+[id="labeling-taint-nodes-for-infrastructure-use"]
+= Labeling and tainting nodes for infrastructure use
+
+Use the following procedure to label and taint nodes for infrastructure use. 
+
+[NOTE]
+====
+The following procedure labels three worker nodes with the `infra` label. Depending on the resources relevant to your environment, you might have to label more than three worker nodes with the `infra` label.
+====
+
+. Obtain a list of _worker_ nodes in your deployment by entering the following command:
++
+[source,terminal]
+----
+$ oc get nodes | grep worker
+----
++
+.Example output
++
+[source,terminal]
+----
+NAME                                                              STATUS   ROLES                  AGE    VERSION
+---
+example-cluster-new-c5qqp-worker-b-4zxx5.c.quay-devel.internal   Ready    worker                 401d   v1.31.11
+example-cluster-new-c5qqp-worker-b-kz6jn.c.quay-devel.internal   Ready    worker                 402d   v1.31.11
+example-cluster-new-c5qqp-worker-b-wrhw4.c.quay-devel.internal   Ready    worker                 401d   v1.31.11
+---
+----
+
+. Add the `node-role.kubernetes.io/infra=` label to the worker nodes by entering the following command.
+The number of infrastructure nodes required depends on your environment. Production environments should provision enough infra nodes to ensure high availability and sufficient resources for all `quay`-related components. Monitor CPU, memory, and storage utilization to determine if additional infra nodes are required.
++
+[source,terminal]
+----
+$ oc label node --overwrite <infra_node_one> <infra_node_two> <infra_node_three> node-role.kubernetes.io/infra=
+----
+
+. Confirm that the `node-role.kubernetes.io/infra=` label has been added to the proper nodes by entering the following command:
++
+[source,terminal]
+----
+$ oc get node | grep infra
+----
++
+[source,terminal]
+----
+---
+example-cluster-new-c5qqp-worker-b-4zxx5.c.quay-devel.internal   Ready    infra,worker           405d   v1.32.8
+example-cluster-new-c5qqp-worker-b-kz6jn.c.quay-devel.internal   Ready    infra,worker           406d   v1.32.8
+example-cluster-new-c5qqp-worker-b-wrhw4.c.quay-devel.internal   Ready    infra,worker           405d   v1.32.8
+---
+----
+
+. When a worker node is assigned the `infra` role, there is a chance that user workloads could get inadvertently assigned to an infra node. To avoid this, you can apply a taint to the infra node, and then add tolerations for the pods that you want to control. Taint the worker nodes with the `infra` label by entering the following command:
++
+[source,terminal]
+----
+$ oc adm taint nodes -l node-role.kubernetes.io/infra \
+  node-role.kubernetes.io/infra=reserved:NoSchedule --overwrite
+----
++
+.Example output
++
+[source,terminal]
+----
+node/example-cluster-new-c5qqp-worker-b-4zxx5.c.quay-devel.internal modified
+node/example-cluster-new-c5qqp-worker-b-kz6jn.c.quay-devel.internal modified
+node/example-cluster-new-c5qqp-worker-b-wrhw4.c.quay-devel.internal modified
+----

@@ -1,0 +1,40 @@
+:_mod-docs-content-type: PROCEDURE
+[id="creating-project-node-selector-toleration"]
+= Creating a project with node selector and tolerations
+
+Use the following procedure to create a project with the `node-selector` and `tolerations` annotations. 
+
+.Procedure
+
+. Add the `node-selector` annotation to the namespace by entering the following command:
++
+[source,terminal]
+----
+$ oc annotate namespace <namespace> openshift.io/node-selector='node-role.kubernetes.io/infra='
+----
++
+.Example output
++
+[source,yaml]
+----
+namespace/<namespace> annotated
+----
+
+. Add the `tolerations` annotation to the namespace by entering the following command:
++
+[source,terminal]
+----
+$ oc annotate namespace <namespace> scheduler.alpha.kubernetes.io/defaultTolerations='[{"operator":"Equal","value":"reserved","effect":"NoSchedule","key":"node-role.kubernetes.io/infra"},{"operator":"Equal","value":"reserved","effect":"NoExecute","key":"node-role.kubernetes.io/infra"}]' --overwrite
+----
++
+.Example output
++
+[source,yaml]
+----
+namespace/<namespace> annotated
+----
++
+[IMPORTANT]
+====
+The tolerations in this example are specific to two taints commonly applied to infra nodes. The taints configured in your environment might differ. You must set the tolerations accordingly to match the taints applied to your infra nodes.
+====
