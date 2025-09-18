@@ -1,0 +1,164 @@
+
+:_mod-docs-content-type: PROCEDURE
+[id="creating-registry-infra-node"]
+= Creating the {productname} registry
+
+After you have downloaded the {productname} Operator, you must create the {productname} registry. The registry's components, for example, `clair`, `postgres`, `redis`, and so on, must be patched with the `toleration` annotation so that they can schedule onto the `infra` worker nodes.
+
+The following procedure shows you how to create a {productname} registry that runs on infrastructure nodes.
+
+.Procedure
+
+. On the {ocp} web console, click *Operators* -> *Installed Operators* -> *Red Hat Quay*.
+
+. On the *{productname} Operator details* page, click *Quay Registry* -> *Create QuayRegistry*.
+
+. On the *Create QuayRegistry* page, set the `monitoring` and `objectstorage` fields to `false`. The monitoring component cannot be enabled when {productname} is installed in a single namespace. For example:
++
+[source,yaml]
+----
+# ...
+    - kind: monitoring
+      managed: false
+    - kind: objectstorage
+      managed: false
+# ...
+----
+
+. Click *Create*.
+
+////
+. The following condition is reported: `Condition: RolloutBlocked`. This occurs because all pods for the registry must include the `node-role.kubernetes.io/infra` nodeSelector and toleration. Apply the `node-role.kubernetes.io/infra` nodeSelector and toleration to all pods by entering the following command:
++
+[source,terminal]
+----
+$ for deploy in $(oc get deployments -n <annotated_namespace> -o name | grep -E 'example-registry-(clair|quay)'); do
+  oc patch $deploy -n annotated_namespace --type='strategic' -p '{
+    "spec": {
+      "template": {
+        "spec": {
+          "nodeSelector": {
+            "node-role.kubernetes.io/infra": ""
+          },
+          "tolerations": [
+            {
+              "key": "node-role.kubernetes.io/infra",
+              "operator": "Exists",
+              "effect": "NoSchedule"
+            }
+          ]
+        }
+      }
+    }
+  }'
+done
+----
++
+.Example output
++
+[source,terminal]
+----
+deployment.apps/example-registry-clair-app patched
+deployment.apps/example-registry-clair-postgres patched
+deployment.apps/example-registry-quay-app patched
+deployment.apps/example-registry-quay-database patched
+deployment.apps/example-registry-quay-mirror patched
+deployment.apps/example-registry-quay-redis patched
+----
+
+. Ensure that all pods include the `node-role.kubernetes.io/infra` nodeSelector and toleration by entering the following command:
++
+[source,terminal]
+----
+$ for deploy in $(oc get deployments -n <annotated_namespace> -o name | grep example-registry); do
+  echo $deploy
+  oc get -n <annotated_namespace> $deploy -o yaml | grep -A5 nodeSelector
+  oc get -n <annotated_namespace> $deploy -o yaml | grep -A5 tolerations
+done
+----
++
+.Example output
++
+[source,terminal]
+----
+...
+example-registry-clair-app
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: example-registry-clair-app
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/infra
+        operator: Exists
+      volumes:
+      - configMap:
+...
+----
+////
+
+. Optional: Confirm that the pods are running on infra nodes.
+
+.. List all `Quay`-related pods along with the nodes that they are scheduled on by entering the following command:
++
+[source,terminal]
+----
+$ oc get pods -n <annotated_namespace> -o wide | grep example-registry
+----
++
+.Example output
++
+[source,terminal]
+----
+...
+NAME                                               READY   STATUS      RESTARTS   AGE   IP             NODE                                                              NOMINATED NODE   READINESS GATES
+example-registry-clair-app-5f95d685bd-dgjf6        1/1     Running     0          52m   10.128.4.12    example-cluster-new-c5qqp-worker-b-wrhw4.c.quay-devel.internal   <none>           <none>
+...
+----
+
+.. Confirm that the nodes listed include only nodes labeled `infra` by running the following command:
++
+[source,terminal]
+----
+$ oc get nodes -l node-role.kubernetes.io/infra -o name
+----
++
+.Example output
++
+[source,terminal]
+----
+node/example-cluster-new-c5qqp-worker-b-4zxx5.c.quay-devel.internal modified
+node/example-cluster-new-c5qqp-worker-b-kz6jn.c.quay-devel.internal modified
+node/example-cluster-new-c5qqp-worker-b-wrhw4.c.quay-devel.internal modified
+----
++
+[NOTE]
+====
+If any pod appears on a non-infra node, revisit your namespace annotations and deployment patching.
+====
+
+. Restart all pods for the {productname} registry by entering the following command:
++
+[source,terminal]
+----
+$ oc delete pod -n <annotated_namespace> --all
+----
+
+. Check the status of the pods by entering the following command:
++
+[source,terminal]
+----
+$ oc get pods -n <annotated_namespace>
+----
++
+.Example output
++
+[source,terminal]
+----
+...
+NAME                                               READY   STATUS      RESTARTS   AGE
+example-registry-clair-app-5f95d685bd-dgjf6        1/1     Running     0          5m4s
+...
+----
