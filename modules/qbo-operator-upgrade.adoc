@@ -1,40 +1,18 @@
 :_mod-docs-content-type: PROCEDURE
-
 [id="qbo-operator-upgrade"]
-= Upgrade Quay Bridge Operator
+= Upgrading the {qbo}
 
-To upgrade the Quay Bridge Operator (QBO), change the Channel Subscription update channel in the Subscription tab to the desired channel.
+Upgrade the {qbo} to receive the latest {productname} upgrades and features.
 
-When upgrading QBO from version 3.5 to 3.7, a number of extra steps are required:
+.Prerequisites
 
-. You need to create a new `QuayIntegration` custom resource. This can be completed in the Web Console or from the command line.
-+
-.upgrade-quay-integration.yaml
-[source,yaml]
-----
-- apiVersion: quay.redhat.com/v1
-  kind: QuayIntegration
-  metadata:
-    name: example-quayintegration-new
-  spec:
-    clusterID: openshift <1>
-    credentialsSecret:
-      name: quay-integration
-      namespace: openshift-operators
-    insecureRegistry: false
-    quayHostname: https://registry-quay-quay35.router-default.apps.cluster.openshift.com
-----
-<1> Make sure that the `clusterID` matches the value for the existing `QuayIntegration` resource.
-. Create the new `QuayIntegration` custom resource:
-+
-[source,bash]
-----
-$ oc create -f upgrade-quay-integration.yaml
-----
-. Delete the old `QuayIntegration` custom resource.
-. Delete the old `mutatingwebhookconfigurations`:
-+
-[source,bash]
-----
-$ oc delete mutatingwebhookconfigurations.admissionregistration.k8s.io quay-bridge-operator
-----
+* You have installed {productname}.
+* You are logged in to {ocp} as a cluster administrator.
+
+.Procedure
+
+. On the {ocp} web console, click *Operators* -> *Installed Operators* -> *{qbo}*.
+
+. Click the *Subscription* tab.
+
+. Under *Update channel*, click *stable-3.15* -> *Save*.
