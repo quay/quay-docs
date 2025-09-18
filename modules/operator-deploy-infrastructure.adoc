@@ -3,121 +3,15 @@
 [id="operator-deploy-infrastructure"]
 = Deploying {productname} on infrastructure nodes
 
-By default, `Quay` related pods are placed on arbitrary worker nodes when using the {productname} Operator to deploy the registry. For more information about how to use machine sets to configure nodes to only host infrastructure components, see link:https://docs.openshift.com/container-platform/{ocp-y}/machine_management/creating-infrastructure-machinesets.html[Creating infrastructure machine sets]. 
+By default, all `quay`-related pods are scheduled on available worker nodes in your {ocp} cluster. In some environments, you might want to dedicate certain nodes specifically for infrastructure workloads—such as registry, database, and monitoring pods—to improve performance, isolate critical components, or simplify maintenance.
 
-If you are not using {ocp} machine set resources to deploy infra nodes, the section in this document shows you how to manually label and taint nodes for infrastructure purposes. After you have configured your infrastructure nodes either manually or use machines sets, you can control the placement of `Quay` pods on these nodes using node selectors and tolerations. 
+{ocp} supports this approach using infrastructure machine sets, which automatically create and manage nodes reserved for infrastructure.
 
-[id="labeling-taint-nodes-for-infrastructure-use"]
-== Labeling and tainting nodes for infrastructure use
+As an {ocp} administrator, you can achieve the same result by labeling and tainting worker nodes. This ensures that only infrastructure workloads, like `quay` pods, are scheduled on these nodes. After your infrastructure nodes are configured, you can control where `quay` pods run using node selectors and tolerations.
 
-Use the following procedure to label and tain nodes for infrastructure use. 
+The following procedures is intended for new deployments that install the {productname} Operator in a single namespace and provide their own backend storage. The procedure shows you how to prepare nodes and deploy {productname} on dedicated infrastructure nodes. In this procedure, all `quay`-related pods are placed on dedicated infrastructure nodes.
 
-. Enter the following command to reveal the master and worker nodes. In this example, there are three master nodes and six worker nodes.
-+
-[source,terminal]
-----
-$ oc get nodes
-----
-+
-.Example output
-+
-[source,terminal]
-----
-NAME                                               STATUS   ROLES    AGE     VERSION
-user1-jcnp6-master-0.c.quay-devel.internal         Ready    master   3h30m   v1.20.0+ba45583
-user1-jcnp6-master-1.c.quay-devel.internal         Ready    master   3h30m   v1.20.0+ba45583
-user1-jcnp6-master-2.c.quay-devel.internal         Ready    master   3h30m   v1.20.0+ba45583
-user1-jcnp6-worker-b-65plj.c.quay-devel.internal   Ready    worker   3h21m   v1.20.0+ba45583
-user1-jcnp6-worker-b-jr7hc.c.quay-devel.internal   Ready    worker   3h21m   v1.20.0+ba45583
-user1-jcnp6-worker-c-jrq4v.c.quay-devel.internal   Ready    worker   3h21m   v1.20.0+ba45583
-user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal   Ready    worker   3h21m   v1.20.0+ba45583
-user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal   Ready    worker   3h22m   v1.20.0+ba45583
-user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal   Ready    worker   3h21m   v1.20.0+ba45583
-----
-
-. Enter the following commands to label the three worker nodes for infrastructure use:
-+
-[source,terminal]
-----
-$ oc label node --overwrite user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal node-role.kubernetes.io/infra=
-----
-+
-[source,terminal]
-----
-$ oc label node --overwrite user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal node-role.kubernetes.io/infra=
-----
-+
-[source,terminal]
-----
-$ oc label node --overwrite user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal node-role.kubernetes.io/infra=
-----
-
-. Now, when listing the nodes in the cluster, the last three worker nodes have the `infra` role. For example:
-+
-[source,terminal]
-----
-$ oc get nodes
-----
-+
-.Example
-+
-[source,terminal]
-----
-NAME                                               STATUS   ROLES          AGE     VERSION
-user1-jcnp6-master-0.c.quay-devel.internal         Ready    master         4h14m   v1.20.0+ba45583
-user1-jcnp6-master-1.c.quay-devel.internal         Ready    master         4h15m   v1.20.0+ba45583
-user1-jcnp6-master-2.c.quay-devel.internal         Ready    master         4h14m   v1.20.0+ba45583
-user1-jcnp6-worker-b-65plj.c.quay-devel.internal   Ready    worker         4h6m    v1.20.0+ba45583
-user1-jcnp6-worker-b-jr7hc.c.quay-devel.internal   Ready    worker         4h5m    v1.20.0+ba45583
-user1-jcnp6-worker-c-jrq4v.c.quay-devel.internal   Ready    worker         4h5m    v1.20.0+ba45583
-user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal   Ready    infra,worker   4h6m    v1.20.0+ba45583
-user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal   Ready    infra,worker   4h6m    v1.20.0+ba45583
-user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal   Ready    infra,worker   4h6m    v1.20.0+ba4558
-----
-
-. When a worker node is assigned the `infra` role, there is a chance that user workloads could get inadvertently assigned to an infra node. To avoid this, you can apply a taint to the infra node, and then add tolerations for the pods that you want to control. For example:
-+
-[source,terminal]
-----
-$ oc adm taint nodes user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal node-role.kubernetes.io/infra:NoSchedule
-----
-+
-[source,terminal]
-----
-$ oc adm taint nodes user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal node-role.kubernetes.io/infra:NoSchedule
-----
-+
-[source,terminal]
-----
-$ oc adm taint nodes user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal node-role.kubernetes.io/infra:NoSchedule
-----
-
-[id="creating-project-node-selector-toleration"]
-== Creating a project with node selector and tolerations
-
-Use the following procedure to create a project with node selector and tolerations. 
-
-[NOTE]
-====
-The following procedure can also be completed by removing the installed {productname} Operator and the namespace, or namespaces, used when creating the deployment. Users can then create a new resource with the following annotation.
-====
-
-.Procedure
-
-. Enter the following command to edit the namespace where {productname} is deployed, and the following annotation: 
-+
-[source,terminal]
-----
-$ oc annotate namespace <namespace> openshift.io/node-selector='node-role.kubernetes.io/infra='
-----
-+
-Example output
-+
-[source,yaml]
-----
-namespace/<namespace> annotated
-----
-
+////
 . Obtain a list of available pods by entering the following command:
 +
 [source,terminal]
@@ -130,16 +24,16 @@ $ oc get pods -o wide
 [source,terminal]
 ----
 NAME                                               READY   STATUS      RESTARTS        AGE     IP            NODE                                         NOMINATED NODE   READINESS GATES
-example-registry-clair-app-5744dd64c9-9d5jt        1/1     Running     0               173m    10.130.4.13   stevsmit-quay-ocp-tes-5gwws-worker-c-6xkn7   <none>           <none>
-example-registry-clair-app-5744dd64c9-fg86n        1/1     Running     6 (3h21m ago)   3h24m   10.131.0.91   stevsmit-quay-ocp-tes-5gwws-worker-c-dnhdp   <none>           <none>
-example-registry-clair-postgres-845b47cd88-vdchz   1/1     Running     0               3h21m   10.130.4.10   stevsmit-quay-ocp-tes-5gwws-worker-c-6xkn7   <none>           <none>
-example-registry-quay-app-64cbc5bcf-8zvgc          1/1     Running     1 (3h24m ago)   3h24m   10.130.2.12   stevsmit-quay-ocp-tes-5gwws-worker-a-tk8dx   <none>           <none>
-example-registry-quay-app-64cbc5bcf-pvlz6          1/1     Running     0               3h24m   10.129.4.10   stevsmit-quay-ocp-tes-5gwws-worker-b-fjhz4   <none>           <none>
-example-registry-quay-app-upgrade-8gspn            0/1     Completed   0               3h24m   10.130.2.10   stevsmit-quay-ocp-tes-5gwws-worker-a-tk8dx   <none>           <none>
-example-registry-quay-database-784d78b6f8-2vkml    1/1     Running     0               3h24m   10.131.4.10   stevsmit-quay-ocp-tes-5gwws-worker-c-2frtg   <none>           <none>
-example-registry-quay-mirror-d5874d8dc-fmknp       1/1     Running     0               3h24m   10.129.4.9    stevsmit-quay-ocp-tes-5gwws-worker-b-fjhz4   <none>           <none>
-example-registry-quay-mirror-d5874d8dc-t4mff       1/1     Running     0               3h24m   10.129.2.19   stevsmit-quay-ocp-tes-5gwws-worker-a-k7w86   <none>           <none>
-example-registry-quay-redis-79848898cb-6qf5x       1/1     Running     0               3h24m   10.130.2.11   stevsmit-quay-ocp-tes-5gwws-worker-a-tk8dx   <none>           <none>
+example-registry-clair-app-5744dd64c9-9d5jt        1/1     Running     0               173m    10.130.4.13   example-quay-ocp-tes-5gwws-worker-c-6xkn7   <none>           <none>
+example-registry-clair-app-5744dd64c9-fg86n        1/1     Running     6 (3h21m ago)   3h24m   10.131.0.91   example-quay-ocp-tes-5gwws-worker-c-dnhdp   <none>           <none>
+example-registry-clair-postgres-845b47cd88-vdchz   1/1     Running     0               3h21m   10.130.4.10   example-quay-ocp-tes-5gwws-worker-c-6xkn7   <none>           <none>
+example-registry-quay-app-64cbc5bcf-8zvgc          1/1     Running     1 (3h24m ago)   3h24m   10.130.2.12   example-quay-ocp-tes-5gwws-worker-a-tk8dx   <none>           <none>
+example-registry-quay-app-64cbc5bcf-pvlz6          1/1     Running     0               3h24m   10.129.4.10   example-quay-ocp-tes-5gwws-worker-b-fjhz4   <none>           <none>
+example-registry-quay-app-upgrade-8gspn            0/1     Completed   0               3h24m   10.130.2.10   example-quay-ocp-tes-5gwws-worker-a-tk8dx   <none>           <none>
+example-registry-quay-database-784d78b6f8-2vkml    1/1     Running     0               3h24m   10.131.4.10   example-quay-ocp-tes-5gwws-worker-c-2frtg   <none>           <none>
+example-registry-quay-mirror-d5874d8dc-fmknp       1/1     Running     0               3h24m   10.129.4.9    example-quay-ocp-tes-5gwws-worker-b-fjhz4   <none>           <none>
+example-registry-quay-mirror-d5874d8dc-t4mff       1/1     Running     0               3h24m   10.129.2.19   example-quay-ocp-tes-5gwws-worker-a-k7w86   <none>           <none>
+example-registry-quay-redis-79848898cb-6qf5x       1/1     Running     0               3h24m   10.130.2.11   example-quay-ocp-tes-5gwws-worker-a-tk8dx   <none>           <none>
 
 ----
 
@@ -168,7 +62,7 @@ pod "example-registry-quay-redis-79848898cb-6qf5x" deleted
 +
 After the pods have been deleted, they automatically cycle back up and should be scheduled on the dedicated infrastructure nodes.
 
-////
+
 . Enter the following command to create the project on infra nodes:
 +
 [source,terminal]
@@ -184,10 +78,6 @@ project.project.openshift.io/quay-registry created
 ----
 +
 Subsequent resources created in the `<project_name>` namespace should now be scheduled on the dedicated infrastructure nodes. 
-////
-
-[id="installing-quay-operator-namespace"]
-== Installing {productname-ocp} on a specific namespace 
 
 Use the following procedure to install {productname-ocp} in a specific namespace. 
 
@@ -208,29 +98,4 @@ NAME                                    READY   STATUS    R
 quay-operator.v3.4.1-6f6597d8d8-bd4dp   1/1     Running   0          30s   10.131.0.16   user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal 
 ----
 
-[id="creating-registry"]
-== Creating the {productname} registry
-
-Use the following procedure to create the {productname} registry. 
-
-* Enter the following command to create the {productname} registry. Then, wait for the deployment to be marked as `ready`. In the following example, you should see that they have only been scheduled on the three nodes that you have labelled for infrastructure purposes. 
-+
-[source,terminal]
-----
-$ oc get pods -n quay-registry -o wide
-----
-+
-.Example output
-+
-[source,terminal]
-----
-NAME                                                   READY   STATUS      RESTARTS   AGE     IP            NODE                                                 
-example-registry-clair-app-789d6d984d-gpbwd            1/1     Running     1          5m57s   10.130.2.80   user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal
-example-registry-clair-postgres-7c8697f5-zkzht         1/1     Running     0          4m53s   10.129.2.19   user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal
-example-registry-quay-app-56dd755b6d-glbf7             1/1     Running     1          5m57s   10.129.2.17   user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal
-example-registry-quay-database-8dc7cfd69-dr2cc         1/1     Running     0          5m43s   10.129.2.18   user1-jcnp6-worker-c-pwxfp.c.quay-devel.internal
-example-registry-quay-mirror-78df886bcc-v75p9          1/1     Running     0          5m16s   10.131.0.24   user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal
-example-registry-quay-postgres-init-8s8g9              0/1     Completed   0          5m54s   10.130.2.79   user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal
-example-registry-quay-redis-5688ddcdb6-ndp4t           1/1     Running     0          5m56s   10.130.2.78   user1-jcnp6-worker-d-m9gg4.c.quay-devel.internal
-quay-operator.v3.4.1-6f6597d8d8-bd4dp                  1/1     Running     0          22m     10.131.0.16   user1-jcnp6-worker-d-h5tv2.c.quay-devel.internal
-----
+////
