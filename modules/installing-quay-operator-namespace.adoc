@@ -1,0 +1,55 @@
+:_mod-docs-content-type: PROCEDURE
+[id="installing-quay-operator-namespace"]
+= Installing the {productname} Operator on the annotated namespace
+
+After you have added the `node-role.kubernetes.io/infra=` label to worker nodes and added the `node-selector` and `tolerations` annotations to the namespace, you must download the {productname} Operator in that namespace. 
+
+The following procedure shows you how to download the {productname} Operator on the annotated namespace and how to update the subscription to ensure successful installation.
+
+.Procedure
+
+. On the {ocp} web console, click *Operators* -> *OperatorHub*.
+
+. In the search box, type *{productname}*.
+
+. Click *{productname}* -> *Install*. 
+
+. Select the update channel, for example, *stable-{producty}* and the version.
+
+. Click *A specific namespace on the cluster* for the installation mode, and then select the namespace that you applied the `node-selector` and `tolerations` annotations to.
+
+. Click *Install*.
+////
+. After a few minutes, the {productname} Operator installation fails. This occurs because the Operator itself must run on the `infra` nodes. Update the {productname} Operator subscription to run on the infra nodes by entering the following command:
++
+[source,terminal]
+----
+$ oc patch subscription quay-operator -n <annotated_namespace> \
+  --type=merge -p '{
+    "spec": {
+      "config": {
+        "nodeSelector": {"node-role.kubernetes.io/infra": ""},
+        "tolerations": [
+          {"key":"node-role.kubernetes.io/infra","operator":"Exists","effect":"NoSchedule"}
+        ]
+      }
+    }
+  }'
+----
++
+The Operator resumes downloading.
+////
+
+. Confirm that the Operator is installed by entering the following command:
++
+[source,terminal]
+----
+$ oc get pods -n <annotated_namespace> -o wide | grep quay-operator
+----
++
+.Example output
++
+[source,terminal]
+----
+quay-operator.v3.15.1-858b5c5fdc-lf5kj   1/1     Running   0          29m   10.130.6.18   example-cluster-new-c5qqp-worker-f-mhngl.c.quay-devel.internal   <none>           <none>
+----
