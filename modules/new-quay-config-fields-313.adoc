@@ -1,0 +1,30 @@
+:_content-type: REFERENCE
+[id="new-quay-config-fields-313"]
+= New {productname} configuration fields
+
+The following configuration fields have been added to {productname} {producty}.
+
+[id="disable-pushes-configuration-field"]
+== Disabling pushes to the {productname} registry configuration field
+
+In some cases, a read-only option for {productname} is not possible since it requires inserting a service key and other manual configuration changes. With the release of {productname} 3.13, a new configuration field has been added: `DISABLE_PUSHES`. 
+
+When `DISABLE_PUSHES` is set to `True`, users are unable to push images or image tags to the registry when using the CLI. Most other registry operations continue as normal when this feature is enabled by using the {productname} UI. For example, changing tags, editing a repository, robot account creation and deletion, user creation, and so on are all possible by using the UI. 
+
+When `DISABLE_PUSHES` is set to `True`, the {productname} garbage collector is disabled. As a result, when `PERMANENTLY_DELETE_TAGS` is enabled, using the {productname} UI to permanently delete a tag does not result in the immediate deletion of a tag. Instead, the tag stays in the repository until `DISABLE_PUSHES` is set to `False`, which re-enables the garbage collector. {productname} administrators should be aware of this caveat when using `DISABLE_PUSHES` and `PERMANENTLY_DELETE_TAGS` together.
+
+This field might be useful in some situations such as when {productname} administrators want to calculate their registry's quota and disable image pushing until after calculation has completed. With this method, administrators can avoid putting putting the whole registry in `read-only` mode, which affects the database, so that most operations can still be done.
+
+|===
+| Field | Type | Description 
+
+|*DISABLE_PUSHES* |Boolean | Disables pushes of new content to the registry while retaining all other functionality. Differs from `read-only` mode because database is not set as `read-only`. Defaults to `False`.
+|===
+
+.Example DISABLE_PUSHES configuration field
+[source,yaml]
+----
+# ...
+DISABLE_PUSHES: true
+# ...
+----
