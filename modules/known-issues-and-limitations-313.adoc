@@ -1,0 +1,77 @@
+:_content-type: REFERENCE
+[id="known-issues-and-limitations-313"]
+== {productname} 3.13 known issues and limitations
+
+The following sections note known issues and limitations for {productname} {producty}.
+
+[id="known-issues-314"]
+== {productname-ocp} multiple ingress controllers known issue
+
+In {ocp} clusters with multiple ingress controllers defined, the {productname} Operator iterates through the list of available ingress controllers are uses the first one that it encounters to determine the cluster hostname. However, the order of ingress controllers in this list is not guaranteed to be consistent across reconciliation cycles. Consequently, the Operator might pick a different ingress controller, leading it to detect a change in the cluster hostname and initiate a new reconciliation process. This can lead to instability in `quay` pods and your {productname-ocp} deployment.
+
+Use one of the following methods to avoid this issue:
+
+* Set the `route` and `tls` components of the `QuayRegistry` resource to be unmanaged (`managed: false`), and create a custom Route for {productname}. For more information about creating a custom Route, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-unmanaged-route[Disabling the Route component].
+* Ensure that only one ingress controller matches the {productname} `route` resource, which can be done with ingress controller sharding. For more information, see link:https://docs.redhat.com/en/documentation/openshift_container_platform/{ocp-ver}/html-single/networking/index#nw-ingress-sharding-concept_configuring-ingress-cluster-traffic-ingress-controller[Ingress sharding in {ocp}].
+
+[id="clair-suse-enterprise-known-issue"]
+== Clair vulnerability report known issue
+
+When pushing Suse Enterprise Linux Images with *HIGH* image vulnerabilities, Clair 4.8.0 does not report these vulnerabilities. This is a known issue and will be fixed in a future version of {productname}.
+
+[id="fips-mode-known-issue"]
+== FIPS mode known issue
+
+If FIPS mode is enabled for your {ocp} cluster and you use Clair, you must not upgrade the {productname} Operator to version {producty}. If you upgrade, Clair will not function in your cluster. (link:https://issues.redhat.com/browse/PROJQUAY-8185[*PROJQUAY-8185*])
+
+[id="registry-auto-pruning-known-issue"]
+== Registry auto-pruning known issues
+
+The following known issues apply to the auto-pruning feature:
+
+* Currently, the auto-pruning feature prioritizes the following order when configured:
++
+. Method: `creation_date` + `organization wide`
+. Method: `creation_date` + `repository wide`
+. Method: `number_of_tags` + `organization wide`
+. Method: `number_of_tags` + `repository wide`
++
+This means that the auto-pruner first prioritizes, for example, an organization-wide policy set to expire tags by their creation date before it prunes images by the number of tags that it has.
++
+There is a known issue when configuring a registry-wide auto-pruning policy. If {productname} administrators configure a `number_of_tags` policy before a `creation_date` policy, it is possible to prune more than the intended set for the `number_of_tags` policy. This might lead to situations where a repository removes certain image tags unexpectedly.
++
+This is not an issue for organization or repository-wide auto-prune policies. This known issue only exists at the registry level. It will be fixed in a future version of {productname}.
+
+* When creating an auto-prune policy, the pruner cannot recognize `\b` and `\B` patterns. This is a common behavior with regular expression patterns, wherein `\b` and `\B` match empty strings. {productname} administrators should avoid using _regex_ patterns that use `\B` and `\b` to avoid this issue. (link:https://issues.redhat.com/browse/PROJQUAY-8089[*PROJQUAY-8089*])
+
+[id="v2-ui-known-issues-313"]
+== {productname} v2 UI known issues
+
+The {productname} team is aware of the following known issues on the v2 UI:
+
+* link:https://issues.redhat.com/browse/PROJQUAY-6910[*PROJQUAY-6910*]. The new UI can't group and stack the chart on usage logs
+* link:https://issues.redhat.com/browse/PROJQUAY-6909[*PROJQUAY-6909*]. The new UI can't toggle the visibility of the chart on usage log
+* link:https://issues.redhat.com/browse/PROJQUAY-6904[*PROJQUAY-6904*]. "Permanently delete" tag should not be restored on new UI
+* link:https://issues.redhat.com/browse/PROJQUAY-6899[*PROJQUAY-6899*]. The normal user can not delete organization in new UI when enable FEATURE_SUPERUSERS_FULL_ACCESS
+* link:https://issues.redhat.com/browse/PROJQUAY-6892[*PROJQUAY-6892*]. The new UI should not invoke not required stripe and status page
+* link:https://issues.redhat.com/browse/PROJQUAY-6884[*PROJQUAY-6884*]. The new UI should show the tip of slack Webhook URL when creating slack notification
+* link:https://issues.redhat.com/browse/PROJQUAY-6882[*PROJQUAY-6882*]. The new UI global readonly super user can't see all organizations and image repos
+* link:https://issues.redhat.com/browse/PROJQUAY-6881[*PROJQUAY-6881*]. The new UI can't show all operation types in the logs chart
+* link:https://issues.redhat.com/browse/PROJQUAY-6861[*PROJQUAY-6861*]. The new UI "Last Modified" of organization always show N/A after target organization's setting is updated
+* link:https://issues.redhat.com/browse/PROJQUAY-6860[*PROJQUAY-6860*]. The new UI update the time machine configuration of organization show NULL in usage logs
+* link:https://issues.redhat.com/browse/PROJQUAY-6859[*PROJQUAY-6859*]. Thenew UI remove image repo permission show "undefined" for organization name in audit logs
+* link:https://issues.redhat.com/browse/PROJQUAY-6852[*PROJQUAY-6852*]. "Tag manifest with the branch or tag name" option in build trigger setup wizard should be checked by default.
+* link:https://issues.redhat.com/browse/PROJQUAY-6832[*PROJQUAY-6832*]. The new UI should validate the OIDC group name when enable OIDC Directory Sync
+* link:https://issues.redhat.com/browse/PROJQUAY-6830[*PROJQUAY-6830*]. The new UI should show the sync icon when the team is configured sync team members from OIDC Group
+* link:https://issues.redhat.com/browse/PROJQUAY-6829[*PROJQUAY-6829*]. The new UI team member added to team sync from OIDC group should be audited in Organization logs page
+* link:https://issues.redhat.com/browse/PROJQUAY-6825[*PROJQUAY-6825*]. Build cancel operation log can not be displayed correctly in new UI
+* link:https://issues.redhat.com/browse/PROJQUAY-6812[*PROJQUAY-6812*]. The new UI the "performer by" is NULL of build image in logs page
+* link:https://issues.redhat.com/browse/PROJQUAY-6810[*PROJQUAY-6810*]. The new UI should highlight the tag name with tag icon in logs page
+* link:https://issues.redhat.com/browse/PROJQUAY-6808[*PROJQUAY-6808*]. The new UI can't click the robot account to show credentials in logs page
+* link:https://issues.redhat.com/browse/PROJQUAY-6807[*PROJQUAY-6807*]. The new UI can't see the operations types in log page when quay is in dark mode
+* link:https://issues.redhat.com/browse/PROJQUAY-6770[*PROJQUAY-6770*]. The new UI build image by uploading Docker file should support .tar.gz or .zip
+* link:https://issues.redhat.com/browse/PROJQUAY-6769[*PROJQUAY-6769*]. The new UI should not display message "Trigger setup has already been completed" after build trigger setup completed
+* link:https://issues.redhat.com/browse/PROJQUAY-6768[*PROJQUAY-6768*]. The new UI can't navigate back to current image repo from image build
+* link:https://issues.redhat.com/browse/PROJQUAY-6767[*PROJQUAY-6767*]. The new UI can't download build logs
+* link:https://issues.redhat.com/browse/PROJQUAY-6758[*PROJQUAY-6758*]. The new UI should display correct operation number when hover over different operation type
+* link:https://issues.redhat.com/browse/PROJQUAY-6757[*PROJQUAY-6757*]. The new UI usage log should display the tag expiration time as date format

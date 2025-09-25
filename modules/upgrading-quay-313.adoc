@@ -1,0 +1,28 @@
+:_content-type: REFERENCE
+[id="upgrading-quay-313"]
+= Upgrading to {productname} 3.13
+
+With {productname} 3.13, the `volumeSize` parameter has been implemented for use with the `clairpostgres` component of the `QuayRegistry` custom resource definition (CRD). This replaces the `volumeSize` parameter that was previously used for the `clair` component of the same CRD. 
+
+If your {productname} 3.12 `QuayRegistry` custom resource definition (CRD) implemented a volume override for the `clair` component, you must ensure that the `volumeSize` field is included under the `clairpostgres` component of the `QuayRegistry` CRD.
+
+[IMPORTANT]
+====
+Failure to move `volumeSize` from the `clair` component to the `clairpostgres` component will result in a failed upgrade to version 3.13.
+====
+
+For example:
+
+[source,yaml]
+----
+spec:
+  components:
+  - kind: clair
+    managed: true
+  - kind: clairpostgres
+    managed: true
+    overrides:
+      volumeSize: <volume_size>
+----
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/upgrade_red_hat_quay/index[Upgrade {productname}].
