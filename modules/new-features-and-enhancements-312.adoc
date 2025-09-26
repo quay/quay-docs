@@ -1,0 +1,69 @@
+:_content-type: REFERENCE
+[id="new-features-and-enhancements-312"]
+= {productname} new features and enhancements
+
+The following updates have been made to {productname}.
+
+[id="splunk-event-collector-enhancements"]
+== Splunk event collector enhancements
+
+With this update, {productname} administrators can configure their deployment to forward action logs directly to a Splunk HTTP Event Collector (HEC). This enhancement enables seamless integration with Splunk for comprehensive log management and analysis.
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#proc_manage-log-storage-splunk[Configuring action log storage for Splunk].
+
+[id="api-token-ownership"]
+== API token ownership
+
+Previously, when a {productname} organization owner created an API OAuth token, and that API OAuth token was used by another organization member, the action was logged to the creator of the token. This was undesirable for auditing purpose, notably in restricted environments where only dedicated registry administrators are organization owners. 
+
+With this release, organization administrators can now assign OAuth API tokens to be created by other users with specific permissions. This allows the audit logs to be reflected accurately when the token is used by a user that has no organization administrative permissions to create an OAuth API token.
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#reassigning-oauth-access-token[Reassigning an OAuth access token].
+
+[id="image-expiration-event"]
+== Image expiration notification
+
+Previously, {productname} administrators and users had no way of being alerted when an image was about to expire. With this update, an event can be configured to notify users when an image is about to expire. This helps {productname} users avoid unexpected pull failures.
+
+Image expiration event triggers can be configured to notify users through email, Slack, webhooks, and so on, and can be configured at the repository level. Triggers can be set for images expiring in any amount of days, and can work in conjunction with the auto-pruning feature. 
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/use_red_hat_quay/index#creating-image-expiration-notification[Creating an image expiration notification].
+
+[id="auto-pruning-enhancements"]
+== {productname} auto-pruning enhancements
+
+With the release of {productname} 3.10, a new auto-pruning feature was released. With that feature, {productname} administrators could set up auto-pruning policies on namespaces for both users and organizations so that image tags were automatically deleted based on specified criteria. In {productname} 3.11, this feature was enhanced so that auto-pruning policies could be set up on specified repositories. 
+
+With this release, default auto-pruning policies can now be set up at the registry level. Default auto-pruning policies set up at the registry level can be configured on new and existing organizations. This feature saves {productname} administrators time, effort, and storage by enforcing registry-wide rules.
+
+{productname} administrators must enable this feature by updating their `config.yaml` file to include the `DEFAULT_NAMESPACE_AUTOPRUNE_POLICY` configuration field and one of `number_of_tags` or `creation_date` methods. Currently, this feature cannot be enabled by using the v2 UI or the API. 
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#red-hat-quay-namespace-auto-pruning-overview[{productname} auto-pruning overview].
+
+[id="oci-compliance-updates"]
+== Open Container Initiative 1.1 implementation
+
+{productname} now supports the Open Container Initiative (OCI) 1.1 distribution spec version 1.1. Key highlights of this update include support for the following areas:
+
+* Enhanced capabilities for handling various types of artifacts, which provides better flexibility and compliance with OCI 1.1.
+* Introduction of new reference types, which allows more descriptive referencing of artifacts.
+* Introduction of the _referrers API_, which aids in the retrieval and management of referrers, which helps improve container image management.
+* Enhance UI to better visualize referrers, which makes it easier for users to track and manage dependencies.
+
+For more information about OCI spec 1.1, see link:https://github.com/opencontainers/distribution-spec/tree/v1.1.0-rc1?tab=readme-ov-file#oci-distribution-specification[OCI Distribution Specification].
+
+For more information about OCI support and {productname}, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/oci-intro[Open Container Initiative support].
+
+[id="metadata-support-annotations"]
+== Metadata support through annotations
+
+Some OCI media types do not utilize labels and, as such, critical information such as expiration timestamps are not included. With this release, {productname} now supports metadata passed through annotations to accommodate OCI media types that do not include these labels for metadata transmission. Tools such as ORAS (OCI Registry as Storage) can now be used to embed information with artifact types to help ensure that images operate properly, for example, to expire.
+
+For more information about OCI media types and how adding an annotation with ORAS works, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/use_red_hat_quay/oci-intro[Open Container Initiative support].
+
+[id="v2-ui-enhancement"]
+== {productname} v2 UI enhancements
+
+The following enhancements have been made to the {productname} v2 UI:
+
+* When creating a robot account with the {productname} v2 UI, administrators can now specify that the kubernetes runtime use a secret only for a specific organization or repository. This option can be selected by clicking the name of your robot account on the v2 UI, and then clicking the *Kubernetes* tab.

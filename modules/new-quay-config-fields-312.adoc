@@ -1,0 +1,149 @@
+:_content-type: REFERENCE
+[id="new-quay-config-fields-312"]
+= New {productname} configuration fields
+ 
+The following configuration fields have been added to {productname} {producty}.
+
+[id="oauth-reassign-configuration-field"]
+== OAuth access token reassignment configuration field 
+
+The following configuration field has been added for reassigning OAuth access tokens:
+|===
+| Field | Type | Description
+
+| *FEATURE_ASSIGN_OAUTH_TOKEN* | Boolean | Allows organization administrators to assign OAuth tokens to other users.
+|===
+
+.Example OAuth access token reassignment YAML
+[source,yaml]
+----
+# ...
+FEATURE_ASSIGN_OAUTH_TOKEN: true
+# ...
+----
+
+[id="notification-configuration-field"]
+== Notification interval configuration field
+
+The following configuration field has been added to enhance {productname} notifications:
+
+|===
+| Field | Type | Description
+| *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES* | Integer | The interval, in minutes, that defines the frequency to re-run notifications for expiring images. By default, this field is set to notify {productname} users of events happening every 5 hours.
+|===
+
+.Example notification re-run YAML
+[source,yaml]
+----
+# ...
+NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES: 10
+# ...
+----
+
+[id="registry-auto-prune-configuration-fields"]
+== Registry auto-pruning configuration fields
+
+The following configuration fields have been added to {productname} auto-pruning feature:
+
+|===
+| Field | Type | Description
+| *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES* |Integer | The interval, in minutes, that defines the frequency to re-run notifications for expiring images. +
+ +
+**Default:** `300`
+
+|*DEFAULT_NAMESPACE_AUTOPRUNE_POLICY* | Object | The default organization-wide auto-prune policy.
+
+|{nbsp}{nbsp}{nbsp} *.method: number_of_tags* | Object | The option specifying the number of tags to keep. 
+
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *method: number_of_tags*, denotes the number of tags to keep. +
+
+For example, to keep two tags, specify `2`.
+
+|{nbsp}{nbsp}{nbsp} *.method: creation_date* | Object | The option specifying the duration of which to keep tags. 
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *creation_date*, denotes how long to keep tags. +
+
+Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`). Must include a valid integer. For example, to keep tags for one year, specify `1y`.
+
+|*AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD* |Integer | The period in which the auto-pruner worker runs at the registry level. By default, it is set to run one time per day (one time per 24 hours). Value must be in seconds.
+
+|===
+
+.Example registry auto-prune policy by number of tags
+[source,yaml]
+----
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: number_of_tags
+  value: 10
+----
+
+.Example registry auto-prune policy by creation date
+[source,yaml]
+----
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: creation_date
+  value: 1y
+----
+
+[id="image-vulnerability-notification-field"]
+== Vulnerability detection notification configuration field
+
+The following configuration field has been added to notify users on detected vulnerabilities based on security level:
+
+|===
+| Field | Type | Description
+| *NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX* | String | Set minimal security level for new notifications on detected vulnerabilities. Avoids creation of large number of notifications after first index. If not defined, defaults to `High`. Available options include `Critical`, `High`, `Medium`, `Low`, `Negligible`, and `Unknown`.
+|===
+
+.Example image vulnerability notification YAML
+[source,yaml]
+----
+NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX: High
+----
+
+[id="oci-referrers-api-configuration-field"]
+== OCI referrers API configuration field
+
+The following configuration field allows users to list OCI referrers of a manifest under a repository by using the v2 API:
+
+|===
+| Field | Type | Description
+| *FEATURE_REFERRERS_API* | Boolean | Enables OCI 1.1's referrers API.
+|===
+
+.Example OCI referrers enablement YAML
+[source,yaml]
+----
+# ...
+FEATURE_REFERRERS_API: True
+# ...
+----
+
+[id="disable-strict-logging-configuration-field"]
+== Disable strict logging configuration field
+
+The following configuration field has been added to address when external systems like Splunk or ElasticSearch are configured as audit log destinations but are intermittently unavailable. When set to `True`, the logging event is logged to the stdout instead. 
+
+|===
+| Field | Type | Description
+| *ALLOW_WITHOUT_STRICT_LOGGING* | Boolean | When set to `True`, if the external log system like Splunk or ElasticSearch is intermittently unavailable, allows users to push images normally. Events are logged to the stdout instead. Overrides `ALLOW_PULLS_WITHOUT_STRICT_LOGGING` if set.
+|===
+
+.Example strict logging YAML
+[source,yaml]
+----
+# ...
+ALLOW_WITHOUT_STRICT_LOGGING: True
+# ...
+----
+
+[id="clair-index-layer-size-configuration-field"]
+== Clair indexing layer size configuration field
+
+The following configuration field has been added for the Clair security scanner, which allows {productname} administrators to set a maximum layer size allowed for indexing.
+
+|===
+| Field | Type | Description
+| *SECURITY_SCANNER_V4_INDEX_MAX_LAYER_SIZE* | String | The maximum layer size allowed for indexing. If the layer size exceeds the configured size, the {productname} UI returns the following message: `The manifest for this tag has layer(s) that are too large to index by the Quay Security Scanner`. The default is `8G`, and the maximum recommended is `10G`.
+ +
+ *Example*: `8G`
+|===
