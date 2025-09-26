@@ -1,0 +1,36 @@
+:_content-type: REFERENCE
+[id="new-api-endpoints-312"]
+= API endpoint enhancements
+
+[id="new-changeorgquota-createorgquota-endpoints"]
+== New changeOrganizationQuota and createOrganizationQuota endpoints:
+
+The following optional API field has been added to the `changeOrganizationQuota` and `createOrganizationQuota` endpoints:
+
+|===
+|Name|Description|Schema
+
+|**limits** + 
+_optional_|Human readable storage capacity of the organization. Accepts SI units like Mi, Gi, or Ti, as well as non-standard units like GB or MB. Must be mutually exclusive with `limit_bytes`.|string
+|===
+
+Use this field to set specific limits when creating or changing an organization's quote limit. For more information about these endpoints, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#changeorganizationquota[changeOrganizationQuota] and link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#createorganizationquota[createOrganizationQuota].
+
+[id="new-referrer-endpoints"]
+== New referrer API endpoint
+
+The following API endpoint allows use to obtain referrer artifact information:
+
+|===
+|Type|Name|Description|Schema
+|path|**orgname** + 
+_required_|The name of the organization|string
+|path|**repository** + 
+_required_|The full path of the repository. e.g. namespace/name|string
+|path|**referrers** + 
+_required_| Looks up the OCI referrers of a manifest under a repository.|string
+|**manifest_digest** + 
+_required_|The digest of the manifest|string
+|===
+
+To use this field, you must generate a v2 API OAuth token and set `FEATURE_REFERRERS_API: true` in your `config.yaml` file. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/red_hat_quay_api_guide/index#creating-v2-oauth-access-token[Creating an OCI referrers OAuth access token].
