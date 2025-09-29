@@ -1,0 +1,35 @@
+:_content-type: REFERENCE
+[id="known-issues-and-limitations-310"]
+= {productname} 3.10 known issues and limitations
+
+The following sections note known issues and limitations for {productname} {producty}.
+
+[id="known-issues-310"]
+== {productname} 3.10 known issues
+
+* There is a known issue with the auto-pruning feature when pushing image tags with Cosign signatures. In some scenarios, for example, when each image tag uses a different Cosign key, the auto-pruner worker removes the image signature and only keeps the image tag. This occurs because {productname} considers image tags and the signature as two tags. The expected behavior of this feature is that the auto-pruner should consider the image tag and signature as one item, calculate only the image tag, and when the auto-pruner worker is configured in such a way that the tag is pruned, it also prunes the signature. This will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6380[*PROJQUAY-6380*])
+
+* Currently, auditing for auto-pruning policy operations, including creating, updating, or deleting policies, is unavailable. This is a known issue and will be fixed in a future release of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6229[*PROJQUAY-6228*])
+
+* Currently, the the auto-pruning worker prunes `ReadOnly` and mirror repositories, in addition to normal repositories. `ReadOnly` and mirror repositories should not be pruned automatically. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6235[*PROJQUAY-6235*])
+
+* When upgrading the {productname} Operator from versions 3.7, 3.8, or 3.9 to {producty}, users must manually remove the {productname} config editor by removing the `deployment`, `route,` `service`, and `secret` objects. For information about this procedure, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/upgrade_red_hat_quay/index#config-editor-removal[Removing config editor objects on {productname} Operator].
+
+* When creating a new team using the {productname} v2 UI, users are unable to add normal users to the new team while. This only occurs while setting up the new team. As a workaround, you can add users after the team has been created. Robot accounts are unaffected by this issue. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6336[*PROJQUAY-6336*])
+
+* Sometimes, when creating a new default permission setting, the *Create default permission* button is disabled. As a workaround, you can try adjusting the *Applied to* setting in the *Create default permission* wizard. This is a known issue and will be fixed in a future version of {productname}. (link:https://issues.redhat.com/browse/PROJQUAY-6341[*PROJQUAY-6341*])
+
+[id="limitations-310"]
+== {productname} 3.10 limitations
+
+* In this release, the following features are not supported on IBM Power (ppc64le) and IBM Z (s390x):
+** Geo-Replication
+** IPv6 Single stack/ Dual Stack
+** Mirror registry
+** Quay config editor - Mirror, MAG, Kinesis, Keystone, GitHub Enterprise, OIDC
+** RedHat Quay V2 User Interface
+** Deploy Red Hat Quay - High Availability is supported but the following is not:
+*** Backing up and restoring on a standalone deployment
+*** Migrating a standalone to operator deployment
+
+* Robot accounts are mandatory for repository mirroring. Setting the `ROBOTS_DISALLOW` configuration field to `True` breaks mirroring configurations. This will be fixed in a future version of {productname}
