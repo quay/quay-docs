@@ -1,0 +1,86 @@
+:_content-type: REFERENCE
+[id="new-features-and-enhancements-310"]
+= {productname} new features and enhancements
+
+The following updates have been made to {productname}.
+
+[id="ibm-power-z-linuxone-support"]
+== IBM Power, IBM Z, IBM® LinuxONE support
+
+With this release, IBM Power (ppc64le), IBM Z (s390x), and IBM® LinuxONE (s390x) architectures are supported.
+
+[id="namespace-auto-pruning-310-rn"]
+== Namespace auto-pruning
+
+With {productname} 3.10, {productname} administrators can set up auto-pruning policies on namespaces (both users and organization). This feature allows for image tags to be automatically deleted within a namespace based on specified criteria. For this release, two policies have been added:
+
+* Auto-pruning images based on the number of tags.
+* Auto-pruning based on the age of a tag. 
+
+The auto-pruning feature allows {productname} organization owners to stay below the storage quota by automatically pruning content based on one of the aforementioned policies. 
+
+For more information about implementing this feature, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html/manage_red_hat_quay/red-hat-quay-namespace-auto-pruning-overview[{productname} namespace auto-pruning overview]. 
+
+[id="v2-ui-enhancements-310"]
+== {productname} UI v2 enhancements 
+
+In {productname} 3.8, a new UI was introduced as a technology preview feature. With {productname} 3.10, the following enhancements have been made to the UI v2:
+
+* With this update, a *Settings* page has been added for {productname} organizations. {productname} administrators can edit their preferences, billing information, and set organization types from this page.
+
+* With this update, a *Settings* page has been added for {productname} repositories. This page must be enabled by setting `FEATURE_UI_V2_REPO_SETTINGS` to `True` in your `config.yaml` file. This page allows users to create and set robot permissions, create events and notifications, set repository visibility, and delete repositories.
+
+* With this update, bulk managing robot account repository access is available on the {productname} v2 UI. Users can now easily add a robot account to multiple repositories using the v2 UI. 
+
+* With this update, the default user repository, or namespace, now includes a *Robot accounts* tab. This allows users to easily create their own robot accounts. 
+
+* With this update, the following alert messages have been added to confirm either the creation, or failure, of robot accounts and permission updates:
+
+** *Successfully updated repository permission*
+** *Successfully created robot account with robot name: <organization_name> + <robot_name>*
++
+Alternatively, you can receive the following error if you try to create a robot account with the same name as another: *Error creating robot account*
+** *Successfully deleted robot account*
+
+* With this update, a *Teams and membership* page has been added to the v2 UI. {productname} administrators can perform the following actions from this page:
+
+** Create new teams
+** Manage or create new team members
+** Set repository permissions
+** Search for specific teams 
+** View teams, members of a team, or collaborators of a team 
+
+* With this update, a *Default permissions* page has be been added to the v2 UI. This page allows {productname} administrators to set repository permissions. 
+
+* With this update, a *Tag History* page has been added to the v2 UI. Additionally, {productname} administrators can add and manage labels for repositories, and set expiration dates for specified tags in a repository. 
+
+For more information about navigating the v2 UI and enabling, or using, these features, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/use_red_hat_quay/index#using-v2-ui[Using the {productname} v2 UI].
+
+[id="clair-gc-manifests"]
+== Garbage collection of manifests for Clair
+
+Previously, Clair's indexer database was continually growing as it added storage when new manifests and layers were uploaded. This could cause the following issues for {productname} deployments:
+
+* Increased storage requirements
+* Performance issues
+* Increased storage management burden, requiring that administrators would monitor usage and develop a scaling strategy
+
+With this update, a new configuration field, `SECURITY_SCANNER_V4_MANIFEST_CLEANUP`, has been added. When this field is set to `True`, the {productname} garbage collector removes manifests that are not referenced by other tags or manifests. As a result, manifest reports are removed from Clair's database. 
+
+[id="managing-robot-accounts-quay"]
+== Managing {productname} robot accounts
+
+Prior to {productname} {producty}, all users were able to create robot accounts with unrestricted access. With this release, {productname} administrators can manage robot accounts by disallowing users to create new robot accounts.
+
+For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html/use_red_hat_quay/use-quay-manage-repo#disabling-robot-account[Disabling robot accounts]
+
+[id="quay-operator-updates-310"]
+== {productname} Operator
+
+The following updates have been made to the {productname} Operator:
+
+* The config editor has been removed from the {productname} Operator on {ocp} deployments. As a result, the `quay-config-editor` pod no longer deploys, and users cannot check the status of the config editor route. Additionally, the Config Editor Endpoint no longer generates on the {productname} Operator *Details* page. 
++
+Users with existing {productname} Operators who are upgrading from 3.7, 3.8, or 3.9 to {producty} must manually remove the {productname} config editor by removing the `deployment`, `route,` `service`, and `secret` objects. For information about this procedure, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html/upgrade_red_hat_quay/operator-upgrade#config-editor-removal[Removing config editor objects on {productname} Operator].
++
+By default, the config editor was deployed for every `QuayRegistry` instance, which made it difficult to establish an audit trail over the registry's configuration. Anyone with access to the namespace, config editor secret, and config editor route could use the editor to make changes to {productname}'s configuration, and their identity was no logged in the system. Removing the config editor forces all changes through the config bundle property of the `QuayRegistry` resource, which points to a secret, which is then subject to native Kubernetes auditing and logging. 
