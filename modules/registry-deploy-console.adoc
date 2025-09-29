@@ -1,0 +1,64 @@
+:_mod-docs-content-type: PROCEDURE
+[id="registry-deploy-console"]
+= Deploying a basic {productname} registry by using the {ocp} web console
+
+Use the {ocp} web console to create and deploy a basic {productname} registry instance.
+
+.Prerequisites
+
+* You have installed the {productname} Operator.
+* You have have administrative privileges to the cluster.
+
+.Procedure 
+
+. On the {ocp} web console, click *Operators* -> *Installed Operators* -> *Red Hat Quay*.
+
+. On the *Red Hat Quay* dashboard, click *Create instance*. 
+
+. On the *Create QuayRegistry* page, review the default settings of the `QuayRegistry` custom resource (CR). Here, you decide whether to to use managed or unmanaged object storage.
+
+.. If you are using the Multicloud Object Gateway or {odf} as your object storage, keep the following settings:
++
+[source,yaml]
+----
+    - kind: objectstorage
+      managed: true
+----
+
+.. If you are using a different storage provider, such as Google Cloud Platform, AWS S3, or Nutanix, set the `objectstorage` component as follows:
++
+[source,yaml]
+----
+    - kind: objectstorage
+      managed: false
+----
+
+. Click *Create*. You are redirected to the *Quay Registry* tab on the Operator page.
+
+. Click the name of the {productname} registry that you created, then click *Events* to view the status of creation. If you used managed storage and leveraged the Multicloud Object Gateway, the registry completes creation. If you are using {odf} or an unmanaged storage backend provider, complete the following steps:
+
+.. Click the *Details* page of the {productname} registry.
+
+.. Click the name of the *Config Bundle Secret* resource, for example, *<example_registry_name_config-bundle-secret-12345>*.
+
+.. Click *Actions* -> *Edit Secret*, and pass in the following information from your backend storage provider:
++
+[source,yaml]
+----
+# ...
+DISTRIBUTED_STORAGE_CONFIG:
+    <storage_provider>:
+        - <storage_provider_name>
+        - access_key: <access_key>
+          bucket_name: <bucket_name>
+          secret_key: <secret_key>
+          storage_path: /datastorage/registry
+# ...
+----
++
+[NOTE]
+====
+Depending on your storage provider, different information is required. For more information, see see link:https://docs.redhat.com/en/documentation/red_hat_quay/3.15/html-single/configure_red_hat_quay/index#config-fields-storage[Storage object configuration fields].
+====
+
+.. Click *Save*, and then re-navigate to the *Events* page of the registry to ensure successful deployment.

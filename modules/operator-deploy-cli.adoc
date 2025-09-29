@@ -1,8 +1,8 @@
 :_mod-docs-content-type: PROCEDURE
 [id="operator-deploy-cli"]
-= Deploying {productname} from the command line
+= Deploying a basic {productname} registry by using the CLI
 
-Use the following procedure to deploy {productname} from using the command-line interface (CLI).
+Use the `oc` command-line interface (CLI) to create and deploy a basic {productname} registry instance.
 
 .Prerequisites
 
@@ -17,65 +17,101 @@ Use the following procedure to deploy {productname} from using the command-line 
 $ oc new-project quay-enterprise
 ----
 
-. Optional. If you want to pre-configure any aspects of your {productname} deployment, create a `Secret` for the config bundle:
+. Create the `QuayRegistry` custom resource (CR).
+
+.. If the `objectstorage` component is set to `managed: true`, complete the following steps:
+
+... Create the `QuayRegistry` CR by entering the following command:
 +
 [source,terminal]
 ----
-$ oc create secret generic quay-enterprise-config-bundle --from-file=config-bundle.tar.gz=/path/to/config-bundle.tar.gz
-----
-
-. Create a `QuayRegistry` custom resource in a file called `quayregistry.yaml`
-
-.. For a minimal deployment, using all the defaults:
-+
-.quayregistry.yaml:
-[source,yaml]
-----
+$ cat <<EOF | oc create -n quay-enterprise -f -
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
   name: example-registry
   namespace: quay-enterprise
+EOF
 ----
 
-.. Optional. If you want to have some components unmanaged, add this information in the `spec` field. A minimal deployment might look like the following example:
-+
-.Example quayregistry.yaml with unmanaged components
+.. If the `objectstorage` component is set to `managed: false`, complete the following steps:
+
+... Create the a minimal `config.yaml` file for {productname} by entering the following command. You must include the information required for your backend storage provider. For example:
 +
 [source,yaml]
 ----
+$ cat <<EOF > config.yaml
+ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
+AUTHENTICATION_TYPE: Database
+DEFAULT_TAG_EXPIRATION: 2w
+DISTRIBUTED_STORAGE_CONFIG:
+    <storage_provider>:
+        - <storage_provider_name>
+        - access_key: <access_key>
+          bucket_name: <bucket_name>
+          secret_key: <secret_key>
+          storage_path: /datastorage/registry
+ENTERPRISE_LOGO_URL: /static/img/RH_Logo_Quay_Black_UX-horizontal.svg
+FEATURE_BUILD_SUPPORT: false
+FEATURE_DIRECT_LOGIN: true
+FEATURE_MAILING: false
+REGISTRY_TITLE: Red Hat Quay
+REGISTRY_TITLE_SHORT: Red Hat Quay
+SETUP_COMPLETE: true
+TAG_EXPIRATION_OPTIONS:
+- 2w
+TEAM_RESYNC_STALE_TIME: 60m
+TESTING: false
+EOF
+----
+
+.. Create a secret for the configuration by entering the following command:
++
+[source,terminal]
+----
+$ oc create secret generic <quay_config_bundle_name> \
+  --from-file=config.yaml=</path/to/config.yaml> \
+  -n quay-enterprise \
+  --dry-run=client -o yaml | oc apply -f -
+----
+
+.. Create the `QuayRegistry` CR by entering the following command:
++
+[source,terminal]
+----
+$ cat <<EOF | oc create -n quay-enterprise -f -
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
   name: example-registry
   namespace: quay-enterprise
 spec:
+  configBundleSecret: <quay_config_bundle_name>
   components:
     - kind: clair
-      managed: false
-    - kind: horizontalpodautoscaler
-      managed: false
+      managed: true
+    - kind: objectstorage
+      managed: false <1>
     - kind: mirror
-      managed: false
+      managed: true
     - kind: monitoring
-      managed: false
+      managed: true
+EOF
+----
+<1> Must be set to false when providing your own storage backend. 
+
+. Check the status of your registry by entering the following command:
++
+[source,terminal]
+----
+$ $ oc describe quayregistry <registry_name> -n quay-enterprise
 ----
 
-.. Optional. If you have created a config bundle, for example, `init-config-bundle-secret`, reference it in the `quayregistry.yaml` file:
-+
-.Example quayregistry.yaml with a config bundle
-+
-[source,yaml]
-----
-apiVersion: quay.redhat.com/v1
-kind: QuayRegistry
-metadata:
-  name: example-registry
-  namespace: quay-enterprise
-spec:
-  configBundleSecret: init-config-bundle-secret
-----
+.Additional resources
 
+* For more information about how to track the progress of your {productname} deployment, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-monitor-deploy-cli[Monitoring and debugging the deployment process].
+
+////
 .. Optional. If you have a proxy configured, you can add the information using overrides for {productname}, Clair, and mirroring:
 +
 .Example quayregistry.yaml with proxy configured
@@ -129,21 +165,4 @@ spec:
             - name: HTTPS_PROXY
               value: quayproxy.qe.devcluster.openshift.com:3128
 ----
-
-. Create the `QuayRegistry` in the specified namespace by entering the following command:
-+
-[source,terminal]
-----
-$ oc create -n quay-enterprise -f quayregistry.yaml
-----
-
-. Enter the following command to see when the `status.registryEndpoint` is populated:
-+
-[source,terminal]
-----
-$ oc get quayregistry -n quay-enterprise example-registry -o jsonpath="{.status.registryEndpoint}" -w
-----
-
-.Additional resources
-
-* For more information about how to track the progress of your {productname} deployment, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-monitor-deploy-cli[Monitoring and debugging the deployment process].
+////
