@@ -1,0 +1,58 @@
+:_mod-docs-content-type: CONCEPT
+[id="operator-managed-storage-overview"]
+= Managed storage overview
+
+ifeval::["{productname}" == "Red Hat Quay"]
+
+By default, the {productname} Operator handles storage provisioning by consuming the `ObjectBucketClaim` Kubernetes API. Using the `ObjectBucketClaim` API is the preferred method because it decouples the {productname} Operator from vendor-specific storage implementations, allowing it to integrate seamlessly with various providers.
+
+If you are using managed object storage, the {productname} Operator can provision it for you using this `ObjectBucketClaim` mechanism. The NooBaa component of {odf} is a common provider that implements the `ObjectBucketClaim` API.
+
+There are two supported managed options available through {odf}: using the Multicloud Object Gateway, or a production-grade deployment of {odf}. The differences between the two are summarized in the following tables.
+
+.Managed storage using the multi-cloud object gateway
+[cols="1a,1a,2a",options="header"]
+|===
+| Aspect | Description | Benefit
+|Component |A standalone instance of the Multicloud Object Gateway backed by a local Kubernetes `PersistentVolume` storage. | Allows you to quickly deploy a {productname} registry without procuring an external service.
+|High availability |The Multicloud Object Gateway is not highly available. If the node fails, storage is temporarily inaccessible. | Depending on your use case, it should not be substituted for high availability needs.
+| Subscription | Included in the {productname} subscription. | Reduces complexity and avoids purchasing separate products.
+|===
+
+.Managed storage using a production-grade deployment of {odf}
+[cols="1a,1a,2a",options="header"]
+|===
+| Aspect | Description | Benefit
+|Component |A production deployment of {odf} with scale-out Object Service and Ceph. | Provides reliability and data redundancy.
+|High availability |Highly available, meaning that object storage layer can withstand node failures. | Beneficial for production environments where uptime is essential.
+| Subscription |Requires a separate subscription for {odf}. | Ensures enterprise-level support and stability for your storage layer. 
+|===
+
+[id="operator-standalone-object-gateway"]
+== About the Multicloud Object Gateway component
+
+As part of a {productname} subscription, users are entitled to use the _Multicloud Object Gateway_ component of the {odf} Operator (formerly known as OpenShift Container Storage Operator). The following table describes some of the benefits to using the Multicloud Object Gateway:
+
+The Multicloud Object Gateway gateway component allows you to provide an S3-compatible object storage interface to {productname} backed by Kubernetes `PersistentVolume`-based block storage. The usage is limited to a {productname} deployment managed by the Operator and to the exact specifications of the Multicloud Object Gateway instance as documented below.
+
+Since {productname} does not support local filesystem storage, users can leverage the gateway in combination with Kubernetes `PersistentVolume` storage instead, to provide a supported deployment. A `PersistentVolume` is directly mounted on the gateway instance as a backing store for object storage and any block-based `StorageClass` is supported.
+
+By the nature of `PersistentVolume`, this is not a scale-out, highly available solution and does not replace a scale-out storage system like {odf}. Only a single instance of the gateway is running. If the pod running the gateway becomes unavailable due to rescheduling, updates or unplanned downtime, this will cause temporary degradation of the connected {productname} instances.
+
+Deploying {productname-ocp} using {odf} requires you to download the Local Storage Operator, the {odf} Operator, and then Multicloud Object Gateway using the {ocp} UI. See the following {odf} documentation for these steps:
+
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/deploy-using-local-storage-devices-bm#installing-local-storage-operator_local-bare-metal[Local Storage Operator]
+
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/deploy-using-local-storage-devices-bm#installing-openshift-data-foundation-operator-using-the-operator-hub_local-bare-metal[{odf} Operator]
+
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/deploy-standalone-multicloud-object-gateway[Creating a standalone Multicloud Object Gateway]
+
+[id="about-odf"]
+== About {odf}
+
+{odf} is a provider of agnostic persistent storage for {ocp} supporting file, block, and object storage, either in-house or in hybrid clouds. As a Red{nbsp}Hat storage solution, {odf} is completely integrated with {ocp} for deployment, management, and monitoring. For more information, see the link:https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19[{odf} documentation].
+endif::[]
+
+ifeval::["{productname}" == "Project Quay"]
+If you want the Operator to manage object storage for {productname}, your cluster needs to be capable of providing it through the `ObjectBucketClaim` API. There are multiple implementations of this API available, for instance, link:https://operatorhub.io/operator/noobaa-operator[NooBaa] in combination with Kubernetes `PersistentVolumes` or scalable storage backends like Ceph. Refer to the link:https://github.com/noobaa/noobaa-core[NooBaa documentation] for more details on how to deploy this component.
+endif::[]
