@@ -1,8 +1,15 @@
 :_mod-docs-content-type: PROCEDURE
-[id="operator-deploy-cli"]
-= Deploying a basic {productname} registry by using the CLI
+[id="registry-deploy-cli"]
+= Deploying the {productname} registry by using the CLI
 
 Use the `oc` command-line interface (CLI) to create and deploy a basic {productname} registry instance.
+
+[NOTE]
+====
+The following `config.yaml` file includes automation configuration options. Collectively, these options streamline using the CLI with your registry, helping reduce dependency on the UI. Adding these fields to your `config.yaml` file is optional if you plan to use the UI, but recommended if you plan to use the CLI. 
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3.15/html-single/configure_red_hat_quay/index#config-preconfigure-automation-intro[Automation configuration options].
+====
 
 .Prerequisites
 
@@ -36,7 +43,7 @@ EOF
 
 .. If the `objectstorage` component is set to `managed: false`, complete the following steps:
 
-... Create the a minimal `config.yaml` file for {productname} by entering the following command. You must include the information required for your backend storage provider. For example:
+... Create the `config.yaml` file for {productname} by entering the following command. You must include the information required for your backend storage provider. During this step, you can enable additional {productname} features. The following example is for a minimal configuration that includes the configuration options for automating early setup tasks:
 +
 [source,yaml]
 ----
@@ -44,6 +51,11 @@ $ cat <<EOF > config.yaml
 ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
 AUTHENTICATION_TYPE: Database
 DEFAULT_TAG_EXPIRATION: 2w
+FEATURE_USER_INITIALIZE: true <1>
+SUPER_USERS: <2>
+     -  <username>
+BROWSER_API_CALLS_XHR_ONLY: false <3>
+FEATURE_USER_CREATION: false <4>
 DISTRIBUTED_STORAGE_CONFIG:
     <storage_provider>:
         - <storage_provider_name>
@@ -64,6 +76,10 @@ TEAM_RESYNC_STALE_TIME: 60m
 TESTING: false
 EOF
 ----
+<1> Set this field to `true` if you plan to create the first user by using API.
+<2> Include this field and the username that you plan to leverage as a {productname} administrator.
+<3> When set to `False`, allows general browser-based access to the API.
+<4> When set to `False`, relegates the creation of new users to only superusers.
 
 .. Create a secret for the configuration by entering the following command:
 +
@@ -98,13 +114,52 @@ spec:
       managed: true
 EOF
 ----
-<1> Must be set to false when providing your own storage backend. 
+<1> Must be set to false when providing your own storage backend.
+
+.Verification
 
 . Check the status of your registry by entering the following command:
 +
 [source,terminal]
 ----
-$ $ oc describe quayregistry <registry_name> -n quay-enterprise
+$ oc describe quayregistry <registry_name> -n quay-enterprise
+----
++
+.Example output
++
+[source,terminal]
+----
+...
+Events:
+  Type    Reason                     Age                   From                     Message
+  ----    ------                     ----                  ----                     -------
+  Normal  ComponentsCreationSuccess  23s (x2458 over 42h)  quayregistry-controller  All objects created/updated successfully
+----
+
+. Alternatively, you can check pod statuses for your registry deployment by entering the following command:
+. Enter the following command to view the deployed components:
++
+[source,terminal]
+----
+$ oc get pods -n quay-enterprise
+----
++
+.Example output
++
+[source,terminal]
+----
+NAME                                                   READY   STATUS      RESTARTS   AGE
+example-registry-clair-app-5ffc9f77d6-jwr9s            1/1     Running     0          3m42s
+example-registry-clair-app-5ffc9f77d6-wgp7d            1/1     Running     0          3m41s
+example-registry-clair-postgres-54956d6d9c-rgs8l       1/1     Running     0          3m5s
+example-registry-quay-app-79c6b86c7b-8qnr2             1/1     Running     4          3m42s
+example-registry-quay-app-79c6b86c7b-xk85f             1/1     Running     4          3m41s
+example-registry-quay-app-upgrade-5kl5r                0/1     Completed   4          3m50s
+example-registry-quay-database-b466fc4d7-tfrnx         1/1     Running     2          3m42s
+example-registry-quay-mirror-6d9bd78756-6lj6p          1/1     Running     0          2m58s
+example-registry-quay-mirror-6d9bd78756-bv6gq          1/1     Running     0          2m58s
+example-registry-quay-postgres-init-dzbmx              0/1     Completed   0          3m43s
+example-registry-quay-redis-8bd67b647-skgqx            1/1     Running     0          3m42s
 ----
 
 .Additional resources
