@@ -2,76 +2,62 @@
 [id="using-the-api-to-create-first-user"]
 = Using the API to create the first user
 
-Use the following procedure to create the first user in your {productname} organization.
+You can use the API to create the first user with administrative privileges for your registry. 
 
 .Prerequisites
 
-* The config option `FEATURE_USER_INITIALIZE` must be set to `True`.
-* No users can already exist in the database.
-
-.Procedure
-
-[NOTE]
-====
-This procedure requests an OAuth token by specifying `"access_token": true`.
-====
-
-. Open your {productname} configuration file and update the following configuration fields:
+* You have set `FEATURE_USER_INITIALIZE: true` and established a superuser in your `config.yaml` file. For example:
 +
 [source,yaml]
 ----
+# ...
 FEATURE_USER_INITIALIZE: true
 SUPER_USERS:
-     -  quayadmin
+     -  <username>
+# ..
 ----
++
+If you did not configure these settings upon registry creation, and need to re-configure your registry to enable these settings, see. . .
 
-. Stop the {productname} service by entering the following command:
+* You have not created a user by using the {productname} UI.
+
+.Procedure
+
+. On the command-line interface, generate a new user with a username, password, email, and access token by entering the following `CURL` command:
 +
 [source,terminal]
 ----
-$ sudo podman stop quay
-----
-
-. Start the {productname} service by entering the following command:
-+
-[source,terminal]
-----
-$ sudo podman run -d -p 80:8080 -p 443:8443 --name=quay -v $QUAY/config:/conf/stack:Z  -v $QUAY/storage:/datastorage:Z {productrepo}/{quayimage}:{productminv}
-----
-
-. Run the following `CURL` command to generate a new user with a username, password, email, and access token:
-+
-[source,terminal]
-----
-$ curl -X POST -k  http://quay-server.example.com/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayadmin", "password":"quaypass12345", "email": "quayadmin@example.com", "access_token": true}'
+$ curl -X POST -k  http:/</quay-server.example.com>/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "<username>", "password":"<password>", "email": "<email>@example.com", "access_token": true}'
 ----
 +
 If successful, the command returns an object with the username, email, and encrypted password. For example:
 +
 [source,yaml]
 ----
-{"access_token":"6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED", "email":"quayadmin@example.com","encrypted_password":"1nZMLH57RIE5UGdL/yYpDOHLqiNCgimb6W9kfF8MjZ1xrfDpRyRs9NUnUuNuAitW","username":"quayadmin"} # gitleaks:allow
+{"access_token":"6B4QTRSTSD1HMIG915VPX7BMEZBVB9GPNY2FC2ED", "email":"quayadmin@example.com","encrypted_password":"<password>","username":"quayadmin"} # gitleaks:allow
 ----
 +
-If a user already exists in the database, an error is returned:
+If a user already exists in the database, an error is returned. For example::
 +
 [source,terminal]
 ----
 {"message":"Cannot initialize user in a non-empty database"}
 ----
 +
-If your password is not at least eight characters or contains whitespace, an error is returned:
+If your password is not at least eight characters or contains whitespace, an error is returned. For example:
 +
 [source,terminal]
 ----
 {"message":"Failed to initialize user: Invalid password, password must be at least 8 characters and contain no whitespace."}
 ----
 
-. Log in to your {productname} deployment by entering the following command:
+. You can log in to your registry by navigating to the UI or by leveraging Podman on the CLI.
+
+.. Log in to the registry by running the following `podman` command:
 +
 [source,terminal]
 ----
-$ sudo podman login -u quayadmin -p quaypass12345 http://quay-server.example.com --tls-verify=false
+$ podman login -u <username> -p <password> http://<quay-server.example.com>
 ----
 +
 .Example output
