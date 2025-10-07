@@ -1,0 +1,24 @@
+:_mod-docs-content-type: CONCEPT
+[id="configuring-ssl-tls-routes"]
+= Configuring SSL/TLS and routes
+
+Support for {ocp} _edge termination_ routes is provided through the `tls` component. This separation allows independent control of route management and TLS certificate handling.
+
+`EXTERNAL_TLS_TERMINATION: true` is the default, opinionated setting, which assumes the cluster manages TLS termination.
+
+[NOTE]
+====
+* When `tls` is *managed*, the cluster's default wildcard certificate is used.
+* When `tls` is *unmanaged*, you must supply your own SSL/TLS certificate and key pair.
+====
+
+Multiple valid configurations are possible, as shown in the following table:
+
+.Valid configuration options for TLS and routes
+[width="100%",cols="2,2,2,2,3",options="header"]
+|===
+|Option | Route | TLS | Certs provided | Result
+| My own load balancer handles TLS | Managed | Managed | No | Edge route using default cluster wildcard certificate
+| {productname} handles TLS | Managed | Unmanaged | Yes | Passthrough route with certificates mounted in the {productname} pod
+| {productname} handles TLS | Unmanaged | Unmanaged | Yes | Certificates set inside the {productname} pod; user must manually create a route
+|===

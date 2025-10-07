@@ -1,28 +1,21 @@
-:_mod-docs-content-type: REFERENCE
-[id="operator-unmanaged-hpa"]
-= Using unmanaged Horizontal Pod Autoscalers
+:_mod-docs-content-type: CONCEPT
+[id="operator-hpa-overview"]
+= Managing Horizontal Pod Autoscaling
 
-Horizontal Pod Autoscalers (HPAs) are now included with the `Clair`, `Quay`, and `Mirror` pods, so that they now automatically scale during load spikes.
+Managing Horizontal Pod Autoscalers (HPA) by setting the HPA component to unmanaged (`managed: false`)  in the `QuayRegistry` custom resource allows you to customize scaling thresholds or replica limits. 
 
-As HPA is configured by default to be managed, the number of `Clair`, `Quay`, and `Mirror` pods is set to two. This facilitates the avoidance of downtime when updating or reconfiguring {productname} through the Operator or during rescheduling events.
+The following procedure shows you how to disable the `horizontalpodautoscaler` component and explicitly set `replicas: null` in the `quay`, `clair`, and `mirror` component definitions.
 
 [NOTE]
 ====
-There is a known issue when disabling the `HorizontalPodAutoscaler` component and attempting to edit the HPA resource itself and increase the value of the `minReplicas` field. When attempting this setup, `Quay` application pods are scaled out by the unmanaged HPA and, after 60 seconds, the replica count is reconciled by the {productname} Operator. As a result, HPA pods are continuously created and then removed by the Operator. 
+The following procedure uses the {ocp} web console to configure the {productname} registry to use an external PostgreSQL database. For most users, use the web console is simpler.
 
-To resolve this issue, you should upgrade your {productname} deployment to at least version 3.12.5 or 3.13.1 and then use the following example to avoid the issue.
-
-This issue will be fixed in a future version of {productname}. For more information, see link:https://issues.redhat.com/browse/PROJQUAY-6474[PROJQUAY-6474].
+This procedure can also be done by using the `oc` CLI and following the instructions in "Modifying the QuayRegistry CR by using the CLI" and " Modifying the configuration file by using the CLI".
 ====
-
-[id="operator-disabling-hpa"]
-== Disabling the Horizontal Pod Autoscaler
-
-To disable autoscaling or create your own `HorizontalPodAutoscaler` component, specify the component as `unmanaged` in the `QuayRegistry` custom resource definition. To avoid the known issue noted above, you must modify the `QuayRegistry` CRD object and set the replicas equal to `null` for the `quay`, `clair`, and `mirror` components. 
 
 .Procedure
 
-* Edit the `QuayRegistry` CRD to include the following `replicas: null` for the `quay` component:
+. Edit your `QuayRegistry` CR:
 +
 [source,terminal]
 ----
@@ -34,31 +27,29 @@ $ oc edit quayregistry <quay_registry_name> -n <quay_namespace>
 apiVersion: quay.redhat.com/v1
 kind: QuayRegistry
 metadata:
-name: quay-registry
-namespace: quay-enterprise
+  name: quay-registry
+  namespace: quay-enterprise
 spec:
-components:
-  - kind: horizontalpodautoscaler
-    managed: false
-  - kind: quay
-    managed: true
-    overrides: 
-      replicas: null <1>
-  - kind: clair
-    managed: true
-    overrides:
-      replicas: null
-  - kind: mirror
-    managed: true
-    overrides:
-      replicas: null
+  components:
+    - kind: horizontalpodautoscaler
+      managed: false
+    - kind: quay
+      managed: true
+      overrides:
+        replicas: null <1>
+    - kind: clair
+      managed: true
+      overrides:
+        replicas: null
+    - kind: mirror
+      managed: true
+      overrides:
+        replicas: null
 # ...
 ----
-<1> After setting `replicas: null` in your `QuayRegistry` CRD, a new replica set might be generated because the deployment manifest of the `Quay` app is changed with `replicas: 1`. 
+<1> After setting `replicas: null`, a new replica set might be generated because the `Quay` deployment manifest changes to `replicas: 1`.
 
-.Verification
-
-. Create a customized `HorizontalPodAutoscalers` CRD and increase the `minReplicas` amount to a higher value, for exampe, `3`:
+. Create a custom `HorizontalPodAutoscaler` resource with your desired configuration, for example:
 +
 [source,yaml]
 ----
@@ -86,10 +77,25 @@ spec:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 90 
+          averageUtilization: 90
 ----
 
-. Ensure that your `QuayRegistry` application successfully starts by entering the following command:
+. Apply the new HPA configuration to your cluster:
++
+[source,terminal]
+----
+$ oc apply -f <custom_hpa>.yaml
+----
++
+.Example output
+[source,terminal]
+----
+horizontalpodautoscaler.autoscaling/quay-registry-quay-app created
+----
+
+.Verification
+
+. Verify that your {productname} application pods are running:
 +
 [source,terminal]
 ----
@@ -97,16 +103,14 @@ $ oc get pod | grep quay-app
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 quay-registry-quay-app-5b8fd49d6b-7wvbk         1/1     Running     0          34m
 quay-registry-quay-app-5b8fd49d6b-jslq9         1/1     Running     0          3m42s
 quay-registry-quay-app-5b8fd49d6b-pskpz         1/1     Running     0          43m
-quay-registry-quay-app-upgrade-llctl            0/1     Completed   0          51m
 ----
 
-. Ensure that your `HorizontalPodAutoscalers` successfully starts by entering the following command:
+. Verify that your custom HPA is active:
 +
 [source,terminal]
 ----

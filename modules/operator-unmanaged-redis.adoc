@@ -1,51 +1,65 @@
 :_mod-docs-content-type: PROCEDURE
+[id="integrating-external-redis-db"]
+= Integrating an external Redis database 
 
-[id="operator-unmanaged-redis"]
-= Using an unmanaged Redis database
+Configuring {productname} to use an external Redis database
 
-Use the following procedure to set up an external Redis database.
+You can configure {productname-ocp} to use an existing Redis deployment for build logs and user event processing.
+
+[NOTE]
+====
+The following procedure uses the {ocp} web console to configure {productname} to use an external Redis database. For most users, using the web console is simpler.
+
+You can also complete this procedure by using the `oc` CLI. For more information, see "Modifying the QuayRegistry CR by using the CLI" and "Modifying the configuration file by using the CLI".
+====
 
 .Procedure
 
-. Create a `config.yaml` file using the following Redis fields:
+. In the {ocp} web console, navigate to *Operators* → *Installed Operators*.
+
+. Click *Red Hat Quay*.
+
+. Click *QuayRegistry*.
+
+. Click the name of your {productname} registry, for example, *example-registry*.
+
+. Click *YAML*.
+
+. Set the `redis` component to unmanaged by adding the following entry under `spec.components`:
 +
 [source,yaml]
 ----
-# ...
-BUILDLOGS_REDIS:
-    host: <quay-server.example.com>
-    port: 6379
-    ssl: false
-# ...
-USER_EVENTS_REDIS:
-    host: <quay-server.example.com>
-    port: 6379
-    ssl: false
-# ...
-----
-
-. Enter the following command to create a secret using the configuration file:
-+
-[source,terminal]
-----
-$ oc create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
-----
-
-. Create a `quayregistry.yaml` file  that sets the Redis component to `unmanaged` and references the created secret:
-+
-[source,yaml]
-----
-apiVersion: quay.redhat.com/v1
-kind: QuayRegistry
-metadata:
-  name: example-registry
-  namespace: quay-enterprise
-spec:
-  configBundleSecret: config-bundle-secret
-  components:
     - kind: redis
       managed: false
-# ...
 ----
 
-. Deploy the {productname} registry.
+. Click *Save*.
+
+. Click *Details* → the name of your `Config Bundle Secret` resource.
+
+. On the *Secret details* page, click *Actions* → *Edit Secret*.
+
+. In the `config.yaml` section, add entries for your external Redis instance. For example:
++
+[source,yaml]
+----
+BUILDLOGS_REDIS:
+  host: redis.example.com
+  port: 6379
+  ssl: false
+
+USER_EVENTS_REDIS:
+  host: redis.example.com
+  port: 6379
+  ssl: false
+----
++
+[IMPORTANT]
+====
+If both the `BUILDLOGS_REDIS` and `USER_EVENTS_REDIS` fields reference the same Redis deployment, ensure that your Redis service can handle the combined connection load.  
+For large or high-throughput registries, use separate Redis databases or clusters for these components.
+====
+
+. Optional: Add additional database configuration fields, such as `DB_CONNECTION_ARGS` or SSL/TLS connection arguments. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/configure_red_hat_quay/index#config-fields-redis[Redis configuration fields].
+
+. Click *Save*.

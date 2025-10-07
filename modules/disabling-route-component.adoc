@@ -1,0 +1,43 @@
+:_mod-docs-content-type: CONCEPT
+[id="disabling-route-component"]
+= Disabling the Route component
+
+Use the following procedure to prevent the {productname} Operator from creating a route.
+
+.Procedure
+
+. In your `quayregistry.yaml` file, set the `route` component as `managed: false`:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+  namespace: quay-enterprise
+spec:
+  components:
+    - kind: route
+      managed: false
+----
+
+. In your `config.yaml` file, configure {productname} to handle SSL/TLS. For example:
++
+[source,yaml]
+----
+# ...
+EXTERNAL_TLS_TERMINATION: false
+SERVER_HOSTNAME: example-registry-quay-quay-enterprise.apps.user1.example.com
+PREFERRED_URL_SCHEME: https
+# ...
+----
++
+If the configuration is incomplete, the following error might appear:
++
+[source,json]
+----
+{
+  "reason":"ConfigInvalid",
+  "message":"required component `route` marked as unmanaged, but `configBundleSecret` is missing necessary fields"
+}
+----

@@ -1,50 +1,21 @@
-:_mod-docs-content-type: PROCEDURE
+:_mod-docs-content-type: CONCEPT
 [id="operator-unmanaged-postgres"]
-= Using an existing PostgreSQL database
+= Using an external PostgreSQL database
 
-If you are using an externally managed PostgreSQL database, you must manually enable the `pg_trgm` extension for a successful deployment.
+When using your own PostgreSQL database with {productname}, you must ensure that the required configuration and extensions are in place before deployment. 
 
 [IMPORTANT]
 ====
-You must not use the same externally managed PostgreSQL database for both {productname} and Clair deployments. Your PostgreSQL database must also not be shared with other workloads, as it might exhaust the natural connection limit on the PostgreSQL side when connection-intensive workloads, like {productname} or Clair, contend for resources. Additionally, pgBouncer is not supported with {productname} or Clair, so it is not an option to resolve this issue.
+Do not share the same PostgreSQL database between {productname} and Clair deployments. Each service must use its own database instance. 
+Sharing databases with other workloads is also not supported, because connection-intensive components such as {productname} and Clair can quickly exceed PostgreSQL's connection limits. 
+
+Connection poolers such as *pgBouncer* are not supported with {productname} or Clair.
 ====
 
-Use the following procedure to deploy an existing PostgreSQL database.
+When managing your own PostgreSQL database for use with {productname}, the following best practices are recommended:
 
-.Procedure
-
-. Create a `config.yaml` file with the necessary database fields. For example:
-+
-.Example `config.yaml` file:
-+
-[source,yaml]
-----
-DB_URI: postgresql://test-quay-database:postgres@test-quay-database:5432/test-quay-database
-----
-. Create a `Secret` using the configuration file:
-+
-----
-$ kubectl create secret generic --from-file config.yaml=./config.yaml config-bundle-secret
-----
-+
-. Create a `QuayRegistry.yaml` file which marks the `postgres` component as `unmanaged` and references the created `Secret`. For example:
-+
-.Example `quayregistry.yaml` file
-+
-[source,yaml]
-----
-apiVersion: quay.redhat.com/v1
-kind: QuayRegistry
-metadata:
-  name: example-registry
-  namespace: quay-enterprise
-spec:
-  configBundleSecret: config-bundle-secret
-  components:
-    - kind: postgres
-      managed: false
-----
-
-.Next steps
-
-* Continue to the following sections to deploy the registry.
+* **`pg_trgm` extenion:* The `pg_trgm` extension must be enabled on the database for a successful deployment.
+* **Backups:** Perform regular database backups using PostgreSQL-native tools or your existing backup infrastructure. The {productname} Operator does not manage database backups.
+* **Restores:** When restoring a backup, ensure that all {productname} pods are stopped before beginning the restore process.
+* **Storage sizing:** When using the Operator-managed PostgreSQL database, the default storage allocation is 50 GiB. For external databases, you must ensure sufficient storage capacity for your environment, as the Operator does not handle volume resizing.
+* **Monitoring:** Monitor disk usage, connection limits, and query performance to prevent outages caused by resource exhaustion.
