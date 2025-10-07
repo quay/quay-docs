@@ -1,66 +1,24 @@
 :_mod-docs-content-type: PROCEDURE
 [id="operator-monitor-deploy-cli"]
-= Monitoring and debugging the deployment process
+= Monitoring and debugging the QuayRegistry CR by using the CLI
 
-Users can now troubleshoot problems during the deployment phase. The status in the `QuayRegistry` object can help you monitor the health of the components during the deployment an help you debug any problems that may arise.
+The `oc` CLI tool can be used to troubleshoot problems related to registry deployment. With the `oc` CLI, you can obtain the following information about the `QuayRegistry` CR:
+
+* The `conditions` field, which field shows the status of all `QuayRegistry` components.
+
+* The `currentVersion` field, which shows the version of {productname}.
+
+* The `registryEndpoint` field, which shows the publicly available hostname of the registry. 
+
+When troubleshooting deployment issues, you can check the `Status` field of the `QuayRegistry` custom resource (CR). This field reveals the health of the components during the deployment and can help you debug various problems with the deployment.
+
+.Prerequisites
+
+* You have deployed a {productname} registry by using the web console or the CLI.
 
 .Procedure
 
-. Enter the following command to check the status of your deployment:
-+
-[source,terminal]
-----
-$ oc get quayregistry -n quay-enterprise -o yaml
-----
-+
-.Example output
-+
-Immediately after deployment, the `QuayRegistry` object will show the basic configuration:
-+
-[source,yaml]
-----
-apiVersion: v1
-items:
-- apiVersion: quay.redhat.com/v1
-  kind: QuayRegistry
-  metadata:
-    creationTimestamp: "2021-09-14T10:51:22Z"
-    generation: 3
-    name: example-registry
-    namespace: quay-enterprise
-    resourceVersion: "50147"
-    selfLink: /apis/quay.redhat.com/v1/namespaces/quay-enterprise/quayregistries/example-registry
-    uid: e3fc82ba-e716-4646-bb0f-63c26d05e00e
-  spec:
-    components:
-    - kind: postgres
-      managed: true
-    - kind: clair
-      managed: true
-    - kind: redis
-      managed: true
-    - kind: horizontalpodautoscaler
-      managed: true
-    - kind: objectstorage
-      managed: true
-    - kind: route
-      managed: true
-    - kind: mirror
-      managed: true
-    - kind: monitoring
-      managed: true
-    - kind: tls
-      managed: true
-    - kind: clairpostgres
-      managed: true
-    configBundleSecret: example-registry-config-bundle-kt55s
-kind: List
-metadata:
-  resourceVersion: ""
-  selfLink: ""
-----
-
-. Use the `oc get pods` command to view the current state of the deployed components:
+. View the state of deployed components by entering the following command:
 +
 [source,terminal]
 ----
@@ -83,68 +41,44 @@ example-registry-quay-postgres-init-bktdt              0/1     Terminating      
 example-registry-quay-redis-f9b9d44bf-4htpz            0/1     ContainerCreating   0          17s
 ----
 
-. While the deployment is in progress, the `QuayRegistry` object will show the current status. In this instance, database migrations are taking place, and other components are waiting until completion:
+. Return information about your deployment by entering the following command:
 +
 [source,terminal]
 ----
-  status:
-    conditions:
-    - lastTransitionTime: "2021-09-14T10:52:04Z"
-      lastUpdateTime: "2021-09-14T10:52:04Z"
-      message: all objects created/updated successfully
-      reason: ComponentsCreationSuccess
-      status: "False"
-      type: RolloutBlocked
-    - lastTransitionTime: "2021-09-14T10:52:05Z"
-      lastUpdateTime: "2021-09-14T10:52:05Z"
-      message: running database migrations
-      reason: MigrationsInProgress
-      status: "False"
-      type: Available
-    lastUpdated: 2021-09-14 10:52:05.371425635 +0000 UTC
-    unhealthyComponents:
-      clair:
-      - lastTransitionTime: "2021-09-14T10:51:32Z"
-        lastUpdateTime: "2021-09-14T10:51:32Z"
-        message: 'Deployment example-registry-clair-postgres: Deployment does not have minimum availability.'
-        reason: MinimumReplicasUnavailable
-        status: "False"
-        type: Available
-      - lastTransitionTime: "2021-09-14T10:51:32Z"
-        lastUpdateTime: "2021-09-14T10:51:32Z"
-        message: 'Deployment example-registry-clair-app: Deployment does not have minimum availability.'
-        reason: MinimumReplicasUnavailable
-        status: "False"
-        type: Available
-      mirror:
-      - lastTransitionTime: "2021-09-14T10:51:32Z"
-        lastUpdateTime: "2021-09-14T10:51:32Z"
-        message: 'Deployment example-registry-quay-mirror: Deployment does not have minimum availability.'
-        reason: MinimumReplicasUnavailable
-        status: "False"
-        type: Available
+$ oc get quayregistry -n <namespace> -o yaml
 ----
-
-. When the deployment process finishes successfully, the status in the `QuayRegistry` object shows no unhealthy components:
++
+.Example output
 +
 [source,terminal]
 ----
-  status:
-    conditions:
-    - lastTransitionTime: "2021-09-14T10:52:36Z"
-      lastUpdateTime: "2021-09-14T10:52:36Z"
-      message: all registry component healthchecks passing
-      reason: HealthChecksPassing
+apiVersion: v1
+items:
+- apiVersion: quay.redhat.com/v1
+  kind: QuayRegistry
+  metadata:
+    annotations:
+...
+  spec:
+    components:
+    - kind: clair
+      managed: true
+    - kind: objectstorage
+      managed: false
+...
+ status:
+    conditions: <1>
+    - lastTransitionTime: "2025-10-01T18:46:13Z"
+      lastUpdateTime: "2025-10-07T13:12:54Z"
+      message: Horizontal pod autoscaler found
+      reason: ComponentReady
       status: "True"
-      type: Available
-    - lastTransitionTime: "2021-09-14T10:52:46Z"
-      lastUpdateTime: "2021-09-14T10:52:46Z"
-      message: all objects created/updated successfully
-      reason: ComponentsCreationSuccess
-      status: "False"
-      type: RolloutBlocked
-    currentVersion: {producty}
-    lastUpdated: 2021-09-14 10:52:46.104181633 +0000 UTC
-    registryEndpoint: https://example-registry-quay-quay-enterprise.apps.docs.quayteam.org
-    unhealthyComponents: {}
+      type: ComponentHPAReady
+...
+    currentVersion: v3.15.2 <2>
+    lastUpdated: 2025-10-07 13:12:54.48811705 +0000 UTC
+    registryEndpoint: https://example-registry-quay-cluster-new.gcp.quaydev.org <3>
 ----
+<1> Shows information about the status of all `QuayRegistry` components.
+<2> Shows the current version that the registry is using.
+<3> Shows the publicly available hostname of the registry.
