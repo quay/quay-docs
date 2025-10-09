@@ -1,0 +1,69 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-resources-ocp-ui"]
+= Configuring resource requests by using the {ocp} UI
+
+Use the following procedure to configure resources by using the {ocp} UI.
+
+.Procedure
+
+. On the {ocp} developer console, click *Operators* -> *Installed Operators* -> *Red Hat Quay*. 
+
+. Click *QuayRegistry*. 
+
+. Click the name of your registry, for example, *example-registry*.
+
+. Click *YAML*. 
+
+. In the `spec.components` field, you can override the resource of the `quay`, `clair`, `mirroring` `clairpostgres`, and `postgres` resources  by setting values for the `.overrides.resources.limits` and the `overrides.resources.requests` fields. For example:
++
+[source,yaml]
+----
+spec:
+  components:
+    - kind: clair
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: "5"     # Limiting to 5 CPU (equivalent to 5000m or 5000 millicpu)
+            memory: "18Gi"  # Limiting to 18 Gibibytes of memory
+          requests: 
+            cpu: "4"     # Requesting 4 CPU
+            memory: "4Gi"   # Requesting 4 Gibibytes of memory
+    - kind: postgres
+      managed: true
+      overrides:
+        resources:
+          limits: {} <1>
+          requests:
+            cpu: "700m"   # Requesting 700 millicpu or 0.7 CPU
+            memory: "4Gi"   # Requesting 4 Gibibytes of memory
+    - kind: mirror
+      managed: true
+      overrides:
+        resources:
+          limits: <2>
+          requests:
+            cpu: "800m"   # Requesting 800 millicpu or 0.8 CPU
+            memory: "1Gi"   # Requesting 1 Gibibyte of memory
+    - kind: quay
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: "4"    # Limiting to 4 CPU
+            memory: "10Gi"   # Limiting to 10 Gibibytes of memory
+          requests:
+            cpu: "4"   # Requesting 4 CPU
+            memory: "10Gi"   # Requesting 10 Gibi of memory
+    - kind: clairpostgres
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: "800m"   # Limiting to 800 millicpu or 0.8 CPU
+            memory: "3Gi"   # Limiting to 3 Gibibytes of memory
+          requests: {}
+----
+<1> Setting the `limits` or `requests` fields to `{}` uses the default values for these resources.
+<2> Leaving the `limits` or `requests` field empty puts no limitations on these resources.

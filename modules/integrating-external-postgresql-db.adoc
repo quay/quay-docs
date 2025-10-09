@@ -1,0 +1,49 @@
+:_mod-docs-content-type: PROCEDURE
+[id="integrating-external-postgresql-db"]
+= Integrating an existing PostgreSQL database
+
+Configure {productname-ocp} to use an existing PostgreSQL database to leverage your current data storage setup.
+
+[NOTE]
+====
+The following procedure uses the {ocp} web console to configure the {productname} registry to use an external PostgreSQL database. For most users, use the web console is simpler.
+
+This procedure can also be done by using the `oc` CLI and following the instructions in "Modifying the QuayRegistry CR by using the CLI" and " Modifying the configuration file by using the CLI".
+====
+
+.Procedure
+
+. On the {ocp} web console, click *Operators* -> *Installed Operators*.
+
+. Click *Red Hat Quay*.
+
+. Click *Quay Registry*.
+
+. Click the name of your {productname} registry, for example, *example-registry*.
+
+. Click *YAML*.
+
+. Set the `postgres` field of the `QuayRegistry` CR to `managed: false`. For example:
++
+[source,yaml]
+----
+    - kind: postgres
+      managed: false
+----
+
+. Click *Save*.
+
+. Click *Details* -> the name of your `Config Bundle Secret` resource.
+
+. On the *Secret Details* page, click *Actions* -> *Edit Secret*.
+
+. Add the `DB_URI` field to your `config.yaml` file. For example:
++
+[source,yaml]
+----
+DB_URI: postgresql://test-quay-database:postgres@test-quay-database:5432/test-quay-database
+----
+
+. Optional: Add additional database configuration fields, such as `DB_CONNECTION_ARGS` or SSL/TLS connection arguments. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/configure_red_hat_quay/index#config-fields-db[Database connection arguments].
+
+. Click *Save*.

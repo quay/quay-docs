@@ -1,0 +1,30 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-resources-ocp-yaml"]
+= Configuring resource requests by using the CLI
+
+You can re-configure {productname} to configure resource requests after you have already deployed a registry. This can be done by editing the `QuayRegistry` YAML file directly and then re-deploying the registry. 
+
+.Procedure
+
+. Edit the `QuayRegistry` CR by entering the following command:
++
+[source,terminal]
+----
+$ oc edit quayregistry <registry_name> -n <namespace>
+----
+
+. Make any desired changes. For example:
++
+[source,yaml]
+----
+    - kind: quay
+      managed: true
+      overrides:
+        resources:
+          limits: {}
+          requests:
+            cpu: "0.7"   # Requesting 0.7 CPU (equivalent to 500m or 500 millicpu)
+            memory: "512Mi"   # Requesting 512 Mebibytes of memory
+----
+
+. Save the changes.

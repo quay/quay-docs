@@ -1,4 +1,4 @@
-:_mod-docs-content-type: PROCEDURE
+:_mod-docs-content-type: CONCEPT
 [id="configuring-resources-managed-components"]
 = Configuring resources for managed components on {ocp}
 
@@ -18,122 +18,9 @@ The following components should not be set lower than their minimum requirements
 * `clair`: Recommended of 2 GB memory, 2 vCPUs
 * `clairpostgres`: Minimum of 200 MB
 
-You can configure resource requests on the {ocp} UI, or by directly by updating the `QuayRegistry` YAML.
+You can configure resource requests on the {ocp} UI or directly by updating the `QuayRegistry` CR via the CLI.
 
 [IMPORTANT]
 ====
 The default values set for these components are the suggested values. Setting resource requests too high or too low might lead to inefficient resource utilization, or performance degradation, respectively. 
 ====
-
-[id="configuring-resources-ocp-ui"]
-== Configuring resource requests by using the {ocp} UI
-
-Use the following procedure to configure resources by using the {ocp} UI.
-
-.Procedure
-
-. On the {ocp} developer console, click *Operators* -> *Installed Operators* -> *Red Hat Quay*. 
-
-. Click *QuayRegistry*. 
-
-. Click the name of your registry, for example, *example-registry*.
-
-. Click *YAML*. 
-
-. In the `spec.components` field, you can override the resource of the `quay`, `clair`, `mirroring` `clairpostgres`, and `postgres` resources  by setting values for the `.overrides.resources.limits` and the `overrides.resources.requests` fields. For example:
-+
-[source,yaml]
-----
-spec:
-  components:
-    - kind: clair
-      managed: true
-      overrides:
-        resources:
-          limits:
-            cpu: "5"     # Limiting to 5 CPU (equivalent to 5000m or 5000 millicpu)
-            memory: "18Gi"  # Limiting to 18 Gibibytes of memory
-          requests: 
-            cpu: "4"     # Requesting 4 CPU
-            memory: "4Gi"   # Requesting 4 Gibibytes of memory
-    - kind: postgres
-      managed: true
-      overrides:
-        resources:
-          limits: {} <1>
-          requests:
-            cpu: "700m"   # Requesting 700 millicpu or 0.7 CPU
-            memory: "4Gi"   # Requesting 4 Gibibytes of memory
-    - kind: mirror
-      managed: true
-      overrides:
-        resources:
-          limits: <2>
-          requests:
-            cpu: "800m"   # Requesting 800 millicpu or 0.8 CPU
-            memory: "1Gi"   # Requesting 1 Gibibyte of memory
-    - kind: quay
-      managed: true
-      overrides:
-        resources:
-          limits:
-            cpu: "4"    # Limiting to 4 CPU
-            memory: "10Gi"   # Limiting to 10 Gibibytes of memory
-          requests:
-            cpu: "4"   # Requesting 4 CPU
-            memory: "10Gi"   # Requesting 10 Gibi of memory
-    - kind: clairpostgres
-      managed: true
-      overrides:
-        resources:
-          limits:
-            cpu: "800m"   # Limiting to 800 millicpu or 0.8 CPU
-            memory: "3Gi"   # Limiting to 3 Gibibytes of memory
-          requests: {}
-----
-<1> Setting the `limits` or `requests` fields to `{}` uses the default values for these resources.
-<2> Leaving the `limits` or `requests` field empty puts no limitations on these resources.
-
-[id="configuring-resources-ocp-yaml"]
-== Configuring resource requests by editing the QuayRegistry YAML
-
-You can re-configure {productname} to configure resource requests after you have already deployed a registry. This can be done by editing the `QuayRegistry` YAML file directly and then re-deploying the registry. 
-
-.Procedure
-
-. Optional: If you do not have a local copy of the `QuayRegistry` YAML file, enter the following command to obtain it:
-+
-[source,terminal]
-----
-$ oc get quayregistry <registry_name> -n <namespace> -o yaml > quayregistry.yaml
-----
-
-. Open the `quayregistry.yaml` created from Step 1 of this procedure and make the desired changes. For example:
-+
-[source,yaml]
-----
-    - kind: quay
-      managed: true
-      overrides:
-        resources:
-          limits: {}
-          requests:
-            cpu: "0.7"   # Requesting 0.7 CPU (equivalent to 500m or 500 millicpu)
-            memory: "512Mi"   # Requesting 512 Mebibytes of memory
-----
-
-. Save the changes. 
-
-. Apply the {productname} registry using the updated configurations by running the following command:
-+
-[source,terminal]
-----
-$ oc replace -f quayregistry.yaml
-----
-+
-.Example output
-+
-[source,terminal]
-----
-quayregistry.quay.redhat.com/example-registry replaced
-----
