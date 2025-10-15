@@ -2,6 +2,7 @@
 [id="registry-deploy-cli"]
 = Deploying the {productname} registry by using the CLI
 
+[role="_abstract"]
 Use the `oc` command-line interface (CLI) to create and deploy a basic {productname} registry instance.
 
 [NOTE]
@@ -51,11 +52,11 @@ $ cat <<EOF > config.yaml
 ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
 AUTHENTICATION_TYPE: Database
 DEFAULT_TAG_EXPIRATION: 2w
-FEATURE_USER_INITIALIZE: true <1>
-SUPER_USERS: <2>
+FEATURE_USER_INITIALIZE: true
+SUPER_USERS:
      -  <username>
-BROWSER_API_CALLS_XHR_ONLY: false <3>
-FEATURE_USER_CREATION: false <4>
+BROWSER_API_CALLS_XHR_ONLY: false
+FEATURE_USER_CREATION: false
 DISTRIBUTED_STORAGE_CONFIG:
     <storage_provider>:
         - <storage_provider_name>
@@ -76,10 +77,10 @@ TEAM_RESYNC_STALE_TIME: 60m
 TESTING: false
 EOF
 ----
-<1> Set this field to `true` if you plan to create the first user by using API.
-<2> Include this field and the username that you plan to leverage as a {productname} administrator.
-<3> When set to `False`, allows general browser-based access to the API.
-<4> When set to `False`, relegates the creation of new users to only superusers.
+* `FEATURE_USER_INITIALIZE`: Set this field to `true` if you plan to create the first user by using API.
+* `SUPER_USERS`: Include this field and the username that you plan to leverage as a {productname} administrator.
+* `BROWSER_API_CALLS_XHR_ONLY`: Set this field to `false` to allow general browser-based access to the API.
+* `FEATURE_USER_CREATION`: Set this field to `false` to relegate the creation of new users to only superusers.
 
 .. Create a secret for the configuration by entering the following command:
 +
@@ -107,14 +108,14 @@ spec:
     - kind: clair
       managed: true
     - kind: objectstorage
-      managed: false <1>
+      managed: false
     - kind: mirror
       managed: true
     - kind: monitoring
       managed: true
 EOF
 ----
-<1> Must be set to false when providing your own storage backend.
+`objectstorage`: Set this field to `false` when providing your own storage backend.
 
 .Verification
 
@@ -124,8 +125,6 @@ EOF
 ----
 $ oc describe quayregistry <registry_name> -n quay-enterprise
 ----
-+
-.Example output
 +
 [source,terminal]
 ----
@@ -143,8 +142,6 @@ Events:
 ----
 $ oc get pods -n quay-enterprise
 ----
-+
-.Example output
 +
 [source,terminal]
 ----
@@ -164,7 +161,7 @@ example-registry-quay-redis-8bd67b647-skgqx            1/1     Running     0    
 
 .Additional resources
 
-* For more information about how to track the progress of your {productname} deployment, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-monitor-deploy-cli[Monitoring and debugging the deployment process].
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-monitor-deploy-cli[Monitoring and debugging the deployment process]
 
 ////
 .. Optional. If you have a proxy configured, you can add the information using overrides for {productname}, Clair, and mirroring:
