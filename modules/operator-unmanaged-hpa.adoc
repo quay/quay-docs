@@ -1,7 +1,8 @@
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 [id="operator-hpa-overview"]
 = Managing Horizontal Pod Autoscaling
 
+[role="_abstract"]
 Managing Horizontal Pod Autoscalers (HPA) by setting the HPA component to unmanaged (`managed: false`)  in the `QuayRegistry` custom resource allows you to customize scaling thresholds or replica limits. 
 
 The following procedure shows you how to disable the `horizontalpodautoscaler` component and explicitly set `replicas: null` in the `quay`, `clair`, and `mirror` component definitions.
@@ -36,7 +37,7 @@ spec:
     - kind: quay
       managed: true
       overrides:
-        replicas: null <1>
+        replicas: null
     - kind: clair
       managed: true
       overrides:
@@ -47,7 +48,6 @@ spec:
         replicas: null
 # ...
 ----
-<1> After setting `replicas: null`, a new replica set might be generated because the `Quay` deployment manifest changes to `replicas: 1`.
 
 . Create a custom `HorizontalPodAutoscaler` resource with your desired configuration, for example:
 +
@@ -87,7 +87,6 @@ spec:
 $ oc apply -f <custom_hpa>.yaml
 ----
 +
-.Example output
 [source,terminal]
 ----
 horizontalpodautoscaler.autoscaling/quay-registry-quay-app created
@@ -102,7 +101,6 @@ horizontalpodautoscaler.autoscaling/quay-registry-quay-app created
 $ oc get pod | grep quay-app
 ----
 +
-.Example output
 [source,terminal]
 ----
 quay-registry-quay-app-5b8fd49d6b-7wvbk         1/1     Running     0          34m

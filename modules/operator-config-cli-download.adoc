@@ -1,8 +1,8 @@
 :_mod-docs-content-type: PROCEDURE
-
 [id="operator-config-cli-download"]
 = Modifying the configuration file by using the CLI
 
+[role="_abstract"]
 You can modify the `config.yaml` file that is stored by the `configBundleSecret` by downloading the existing configuration using the CLI. After making changes, you can re-upload the `configBundleSecret` resource to make changes to the {productname} registry.
 
 [NOTE]
@@ -23,8 +23,6 @@ Modifying the `config.yaml` file that is stored by the `configBundleSecret` reso
 $ oc describe quayregistry -n <quay_namespace>
 ----
 +
-.Example output
-+
 [source,terminal]
 ----
 # ...
@@ -38,8 +36,6 @@ $ oc describe quayregistry -n <quay_namespace>
 ----
 $ oc get secret -n <quay_namespace> <example-registry-config-bundle-v123x> -o jsonpath='{.data}'
 ----
-+
-.Example output
 +
 [source,yaml]
 ----
@@ -69,10 +65,13 @@ $ touch <new_configBundleSecret_name>.yaml
 [source,terminal]
 ----
 $ oc -n <namespace> create secret generic <secret_name> \
-  --from-file=config.yaml=</path/to/config.yaml> \ <1>
+  --from-file=config.yaml=</path/to/config.yaml> \
   --dry-run=client -o yaml > <new_configBundleSecret_name>.yaml
 ----
-<1> Where `<config.yaml>` is your `base64 decoded` `config.yaml` file.
++
+where:
+
+</path/to/config.yaml>:: Specifies your base64 decoded `config.yaml` file.
 
 . Create the `configBundleSecret` resource by entering the following command:
 +
@@ -80,8 +79,6 @@ $ oc -n <namespace> create secret generic <secret_name> \
 ----
 $ oc create -n <namespace> -f <new_configBundleSecret_name>.yaml
 ----
-+
-.Example output
 +
 [source,terminal]
 ----
@@ -94,8 +91,6 @@ secret/config-bundle created
 ----
 $ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":{"configBundleSecret":"<new_configBundleSecret_name>"}}'
 ----
-+
-.Example output
 +
 [source,terminal]
 ----
@@ -110,8 +105,6 @@ quayregistry.quay.redhat.com/example-registry patched
 ----
 $ oc describe quayregistry -n <quay_namespace>
 ----
-+
-.Example output
 +
 [source,terminal]
 ----
