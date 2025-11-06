@@ -6,10 +6,55 @@
 
 All auto-pruning policies, with the exception of a registry-wide auto pruning policy, are created using the {productname} v2 UI or by using the API. This can be done after you have configured your {productname} `config.yaml` file to enable the auto-pruning feature and the v2 UI.
 
-[NOTE]
-====
-This feature is not available when using the {productname} legacy UI.
-====
+[id="enabling-image-pull-activity-tracking"]
+== Enabling image pull activity tracking
+
+{productname} administrators can enable image pull activity tracking, which provides clear visibility into how often and when image tags are pulled, giving users valuable insight into image usage and popularity across repositories. The following procedure shows you how to enable this feature.
+
+.Procedure
+
+. In your {productname} `config.yaml` file, set `FEATURE_IMAGE_PULL_STATS: true`. For example:
++
+[source,yaml]
+----
+# ...
+FEATURE_IMAGE_PULL_STATS: true
+REDIS_FLUSH_INTERVAL_SECONDS: 30
+PULL_METRICS_REDIS:
+    host: <redis_host>
+    password: <redis_password>
+    port: 6379
+    db: 1
+# ...
+----
++
+* `FEATURE_IMAGE_PULL_STATS` enables image pull tracking activity.
+* `REDIS_FLUSH_INTERVAL_SECONDS` defines the the time, in seconds, at which the Redis flush worker clears old data. Shorter intervals keep data fresher and help prevent Redis from bloating, while longer intervals reduce flush frequency.
+* `PULL_METRICS_REDIS` Specifies the connection settings for the Redis database used to store image pull metrics.
+
+. Restart your {productname} deployment.
+
+.Verification
+
+. Push an image to your registry by entering the following command. Following this step, you can use your browser to see the tagged image in your repository. 
++ 
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<organization>/<image>:<tag>
+----
+
+. Pull the image from your {productname} registry by entering the following command:
++ 
+[source,terminal]
+----
+$ podman pull <quay-server.example.com>/<organization>/<image>:<tag>
+----
+
+. On the {productname} UI, navigate to *Repositories*, and then click the name of your repository.
+
+. Click *Tags*. The *Last Pulled* and *Pull Count* categories show you information about when the image was last pull, and how many time it has been pulled, respectively. For example:
++
+image:image-pull-stats.png[Image pull statistics]
 
 [id="configuring-namespace-auto-prune-feature"]
 == Configuring the {productname} auto-pruning feature
