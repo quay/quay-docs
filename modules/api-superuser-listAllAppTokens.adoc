@@ -1,0 +1,59 @@
+
+= listAllAppTokens
+Returns a list of all app specific tokens in the system.
+
+        This endpoint is for system-wide auditing by superusers and global read-only superusers.
+
+[discrete]
+== GET /api/v1/superuser/apptokens
+
+
+
+**Authorizations: **oauth2_implicit (**super:user**)
+
+
+
+[discrete]
+== Query parameters
+
+[options="header", width=100%, cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|query|**expiring** + 
+_optional_|If true, only returns those tokens expiring soon|boolean
+|===
+
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+[discrete]
+== Example command
+
+.Example: List all app-specific tokens
+[source,terminal]
+----
+$ curl -X GET \
+  "https://quay-server.example.com/api/v1/superuser/apptokens" \
+  -H "Authorization: Bearer <superuser_access_token>" \
+  -H "Accept: application/json"
+----
+
+.Example: List app-specific tokens expiring soon
+[source,terminal]
+----
+$ curl -X GET \
+  "https://quay-server.example.com/api/v1/superuser/apptokens?expiring=true" \
+  -H "Authorization: Bearer <superuser_access_token>" \
+  -H "Accept: application/json"
+----
