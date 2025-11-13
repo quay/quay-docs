@@ -40,6 +40,9 @@ AZURE_LOGIN_CONFIG: <1>
     OIDC_SERVER: <oidc_server_address_> <4>
     SERVICE_NAME: Microsoft Entra ID <5>
     VERIFIED_EMAIL_CLAIM_NAME: <verified_email> <6>
+    USE_PKCE: True <7>
+    PKCE_METHOD: "S256" <8>
+    PUBLIC_CLIENT: True <9>
 # ...
 ----
 <1> The parent key that holds the OIDC configuration settings. In this example, the parent key used is `AZURE_LOGIN_CONFIG`, however, the string `AZURE` can be replaced with any arbitrary string based on your specific needs, for example `ABC123`.However, the following strings are not accepted: `GOOGLE`, `GITHUB`. These strings are reserved for their respective identity platforms and require a specific `config.yaml` entry contingent upon when platform you are using.
@@ -48,6 +51,9 @@ AZURE_LOGIN_CONFIG: <1>
 <4> The address of the OIDC server that is being used for authentication. In this example, you must use `sts.windows.net` as the issuer identifier. Using `https://login.microsoftonline.com` results in the following error: `Could not create provider for AzureAD. Error: oidc: issuer did not match the issuer returned by provider, expected "https://login.microsoftonline.com/73f2e714-xxxx-xxxx-xxxx-dffe1df8a5d5" got "https://sts.windows.net/73f2e714-xxxx-xxxx-xxxx-dffe1df8a5d5/"`. 
 <5> The name of the service that is being authenticated.
 <6> The name of the claim that is used to verify the email address of the user.
+<7> Specifies whether to enable Proof Key for Code Exchange (PKCE) for OIDC authentication. Defaults to `False`.
+<8> Specifies the  code challenge method used to generate the `code_challenge` sent in the initial authorization request. Defaults to `S256`.
+<9> Specifies whether to omit `client_secret` during token request when the client is public. Defaults to `False`.
 
 . Proper configuration of Microsoft Entra ID results three redirects with the following format:
 +
