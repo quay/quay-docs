@@ -1,0 +1,29 @@
+:_mod-docs-content-type: REFERENCE
+[id="new-features-and-enhancements-quay-ocp-316"]
+= {productname-ocp} new features and enhancements
+
+The following updates have been made to {productname-ocp}.
+
+[id="support-optional-storage-class-customization"]
+== Support for optional storage class customization
+
+This update provides the option to specify a custom `storageClassName` for the managed `Postgres` and `ClairPostgres` Persistent Volume Claims (PVCs). It also enhances the Operator's resilience by adding dedicated PVC health monitoring and event tracking, ensuring faster detection and reporting of storage provisioning failures. Lastly, it streamlines internal component health checks for improved maintainability.
+
+The following example YAML shows you how to set the `storageClassName` field in your `QuayRegistry` CR:
+
+[source,yaml]
+----
+# ...
+    - kind: postgres
+      managed: true
+      overrides:
+        storageClassName: "local-path"
+# ...
+    - kind: clairpostgres
+      managed: true
+      overrides:
+        storageClassName: "local-path"
+# ...
+----
+
+For more information about configuring resource requests for the `QuayRegistry` CR, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#configuring-resources-managed-components[Configuring QuayRegistry CR resources]
