@@ -15,7 +15,7 @@ Use the following procedure to configure resources by using the {ocp} web consol
 
 . Click *YAML*. 
 
-. In the `spec.components` field, you can override the resource of the `quay`, `clair`, `mirroring` `clairpostgres`, and `postgres` resources  by setting values for the `.overrides.resources.limits` and the `overrides.resources.requests` fields. For example:
+. In the `spec.components` field, you can override the resources of all components by setting values for the `.overrides.resources.limits` and the `overrides.resources.requests` fields. You can also specify a `storageClassName` for `postgres` and `clairpostgres` resources. For example:
 +
 [source,yaml]
 ----
@@ -34,6 +34,7 @@ spec:
     - kind: postgres
       managed: true
       overrides:
+        storageClassName: "local-path"
         resources:
           limits: {}
           requests:
@@ -60,6 +61,7 @@ spec:
     - kind: clairpostgres
       managed: true
       overrides:
+        storageClassName: "local-path"
         resources:
           limits:
             cpu: "800m"   # Limiting to 800 millicpu or 0.8 CPU
