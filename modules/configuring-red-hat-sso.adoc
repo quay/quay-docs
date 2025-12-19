@@ -72,26 +72,44 @@ Use the following procedure to configure Red Hat Single Sign-On with the {produc
 [source,yaml]
 ----
 # ...
-RHSSO_LOGIN_CONFIG: <1>
-  CLIENT_ID: <client_id> <2>
-  CLIENT_SECRET: <client_secret> <3>
-  OIDC_SERVER: <oidc_server_url> <4>
-  SERVICE_NAME: <service_name> <5>
-  SERVICE_ICON: <service_icon> <6>
-  VERIFIED_EMAIL_CLAIM_NAME: <example_email_address> <7>
-  PREFERRED_USERNAME_CLAIM_NAME: <preferred_username> <8>
-  LOGIN_SCOPES: <9>
-    - 'openid'
+RHSSO_LOGIN_CONFIG:
+  CLIENT_ID: <client_id>
+  CLIENT_SECRET: <client_secret>
+  OIDC_SERVER: <oidc_server_url>
+  SERVICE_NAME: <service_name>
+  SERVICE_ICON: <service_icon>
+  VERIFIED_EMAIL_CLAIM_NAME: <example_email_address>
+  PREFERRED_USERNAME_CLAIM_NAME: <preferred_username>
+  LOGIN_SCOPES: [ 'openid', 'roles' ]
+  USE_PKCE: true
+  PKCE_METHOD: "S256"
 # ...
 ----
-<1> The parent key that holds the OIDC configuration settings. In this example, the parent key used is `AZURE_LOGIN_CONFIG`, however, the string `AZURE` can be replaced with any arbitrary string based on your specific needs, for example `ABC123`.However, the following strings are not accepted: `GOOGLE`, `GITHUB`. These strings are reserved for their respective identity platforms and require a specific `config.yaml` entry contingent upon when platform you are using.
-<2> The client ID of the application that is being registered with the identity provider, for example, `quay-enterprise`.
-<3> The Client Secret from the *Credentials* tab of the `quay-enterprise` OIDC client settings.
-<4> The fully qualified domain name (FQDN) of the Red Hat Single Sign-On instance, appended with `/auth/realms/` and the Realm name. You must include the forward slash at the end, for example, `\https://sso-redhat.example.com//auth/realms/<keycloak_realm_name>/`.
-<5> The name that is displayed on the {productname} login page, for example, `Red hat Single Sign On`.
-<6> Changes the icon on the login screen. For example, `/static/img/RedHat.svg`.
-<7> The name of the claim that is used to verify the email address of the user.
-<8> The name of the claim that is used to verify the email address of the user.
-<9> The scopes to send to the OIDC provider when performing the login flow, for example, `openid`.
++
+--
+where:
+
+`RHSSO_LOGIN_CONFIG::` Specifies the parent key that holds the OIDC configuration settings. In this example, the parent key used is `RHSSO_LOGIN_CONFIG` and the string can be replaced with any arbitrary string based on your specific needs, for example `ABC123`. However, the strings `GOOGLE` AND `GITHUB` are not accepted. These strings are reserved for their respective identity platforms and require a specific `config.yaml` entry contingent upon when platform you are using.
+
+`CLIENT_ID::` Specifies The client ID of the application that is being registered with the identity provider. For example, `quay`.
+
+`CLIENT_SECRET::` Specifies client secret.
+
+`OIDC_SERVER::` Specifies the fully qualified domain name (FQDN) of the Red Hat Single Sign-On instance, appended with `/auth/realms/` and the Realm name. You must include the forward slash at the end, for example, `\https://sso-redhat.example.com//auth/realms/<your_realm_name>/`.
+
+`SERVICE_NAME::` Specifies the name that is displayed on the {productname} login page, for example, `Red hat Single Sign On`.
+
+`SERVICE_ICON::` Specifies the icon on the login screen. For example, `/static/img/RedHat.svg`.
+
+`VERIFIED_EMAIL_CLAIM_NAME::` Specifies the name of the claim that is used to verify the email address of the user.
+
+`PREFERRED_USERNAME_CLAIM_NAME::` Specifies the name of the claim that is used to verify the email address of the user.
+
+`LOGIN_SCOPES::` Specifies the scopes to send to the OIDC provider when performing the login flow, for example, `openid`.
+
+`USE_PKCE::` Specifies whether to enable Proof Key for Code Exchange (PKCE). Defaults to `False`.
+
+`PKCE_METHOD::` Specifies the  code challenge method used to generate the `code_challenge` sent in the initial authorization request. Defaults to `S256`.
+--
 
 . Restart your {productname-ocp} deployment with Red Hat Single Sign-On enabled. 
