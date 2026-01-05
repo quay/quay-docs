@@ -10,3 +10,10 @@ The following sections note known issues and limitations for {productname} 3.16.
 After an image is built successfully when using the {productname} v2 UI, users are unable to download the build logs. Attempting to click the *Download* button on the v2 UI results in the following error: `404 Not Found`.
 
 As a temporary work around, you can download build logs by using the v1 UI.
+
+[id="prometheus-metrics-unavailable"]
+== Prometheus metrics unavailable in {productname} 3.16
+
+In {productname} 3.16.0, an error in the container build process prevents the Prometheus Pushgateway from starting correctly. Instead of the executable binary, the entire source directory was incorrectly copied to `/usr/local/bin/pushgateway`. This causes the service to fail on startup, resulting in `Connection refused` errors (`Errno 111`) in the logs when workers attempt to push metrics. 
+
+Although this prevents the collection and display of Prometheus metrics, it does not impact core registry operations or data integrity. This issue is scheduled to be resolved in the upcoming 3.16.1 release.
