@@ -3,21 +3,10 @@
 = Using an external Redis database
 
 [role="_abstract"]
-Redis is a critical component that supports several {productname} features, such as build logs and user event tracking. When using an externally managed Redis database with {productname}, you must ensure that it is properly configured and available before deployment. 
+Using an external Redis database with {productname} lets you manage your own Redis infrastructure instead of using the Operator-managed Redis. You must ensure that Redis is properly configured and available before deployment, and use a dedicated instance separate from Clair. 
 
 [IMPORTANT]
 ====
 Do not share the same Redis instance between {productname} and Clair deployments. Each service must use its own dedicated Redis instance.  
 Sharing Redis with other workloads is not supported, because connection-intensive components such as {productname} and Clair can quickly exhaust available Redis connections and degrade performance.
 ====
-
-////
-When managing your own Redis deployment for use with {productname}, the following best practices are recommended:
-
-* **Persistence:** Enable persistence if you want build logs and event data to survive Redis restarts or failures. Non-persistent setups are supported but may result in data loss for transient Redis data.
-* **Backups:** Regularly back up your Redis data and configuration. The {productname} Operator does not perform Redis backups.
-* **High availability:** For production environments, use a Redis configuration that supports replication or clustering to improve resilience and scalability.
-* **Security:** Secure your Redis instance by requiring authentication, using SSL/TLS for connections, and restricting access to trusted clients only.
-* **Monitoring:** Monitor memory usage, connection counts, and latency to prevent performance degradation or data loss during peak workloads.
-* **Version compatibility:** Use a Redis version supported by your {productname} release. Refer to the {productname} support matrix for compatibility information.
-////
