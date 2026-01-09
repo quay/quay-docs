@@ -12,9 +12,16 @@ jobs:
   cherry-pick:
     runs-on: ubuntu-latest
     if: |
+      github.event_name == 'issue_comment' &&
       github.event.issue.pull_request != null &&
-      startsWith(github.event.comment.body, '/cherry-pick')
+      (startsWith(github.event.comment.body, '/cherry-pick') || contains(github.event.comment.body, '/cherry-pick'))
     steps:
+      - name: Check job condition
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Comment body: ${{ github.event.comment.body }}"
+          echo "Is PR: ${{ github.event.issue.pull_request != null }}"
+          echo "Comment starts with /cherry-pick: ${{ startsWith(github.event.comment.body, '/cherry-pick') }}"
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -25,35 +32,63 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Configure remotes
+        run: |
+          # Add downstream remote if it doesn't exist (for branches that might only exist there)
+          if ! git remote | grep -q "^downstream$"; then
+            git remote add downstream https://github.com/${{ github.repository }}.git
+          fi
+          # Fetch from both remotes to ensure we have all branch information
+          git fetch origin --prune
+          git fetch downstream --prune || echo "Downstream remote fetch failed, will try origin only"
+
+      - name: Debug event context
+        if: github.event_name == 'issue_comment'
+        run: |
+          echo "Event type: ${{ github.event_name }}"
+          echo "Comment body: ${{ github.event.comment.body }}"
+          echo "Issue number: ${{ github.event.issue.number }}"
+          echo "Is PR: ${{ github.event.issue.pull_request != null }}"
+          echo "PR URL: ${{ github.event.issue.pull_request.url }}"
 
       - name: Get PR information
         id: pr_info
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issueNumber = context.payload.issue.number;
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: issueNumber,
-            });
             
-            core.setOutput('pr_number', issueNumber.toString());
-            core.setOutput('base_branch', pr.base.ref);
-            core.setOutput('head_branch', pr.head.ref);
-            core.setOutput('head_sha', pr.head.sha);
-            core.setOutput('title', pr.title || '');
-            core.setOutput('body', pr.body || '');
+            try {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: issueNumber,
+              });
+              
+              core.setOutput('pr_number', issueNumber.toString());
+              core.setOutput('base_branch', pr.base.ref);
+              core.setOutput('head_branch', pr.head.ref);
+              core.setOutput('head_sha', pr.head.sha);
+              core.setOutput('title', pr.title || '');
+              core.setOutput('body', pr.body || '');
+            } catch (error) {
+              core.setOutput('pr_number', issueNumber.toString());
+              core.setFailed(`Failed to get PR information: ${error.message}`);
+              throw error;
+            }
 
       - name: Extract target branch
         id: extract
+        continue-on-error: true
         run: |
           COMMENT_BODY="${{ github.event.comment.body }}"
           TARGET_BRANCH=$(echo "$COMMENT_BODY" | sed -n 's|.*/cherry-pick[[:space:]]*\([^[:space:]]*\).*|\1|p')
           
           if [ -z "$TARGET_BRANCH" ]; then
-            echo "❌ Error: No target branch specified. Usage: /cherry-pick <branch-name>"
+            echo "EXTRACT_ERROR=No target branch specified. Usage: /cherry-pick <branch-name>" >> $GITHUB_ENV
             exit 1
           fi
           
@@ -62,8 +97,14 @@ jobs:
 
       - name: Validate target branch exists
         id: validate_branch
+        continue-on-error: true
         run: |
           TARGET_BRANCH="${{ steps.extract.outputs.branch }}"
+          
+          if [ -z "$TARGET_BRANCH" ]; then
+            echo "VALIDATE_ERROR=Target branch not specified" >> $GITHUB_ENV
+            exit 1
+          fi
           
           # Remove any remote prefix if present
           BRANCH_NAME=$(echo "$TARGET_BRANCH" | sed 's|^[^/]*/||')
@@ -80,11 +121,11 @@ jobs:
               echo "remote=downstream" >> $GITHUB_OUTPUT
               echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
             else
-              echo "❌ Error: Branch '$BRANCH_NAME' does not exist in downstream remote"
+              echo "VALIDATE_ERROR=Branch '$BRANCH_NAME' does not exist in downstream remote" >> $GITHUB_ENV
               exit 1
             fi
           else
-            echo "❌ Error: Branch '$BRANCH_NAME' does not exist in origin"
+            echo "VALIDATE_ERROR=Branch '$BRANCH_NAME' does not exist in origin" >> $GITHUB_ENV
             exit 1
           fi
 
@@ -109,6 +150,7 @@ jobs:
 
       - name: Cherry-pick commits
         id: cherry_pick
+        continue-on-error: true
         run: |
           PR_NUMBER="${{ steps.pr_info.outputs.pr_number }}"
           BASE_BRANCH="${{ steps.pr_info.outputs.base_branch }}"
@@ -120,7 +162,8 @@ jobs:
           COMMITS=$(git log --oneline --reverse origin/${BASE_BRANCH}..pr-${PR_NUMBER} | awk '{print $1}')
           
           if [ -z "$COMMITS" ]; then
-            echo "❌ Error: No commits found to cherry-pick"
+            echo "CHERRY_PICK_ERROR=No commits found to cherry-pick" >> $GITHUB_ENV
+            echo "CHERRY_PICK_ERROR_DETAILS=No commits found between origin/${BASE_BRANCH} and PR #${PR_NUMBER}" >> $GITHUB_ENV
             exit 1
           fi
           
@@ -129,26 +172,162 @@ jobs:
           
           # Cherry-pick each commit
           CHERRY_PICKED_COMMITS=""
+          FAILED_COMMIT=""
+          CONFLICT_FILES=""
+          
           for COMMIT in $COMMITS; do
             echo "Cherry-picking commit: $COMMIT"
-            if git cherry-pick "$COMMIT"; then
+            COMMIT_MSG=$(git log -1 --format="%s" "$COMMIT")
+            
+            if git cherry-pick "$COMMIT" 2>&1 | tee /tmp/cherry-pick-output.log; then
               CHERRY_PICKED_COMMITS="$CHERRY_PICKED_COMMITS $COMMIT"
               echo "✅ Successfully cherry-picked $COMMIT"
             else
-              echo "❌ Error: Failed to cherry-pick commit $COMMIT"
+              FAILED_COMMIT="$COMMIT"
+              FAILED_COMMIT_MSG="$COMMIT_MSG"
+              
+              # Extract conflict information
+              CONFLICT_OUTPUT=$(cat /tmp/cherry-pick-output.log)
+              
+              # Get list of conflicted files
+              CONFLICT_FILES=$(git diff --name-only --diff-filter=U 2>/dev/null | tr '\n' ',' | sed 's/,$//' || echo "")
+              
+              # Get modify/delete conflicts
+              MODIFY_DELETE=$(echo "$CONFLICT_OUTPUT" | grep "CONFLICT (modify/delete)" | sed 's/.*CONFLICT (modify\/delete): //' | sed 's/ .*//' | tr '\n' ',' | sed 's/,$//' || echo "")
+              
+              # Get content conflicts
+              CONTENT_CONFLICTS=$(echo "$CONFLICT_OUTPUT" | grep "CONFLICT (content):" | sed 's/.*CONFLICT (content): //' | tr '\n' ',' | sed 's/,$//' || echo "")
+              
+              echo "CHERRY_PICK_ERROR=Failed to cherry-pick commit $COMMIT" >> $GITHUB_ENV
+              echo "CHERRY_PICK_ERROR_DETAILS<<EOF" >> $GITHUB_ENV
+              echo "$CONFLICT_OUTPUT" >> $GITHUB_ENV
+              echo "EOF" >> $GITHUB_ENV
+              echo "FAILED_COMMIT=$FAILED_COMMIT" >> $GITHUB_ENV
+              echo "FAILED_COMMIT_MSG=$FAILED_COMMIT_MSG" >> $GITHUB_ENV
+              echo "CONFLICT_FILES=$CONFLICT_FILES" >> $GITHUB_ENV
+              echo "MODIFY_DELETE=$MODIFY_DELETE" >> $GITHUB_ENV
+              echo "CONTENT_CONFLICTS=$CONTENT_CONFLICTS" >> $GITHUB_ENV
+              
               git cherry-pick --abort
               exit 1
             fi
           done
           
           echo "✅ Successfully cherry-picked all commits"
+          echo "CHERRY_PICK_SUCCESS=true" >> $GITHUB_ENV
+
+      - name: Post error comment on failure
+        if: always() && (failure() || env.CHERRY_PICK_ERROR != '' || env.EXTRACT_ERROR != '' || env.VALIDATE_ERROR != '' || steps.pr_info.outcome == 'failure')
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = parseInt('${{ steps.pr_info.outputs.pr_number }}') || context.payload.issue.number;
+            const prInfoFailed = '${{ steps.pr_info.outcome }}' === 'failure';
+            const targetBranch = '${{ steps.validate_branch.outputs.branch_name }}' || '${{ steps.extract.outputs.branch }}' || 'unknown';
+            const extractError = '${{ env.EXTRACT_ERROR }}';
+            const validateError = '${{ env.VALIDATE_ERROR }}';
+            const cherryPickError = '${{ env.CHERRY_PICK_ERROR }}';
+            const failedCommit = '${{ env.FAILED_COMMIT }}' || 'unknown';
+            const failedCommitMsg = '${{ env.FAILED_COMMIT_MSG }}' || '';
+            const conflictFiles = '${{ env.CONFLICT_FILES }}';
+            const modifyDelete = '${{ env.MODIFY_DELETE }}';
+            const contentConflicts = '${{ env.CONTENT_CONFLICTS }}';
+            const errorDetails = `${{ env.CHERRY_PICK_ERROR_DETAILS }}` || cherryPickError || validateError || extractError;
+            
+            let errorMessage = `❌ **Cherry-pick failed**\n\n`;
+            
+            // Handle PR info failure
+            if (prInfoFailed) {
+              errorMessage += `**Error:** Failed to retrieve PR information.\n\n`;
+              errorMessage += `This might happen if:\n`;
+              errorMessage += `- The comment was made on an issue instead of a pull request\n`;
+              errorMessage += `- The PR number could not be determined\n`;
+              errorMessage += `- There was an API error\n\n`;
+              errorMessage += `Please ensure you're commenting on a pull request, not an issue.\n`;
+            }
+            // Handle different error types
+            else if (extractError) {
+              errorMessage += `**Error:** ${extractError}\n\n`;
+              errorMessage += `Please specify a target branch: \`/cherry-pick <branch-name>\`\n`;
+            } else if (validateError) {
+              errorMessage += `**Error:** ${validateError}\n\n`;
+              errorMessage += `Please verify that the branch exists and try again.\n`;
+            } else if (cherryPickError) {
+              errorMessage += `**Target branch:** \`${targetBranch}\`\n`;
+              errorMessage += `**Failed commit:** \`${failedCommit}\`\n`;
+              
+              if (failedCommitMsg) {
+                errorMessage += `**Commit message:** ${failedCommitMsg}\n\n`;
+              }
+              
+              // Format conflicts
+              if (modifyDelete || contentConflicts || conflictFiles) {
+                errorMessage += `## Merge Conflicts Detected\n\n`;
+                
+                if (contentConflicts) {
+                  const files = contentConflicts.split(',').filter(f => f);
+                  if (files.length > 0) {
+                    errorMessage += `### Content conflicts (files modified in both branches):\n`;
+                    files.forEach(file => {
+                      errorMessage += `- \`${file}\`\n`;
+                    });
+                    errorMessage += `\n`;
+                  }
+                }
+                
+                if (modifyDelete) {
+                  const files = modifyDelete.split(',').filter(f => f);
+                  if (files.length > 0) {
+                    errorMessage += `### Modify/delete conflicts (files deleted in target branch but modified in PR):\n`;
+                    files.forEach(file => {
+                      errorMessage += `- \`${file}\`\n`;
+                    });
+                    errorMessage += `\n`;
+                  }
+                }
+                
+                errorMessage += `## Next Steps\n\n`;
+                errorMessage += `This cherry-pick requires manual resolution. You can:\n\n`;
+                errorMessage += `1. Create a manual cherry-pick branch from \`${targetBranch}\`\n`;
+                errorMessage += `2. Resolve the conflicts manually\n`;
+                errorMessage += `3. Create a PR with the resolved changes\n\n`;
+                errorMessage += `Or use the workflow run logs for detailed conflict information.\n`;
+              } else if (errorDetails) {
+                errorMessage += `\n**Error details:**\n\`\`\`\n${errorDetails.substring(0, 2000)}\n\`\`\`\n`;
+              }
+            } else {
+              errorMessage += `**Error:** An unexpected error occurred during cherry-pick.\n\n`;
+              if (errorDetails) {
+                errorMessage += `**Error details:**\n\`\`\`\n${errorDetails.substring(0, 2000)}\n\`\`\`\n`;
+              }
+            }
+            
+            // Add link to workflow run
+            const workflowRunUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            errorMessage += `\n---\n`;
+            errorMessage += `📋 [View workflow run](${workflowRunUrl}) for full details`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: errorMessage,
+            });
+            
+            // Fail the workflow
+            if (prInfoFailed || cherryPickError || validateError || extractError) {
+              core.setFailed('Cherry-pick failed');
+            }
 
       - name: Push cherry-pick branch
+        if: env.CHERRY_PICK_SUCCESS == 'true'
         run: |
           CHERRY_PICK_BRANCH="${{ steps.create_branch.outputs.branch_name }}"
           git push origin "$CHERRY_PICK_BRANCH"
 
       - name: Create pull request
+        if: env.CHERRY_PICK_SUCCESS == 'true'
         uses: actions/github-script@v7
         with:
           script: |
