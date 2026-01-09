@@ -25,6 +25,16 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Configure remotes
+        run: |
+          # Add downstream remote if it doesn't exist (for branches that might only exist there)
+          if ! git remote | grep -q "^downstream$"; then
+            git remote add downstream https://github.com/${{ github.repository }}.git
+          fi
+          # Fetch from both remotes to ensure we have all branch information
+          git fetch origin --prune
+          git fetch downstream --prune || echo "Downstream remote fetch failed, will try origin only"
 
       - name: Get PR information
         id: pr_info
