@@ -4,33 +4,189 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   cherry-pick:
     runs-on: ubuntu-latest
     if: |
+      github.event.issue.pull_request != null &&
       startsWith(github.event.comment.body, '/cherry-pick')
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Git
         run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get PR information
+        id: pr_info
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = context.payload.issue.number;
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: issueNumber,
+            });
+            
+            core.setOutput('pr_number', issueNumber.toString());
+            core.setOutput('base_branch', pr.base.ref);
+            core.setOutput('head_branch', pr.head.ref);
+            core.setOutput('head_sha', pr.head.sha);
+            core.setOutput('title', pr.title || '');
+            core.setOutput('body', pr.body || '');
+
       - name: Extract target branch
         id: extract
-        run: echo "::set-output name=branch::$(echo "${{ github.event.comment.body }}" | cut -d' ' -f2)"
+        run: |
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          TARGET_BRANCH=$(echo "$COMMENT_BODY" | sed -n 's|.*/cherry-pick[[:space:]]*\([^[:space:]]*\).*|\1|p')
+          
+          if [ -z "$TARGET_BRANCH" ]; then
+            echo "❌ Error: No target branch specified. Usage: /cherry-pick <branch-name>"
+            exit 1
+          fi
+          
+          echo "branch=$TARGET_BRANCH" >> $GITHUB_OUTPUT
+          echo "Target branch: $TARGET_BRANCH"
 
-      - name: Cherry-pick the PR
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+      - name: Validate target branch exists
+        id: validate_branch
         run: |
-          TARGET_BRANCH=${{ steps.extract.outputs.branch }}
-          git fetch origin ${{ github.event.pull_request.head.ref }}
-          git checkout $TARGET_BRANCH
-          git cherry-pick ${{ github.event.pull_request.head.sha }} || exit 0
-      - name: Push changes
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+          TARGET_BRANCH="${{ steps.extract.outputs.branch }}"
+          
+          # Remove any remote prefix if present
+          BRANCH_NAME=$(echo "$TARGET_BRANCH" | sed 's|^[^/]*/||')
+          
+          # Check if branch exists in origin
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            echo "✅ Found branch: origin/$BRANCH_NAME"
+            echo "remote=origin" >> $GITHUB_OUTPUT
+            echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          # Check if downstream remote exists and has the branch
+          elif git remote | grep -q "^downstream$"; then
+            if git ls-remote --heads downstream "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+              echo "✅ Found branch: downstream/$BRANCH_NAME"
+              echo "remote=downstream" >> $GITHUB_OUTPUT
+              echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+            else
+              echo "❌ Error: Branch '$BRANCH_NAME' does not exist in downstream remote"
+              exit 1
+            fi
+          else
+            echo "❌ Error: Branch '$BRANCH_NAME' does not exist in origin"
+            exit 1
+          fi
+
+      - name: Create cherry-pick branch
+        id: create_branch
         run: |
-          git push https://${GH_PAT}@github.com/${{ github.repository }} $TARGET_BRANCH
+          TARGET_BRANCH="${{ steps.validate_branch.outputs.branch_name }}"
+          REMOTE="${{ steps.validate_branch.outputs.remote }}"
+          PR_NUMBER="${{ steps.pr_info.outputs.pr_number }}"
+          
+          # Create branch name: cherry-pick-<pr-number>-to-<target-branch>
+          # Replace any slashes with dashes for branch name
+          SAFE_BRANCH_NAME=$(echo "$TARGET_BRANCH" | tr '/' '-')
+          CHERRY_PICK_BRANCH="cherry-pick-${PR_NUMBER}-to-${SAFE_BRANCH_NAME}"
+          echo "branch_name=$CHERRY_PICK_BRANCH" >> $GITHUB_OUTPUT
+          
+          # Fetch and checkout target branch
+          git fetch "$REMOTE" "$TARGET_BRANCH"
+          git checkout -b "$CHERRY_PICK_BRANCH" "${REMOTE}/${TARGET_BRANCH}"
+          
+          echo "✅ Created branch: $CHERRY_PICK_BRANCH from ${REMOTE}/${TARGET_BRANCH}"
+
+      - name: Cherry-pick commits
+        id: cherry_pick
+        run: |
+          PR_NUMBER="${{ steps.pr_info.outputs.pr_number }}"
+          BASE_BRANCH="${{ steps.pr_info.outputs.base_branch }}"
+          
+          # Fetch the PR branch
+          git fetch origin "pull/${PR_NUMBER}/head:pr-${PR_NUMBER}"
+          
+          # Get all commits from the PR (compare base branch to PR branch)
+          COMMITS=$(git log --oneline --reverse origin/${BASE_BRANCH}..pr-${PR_NUMBER} | awk '{print $1}')
+          
+          if [ -z "$COMMITS" ]; then
+            echo "❌ Error: No commits found to cherry-pick"
+            exit 1
+          fi
+          
+          echo "Found commits to cherry-pick:"
+          echo "$COMMITS"
+          
+          # Cherry-pick each commit
+          CHERRY_PICKED_COMMITS=""
+          for COMMIT in $COMMITS; do
+            echo "Cherry-picking commit: $COMMIT"
+            if git cherry-pick "$COMMIT"; then
+              CHERRY_PICKED_COMMITS="$CHERRY_PICKED_COMMITS $COMMIT"
+              echo "✅ Successfully cherry-picked $COMMIT"
+            else
+              echo "❌ Error: Failed to cherry-pick commit $COMMIT"
+              git cherry-pick --abort
+              exit 1
+            fi
+          done
+          
+          echo "✅ Successfully cherry-picked all commits"
+
+      - name: Push cherry-pick branch
+        run: |
+          CHERRY_PICK_BRANCH="${{ steps.create_branch.outputs.branch_name }}"
+          git push origin "$CHERRY_PICK_BRANCH"
+
+      - name: Create pull request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const targetBranch = '${{ steps.validate_branch.outputs.branch_name }}';
+            const cherryPickBranch = '${{ steps.create_branch.outputs.branch_name }}';
+            const prNumber = parseInt('${{ steps.pr_info.outputs.pr_number }}');
+            
+            // Get original PR details
+            const { data: originalPR } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            
+            const title = `Cherry-pick #${prNumber} to ${targetBranch}: ${originalPR.title}`;
+            const body = `This PR cherry-picks #${prNumber} to \`${targetBranch}\`.\n\n` +
+                        `**Original PR:** #${prNumber}\n` +
+                        `**Target branch:** \`${targetBranch}\`\n\n` +
+                        `---\n` +
+                        `_This PR was created automatically by the cherry-pick workflow._`;
+            
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              head: cherryPickBranch,
+              base: targetBranch,
+            });
+            
+            // Add a comment to the original PR
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `✅ Cherry-pick PR created: #${pr.number}\n\n` +
+                    `**Target branch:** \`${targetBranch}\`\n` +
+                    `**Cherry-pick PR:** #${pr.number}`,
+            });
+            
+            console.log(`Created PR #${pr.number}`);
