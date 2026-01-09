@@ -9,11 +9,26 @@ permissions:
   pull-requests: write
 
 jobs:
+  debug:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issue_comment'
+    steps:
+      - name: Debug event data
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Comment body: '${{ github.event.comment.body }}'"
+          echo "Issue number: ${{ github.event.issue.number }}"
+          echo "Is PR: ${{ github.event.issue.pull_request != null }}"
+          echo "PR URL: ${{ github.event.issue.pull_request.url }}"
+          echo "Comment starts with /cherry-pick: ${{ startsWith(github.event.comment.body, '/cherry-pick') }}"
+          echo "Comment contains /cherry-pick: ${{ contains(github.event.comment.body, '/cherry-pick') }}"
+          
   cherry-pick:
     runs-on: ubuntu-latest
     if: |
+      github.event_name == 'issue_comment' &&
       github.event.issue.pull_request != null &&
-      startsWith(github.event.comment.body, '/cherry-pick')
+      (startsWith(github.event.comment.body, '/cherry-pick') || contains(github.event.comment.body, '/cherry-pick'))
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
