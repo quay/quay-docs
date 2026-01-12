@@ -1,8 +1,14 @@
-:_mod-docs-content-type: PROCEDURE
+:_mod-docs-content-type: CONCEPT
 [id="container-security-operator-setup"]
-= Scanning pod images with the Container Security Operator
+= {cso}
 
-The link:https://operatorhub.io/operator/container-security-operator[Container Security Operator] (CSO) is an addon for the Clair security scanner available on {ocp} and other Kubernetes platforms. With the CSO, users can scan container images associated with active pods for known vulnerabilities. 
+[IMPORTANT]
+====
+The {cso} has been deprecated and planned for removal in a future release of {productname} and {ocp}. The official replacement product of the {cso} is Red{nbsp}Hat Advanced Cluster Security for Kubernetes.
+====
+
+[role="_abstract"]
+The Container Security Operator (CSO) is an addon for the Clair security scanner that scans container images associated with active pods for known vulnerabilities. You can use CSO to identify security issues in your running containers and expose vulnerability information through the Kubernetes API. 
 
 [NOTE]
 ====
@@ -22,137 +28,3 @@ The Container Security Operator (CSO) includes the following features:
 To see instructions on installing the CSO on Kubernetes,
 select the *Install* button from the link:https://operatorhub.io/operator/container-security-operator[Container Security OperatorHub.io] page.
 ====
-
-[id="running-cso-openshift"]
-== Downloading and running the Container Security Operator in {ocp}
-
-Use the following procedure to download the Container Security Operator (CSO). 
-
-[NOTE]
-====
-In the following procedure, the CSO is installed in the `marketplace-operators` namespace. This allows the CSO to be used in all namespaces of your {ocp} cluster. 
-====
-
-.Procedure
-
-. On the {ocp} console page, select *Operators* -> *OperatorHub* and search for *Container Security Operator*. 
-
-. Select the Container Security Operator, then select *Install* to go to the *Create Operator Subscription* page.
-
-. Check the settings (all namespaces and automatic approval strategy, by default), and select
-*Subscribe*. The *Container Security* appears after a few moments on the *Installed Operators* screen.
-
-. Optional: you can add custom certificates to the CSO. In this example, create a certificate
-named `quay.crt` in the current directory. Then, run the following command to add the certificate to the CSO:
-+
-[source,terminal]
-----
-$ oc create secret generic container-security-operator-extra-certs --from-file=quay.crt -n openshift-operators
-----
-+
-[NOTE]
-====
-You must restart the Operator pod for the new certificates to take effect. 
-====
-
-. Navigate to *Home* -> *Overview*. A link to *Image Vulnerabilities* appears under the status section, with a listing of the number of vulnerabilities found so far. Select the link to see a security breakdown, as shown in the following image:
-+
-image:cso-dashboard.png[Access CSO scanning data from the {ocp} dashboard]
-+
-[IMPORTANT]
-====
-The Container Security Operator currently provides broken links for Red Hat Security advisories. For example, the following link might be provided: `https://access.redhat.com/errata/RHSA-2023:1842%20https://access.redhat.com/security/cve/CVE-2023-23916`. The `%20` in the URL represents a space character, however it currently results in the combination of the two URLs into one incomplete URL, for example, `https://access.redhat.com/errata/RHSA-2023:1842` and `https://access.redhat.com/security/cve/CVE-2023-23916`. As a temporary workaround, you can copy each URL into your browser to navigate to the proper page. This is a known issue and will be fixed in a future version of {productname}. 
-====
-
-. You can do one of two things at this point to follow up on any detected vulnerabilities:
-
-..  Select the link to the vulnerability. You are taken to the container registry, {productname} or other registry where the container came from, where you can see information about the vulnerability. The following figure shows an example of detected vulnerabilities from a Quay.io registry:
-+
-image:cso-registry-vulnerable.png[The CSO points you to a registry containing the vulnerable image]
-+
-.. Select the namespaces link to go to the *Image Manifest Vulnerabilities* page, where you can see the name of the selected image and all namespaces where that image is running. The following figure indicates that a particular vulnerable image is running in two namespaces:
-+
-image:cso-namespace-vulnerable.png[View namespaces a vulnerable image is running in]
-
-After executing this procedure, you are made aware of what images are vulnerable, what you must do to fix those vulnerabilities, and every namespace that the image was run in. Knowing this, you can perform the following actions:
-
-* Alert users who are running the image that they need to correct the vulnerability. 
-* Stop the images from running by deleting the deployment or the object that started the pod that the image is in. 
-+
-[NOTE]
-====
-If you delete the pod, it might take a few minutes for the vulnerability to reset on the dashboard. 
-====
-
-[id="query-image-vulnerabilities-from-cli"]
-== Querying image vulnerabilities from the CLI
-
-Use the following procedure to query image vulnerabilities from the command line interface (CLI). 
-
-.Procedure 
-
-. Enter the following command to query for detected vulnerabilities: 
-+
-[source,terminal]
-----
-$ oc get vuln --all-namespaces
-----
-+
-.Example output
-+
-[source,terminal]
-----
-NAMESPACE     NAME              AGE
-default       sha256.ca90...    6m56s
-skynet        sha256.ca90...    9m37s
-----
-
-. Optional. To display details for a particular vulnerability, identify a specific vulnerability and its namespace, and use the `oc describe` command. The following example shows an active container whose image includes an RPM package with a vulnerability:
-+
-[source,terminall]
-----
-$ oc describe vuln --namespace <namespace> sha256.ac50e3752...
-----
-.Example output
-+
-[source,terminal]
-----
-Name:         sha256.ac50e3752...
-Namespace:    quay-enterprise
-...
-Spec:
-  Features:
-    Name:            nss-util
-    Namespace Name:  centos:7
-    Version:         3.44.0-3.el7
-    Versionformat:   rpm
-    Vulnerabilities:
-      Description: Network Security Services (NSS) is a set of libraries...
-----
-
-[id="uninstalling-container-security-operator"]
-== Uninstalling the Container Security Operator
-
-To uninstall the Container Security Operator from your {ocp} deployment, you must uninstall the Operator and delete the `imagemanifestvulns.secscan.quay.redhat.com` custom resource definition (CRD). Without removing the CRD, image vulnerabilities are still reported on the {ocp} *Overview* page.
-
-.Procedure
-
-. On the {ocp} web console, click *Operators* -> *Installed Operators*.
-
-. Click the menu kebab of the Container Security Operator.
-
-. Click *Uninstall Operator*. Confirm your decision by clicking *Uninstall* in the popup window.
-
-. Remove the `imagemanifestvulns.secscan.quay.redhat.com` custom resource definition by entering the following command:
-+
-[source,terminal]
-----
-$ oc delete customresourcedefinition imagemanifestvulns.secscan.quay.redhat.com
-----
-+
-.Example output
-+
-[source,terminal]
-----
-customresourcedefinition.apiextensions.k8s.io "imagemanifestvulns.secscan.quay.redhat.com" deleted
-----

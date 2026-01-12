@@ -3,43 +3,20 @@
 // clair/master.adoc
 
 :_mod-docs-content-type: CONCEPT
-[id="mapping-repositories-to-cpe-information"]
-= Mapping repositories to Common Product Enumeration information
+[id="clair-cpe-mapping-overview_{context}"]
+= Common Product Enumeration mapping in Clair
 
-Clair's {rhel} scanner relies on a Common Product Enumeration (CPE) file to map RPM packages to the corresponding security data to produce matching results. Red{nbsp}Hat Product Security maintains and regularly updates these files.
+[role="_abstract"]
+Clair uses Common Product Enumeration (CPE) mapping files to map RPM packages to security data for accurate vulnerability scanning of {rhel} container images. Understanding how Clair utilizes these files ensures that your vulnerability reports remain accurate and comprehensive.
 
-The CPE file must be present, or access to the file must be allowed, for the scanner to properly process RPM packages. If the file is not present, RPM packages installed in the container image will not be scanned.
+The scanner requires the CPE file to be present and accessible to process RPM packages properly. If these files are missing or inaccessible, RPM packages installed in the container image are skipped during the scanning process.
 
-.Clair CPE mapping files
-[options="header"]
-|===
-|CPE | Link to JSON mapping file
-| `repos2cpe` | link:https://www.redhat.com/security/data/metrics/repository-to-cpe.json[Red Hat Repository-to-CPE JSON]
-| `names2repos` | link:https://access.redhat.com/security/data/metrics/container-name-repos-map.json[Red Hat Name-to-Repos JSON].
-|===
-
-By default, Clair's indexer includes the `repos2cpe` and `names2repos` data files within the Clair container. This means that you can reference `/data/repository-to-cpe.json` and `/data/container-name-repos-map.json` in your `clair-config.yaml` file without the need for additional configuration. 
+By default, the Clair indexer includes the `repos2cpe` and `names2repos` data files within the Clair container. This allows you to reference local paths such as `/data/repository-to-cpe.json` without additional external configuration.
 
 [IMPORTANT]
 ====
-Although Red{nbsp}Hat Product Security updates the `repos2cpe` and `names2repos` files regularly, the versions included in the `Clair` container are only updated with {productname} releases (for example, version 3.14.1 -> 3.14.2). This can lead to discrepancies between the latest CPE files and those bundled with Clair."
+While Red{nbsp}Hat Product Security updates CPE files regularly, the versions bundled within the Clair container are only updated during {productname} releases. This can lead to temporary discrepancies between the latest security data and the versions bundled with your current installation.
 ====
 
-[id="mapping-repositories-to-cpe-configuration"]
-== Mapping repositories to Common Product Enumeration example configuration
-
-Use the `repo2cpe_mapping_file` and `name2repos_mapping_file` fields in your Clair configuration to include the CPE JSON mapping files. For example:
-
-[source,yaml]
-----
-indexer:
-  scanner:
-    repo:
-      rhel-repository-scanner:
-        repo2cpe_mapping_file: /data/repository-to-cpe.json
-    package:
-      rhel_containerscanner:
-        name2repos_mapping_file: /data/container-name-repos-map.json
-----
-
-For more information, see link:https://www.redhat.com/en/blog/how-accurately-match-oval-security-data-installed-rpms[How to accurately match OVAL security data to installed RPMs].
+.Additional resources
+* link:https://www.redhat.com/en/blog/how-accurately-match-oval-security-data-installed-rpms[How to accurately match OVAL security data to installed RPMs]

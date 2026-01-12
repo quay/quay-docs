@@ -1,12 +1,13 @@
 :_mod-docs-content-type: PROCEDURE
 [id="georepl-deploy-operator"]
-= Setting up geo-replication on {ocp}
+= Preparing your {ocp} environment for geo-replication
 
-Use the following procedure to set up geo-replication on {ocp}. 
+[role="_abstract"]
+To prepare your {ocp} environment for geo-replication, you must deploy shared PostgreSQL and Redis instances, create object storage backends for each cluster, and configure a load balancer. This sets up the infrastructure needed for multiple {productname} deployments to work as a single registry. 
 
 .Procedure
 
-. Deploy a postgres instance for {productname}.
+. Deploy a PostgreSQL instance for {productname}.
 
 . Login to the database by entering the following command:
 +
@@ -53,148 +54,3 @@ podman run -d --name redis -p 6379:6379 redis
 . Deploy the clusters with the same config bundle, using environment variable overrides to select the appropriate storage backend for an individual cluster.
 
 . Configure a load balancer to provide a single entry point to the clusters.
-
-[id="configuring-geo-repl"]
-== Configuring geo-replication for the {productname} on {ocp}
-
-Use the following procedure to configure geo-replication for the {productname-ocp}. 
-
-.Procedure
-
-. Create a `config.yaml` file that is shared between clusters. This `config.yaml` file contains the details for the common PostgreSQL, Redis and storage backends:
-+
-.Geo-replication `config.yaml` file
-[source,yaml]
-----
-SERVER_HOSTNAME: <georep.quayteam.org or any other name> <1>
-DB_CONNECTION_ARGS:
-  autorollback: true
-  threadlocals: true
-DB_URI: postgresql://postgres:password@10.19.0.1:5432/quay
-BUILDLOGS_REDIS:
-  host: 10.19.0.2
-  port: 6379
-USER_EVENTS_REDIS:
-  host: 10.19.0.2
-  port: 6379
-DATABASE_SECRET_KEY: 0ce4f796-c295-415b-bf9d-b315114704b8
-DISTRIBUTED_STORAGE_CONFIG:
-  usstorage:
-    - GoogleCloudStorage
-    - access_key: GOOGQGPGVMASAAMQABCDEFG
-      bucket_name: georep-test-bucket-0
-      secret_key: AYWfEaxX/u84XRA2vUX5C987654321
-      storage_path: /quaygcp
-  eustorage:
-    - GoogleCloudStorage
-    - access_key: GOOGQGPGVMASAAMQWERTYUIOP
-      bucket_name: georep-test-bucket-1
-      secret_key: AYWfEaxX/u84XRA2vUX5Cuj12345678
-      storage_path: /quaygcp
-DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
-  - usstorage
-  - eustorage
-DISTRIBUTED_STORAGE_PREFERENCE:
-  - usstorage
-  - eustorage
-FEATURE_STORAGE_REPLICATION: true
-----
-<1> A proper `SERVER_HOSTNAME` must be used for the route and must match the hostname of the global load balancer.
-
-. Create the `configBundleSecret` by entering the following command:
-+
-[source,terminal]
-----
-$ oc create secret generic --from-file config.yaml=./config.yaml georep-config-bundle
-----
-
-. In each of the clusters, set the `configBundleSecret` and use the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environmental variable override to configure the appropriate storage for that cluster. For example:
-+
-[NOTE]
-====
-The `config.yaml` file between both deployments must match. If making a change to one cluster, it must also be changed in the other.
-====
-+
-[source,yaml]
-.US cluster `QuayRegistry` example 
-----
-apiVersion: quay.redhat.com/v1
-kind: QuayRegistry
-metadata:
-  name: example-registry
-  namespace: quay-enterprise
-spec:
-  configBundleSecret: georep-config-bundle
-  components:
-    - kind: objectstorage
-      managed: false
-    - kind: route
-      managed: true
-    - kind: tls
-      managed: false
-    - kind: postgres
-      managed: false
-    - kind: clairpostgres
-      managed: false
-    - kind: redis
-      managed: false
-    - kind: quay
-      managed: true
-      overrides:
-        env:
-        - name: QUAY_DISTRIBUTED_STORAGE_PREFERENCE
-          value: usstorage
-    - kind: mirror
-      managed: true 
-      overrides:
-        env:
-        - name: QUAY_DISTRIBUTED_STORAGE_PREFERENCE
-          value: usstorage
-----
-+
-[NOTE]
-====
-Because SSL/TLS is unmanaged, and the route is managed, you must supply the certificates directly in the config bundle. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-preconfig-tls-routes[Configuring SSL/TLS and Routes]. 
-====
-+
-[source,yaml]
-.European cluster
-----
-apiVersion: quay.redhat.com/v1
-kind: QuayRegistry
-metadata:
-  name: example-registry
-  namespace: quay-enterprise
-spec:
-  configBundleSecret: georep-config-bundle
-  components:
-    - kind: objectstorage
-      managed: false
-    - kind: route
-      managed: true
-    - kind: tls
-      managed: false
-    - kind: postgres
-      managed: false
-    - kind: clairpostgres
-      managed: false
-    - kind: redis
-      managed: false
-    - kind: quay
-      managed: true
-      overrides:
-        env:
-        - name: QUAY_DISTRIBUTED_STORAGE_PREFERENCE
-          value: eustorage
-    - kind: mirror
-      managed: true 
-      overrides:
-        env:
-        - name: QUAY_DISTRIBUTED_STORAGE_PREFERENCE
-          value: eustorage
-----
-+
-[NOTE]
-====
-Because SSL/TLS is unmanaged, and the route is managed, you must supply the certificates directly in the config bundle. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-preconfig-tls-routes[Configuring SSL/TLS and Routes]. 
-====

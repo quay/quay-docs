@@ -1,0 +1,46 @@
+:_mod-docs-content-type: PROCEDURE
+[id="backing-up-managed-object-storage"]
+= Backing up the {productname} managed object storage
+
+[role="_abstract"]
+To back up your {productname} managed object storage for disaster recovery, you can export AWS credentials from secrets and use the `aws s3 sync` command to copy all blobs to a local directory. This procedure creates a backup of your registry's object storage data.
+
+The instructions in this section apply to the following configurations:
+
+* Standalone, multi-cloud object gateway configurations
+* OpenShift Data Foundations storage requires that the {productname} Operator provisioned an S3 object storage bucket from, through the `ObjectStorageBucketClaim` API.
+
+[NOTE]
+====
+You can also use link:https://rclone.org/[rclone] or link:https://s3tools.org/s3cmd[sc3md] instead of the AWS command line utility.
+====
+
+.Procedure
+
+. Decode and export the `AWS_ACCESS_KEY_ID` by entering the following command:
++
+[source,terminal]
+----
+$ export AWS_ACCESS_KEY_ID=$(oc get secret -l app=noobaa -n <quay-namespace>  -o jsonpath='{.items[0].data.AWS_ACCESS_KEY_ID}' |base64 -d)
+----
+
+. Decode and export the `AWS_SECRET_ACCESS_KEY_ID` by entering the following command:
++
+[source,terminal]
+----
+$ export AWS_SECRET_ACCESS_KEY=$(oc get secret -l app=noobaa -n <quay-namespace> -o jsonpath='{.items[0].data.AWS_SECRET_ACCESS_KEY}' |base64 -d)
+----
+
+. Create a new directory by entering the following command:
++
+[source,terminal]
+----
+$ mkdir blobs
+----
+
+. Copy all blobs to the directory by entering the following command:
++
+[source,terminal]
+----
+$ aws s3 sync --no-verify-ssl --endpoint https://$(oc get route s3 -n openshift-storage  -o jsonpath='{.spec.host}')  s3://$(oc get cm -l app=noobaa -n <quay-namespace> -o jsonpath='{.items[0].data.BUCKET_NAME}') ./blobs
+----

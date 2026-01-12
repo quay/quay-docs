@@ -2,21 +2,19 @@
 [id="upgrading-geo-repl-quay-operator"]
 = Upgrading a geo-replication deployment of {productname-ocp}
 
-Use the following procedure to upgrade your geo-replicated {productname-ocp} deployment.
+[role="_abstract"]
+To upgrade your geo-replicated {productname-ocp} deployment, you must stop operations, scale down secondary systems, upgrade the primary system, then upgrade secondary systems. This ensures a safe upgrade process with minimal downtime across your geo-replicated registry.
 
 [IMPORTANT]
 ====
-* When upgrading geo-replicated {productname-ocp} deployment to the next y-stream release (for example, {productname} 3.7 -> {productname} 3.8), you must stop operations before upgrading.
+* When upgrading geo-replicated {productname-ocp} deployment to the next y-stream release (for example, {productname} {producty-n1} -> {productname} {producty}), you must stop operations before upgrading.
 * There is intermittent downtime down upgrading from one y-stream release to the next.
 * It is highly recommended to back up your {productname-ocp} deployment before upgrading.
 ====
 
-.Procedure
+The following procedure assumes that you are running the {productname} registry on three or more systems. For this procedure, three systems named `System A,` `System B,` and `System C` are used. `System A` serves as the primary system in which the {productname} Operator is deployed.
 
-[NOTE]
-====
-This procedure assumes that you are running the {productname} registry on three or more systems. For this procedure, we will assume three systems named `System A,` `System B,` and `System C`. `System A` will serve as the primary system in which the {productname} Operator is deployed.
-====
+.Procedure
 
 . On System B and System C, scale down your {productname} registry. This is done by disabling auto scaling and overriding the replica county for {productname}, mirror workers, and Clair if it is managed. Use the following `quayregistry.yaml` file as a reference:
 +
@@ -31,10 +29,10 @@ spec:
   components:
     …
     - kind: horizontalpodautoscaler
-      managed: false <1>
+      managed: false
     - kind: quay
       managed: true
-      overrides: <2>
+      overrides:
         replicas: 0
     - kind: clair
       managed: true
@@ -46,8 +44,13 @@ spec:
         replicas: 0
     …
 ----
-<1> Disable auto scaling of `Quay`, `Clair` and `Mirroring` workers
-<2> Set the replica count to 0 for components accessing the database and objectstorage
++
+--
+where:
+
+`managed: false::` Disables auto scaling of `Quay`, `Clair` and `Mirroring` workers
+`overrides::` Sets the replica count to 0 for components accessing the database and objectstorage
+--
 +
 [NOTE]
 ====
@@ -62,7 +65,6 @@ oc get pods -n <quay-namespace>
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 quay-operator.v3.7.1-6f9d859bd-p5ftc               1/1     Running     0             12m
@@ -104,7 +106,7 @@ spec:
   components:
     …
     - kind: horizontalpodautoscaler
-      managed: true <1>
+      managed: true
     - kind: quay
       managed: true
     - kind: clair
@@ -113,4 +115,9 @@ spec:
       managed: true
     …
 ----
-<1> If the `horizontalpodautoscaler` resource was set to `True` before the upgrade procedure, or if you want {productname} to scale in case of a resource shortage, set it to `True`.
++
+--
+where:
+
+`kind: horizontalpodautoscaler::` Set this resource to `True` if the `horizontalpodautoscaler` resource was set to `True` before the upgrade procedure, or if you want {productname} to scale in case of a resource shortage.
+--

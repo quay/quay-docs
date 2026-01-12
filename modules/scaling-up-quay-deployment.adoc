@@ -1,0 +1,67 @@
+:_mod-docs-content-type: PROCEDURE
+[id="scaling-up-quay-deployment"]
+= Scaling up the {productname} deployment
+
+[role="_abstract"]
+To restore your {productname} deployment to normal operation after scaling down, you can re-enable auto scaling and remove replica overrides for `quay`, `mirror` workers, and Clair. This restores your registry to full capacity after completing backup or maintenance tasks.
+
+.Procedure
+
+. Scale up the {productname} deployment by re-enabling auto scaling, if desired, and removing the replica overrides for Quay, mirror workers and Clair as applicable. For example:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: true <1>
+    - kind: quay <2>
+      managed: true
+    - kind: clair
+      managed: true
+    - kind: mirror
+      managed: true
+    …
+----
++
+--
+where:
+
+`managed: true::` Re-enables auto scaling of Quay, Clair and Mirroring workers again.
+
+`overrides::` Replica overrides are removed again to scale the Quay components back up.
+--
+
+. Check the status of the {productname} deployment by entering the following command:
++
+[source,terminal]
+----
+$ oc wait quayregistry registry --for=condition=Available=true -n <quay_namespace>
+----
++
+.Example output:
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  ...
+  name: registry
+  namespace: <quay-namespace>
+  ...
+spec:
+  ...
+status:
+  - lastTransitionTime: '2022-06-20T05:31:17Z'
+    lastUpdateTime: '2022-06-20T17:31:13Z'
+    message: All components reporting as healthy
+    reason: HealthChecksPassing
+    status: 'True'
+    type: Available
+----

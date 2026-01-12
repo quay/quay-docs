@@ -1,0 +1,99 @@
+:_mod-docs-content-type: PROCEDURE
+[id="quay-ocp-readonly"]
+= Configuring read-only mode {productname-ocp}
+
+[role="_abstract"]
+To enable read-only mode in {productname} and safely manage registry operations such as backup and restore, you can modify the configuration secret and restart the Quay container.
+
+[IMPORTANT]
+====
+Deploying {productname-ocp} in read-only mode requires you to modify the secrets stored inside of your {ocp} cluster. It is highly recommended that you create a backup of the secret prior to making changes to it. 
+====
+
+.Prerequisites
+
+* You have created the service keys and added them to your PostgreSQL database.
+
+.Procedure
+
+. Read the secret name of your {productname-ocp} deployment by entering the following command:
++
+[source,terminal]
+----
+$ oc get deployment -o yaml <quay_main_app_deployment_name>
+----
+
+. Use the `base64` command to encode the `quay-readonly.kid` and `quay-readonly.pem` files by entering the following commands:
++
+[source,terminal]
+----
+$ base64 -w0 quay-readonly.kid
+----
++
+.Example output
+[source,terminal]
+----
+ZjUyNDFm...
+----
++
+[source,terminal]
+----
+$ base64 -w0 quay-readonly.pem 
+----
++
+.Example output
+[source,terminal]
+----
+LS0tLS1CRUdJTiBSU0E...
+----
+
+. Obtain the current configuration bundle and secret by entering the following command. Save the output to a file called `config.yaml`:
++
+[source,terminal]
+----
+$ oc get secret quay-config-secret-name -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d -w0 > config.yaml
+----
+
+. Edit the `config.yaml` file and add the following information to enable read-only mode:
++
+[source,yaml]
+----
+# ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...
+----
+
+. Save the file and `base64` encode it by entering the following command:
++
+[source,terminal]
+----
+$ base64 -w0 quay-config.yaml
+----
+
+. Scale down the {productname} Operator pods to `0` by entering the following command. This ensures that the Operator does not reconcile the secret after editing it.
++
+[source,terminal]
+----
+$ oc scale --replicas=0 deployment quay-operator -n openshift-operators
+----
+
+. Edit the secret to include the new content by entering the following command:
++
+[source,terminal]
+----
+$ oc edit secret quay-config-secret-name -n quay-namespace
+----
++
+[source,yaml]
+----
+# ...
+data:
+  "quay-readonly.kid": "ZjUyNDFm..."
+  "quay-readonly.pem": "LS0tLS1CRUdJTiBSU0E..."
+  "config.yaml": "QUNUSU9OX0xPR19..."
+# ...
+----
++
+With your {productname-ocp} deployment on read-only mode, you can safely manage your registry's operations and perform such actions as backup and restore.

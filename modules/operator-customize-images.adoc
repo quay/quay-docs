@@ -1,4 +1,4 @@
-:_mod-docs-content-type: PROCEDURE
+:_mod-docs-content-type: CONCEPT
 [id="operator-customize-images"]
 = Customizing Default Operator Images
 
@@ -7,74 +7,10 @@
 Currently, customizing default Operator images is not supported on IBM Power and IBM Z.
 ====
 
-In certain circumstances, it might be useful to override the default images used by the {productname} Operator. This can be done by setting one or more environment variables in the {productname} Operator `ClusterServiceVersion`.
+[role="_abstract"]
+Customizing default Operator images lets you override the default container images used by the {productname} Operator by setting environment variables in the `ClusterServiceVersion` object.
 
 [IMPORTANT]
 ====
-Using this mechanism is not supported for production {productname} environments and is strongly encouraged only for development or testing purposes. There is no guarantee your deployment will work correctly when using non-default images with the {productname} Operator.
-====
-
-[id="custom-environment-variables"]
-== Environment Variables
-
-The following environment variables are used in the {productname} Operator to override component images:
-
-[cols=2*]
-|===
-|Environment Variable
-|Component
-
-|`RELATED_IMAGE_COMPONENT_QUAY`
-|`base`
-
-|`RELATED_IMAGE_COMPONENT_CLAIR`
-|`clair`
-
-|`RELATED_IMAGE_COMPONENT_POSTGRES`
-|`postgres` and `clair` databases
-
-|`RELATED_IMAGE_COMPONENT_REDIS`
-|`redis`
-|===
-
-[NOTE]
-====
-Overridden images *must* be referenced by manifest (@sha256:) and not by tag (:latest).
-====
-
-[id="applying-overrides-to-running-operator"]
-== Applying overrides to a running Operator
-
-When the {productname} Operator is installed in a cluster through the link:https://docs.openshift.com/container-platform/{ocp-y}/operators/understanding/olm/olm-understanding-olm.html[Operator Lifecycle Manager (OLM)], the managed component container images can be easily overridden by modifying the `ClusterServiceVersion` object.
-
-Use the following procedure to apply overrides to a running {productname} Operator.
-
-.Procedure
-
-. The `ClusterServiceVersion` object is Operator Lifecycle Manager's representation of a running Operator in the cluster. Find the {productname} Operator's `ClusterServiceVersion` by using a Kubernetes UI or the `kubectl`/`oc` CLI tool. For example:
-+
-[source,terminal]
-----
-$ oc get clusterserviceversions -n <your-namespace>
-----
-
-. Using the UI, `oc edit`, or another method, modify the {productname} `ClusterServiceVersion` to include the environment variables outlined above to point to the override images:
-+
-*JSONPath*: `spec.install.spec.deployments[0].spec.template.spec.containers[0].env`
-+
-[source,yaml]
-----
-- name: RELATED_IMAGE_COMPONENT_QUAY
-  value: quay.io/projectquay/quay@sha256:c35f5af964431673f4ff5c9e90bdf45f19e38b8742b5903d41c10cc7f6339a6d
-- name: RELATED_IMAGE_COMPONENT_CLAIR
-  value: quay.io/projectquay/clair@sha256:70c99feceb4c0973540d22e740659cd8d616775d3ad1c1698ddf71d0221f3ce6
-- name: RELATED_IMAGE_COMPONENT_POSTGRES
-  value: centos/postgresql-10-centos7@sha256:de1560cb35e5ec643e7b3a772ebaac8e3a7a2a8e8271d9e91ff023539b4dfb33
-- name: RELATED_IMAGE_COMPONENT_REDIS
-  value: centos/redis-32-centos7@sha256:06dbb609484330ec6be6090109f1fa16e936afcf975d1cbc5fff3e6c7cae7542
-----
-
-[NOTE]
-====
-This is done at the Operator level, so every `QuayRegistry` will be deployed using these same overrides.
+Customizing default Operator images is not supported for production {productname} environments and is only recommended for development or testing purposes. There is no guarantee your deployment will work correctly when using non-default images with the {productname} Operator.
 ====
