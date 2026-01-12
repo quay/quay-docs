@@ -1,0 +1,46 @@
+:_mod-docs-content-type: PROCEDURE
+[id="restoring-quay-and-configuration-from-backup"]
+= Restoring {productname} from a backup
+
+[role="_abstract"]
+To restore your {productname} registry and configuration from a backup, you can restore the configuration bundle, managed secret keys, and `QuayRegistry` custom resource. This procedure restores your registry to a previous state using backup files created with the backup process.
+
+.Prerequisites
+
+* You have backed up your {productname} registry and configuration.
+* You have the backup files `config-bundle.yaml`, `managed-secret-keys.yaml`, and `quay-registry.yaml`.
+
+.Procedure
+
+. Restore the backed up {productname} configuration by entering the following command:
++
+[source,terminal]
+----
+$ oc create -f ./config-bundle.yaml
+----
++
+[IMPORTANT]
+====
+If you receive the error `Error from server (AlreadyExists): error when creating "./config-bundle.yaml": secrets "config-bundle-secret" already exists`, you must delete your existing resource with `$ oc delete Secret config-bundle-secret -n <quay-namespace>` and recreate it with `$ oc create -f ./config-bundle.yaml`.
+====
+
+. Restore the generated keys from the backup by entering the following command:
++
+[source,terminal]
+----
+$ oc create -f ./managed-secret-keys.yaml
+----
+
+. Restore the `QuayRegistry` custom resource by entering the following command:
++
+[source,terminal]
+----
+$ oc create -f ./quay-registry.yaml
+----
+
+. Check the status of the {productname} deployment by entering the following command. Wait for it to be available:
++
+[source,terminal]
+----
+$ oc wait quayregistry registry --for=condition=Available=true -n <quay-namespace>
+----

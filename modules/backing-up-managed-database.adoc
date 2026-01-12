@@ -1,0 +1,33 @@
+:_mod-docs-content-type: PROCEDURE
+[id="backing-up-managed-database"]
+= Backing up the {productname} managed database
+
+[role="_abstract"]
+To back up your {productname} managed database for disaster recovery, you can identify the PostgreSQL pod and use `pg_dump` to create a backup SQL file. This procedure creates a backup that you can use to restore your database. 
+
+[NOTE]
+====
+If your {productname} deployment is configured with external, or unmanged, PostgreSQL database(s), refer to your vendor's documentation on how to create a consistent backup of these databases.
+====
+
+.Procedure
+
+. Identify the {productname} PostgreSQL pod name by entering the following command:
++
+[source,terminal]
+----
+$ oc get pod -l quay-component=postgres -n <quay_namespace> -o jsonpath='{.items[0].metadata.name}'
+----
++
+.Example output:
+[source,terminal]
+----
+quayregistry-quay-database-59f54bb7-58xs7
+----
+
+. Download a backup database by entering the following command:
++
+[source,terminal]
+----
+$ oc -n <quay_namespace> exec quayregistry-quay-database-59f54bb7-58xs7 -- /usr/bin/pg_dump -C quayregistry-quay-database  > backup.sql
+----

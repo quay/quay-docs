@@ -1,0 +1,54 @@
+:_mod-docs-content-type: PROCEDURE
+[id="creating-service-keys-quay-ocp"]
+= Creating service keys for {productname-ocp}
+
+[role="_abstract"]
+To enable {productname} to communicate with components and sign completed requests such as image scanning and login, you can create service keys. Access the Quay container pod and run the `keypair` generation script to create the necessary keys.
+
+.Procedure
+
+. Enter the following command to obtain a list of {productname} pods:
++
+[source,terminal]
+----
+$ oc get pods -n <namespace>
+----
++
+.Example output
+[source,terminal]
+----
+example-registry-clair-app-7dc7ff5844-4skw5           0/1     Error                    0             70d
+example-registry-clair-app-7dc7ff5844-nvn4f           1/1     Running                  0             31d
+example-registry-clair-app-7dc7ff5844-x4smw           0/1     ContainerStatusUnknown   6 (70d ago)   70d
+example-registry-clair-app-7dc7ff5844-xjnvt           1/1     Running                  0             60d
+example-registry-clair-postgres-547d75759-75c49       1/1     Running                  0             70d
+example-registry-quay-app-76c8f55467-52wjz            1/1     Running                  0             70d
+example-registry-quay-app-76c8f55467-hwz4c            1/1     Running                  0             70d
+example-registry-quay-app-upgrade-57ghs               0/1     Completed                1             70d
+example-registry-quay-database-7c55899f89-hmnm6       1/1     Running                  0             70d
+example-registry-quay-mirror-6cccbd76d-btsnb          1/1     Running                  0             70d
+example-registry-quay-mirror-6cccbd76d-x8g42          1/1     Running                  0             70d
+example-registry-quay-redis-85cbdf96bf-4vk5m          1/1     Running                  0             70d
+----
+
+. Open a remote shell session to the `Quay` container by entering the following command:
++
+[source,terminal]
+----
+$ oc rsh example-registry-quay-app-76c8f55467-52wjz
+----
+
+. Create the necessary service keys by entering the following command:
++
+[source,terminal]
+----
+sh-4.4$ python3 tools/generatekeypair.py quay-readonly
+----
++
+.Example output
+[source,terminal]
+----
+Writing public key to quay-readonly.jwk
+Writing key ID to quay-readonly.kid
+Writing private key to quay-readonly.pem
+----
