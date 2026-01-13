@@ -1,0 +1,31 @@
+:_mod-docs-content-type: PROCEDURE
+[id="applying-overrides-to-running-operator"]
+= Applying overrides to a running Operator
+
+[role="_abstract"]
+To override container images for a running {productname} Operator, you can modify the `ClusterServiceVersion` object to add environment variables that point to your custom images. This applies the overrides at the Operator level, so all `QuayRegistry` instances use the same custom images.
+
+.Procedure
+
+. The `ClusterServiceVersion` object is Operator Lifecycle Manager's representation of a running Operator in the cluster. Find the {productname} Operator's `ClusterServiceVersion` by using a Kubernetes UI or the `kubectl`/`oc` CLI tool. For example:
++
+[source,terminal]
+----
+$ oc get clusterserviceversions -n <namespace>
+----
+
+. Using the UI, `oc edit`, or another method, modify the `ClusterServiceVersion` object to include the environment variables outlined above to point to the override images:
++
+*JSONPath*: `spec.install.spec.deployments[0].spec.template.spec.containers[0].env`
++
+[source,yaml]
+----
+- name: RELATED_IMAGE_COMPONENT_QUAY
+  value: quay.io/projectquay/quay@sha256:c35f5af964431673f4ff5c9e90bdf45f19e38b8742b5903d41c10cc7f6339a6d
+- name: RELATED_IMAGE_COMPONENT_CLAIR
+  value: quay.io/projectquay/clair@sha256:70c99feceb4c0973540d22e740659cd8d616775d3ad1c1698ddf71d0221f3ce6
+- name: RELATED_IMAGE_COMPONENT_POSTGRES
+  value: centos/postgresql-10-centos7@sha256:de1560cb35e5ec643e7b3a772ebaac8e3a7a2a8e8271d9e91ff023539b4dfb33
+- name: RELATED_IMAGE_COMPONENT_REDIS
+  value: centos/redis-32-centos7@sha256:06dbb609484330ec6be6090109f1fa16e936afcf975d1cbc5fff3e6c7cae7542
+----

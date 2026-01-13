@@ -2,7 +2,10 @@
 [id="configuring-quay-rosa-aws-sts"]
 = Configuring {productname} on {product-rosa} to use AWS STS
 
-Use the following procedure to configure {productname} to use AWS STS on {product-rosa} platforms.
+[role="_abstract"]
+To configure your {productname} deployment on {product-rosa} to use AWS STS for S3 authentication, you can update the IAM role trust policy to use federated identity, configure the `config.yaml` file, and annotate the service account with the role ARN. 
+
+This procedure enables web identity federation for temporary credential authentication.
 
 .Prerequisites
 
@@ -20,7 +23,6 @@ $ oc get authentication.config.openshift.io cluster -o json | jq -r .spec.servic
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 oidc.op1.openshiftapps.com/123456
@@ -55,9 +57,17 @@ oidc.op1.openshiftapps.com/123456
 	]
 }
 ----
-<1> Updates the `Principal` parameter of the JSON policy to `Federated:<your_user_ARN>:<serviceAccountIssuer_domain_path>`
-<2> Updates the `Action` parameter of the JSON policy to `sts:AssumeRoleWithWebIdentity`.
-<3> Updates the `Condition` parameter of the JSON policy to `StringEquals”: “<serviceAccountIssuer>:sub”: “system:serviceAccount:<quay_namespace>:<quay_registry_using_serviceAccount>`
++
+--
+where:
+
+`Federated::` Updates the `Principal` parameter of the JSON policy to `Federated:<your_user_ARN>:<serviceAccountIssuer_domain_path>`
+
+`Action::` Updates the `Action` parameter of the JSON policy to `sts:AssumeRoleWithWebIdentity`.
+
+`Condition::` Updates the `Condition` parameter of the JSON policy to `StringEquals”: “<serviceAccountIssuer>:sub”: “system:serviceAccount:<quay_namespace>:<quay_registry_using_serviceAccount>`
+
+--
 
 .. Verify that your User ARN is configured correct, then click *Next*. 
 
@@ -97,9 +107,14 @@ DISTRIBUTED_STORAGE_CONFIG:
       s3_region: <region> <3>
 # ...
 ----
-<1> The name of your s3 bucket.
-<2> The storage path for data. Usually `/datastorage`.
-<3> The Amazon Web Services region. Defaults to `us-east-1`.
++
+--
+where:
+
+`s3_bucket::` The name of your s3 bucket.
+`storage_path::` The storage path for data. Usually `/datastorage`.
+`s3_region::` The Amazon Web Services region. Defaults to `us-east-1`.
+--
 
 . Click *Save*. Your `QuayRegistry` custom resource (CR) automatically restarts.
 

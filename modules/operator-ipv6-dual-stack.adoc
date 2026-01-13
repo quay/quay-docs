@@ -2,63 +2,12 @@
 [id="operator-ipv6-dual-stack"]
 = Deploying IPv6 on {productname-ocp}
 
+[role="_abstract"]
+IPv6 support lets you deploy {productname-ocp} in IPv6-only environments such as Telco and Edge deployments. You can enable IPv6 by setting the `FEATURE_LISTEN_IP_VERSION` parameter to IPv6 in your `config.yaml` file.
+
+For a list of known limitations, see IPv6 limitations.
+
 [NOTE]
 ====
 Currently, deploying IPv6 on the {productname-ocp} is not supported on IBM Power and IBM Z.
 ====
-
-Your {productname-ocp} deployment can now be served in locations that only support IPv6, such as Telco and Edge environments.
-
-For a list of known limitations, see xref:operator-ipv6-limitations-38[IPv6 limitations]
-
-[id="proc-manage-enabling-ipv6"]
-== Enabling the IPv6 protocol family
-
-Use the following procedure to enable IPv6 support on your {productname} deployment. 
-
-.Prerequisites 
-
-* Your host and container software platform (Docker, Podman) must be configured to support IPv6. 
-
-.Procedure 
-
-. In your deployment's `config.yaml` file, add the `FEATURE_LISTEN_IP_VERSION` parameter and set it to `IPv6`, for example: 
-+
-[source,yaml]
-----
-# ...
-FEATURE_GOOGLE_LOGIN: false
-FEATURE_INVITE_ONLY_USER_CREATION: false
-FEATURE_LISTEN_IP_VERSION: IPv6
-FEATURE_MAILING: false
-FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: false
-# ...
-----
-
-. Start, or restart, your {productname} deployment. 
-
-. Check that your deployment is listening to IPv6 by entering the following command:
-+
-[source,terminal]
-----
-$ curl <quay_endpoint>/health/instance
-{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
-----
-
-After enabling IPv6 in your deployment's `config.yaml`, all {productname} features can be used as normal, so long as your environment is configured to use IPv6 and is not hindered by the xref:operator-ipv6-limitations-38[IPv6 and dual-stack limitations].
-
-[WARNING]
-====
-If your environment is configured to IPv4, but the `FEATURE_LISTEN_IP_VERSION` configuration field is set to `IPv6`, {productname} will fail to deploy. 
-====
-
-[id="operator-ipv6-limitations-38"]
-== IPv6 limitations
-
-* Currently, attempting to configure your {productname} deployment with the common Microsoft Azure Blob Storage configuration will not work on IPv6 single stack environments. Because the endpoint of Microsoft Azure Blob Storage does not support IPv6, there is no workaround in place for this issue.
-+
-For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4433[PROJQUAY-4433]. 
-
-* Currently, attempting to configure your {productname} deployment with Amazon S3 CloudFront will not work on IPv6 single stack environments. Because the endpoint of Amazon S3 CloudFront does not support IPv6, there is no workaround in place for this issue. 
-+
-For more information, see link:https://issues.redhat.com/browse/PROJQUAY-4470[PROJQUAY-4470]. 

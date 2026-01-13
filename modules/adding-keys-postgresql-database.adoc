@@ -1,0 +1,90 @@
+:_mod-docs-content-type: PROCEDURE
+[id="adding-keys-postgresql-database"]
+= Adding keys to the PostgreSQL database
+
+[role="_abstract"]
+To enable read-only mode configuration in {productname}, you can add service keys to the PostgreSQL database. Use `SQL INSERT` statements to store the keys and their approval information.
+
+.Prerequisites
+
+* You have created the service keys.
+
+.Procedure
+
+. Enter the following command to enter your {productname} database environment:
++
+[source,terminal]
+----
+$ oc rsh example-registry-quay-database-76c8f55467-52wjz psql -U <database_username> -d <database_name>
+----
+
+. Display the approval types and associated notes of the `servicekeyapproval` by entering the following command:
++
+[source,terminal]
+----
+quay=# select * from servicekeyapproval;
+----
++
+.Example output
+[source,terminal]
+----
+ id | approver_id |          approval_type           |       approved_date        | notes 
+----+-------------+----------------------------------+----------------------------+-------
+  1 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:47:48.181347 | 
+  2 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:47:55.808087 | 
+  3 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:49:04.27095  | 
+  4 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:49:05.46235  | 
+  5 |           1 | ServiceKeyApprovalType.SUPERUSER | 2024-05-07 04:05:10.296796 | 
+...
+----
+
+. Add the service key to your {productname} database by entering the following query:
++
+[source,terminal]
+----
+quay=# INSERT INTO servicekey 
+  (name, service, metadata, kid, jwk, created_date, expiration_date)
+  VALUES ('quay-readonly',
+           'quay',
+           '{}',
+           '{<contents_of_.kid_file>}',
+           '{<contents_of_.jwk_file>}',
+           '{<created_date_of_read-only>}',
+           '{<expiration_date_of_read-only>}');
+----
++
+.Example output
+[source,terminal]
+----
+INSERT 0 1
+----
+
+. Next, add the key approval with the following query:
++
+[source,terminal]
+----
+quay=# INSERT INTO servicekeyapproval ('approval_type', 'approved_date', 'notes')
+  VALUES ("ServiceKeyApprovalType.SUPERUSER", "CURRENT_DATE",
+           {include_notes_here_on_why_this_is_being_added});
+----
++
+.Example output
+[source,terminal]
+----
+INSERT 0 1
+----
+
+. Set the `approval_id` field on the created service key row to the `id` field from the created service key approval. You can use the following `SELECT` statements to get the necessary IDs:
++
+[source,terminal]
+----
+UPDATE servicekey 
+SET approval_id = (SELECT id FROM servicekeyapproval WHERE approval_type = 'ServiceKeyApprovalType.SUPERUSER')
+WHERE name = 'quay-readonly';
+----
++
+.Example output
+[source,terminal]
+----
+UPDATE 1
+----

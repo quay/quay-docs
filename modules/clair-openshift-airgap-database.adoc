@@ -6,7 +6,8 @@
 [id="clair-openshift-airgap-database"]
 = Configuring access to the Clair database in the disconnected {ocp} cluster
 
-Use the following procedure to configure access to the Clair database in your disconnected {ocp} cluster.
+[role="_abstract"]
+To configure access to the Clair database in your disconnected {ocp} cluster, you can determine the database service, forward the database port, and update your Clair `config.yaml` file to use localhost. This lets you import the updaters bundle into the database using the `clairctl` tool.
 
 .Prerequisites
 
@@ -25,7 +26,6 @@ $ oc get svc -n quay-enterprise
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 NAME                                  TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                             AGE
@@ -46,19 +46,27 @@ $ oc port-forward -n quay-enterprise service/example-registry-clair-postgres 543
 [source,yaml]
 ----
 indexer:
-    connstring: host=localhost port=5432 dbname=postgres user=postgres password=postgres sslmode=disable <1>
+    connstring: host=localhost port=5432 dbname=postgres user=postgres password=postgres sslmode=disable
     layer_scan_concurrency: 5
     migrations: true
     scanlock_retry: 10
     airgap: true
     scanner:
       repo:
-        rhel-repository-scanner: <2>
+        rhel-repository-scanner:
           repo2cpe_mapping_file: /data/repository-to-cpe.json
       package:
-        rhel_containerscanner: <3>
+        rhel_containerscanner:
           name2repos_mapping_file: /data/container-name-repos-map.json
 ----
-<1> Replace the value of the `host` in the multiple `connstring` fields with `localhost`.
-<2> For more information about the `rhel-repository-scanner` parameter, see "Mapping repositories to Common Product Enumeration information".
-<3> For more information about the `rhel_containerscanner` parameter, see "Mapping repositories to Common Product Enumeration information".
++
+--
+where:
+
+`connstring::` Specifies the connection string for the database.
+
+`rhel-repository-scanner::` Specifies the repository scanner configuration.
+
+`rhel_containerscanner::` Specifies the container scanner configuration.
+
+--
