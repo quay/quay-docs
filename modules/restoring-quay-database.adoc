@@ -1,0 +1,91 @@
+:_mod-docs-content-type: PROCEDURE
+[id="restoring-quay-database"]
+= Restoring your {productname} database
+
+[role="_abstract"]
+To restore your {productname} database from a backup, you can identify the `database` pod, upload the backup file, drop the existing database, and restore from the backup using psql. This procedure restores your database to a previous state using a backup SQL file. 
+
+.Procedure 
+
+. Identify your `Quay` database pod by entering the following command:
++
+[source,terminal]
+----
+$ oc get pod -l quay-component=postgres -n  <quay_namespace> -o jsonpath='{.items[0].metadata.name}'
+----
++
+.Example output:
+----
+quayregistry-quay-database-59f54bb7-58xs7
+----
+
+. Upload the backup by copying it from the local environment and into the pod by entering the following command:
++
+----
+$ oc cp ./backup.sql -n <quay_namespace> registry-quay-database-66969cd859-n2ssm:/tmp/backup.sql
+----
+
+. Open a remote terminal to the database by entering the following command:
++
+[source,terminal]
+----
+$ oc rsh -n <quay_namespace> registry-quay-database-66969cd859-n2ssm
+----
+
+. Enter psql by entering the following command:
++
+[source,terminal]
+----
+bash-4.4$ psql
+----
+
+. You can list the database by entering the following command:
++
+[source,terminal]
+----
+postgres=# \l
+----
++
+.Example output
+[source,terminal]
+----
+                                                  List of databases
+           Name            |           Owner            | Encoding |  Collate   |   Ctype    |   Access privileges
+----------------------------+----------------------------+----------+------------+------------+-----------------------
+postgres                   | postgres                   | UTF8     | en_US.utf8 | en_US.utf8 |
+quayregistry-quay-database | quayregistry-quay-database | UTF8     | en_US.utf8 | en_US.utf8 |
+----
+
+. Drop the existing database by entering the following command:
++
+[source,terminal]
+----
+postgres=# DROP DATABASE "quayregistry-quay-database";
+----
++
+.Example output
+[source,terminal]
+----
+DROP DATABASE
+----
+
+. Exit the postgres CLI by entering the following command:
++
+[source,terminal]
+----
+\q
+----
+
+. Redirect your PostgreSQL database to your backup database by entering the following command:
++
+[source,terminal]
+----
+sh-4.4$ psql < /tmp/backup.sql
+----
+
+. Exit bash by entering the following command:
++
+[source,terminal]
+----
+sh-4.4$ exit
+----

@@ -1,0 +1,57 @@
+:_mod-docs-content-type: PROCEDURE
+[id="running-cso-openshift"]
+= Downloading and running the Container Security Operator in {ocp}
+
+[role="_abstract"]
+To scan container images for vulnerabilities in your {ocp} cluster, you can install the {cso} from the {ocp} OperatorHub and view vulnerability information in the dashboard. This procedure sets up the CSO to monitor pods and expose vulnerability data through the Kubernetes API. 
+
+[NOTE]
+====
+In the following procedure, the CSO is installed in the `marketplace-operators` namespace. This allows the CSO to be used in all namespaces of your {ocp} cluster. 
+====
+
+After executing this procedure, you are made aware of what images are vulnerable, what you must do to fix those vulnerabilities, and every namespace that the image was run in. Knowing this, you can perform the following actions:
+
+* Alert users who are running the image that they need to correct the vulnerability. 
+* Stop the images from running by deleting the deployment or the object that started the pod that the image is in. 
+
+.Procedure
+
+. On the {ocp} console page, select *Operators* -> *OperatorHub* and search for *Container Security Operator*. 
+
+. Select the Container Security Operator, then select *Install* to go to the *Create Operator Subscription* page.
+
+. Check the settings (all namespaces and automatic approval strategy, by default), and select
+*Subscribe*. The *Container Security* appears after a few moments on the *Installed Operators* screen.
+
+. Optional: you can add custom certificates to the CSO. In this example, create a certificate
+named `quay.crt` in the current directory. Then, run the following command to add the certificate to the CSO:
++
+[source,terminal]
+----
+$ oc create secret generic container-security-operator-extra-certs --from-file=quay.crt -n openshift-operators
+----
++
+[NOTE]
+====
+You must restart the Operator pod for the new certificates to take effect. 
+====
+
+. Navigate to *Home* -> *Overview*. A link to *Image Vulnerabilities* appears under the status section, with a listing of the number of vulnerabilities found so far. Select the link to see a security breakdown, as shown in the following image:
++
+image:cso-dashboard.png[Access CSO scanning data from the {ocp} dashboard]
++
+[IMPORTANT]
+====
+The Container Security Operator currently provides broken links for Red Hat Security advisories. For example, the following link might be provided: `https://access.redhat.com/errata/RHSA-2023:1842%20https://access.redhat.com/security/cve/CVE-2023-23916`. The `%20` in the URL represents a space character, however it currently results in the combination of the two URLs into one incomplete URL, for example, `https://access.redhat.com/errata/RHSA-2023:1842` and `https://access.redhat.com/security/cve/CVE-2023-23916`. As a temporary workaround, you can copy each URL into your browser to navigate to the proper page. This is a known issue and will be fixed in a future version of {productname}. 
+====
+
+. You can do one of two things at this point to follow up on any detected vulnerabilities:
+
+..  Select the link to the vulnerability. You are taken to the container registry, {productname} or other registry where the container came from, where you can see information about the vulnerability. The following figure shows an example of detected vulnerabilities from a Quay.io registry:
++
+image:cso-registry-vulnerable.png[The CSO points you to a registry containing the vulnerable image]
++
+.. Select the namespaces link to go to the *Image Manifest Vulnerabilities* page, where you can see the name of the selected image and all namespaces where that image is running. The following figure indicates that a particular vulnerable image is running in two namespaces:
++
+image:cso-namespace-vulnerable.png[View namespaces a vulnerable image is running in]

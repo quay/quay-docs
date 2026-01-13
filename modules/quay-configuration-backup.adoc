@@ -1,0 +1,86 @@
+:_mod-docs-content-type: PROCEDURE
+[id="quay-configuration-backup"]
+= {productname} configuration backup
+
+[role="_abstract"]
+To back up your {productname} configuration for disaster recovery, you can export the `QuayRegistry` custom resource, back up the managed secret keys, and save the config bundle and `config.yaml` files. This procedure creates backup files that you can use to restore your registry configuration. 
+
+.Procedure
+
+. To back the `QuayRegistry` custom resource by exporting it, enter the following command:
++
+[source,terminal]
+----
+$ oc get quayregistry <quay_registry_name> -n <quay_namespace> -o yaml > quay-registry.yaml
+----
+
+. Edit the resulting `quayregistry.yaml` and remove the status section and the following metadata fields:
++
+[source,yaml]
+----
+  metadata.creationTimestamp
+  metadata.finalizers
+  metadata.generation
+  metadata.resourceVersion
+  metadata.uid
+----
+
+. Backup the managed keys secret by entering the following command:
++
+[NOTE]
+====
+If you are running a version older than {productname} 3.7.0, this step can be skipped. Some secrets are automatically generated while deploying {productname} for the first time. These are stored in a secret called `<quay_registry_name>-quay-registry-managed-secret-keys` in the namespace of the `QuayRegistry` resource.
+====
++
+[source,terminal]
+----
+$ oc get secret -n <quay_namespace> <quay_registry_name>-quay-registry-managed-secret-keys -o yaml > managed_secret_keys.yaml
+----
+
+. Edit the resulting `managed_secret_keys.yaml` file and remove the entry `metadata.ownerReferences`. Your `managed_secret_keys.yaml` file should look similar to the following:
++
+[source,yaml]
+----
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: <quay_registry_name>-quay-registry-managed-secret-keys
+  namespace: <quay_namespace>
+data:
+  CONFIG_EDITOR_PW: <redacted>
+  DATABASE_SECRET_KEY: <redacted>
+  DB_ROOT_PW: <redacted>
+  DB_URI: <redacted>
+  SECRET_KEY: <redacted>
+  SECURITY_SCANNER_V4_PSK: <redacted>
+----
++
+All information under the `data` property should remain the same.
+
+. Redirect the current `Quay` configuration file by entering the following command:
++
+[source,terminal]
+----
+$ oc get secret -n <quay-namespace>  $(oc get quayregistry <quay_registry_name> -n <quay_namespace>  -o jsonpath='{.spec.configBundleSecret}') -o yaml > config-bundle.yaml
+----
+
+. Backup the `/conf/stack/config.yaml` file mounted inside of the `Quay` pods:
++
+[source,terminal]
+----
+$ oc exec -it quay_pod_name -- cat /conf/stack/config.yaml > quay_config.yaml
+----
+
+. Obtain the `Quay` database name:
++
+[source,terminal]
+----
+$ oc -n <quay_namespace> rsh $(oc get pod -l app=quay -o NAME -n <quay_namespace> |head -n 1) cat /conf/stack/config.yaml|awk -F"/" '/^DB_URI/ {print $4}'
+----
++
+.Example output
+[source,terminal]
+----
+quayregistry-quay-database
+----

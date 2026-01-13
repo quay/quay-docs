@@ -1,0 +1,40 @@
+:_mod-docs-content-type: PROCEDURE
+[id="proc-manage-enabling-ipv6"]
+= Enabling the IPv6 protocol family
+
+[role="_abstract"]
+To enable IPv6 support on your {product-title} deployment, you can add the `FEATURE_LISTEN_IP_VERSION` parameter to your `config.yaml` file and set it to IPv6. Restart your deployment to apply the change.
+
+[WARNING]
+====
+If your environment is configured to IPv4, but the `FEATURE_LISTEN_IP_VERSION` configuration field is set to `IPv6`, {productname} fails to deploy. 
+====
+
+.Prerequisites 
+
+* Your host and container software platform (Docker, Podman) must be configured to support IPv6. 
+
+.Procedure 
+
+. In your deployment's `config.yaml` file, add the `FEATURE_LISTEN_IP_VERSION` parameter and set it to `IPv6`, for example: 
++
+[source,yaml]
+----
+# ...
+FEATURE_GOOGLE_LOGIN: false
+FEATURE_INVITE_ONLY_USER_CREATION: false
+FEATURE_LISTEN_IP_VERSION: IPv6
+FEATURE_MAILING: false
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: false
+# ...
+----
+
+. Start, or restart, your {productname} deployment. 
+
+. Check that your deployment is listening to IPv6 by entering the following command:
++
+[source,terminal]
+----
+$ curl <quay_endpoint>/health/instance
+{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
+----

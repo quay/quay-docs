@@ -1,0 +1,62 @@
+:_mod-docs-content-type: PROCEDURE
+[id="scale-down-quay-deployment"]
+= Scaling down the {productname} deployment
+
+[role="_abstract"]
+To scale down your {productname} deployment, you can disable auto scaling and set replica counts to zero. This reduces resource consumption and stops registry operations temporarily. 
+
+.Procedure 
+
+. Scale down the {productname} deployment by disabling auto scaling and overriding the replica count for Quay, mirror workers and Clair (if managed). For example:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: false <1>
+    - kind: quay
+      managed: true
+      overrides: <2>
+        replicas: 0
+    - kind: clair
+      managed: true
+      overrides:
+        replicas: 0
+    - kind: mirror
+      managed: true
+      overrides:
+        replicas: 0
+    …
+----
++
+--
+
+where:
+
+`managed: false::` Specifies that the component is not managed by the {productname} Operator.
+
+`overrides::` Specifies the replica count for the component.
+--
+
+. Wait for the `registry-quay-app`, `registry-quay-mirror` and `registry-clair-app` pods (depending on which components you set to be managed by {productname} Operator) to disappear. You can check their status by running the following command:
++
+[source,terminal]
+----
+$ oc get pods -n <quay-namespace>
+----
++
+Example output:
++
+[source,terminal]
+----
+registry-quay-config-editor-77847fc4f5-nsbbv   1/1     Running            0          9m1s
+registry-quay-database-66969cd859-n2ssm        1/1     Running            0          6d1h
+registry-quay-redis-7cc5f6c977-956g8           1/1     Running            0          5d21h
+----

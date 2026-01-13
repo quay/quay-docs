@@ -1,0 +1,31 @@
+:_mod-docs-content-type: PROCEDURE
+[id="scaling-up-quay-ocp-read-only-deployment"]
+= Scaling up the {productname} from a read-only deployment
+
+[role="_abstract"]
+To exit read-only mode and restore normal operations in {productname}, you can remove the read-only settings from the `config.yaml` file and scale the Operator deployment back up.
+
+[NOTE]
+====
+Depending on your needs, you might wait to scale up the {productname} deployment after backing up and restoring your regisry.
+====
+
+.Procedure
+
+. Edit the `config.yaml` file and remove the following information:
++
+[source,yaml]
+----
+# ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...
+----
+
+. Scale the {productname} Operator back up by entering the following command:
++
+[source,terminal]
+----
+$ oc scale --replicas=1 deployment quay-operator -n openshift-operators
+----

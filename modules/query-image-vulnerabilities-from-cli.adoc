@@ -1,0 +1,45 @@
+:_mod-docs-content-type: PROCEDURE
+[id="query-image-vulnerabilities-from-cli"]
+= Querying image vulnerabilities from the CLI
+
+[role="_abstract"]
+To check for security vulnerabilities in your {product-title} container images, you can query vulnerability information from the command line using the `oc get vuln` command. You can also view detailed information about specific vulnerabilities by using the `oc describe vuln` command.
+
+.Procedure 
+
+. Enter the following command to query for detected vulnerabilities: 
++
+[source,terminal]
+----
+$ oc get vuln --all-namespaces
+----
++
+.Example output
+[source,terminal]
+----
+NAMESPACE     NAME              AGE
+default       sha256.ca90...    6m56s
+skynet        sha256.ca90...    9m37s
+----
+
+. Optional. To display details for a particular vulnerability, identify a specific vulnerability and its namespace, and use the `oc describe` command. The following example shows an active container whose image includes an RPM package with a vulnerability:
++
+[source,terminall]
+----
+$ oc describe vuln --namespace <namespace> sha256.ac50e3752...
+----
+.Example output
+[source,terminal]
+----
+Name:         sha256.ac50e3752...
+Namespace:    quay-enterprise
+...
+Spec:
+  Features:
+    Name:            nss-util
+    Namespace Name:  centos:7
+    Version:         3.44.0-3.el7
+    Versionformat:   rpm
+    Vulnerabilities:
+      Description: Network Security Services (NSS) is a set of libraries...
+----
