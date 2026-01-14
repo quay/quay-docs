@@ -1,0 +1,39 @@
+:_mod-docs-content-type: REFERENCE
+[id="webhook"]
+= Webhook reference
+
+[role="_abstract"]
+The webhook reference provides the JSON payload format required to trigger builds in {product-title}. You must `POST` a `JSON` payload with `commit`, `ref`, and `default_branch` fields to the webhook URL to automatically start a build.
+
+[NOTE]
+====
+This request requires a `Content-Type` header containing
+`application/json` in order to be valid.
+====
+
+.Example webhook
+[source,json]
+----
+{
+  "commit": "1c002dd",                                   // required
+  "ref": "refs/heads/master",                            // required
+  "default_branch": "master",                            // required
+  "commit_info": {                                       // optional
+    "url": "gitsoftware.com/repository/commits/1234567", // required
+    "message": "initial commit",                         // required
+    "date": "timestamp",                                 // required
+    "author": {                                          // optional
+      "username": "user",                                // required
+      "avatar_url": "gravatar.com/user.png",             // required
+      "url": "gitsoftware.com/users/user"                // required
+    },
+    "committer": {                                       // optional
+      "username": "user",                                // required
+      "avatar_url": "gravatar.com/user.png",             // required
+      "url": "gitsoftware.com/users/user"                // required
+    }
+  }
+}
+----
+
+This can typically be accomplished with a link:https://git-scm.com/docs/githooks#post-receive[`post-receive` Git hook], however it does depend on your server setup.

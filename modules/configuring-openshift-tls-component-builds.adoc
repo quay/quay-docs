@@ -1,16 +1,17 @@
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 [id="configuring-openshift-tls-component-builds"]
 = Configuring the {ocp} TLS component for builds
+
+[role="_abstract"]
+To enable the builds feature with unmanaged TLS in {product-title}, you can add the builder route name to the Subject Alternative Name (SAN) field in your SSL/TLS certificate configuration.
 
 The `tls` component of the `QuayRegistry` custom resource definition (CRD) allows you to control whether SSL/TLS are managed by the {productname} Operator, or self managed. In its current state, {productname} does not support the _builds_ feature, or the _builder_ workers, when the `tls` component is managed by the {productname} Operator.
 
 When setting the `tls` component to `unmanaged`, you must supply your own `ssl.cert` and `ssl.key` files. Additionally, if you want your cluster to support _builders_, or the worker nodes that are responsible for building images, you must add both the `Quay` route and the `builder` route name to the SAN list in the certificate. Alternatively, however, you could use a wildcard. 
 
-The following procedure shows you how to add the _builder_ route. 
-
 .Prerequisites
 
-* You have set the `tls` component to `unmanaged` and uploaded custom SSL/TLS certificates to the {productname} Operator. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview[SSL and TLS for {productname}].
+* You have set the `tls` component to `unmanaged` and uploaded custom SSL/TLS certificates to the {productname} Operator. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview[SSL and TLS for {productname}].
 
 .Procedure
 
@@ -20,7 +21,7 @@ The following procedure shows you how to add the _builder_ route.
 ----
 # ...
 [alt_names]
-<quayregistry-name>-quay-builder-<namespace>.<domain-name>:443
+<quay_registry_name>-quay-builder-<namespace>.<domain-name>:443
 # ...
 ----
 +

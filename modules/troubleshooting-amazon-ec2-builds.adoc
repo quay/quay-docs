@@ -1,0 +1,31 @@
+:_mod-docs-content-type: PROCEDURE
+[id="troubleshooting-amazon-ec2-builds"]
+= Troubleshooting Amazon EC2
+
+[role="_abstract"]
+To troubleshoot Amazon EC2 builds in {product-title}, you can identify the builder instance in the EC2 console and access it via SSH. Check the quay-builder service logs to diagnose build issues.
+
+.Procedure
+
+. Start a Build in {productname}.
+
+. In the EC2 console, identify the Build instance. Build instances are named `Quay Ephemeral Builder` and have the tag {`<Build_UUID>: <uuid>`}
+
+. Using the SSH key set by the `EC2_KEY_NAME` configuration field, log in to the Builder instance by running the following command:
++
+[source,terminal]
+----
+$ ssh -i /path/to/ssh/key/in/ec2/or/config/id_rsa core@<instance_ip>
+----
+
+. Obtain the `quay-builder` service logs by entering the following commands:
++
+[source,terminal]
+----
+$ systemctl status quay-builder
+----
++
+[source,terminal]
+----
+$ journalctl -f -u quay-builder
+----
