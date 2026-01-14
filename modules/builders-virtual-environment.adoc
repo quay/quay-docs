@@ -2,7 +2,8 @@
 [id="builders-virtual-environment"]
 = Configuring virtual builds for {productname-ocp}
 
-The procedures in this section explain how to create an environment for _virtual builds_ for {productname-ocp}. 
+[role="_abstract"]
+To configure virtual builds for {productname-ocp} with {product-title}, you can create a build project, configure service accounts, and update your configuration file.
 
 [NOTE]
 ====
@@ -34,7 +35,6 @@ $ oc create sa -n virtual-builders quay-builder
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 serviceaccount/quay-builder created
@@ -48,7 +48,6 @@ $ oc adm policy -n virtual-builders add-role-to-user edit system:serviceaccount:
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 clusterrole.rbac.authorization.k8s.io/edit added: "system:serviceaccount:virtual-builders:quay-builder"
@@ -62,7 +61,6 @@ $ oc adm policy -n virtual-builders add-scc-to-user anyuid -z quay-builder
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 clusterrole.rbac.authorization.k8s.io/system:openshift:scc:anyuid added: "quay-builder"
@@ -81,7 +79,6 @@ When the token expires you will need to request a new token. Optionally, you can
 ====
 +
 .Example output
-+
 [source,terminal]
 ----
 eyJhbGciOiJSUzI1NiIsImtpZCI6IldfQUJkaDVmb3ltTHZ0dGZMYjhIWnYxZTQzN2dJVEJxcDJscldSdEUtYWsifQ...
@@ -114,7 +111,6 @@ $ oc extract cm/kube-root-ca.crt -n openshift-apiserver
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 ca.crt
@@ -148,53 +144,68 @@ SUPER_USERS:
 FEATURE_USER_CREATION: false
 FEATURE_QUOTA_MANAGEMENT: true
 FEATURE_BUILD_SUPPORT: True
-BUILDMAN_HOSTNAME: <sample_build_route> <1>
+BUILDMAN_HOSTNAME: <sample_build_route>
 BUILD_MANAGER:
   - ephemeral
   - ALLOWED_WORKER_COUNT: 1
     ORCHESTRATOR_PREFIX: buildman/production/
-    JOB_REGISTRATION_TIMEOUT: 3600 <2>
+    JOB_REGISTRATION_TIMEOUT: 3600
     ORCHESTRATOR:
-      REDIS_HOST: <sample_redis_hostname> <3>
+      REDIS_HOST: <sample_redis_hostname>
       REDIS_PASSWORD: ""
       REDIS_SSL: false
       REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
     EXECUTORS:
       - EXECUTOR: kubernetesPodman
         NAME: openshift
-        BUILDER_NAMESPACE: <sample_builder_namespace> <4>
+        BUILDER_NAMESPACE: <sample_builder_namespace>
         SETUP_TIME: 180
         MINIMUM_RETRY_THRESHOLD: 0
         BUILDER_CONTAINER_IMAGE: quay.io/projectquay/quay-builder:{producty}
         # Kubernetes resource options
-        K8S_API_SERVER: <sample_k8s_api_server> <5>
-        K8S_API_TLS_CA: <sample_crt_file> <6>
+        K8S_API_SERVER: <sample_k8s_api_server>
+        K8S_API_TLS_CA: <sample_crt_file>
         VOLUME_SIZE: 8G
         KUBERNETES_DISTRIBUTION: openshift
-        CONTAINER_MEMORY_LIMITS: 1G <7>
-        CONTAINER_CPU_LIMITS: 300m <8>
-        CONTAINER_MEMORY_REQUEST: 1G <9>
-        CONTAINER_CPU_REQUEST: 300m <10>
+        CONTAINER_MEMORY_LIMITS: 1G
+        CONTAINER_CPU_LIMITS: 300m
+        CONTAINER_MEMORY_REQUEST: 1G
+        CONTAINER_CPU_REQUEST: 300m
         NODE_SELECTOR_LABEL_KEY: ""
         NODE_SELECTOR_LABEL_VALUE: ""
         SERVICE_ACCOUNT_NAME: <sample_service_account_name>
-        SERVICE_ACCOUNT_TOKEN: <sample_account_token> <11>
+        SERVICE_ACCOUNT_TOKEN: <sample_account_token>
         HTTP_PROXY: <http://10.0.0.1:80>
         HTTPS_PROXY: <http://10.0.0.1:80>
         NO_PROXY: <hostname.example.com>
 ----
 +
-<1> The build route is obtained by running `$ oc get route -n` with the namespace of your {productname-ocp} deployment. A port must be provided at the end of the route, and it should use the following format: `[quayregistry-cr-name]-quay-builder-[ocp-namespace].[ocp-domain-name]:443`.
-<2> If the `JOB_REGISTRATION_TIMEOUT` parameter is set too low, you might receive the following error: `failed to register job to build manager: rpc error: code = Unauthenticated desc = Invalid build token: Signature has expired`. This parameter should be set to at least `240`.
-<3> If your Redis host has a password or SSL/TLS certificates, you must update this field accordingly.
-<4> Set to match the name of your _virtual builds_ namespace. This example used `virtual-builders`.
-<5> The `K8S_API_SERVER` is obtained by running `$ oc cluster-info`.
-<6> You must manually create and add your custom CA cert, for example, `K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build-cluster.crt`.
-<7> Defaults to `5120Mi` if left unspecified.
-<8> For _virtual builds_, you must ensure that there are enough resources in your cluster. Defaults to `1000m` if left unspecified.
-<9> Defaults to `3968Mi` if left unspecified.
-<10> Defaults to `500m` if left unspecified.
-<11> Obtained when running `$ oc create sa`.
+--
+where:
+
+`BUILDMAN_HOSTNAME::` Specifies the hostname of the {productname} registry. Obtain this by running the following command: `$ oc get route quayregistry-quay-builder -n ${QUAY_PROJECT} -o jsonpath='{.spec.host}'`.
+
+`REDIS_HOST::` Specifies the hostname for your Redis service.
+
+`BUILDER_NAMESPACE::` Specifies the name of your _bare metal builds_ namespace. This example used `bare-metal-builder`.
+
+`K8S_API_SERVER::` Specifies the `K8S_API_SERVER` is obtained by running `$ oc cluster-info`.
+
+`K8S_API_TLS_CA::` Specifies the name of your custom CA cert, for example, `K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build-cluster.crt`.
+
+`CONTAINER_MEMORY_LIMITS::` Specifies the memory limit for your container. Defaults to `5120Mi` if left unspecified.
+
+`CONTAINER_CPU_LIMITS::` Specifies the CPU limit for your container. Defaults to `1000m` if left unspecified.
+
+`CONTAINER_MEMORY_REQUEST::` Specifies the memory request for your container. Defaults to `3968Mi` if left unspecified.
+
+`CONTAINER_CPU_REQUEST::` Specifies the CPU request for your container. Defaults to `500m` if left unspecified.
+
+`SERVICE_ACCOUNT_TOKEN::` Specifies the token for your service account. Obtain this by running `$ oc create sa`.
+
+`SSH_AUTHORIZED_KEYS::` Specifies the SSH authorized keys for your build environment. This key, or keys, should correspond to the private key that an admin or developer will use to SSH into the build worker for debugging purposes. This key can be obtained by establishing an SSH connection to the remote host using a specific SSH key and port. For example: `$ ssh -i /path/to/ssh/key/set/in/ssh_authorized_keys -p 9999 core@localhost`. 
+
+--
 +
 .Example _virtual builds_ configuration
 [source,yaml]

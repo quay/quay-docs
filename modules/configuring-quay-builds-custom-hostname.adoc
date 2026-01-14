@@ -1,0 +1,37 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-quay-builds-custom-hostname_{context}"]
+= Configuring {productname} builds for managed routes
+
+[role="_abstract"]
+To use {product-title} builds with managed routes and custom hostnames, you can configure DNS records and update your registry configuration. This enables gRPC communication between build executors and the build manager.
+
+.Prerequisites
+
+* The {productname} Operator is installed and a `QuayRegistry` exists.
+* Your `kubectl` or `oc` CLI tool is configured for the target cluster.
+
+.Procedure
+
+. Enable HTTP/2 ingress on your {ocp} cluster to support gRPC.
+
+. Retrieve the host address of the generated build-manager route:
++
+[source,terminal]
+----
+$ kubectl get -n <namespace> route <quayregistry-name>-quay-builder -o jsonpath={.status.ingress[0].host}
+----
+
+. Create a CNAME record with your DNS provider that points your custom hostname (for example, `builder-registry.example.com`) to the route host retrieved in the previous step.
+
+. Update the `Secret` referenced by `spec.configBundleSecret` in your `QuayRegistry` to include the build cluster CA certificate. The key must be named `extra_ca_cert_build_cluster.cert`.
+
+. Add the `BUILDMAN_HOSTNAME` field to your `config.yaml` and include the port number:
++
+[source,yaml]
+----
+BUILDMAN_HOSTNAME: builder-registry.example.com:443
+BUILD_MANAGER:
+- ephemeral
+  ALLOWED_WORKER_COUNT: 1
+  ...
+----
