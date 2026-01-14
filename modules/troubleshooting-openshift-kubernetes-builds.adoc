@@ -1,0 +1,34 @@
+:_mod-docs-content-type: PROCEDURE
+[id="troubleshooting-openshift-kubernetes-builds"]
+= Troubleshooting {ocp} and Kubernetes Builds
+
+[role="_abstract"]
+To troubleshoot {ocp} and Kubernetes builds in {product-title}, you can create a port forwarding tunnel to the builder pod and access it via SSH. Check the quay-builder service logs to diagnose build issues.
+
+.Procedure
+
+. Create a port forwarding tunnel between your local machine and a pod running with either an {ocp} cluster or a Kubernetes cluster by entering the following command:
++
+[source,terminal]
+----
+$ oc port-forward <builder_pod> 9999:2222
+----
+
+. Establish an SSH connection to the remote host using a specified SSH key and port, for example:
++
+[source,terminal]
+----
+$ ssh -i /path/to/ssh/key/set/in/ssh_authorized_keys -p 9999 core@localhost
+----
+
+. Obtain the `quay-builder` service logs by entering the following commands:
++
+[source,terminal]
+----
+$ systemctl status quay-builder
+----
++
+[source,terminal]
+----
+$ journalctl -f -u quay-builder
+----
