@@ -143,7 +143,6 @@ jobs:
               }
             }
             
-            console.log('Vale results:', JSON.stringify(valeResults, null, 2));
             
             // Collect ALL issues (process each alert individually)
             let allIssues = [];
@@ -153,7 +152,64 @@ jobs:
             for (const [file, alerts] of Object.entries(valeResults)) {
               if (!alerts || alerts.length === 0) continue;
               
+              console.log(`\n=== Processing file: ${file} ===`);
+              console.log(`Alerts: ${alerts.length}`);
+              
+              // Ensure file path is relative to repo root (GitHub API requires relative paths)
+              let filePath = file;
+              const workspace = process.env.GITHUB_WORKSPACE || '.';
+              if (filePath.startsWith(workspace)) {
+                filePath = filePath.replace(workspace + '/', '');
+              } else if (filePath.startsWith('/')) {
+                // Absolute path, try to make it relative
+                const parts = filePath.split('/');
+                filePath = parts.slice(parts.length - 2).join('/'); // Get last 2 parts (e.g., modules/filename.adoc)
+              }
+              
+              // Try to find the actual file path in the repo
+              let actualFilePath = filePath;
+              try {
+                // Check if file exists as-is
+                if (!fs.existsSync(filePath)) {
+                  // Try to find it in the repo
+                  const findResult = execSync(`find . -name "${filePath.split('/').pop()}" -type f | grep -v node_modules | head -1`, { encoding: 'utf-8' });
+                  if (findResult.trim()) {
+                    actualFilePath = findResult.trim().replace(/^\.\//, '');
+                    console.log(`Found file at: ${actualFilePath} (was looking for: ${filePath})`);
+                  }
+                } else {
+                  console.log(`File exists at: ${filePath}`);
+                }
+              } catch (e) {
+                console.log(`Could not verify file path: ${e.message}`);
+              }
+              
+              console.log(`Using file path: ${actualFilePath} (original: ${file})`);
+            // Check if this is a fork PR
+            const isFork = context.payload.pull_request?.head?.repo?.full_name !== context.payload.pull_request?.base?.repo?.full_name;
+            const pullNumber = context.payload.pull_request?.number || context.issue.number;
+            const commitId = context.payload.pull_request?.head?.sha;
+            
+            console.log(`PR Number: ${pullNumber}, Is Fork: ${isFork}`);
+            
+            // Collect all issues for annotations/fallback
+            let allIssues = [];
+            let commentCount = 0;
+            
+            // Post comments for each file with issues
+            for (const [file, alerts] of Object.entries(valeResults)) {
+              if (!alerts || alerts.length === 0) continue;
+              
               console.log(`Processing file: ${file} with ${alerts.length} alert(s)`);
+              
+              // Read file to get line content
+              let fileContent = [];
+              try {
+                fileContent = fs.readFileSync(file, 'utf-8').split('\n');
+              } catch (error) {
+                console.log(`Could not read file ${file}: ${error.message}`);
+                continue;
+              }
               
               // Process EACH alert individually (don't group by line)
               for (const alert of alerts) {
@@ -165,44 +221,73 @@ jobs:
                 
                 const body = `**${severity}**: ${message}${link}\n\n*Rule: \`${check}\`*`;
                 
-                // Collect for annotations/fallback
-                allIssues.push({
-                  file: file,
-                  line: line,
-                  severity: severity,
-                  message: message,
-                  check: check,
-                  body: body
-                });
-                
-                // Try to post comment (only if not a fork PR)
-                if (!isFork) {
-                  try {
-                    await github.rest.pulls.createReviewComment({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      pull_number: pullNumber,
-                      commit_id: commitId,
-                      path: file,
-                      line: line,
-                      body: body
-                    });
-                    commentCount++;
-                  } catch (error) {
-                    console.log(`Error posting comment for ${file}:${line}: ${error.message}`);
                   }
                 }
               }
             }
             
-            console.log(`Total issues found: ${allIssues.length}`);
-            console.log(`Posted ${commentCount} comment(s) on the PR`);
-            
+            // If no inline comments were posted, use annotations for fork PRs or create summary comment
+            if (commentCount === 0 && allComments.length > 0) {
+              console.log('No inline comments were posted...');
+              
+              // Create an annotation for EACH issue individually
+              for (const issue of allIssues) {
+                if (issue.severity === 'error') {
+                  core.error(issue.message, {
+                    file: issue.file,
+                    startLine: issue.line,
+                    endLine: issue.line,
+                    title: `Vale: ${issue.check}`
+                  });
+                } else {
+                  core.warning(issue.message, {
+                    file: issue.file,
+                    startLine: issue.line,
+                    endLine: issue.line,
+                    title: `Vale: ${issue.check}`
+                  });
+                }
+              }
+              
+              // Create workflow summary
+              let summary = `## ⚠️ Vale Linting Issues Found\n\n`;
+              summary += `Found **${allIssues.length} issue(s)** in **${Object.keys(valeResults).length} file(s)**:\n\n`;
+              
+              // Group by file for summary
+              const byFile = {};
+              for (const issue of allIssues) {
+                if (!byFile[issue.file]) {
+                  byFile[issue.file] = [];
+                }
+                byFile[issue.file].push(issue);
+              }
+              
+              for (const [file, fileIssues] of Object.entries(byFile)) {
+                summary += `### \`${file}\`\n\n`;
+                for (const issue of fileIssues) {
+                  summary += `- **Line ${issue.line}** (${issue.severity}): ${issue.message} - *${issue.check}*\n`;
+                }
+                summary += `\n`;
+              }
+              
+              if (isFork) {
+                summary += `---\n*Note: This is a fork PR. Comments cannot be posted, but all issues are shown in the annotations above.*`;
+              } else {
+                summary += `---\n*Issues are shown in the annotations above. Comments could not be posted due to permissions.*`;
+              }
+              
+              // Also output the issues as workflow output for visibility
+              core.setOutput('vale_issues', JSON.stringify(allComments));
+              core.setOutput('vale_issues_count', allComments.length.toString());
+            } else if (allComments.length > 0) {
+              // Successfully posted comments, but still mark as having issues
+              core.setOutput('vale_issues', JSON.stringify(allComments));
+              core.setOutput('vale_issues_count', allComments.length.toString());
             // For fork PRs or if comments failed, use workflow annotations
             if (isFork || (commentCount === 0 && allIssues.length > 0)) {
               console.log(`Creating workflow annotations for ${allIssues.length} issue(s)...`);
               
-              // Create an annotation for EACH issue individually
+              // Create an annotation for EACH issue
               for (const issue of allIssues) {
                 if (issue.severity === 'error') {
                   core.error(issue.message, {
@@ -252,7 +337,7 @@ jobs:
               
               // Fail the workflow to make it visible
               core.setFailed(`Vale found ${allIssues.length} issue(s). See annotations in the Checks tab.`);
-            } else if (allIssues.length > 0) {
-              console.log(`Successfully posted ${commentCount} comment(s) for ${allIssues.length} issue(s)`);
+            } else {
+              console.log(`Posted ${commentCount} comment(s) on the PR`);
             }
 
