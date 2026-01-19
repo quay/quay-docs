@@ -65,6 +65,21 @@ jobs:
           # Also save as artifact for debugging
           echo "$VALE_OUTPUT" > vale_output_path.txt
 
+      - name: Verify Vale configuration
+        working-directory: ${{ github.workspace }}
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Checking if .vale.ini exists:"
+          ls -la .vale.ini || echo ".vale.ini not found in root"
+          echo "Checking Vale version:"
+          vale --version
+          echo "Checking Vale configuration..."
+          vale ls-config || echo "Could not list config"
+          echo "Syncing Vale styles (this downloads the package)..."
+          vale sync || echo "Vale sync completed (may show warnings)"
+          echo "Verifying styles were downloaded:"
+          ls -la .vale/styles/ || echo "Styles directory not found"
+
       - name: Post Vale results as PR comments
         uses: actions/github-script@v7
         with:
@@ -74,32 +89,75 @@ jobs:
             const { execSync } = require('child_process');
             
             // Get changed files
-            const changedFiles = `${{ steps.changed-files.outputs.all_changed_files }}`.split(' ').filter(f => f);
+            const changedFiles = `${{ steps.changed-files.outputs.all_changed_files }}`.split(' ').filter(f => f && (f.endsWith('.adoc') || f.endsWith('.md')));
             
             if (changedFiles.length === 0) {
               console.log('No changed files to check');
               return;
             }
             
+            console.log(`Checking files: ${changedFiles.join(', ')}`);
+            
+            // Verify Vale can see the config
+            try {
+              const configOutput = execSync('vale ls-config', { encoding: 'utf-8' });
+              console.log('Vale configuration:');
+              console.log(configOutput);
+            } catch (error) {
+              console.log('Warning: Could not get Vale config:', error.message);
+            }
+            
             // Run Vale and parse JSON output
+            // Ensure we're in the workspace directory
+            process.chdir(process.env.GITHUB_WORKSPACE || '.');
+            
             let results = {};
             try {
+              // First try to get output from stdout
               const valeOutput = execSync(`vale --output=JSON ${changedFiles.join(' ')}`, {
                 encoding: 'utf-8',
-                maxBuffer: 10 * 1024 * 1024
+                maxBuffer: 10 * 1024 * 1024,
+                stdio: ['pipe', 'pipe', 'pipe'],
+                cwd: process.env.GITHUB_WORKSPACE
               });
-              results = JSON.parse(valeOutput);
+              console.log('Vale stdout:', valeOutput);
+              if (valeOutput && valeOutput.trim()) {
+                results = JSON.parse(valeOutput);
+              } else {
+                console.log('Vale returned empty output - no issues found');
+                return;
+              }
             } catch (error) {
               // Vale returns non-zero exit code when issues are found, but still outputs JSON
-              const output = error.stdout || error.message;
+              console.log('Vale exit code:', error.status);
+              console.log('Vale stdout:', error.stdout);
+              console.log('Vale stderr:', error.stderr);
+              
+              const output = error.stdout || error.stderr || '';
               try {
-                results = JSON.parse(output);
+                if (output && output.trim()) {
+                  results = JSON.parse(output);
+                } else {
+                  console.log('No Vale output to parse - this might mean no issues were found');
+                  console.log('Testing Vale with a simple command to verify it works:');
+                  try {
+                    const testOutput = execSync('vale --help', { encoding: 'utf-8' });
+                    console.log('Vale is working, but found no issues in changed files');
+                  } catch (testError) {
+                    console.log('Vale test failed:', testError.message);
+                  }
+                  return;
+                }
               } catch (parseError) {
-                console.log('No Vale issues found or error parsing output');
-                console.log('Vale output:', output);
+                console.log('Could not parse Vale output as JSON');
+                console.log('Raw output:', output);
+                console.log('Parse error:', parseError.message);
                 return;
               }
             }
+            
+            console.log('Vale results:', JSON.stringify(results, null, 2));
+            console.log('Number of files with issues:', Object.keys(results).length);
             
             // Post comments for each file with issues
             let commentCount = 0;
