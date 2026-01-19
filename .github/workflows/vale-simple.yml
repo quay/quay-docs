@@ -189,10 +189,23 @@ jobs:
               return;
             }
             
+            // Debug: List all files in the repo to verify paths
+            try {
+              const repoFiles = execSync('find . -name "*.adoc" -type f | head -20', { encoding: 'utf-8' });
+              console.log('Sample .adoc files in repo:', repoFiles);
+            } catch (e) {
+              console.log('Could not list repo files');
+            }
+            
             // Post comments for each file with issues
             let commentCount = 0;
+            let allComments = []; // Collect all comments for summary
+            
             for (const [file, alerts] of Object.entries(fileResults)) {
               if (!alerts || alerts.length === 0) continue;
+              
+              console.log(`\n=== Processing file: ${file} ===`);
+              console.log(`Alerts: ${alerts.length}`);
               
               // Ensure file path is relative to repo root (GitHub API requires relative paths)
               let filePath = file;
@@ -204,7 +217,26 @@ jobs:
                 const parts = filePath.split('/');
                 filePath = parts.slice(parts.length - 2).join('/'); // Get last 2 parts (e.g., modules/filename.adoc)
               }
-              console.log(`Processing file: ${filePath} (original: ${file})`);
+              
+              // Try to find the actual file path in the repo
+              let actualFilePath = filePath;
+              try {
+                // Check if file exists as-is
+                if (!fs.existsSync(filePath)) {
+                  // Try to find it in the repo
+                  const findResult = execSync(`find . -name "${filePath.split('/').pop()}" -type f | grep -v node_modules | head -1`, { encoding: 'utf-8' });
+                  if (findResult.trim()) {
+                    actualFilePath = findResult.trim().replace(/^\.\//, '');
+                    console.log(`Found file at: ${actualFilePath} (was looking for: ${filePath})`);
+                  }
+                } else {
+                  console.log(`File exists at: ${filePath}`);
+                }
+              } catch (e) {
+                console.log(`Could not verify file path: ${e.message}`);
+              }
+              
+              console.log(`Using file path: ${actualFilePath} (original: ${file})`);
               
               // Read file to get line content
               let fileContent = [];
@@ -241,9 +273,17 @@ jobs:
                 }).join('\n\n---\n\n') + `\n\n*Rule: \`${check}\`*`;
                 
                 fileComments.push({
-                  path: filePath,
+                  path: actualFilePath,
                   line: line,
                   body: body
+                });
+                
+                // Also collect for summary comment
+                allComments.push({
+                  file: actualFilePath,
+                  line: line,
+                  message: lineAlerts[0].Message || '',
+                  severity: severity
                 });
               }
               
@@ -300,5 +340,33 @@ jobs:
               }
             }
             
-            console.log(`Posted ${commentCount} comment(s) on the PR`);
+            // If no inline comments were posted, post a summary comment
+            if (commentCount === 0 && allComments.length > 0) {
+              console.log('No inline comments were posted, creating summary comment...');
+              try {
+                let summaryBody = `## Vale Linting Issues Found\n\n`;
+                summaryBody += `Found ${allComments.length} issue(s) in ${Object.keys(fileResults).length} file(s):\n\n`;
+                
+                for (const comment of allComments) {
+                  summaryBody += `- **${comment.file}** (line ${comment.line}): ${comment.message}\n`;
+                }
+                
+                summaryBody += `\n---\n*Please review and fix these issues.*`;
+                
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pullNumber,
+                  body: summaryBody
+                });
+                console.log('Posted summary comment on PR');
+              } catch (summaryError) {
+                console.log(`Error posting summary comment: ${summaryError.message}`);
+                console.log(`Error details:`, JSON.stringify(summaryError, null, 2));
+              }
+            }
+            
+            console.log(`\n=== Summary ===`);
+            console.log(`Posted ${commentCount} inline comment(s) on the PR`);
+            console.log(`Total issues found: ${allComments.length}`);
 
