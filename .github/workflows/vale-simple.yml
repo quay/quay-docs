@@ -63,6 +63,12 @@ jobs:
             const { execSync } = require('child_process');
             const fs = require('fs');
             
+            // Get pull request number
+            const pullNumber = context.payload.pull_request?.number || context.issue.number;
+            const commitId = context.payload.pull_request?.head?.sha;
+            
+            console.log(`PR Number: ${pullNumber}, Commit SHA: ${commitId}`);
+            
             // Get changed files
             const changedFiles = `${{ steps.changed-files.outputs.all_changed_files }}`.split(' ').filter(f => f && (f.endsWith('.adoc') || f.endsWith('.md')));
             
@@ -188,6 +194,18 @@ jobs:
             for (const [file, alerts] of Object.entries(fileResults)) {
               if (!alerts || alerts.length === 0) continue;
               
+              // Ensure file path is relative to repo root (GitHub API requires relative paths)
+              let filePath = file;
+              const workspace = process.env.GITHUB_WORKSPACE || '.';
+              if (filePath.startsWith(workspace)) {
+                filePath = filePath.replace(workspace + '/', '');
+              } else if (filePath.startsWith('/')) {
+                // Absolute path, try to make it relative
+                const parts = filePath.split('/');
+                filePath = parts.slice(parts.length - 2).join('/'); // Get last 2 parts (e.g., modules/filename.adoc)
+              }
+              console.log(`Processing file: ${filePath} (original: ${file})`);
+              
               // Read file to get line content
               let fileContent = [];
               try {
@@ -207,6 +225,9 @@ jobs:
                 alertsByLine[line].push(alert);
               });
               
+              // Collect all comments for this file
+              const fileComments = [];
+              
               // Post comment for each line with issues
               for (const [lineNum, lineAlerts] of Object.entries(alertsByLine)) {
                 const line = parseInt(lineNum);
@@ -219,19 +240,62 @@ jobs:
                   return `**${alert.Severity || 'warning'}**: ${message}${link}`;
                 }).join('\n\n---\n\n') + `\n\n*Rule: \`${check}\`*`;
                 
+                fileComments.push({
+                  path: filePath,
+                  line: line,
+                  body: body
+                });
+              }
+              
+              // Post all comments for this file at once using createReview
+              if (fileComments.length > 0) {
                 try {
-                  await github.rest.pulls.createReviewComment({
+                  // Create a review with all comments
+                  await github.rest.pulls.createReview({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    pull_number: context.issue.number,
-                    commit_id: context.payload.pull_request.head.sha,
-                    path: file,
-                    line: line,
-                    body: body
+                    pull_number: pullNumber,
+                    commit_id: commitId,
+                    event: 'COMMENT',
+                    comments: fileComments
                   });
-                  commentCount++;
+                  commentCount += fileComments.length;
+                  console.log(`Posted ${fileComments.length} comment(s) for ${file}`);
                 } catch (error) {
-                  console.log(`Error posting comment for ${file}:${line}: ${error.message}`);
+                  console.log(`Error creating review for ${file}: ${error.message}`);
+                  
+                  // Fallback: try posting individual review comments
+                  for (const comment of fileComments) {
+                    try {
+                      await github.rest.pulls.createReviewComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: pullNumber,
+                        commit_id: commitId,
+                        path: comment.path,
+                        line: comment.line,
+                        body: comment.body
+                      });
+                      commentCount++;
+                    } catch (reviewError) {
+                      console.log(`Error posting review comment for ${comment.path}:${comment.line}: ${reviewError.message}`);
+                      
+                      // Final fallback: post as general PR comment
+                      try {
+                        const commentBody = `**File:** \`${comment.path}\` (line ${comment.line})\n\n${comment.body}`;
+                        await github.rest.issues.createComment({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: pullNumber,
+                          body: commentBody
+                        });
+                        commentCount++;
+                        console.log(`Posted as general comment for ${comment.path}:${comment.line}`);
+                      } catch (commentError) {
+                        console.log(`Error posting general comment: ${commentError.message}`);
+                      }
+                    }
+                  }
                 }
               }
             }
