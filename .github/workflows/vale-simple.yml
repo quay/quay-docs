@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Vale
+      - name: Install Vale and AsciiDoctor
         run: |
           # Download and install latest Vale
           VALE_VERSION="3.13.0"
@@ -25,6 +25,11 @@ jobs:
           tar -xzf "vale_${VALE_VERSION}_Linux_64-bit.tar.gz" -C /usr/local/bin
           chmod +x /usr/local/bin/vale
           vale --version
+          # Install AsciiDoctor (required by AsciiDocDITA package)
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ruby-full build-essential
+          sudo gem install asciidoctor
+          asciidoctor --version
 
       - name: Get changed files
         id: changed-files
@@ -103,19 +108,44 @@ jobs:
               console.log('Vale stdout:', error.stdout);
               console.log('Vale stderr:', error.stderr);
               
-              const output = error.stdout || error.stderr || '';
+              // Check stderr first for runtime errors, then stdout for linting results
+              let output = error.stderr || error.stdout || '';
+              
+              // If stderr contains error info, check it first
+              if (error.stderr && error.stderr.trim()) {
+                try {
+                  const stderrParsed = JSON.parse(error.stderr);
+                  // Check if this is a runtime error (has Code like "E100")
+                  if (stderrParsed.Code && stderrParsed.Code.startsWith('E')) {
+                    console.log('Vale runtime error detected:', stderrParsed.Text);
+                    console.log('This usually means a dependency is missing (e.g., asciidoctor)');
+                    return;
+                  }
+                } catch (e) {
+                  // stderr might not be JSON, continue to check stdout
+                }
+              }
+              
+              // Try to parse stdout as linting results
+              output = error.stdout || '';
               try {
                 if (output && output.trim()) {
-                  valeResults = JSON.parse(output);
+                  const parsed = JSON.parse(output);
+                  // Check if this is a runtime error object (has Code property)
+                  if (parsed.Code && parsed.Code.startsWith('E')) {
+                    console.log('Vale runtime error detected:', parsed.Text);
+                    console.log('This usually means a dependency is missing (e.g., asciidoctor)');
+                    return;
+                  }
+                  // Check if it's a single error object instead of file-based results
+                  if (parsed.Code && !Array.isArray(parsed) && Object.keys(parsed).length <= 5) {
+                    console.log('Vale runtime error detected:', parsed.Text || parsed.message);
+                    return;
+                  }
+                  // Otherwise, it's actual linting results
+                  valeResults = parsed;
                 } else {
                   console.log('No Vale output to parse - this might mean no issues were found');
-                  console.log('Testing Vale with a simple command to verify it works:');
-                  try {
-                    const testOutput = execSync('vale --help', { encoding: 'utf-8' });
-                    console.log('Vale is working, but found no issues in changed files');
-                  } catch (testError) {
-                    console.log('Vale test failed:', testError.message);
-                  }
                   return;
                 }
               } catch (parseError) {
@@ -126,12 +156,36 @@ jobs:
               }
             }
             
-            console.log('Vale results:', JSON.stringify(valeResults, null, 2));
-            console.log('Number of files with issues:', Object.keys(valeResults).length);
+            // Check if valeResults is empty or has no actual file results
+            if (!valeResults || Object.keys(valeResults).length === 0) {
+              console.log('No Vale issues found in changed files');
+              return;
+            }
+            
+            // Filter out error objects that aren't file paths
+            const fileResults = {};
+            for (const [key, value] of Object.entries(valeResults)) {
+              // Skip if key looks like an error property (Path, Text, Code, etc.)
+              if (['Path', 'Text', 'Code', 'Span', 'Line'].includes(key) && typeof value !== 'object') {
+                continue;
+              }
+              // Only process if value is an array (alerts for a file)
+              if (Array.isArray(value)) {
+                fileResults[key] = value;
+              }
+            }
+            
+            console.log('Vale results:', JSON.stringify(fileResults, null, 2));
+            console.log('Number of files with issues:', Object.keys(fileResults).length);
+            
+            if (Object.keys(fileResults).length === 0) {
+              console.log('No files with linting issues found');
+              return;
+            }
             
             // Post comments for each file with issues
             let commentCount = 0;
-            for (const [file, alerts] of Object.entries(valeResults)) {
+            for (const [file, alerts] of Object.entries(fileResults)) {
               if (!alerts || alerts.length === 0) continue;
               
               // Read file to get line content

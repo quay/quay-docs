@@ -22,7 +22,7 @@ jobs:
         with:
           fetch-depth: 0  # Full history needed for diff
 
-      - name: Install Vale
+      - name: Install Vale and AsciiDoctor
         run: |
           # Download and install latest Vale
           VALE_VERSION="3.13.0"
@@ -30,6 +30,11 @@ jobs:
           tar -xzf "vale_${VALE_VERSION}_Linux_64-bit.tar.gz" -C /usr/local/bin
           chmod +x /usr/local/bin/vale
           vale --version
+          # Install AsciiDoctor (required by AsciiDocDITA package)
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ruby-full build-essential
+          sudo gem install asciidoctor
+          asciidoctor --version
 
       - name: Get changed files
         id: changed-files
