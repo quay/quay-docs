@@ -100,62 +100,58 @@ jobs:
                 return;
               }
             }
+            
+            // Post comments for each file with issues
+            let commentCount = 0;
+            for (const [file, alerts] of Object.entries(results)) {
+              if (!alerts || alerts.length === 0) continue;
               
-              // Post comments for each file with issues
-              let commentCount = 0;
-              for (const [file, alerts] of Object.entries(results)) {
-                if (!alerts || alerts.length === 0) continue;
-                
-                // Read file to get line content
-                let fileContent = [];
-                try {
-                  fileContent = fs.readFileSync(file, 'utf-8').split('\n');
-                } catch (error) {
-                  console.log(`Could not read file ${file}: ${error.message}`);
-                  continue;
+              // Read file to get line content
+              let fileContent = [];
+              try {
+                fileContent = fs.readFileSync(file, 'utf-8').split('\n');
+              } catch (error) {
+                console.log(`Could not read file ${file}: ${error.message}`);
+                continue;
+              }
+              
+              // Group alerts by line
+              const alertsByLine = {};
+              alerts.forEach(alert => {
+                const line = alert.Line || 1;
+                if (!alertsByLine[line]) {
+                  alertsByLine[line] = [];
                 }
+                alertsByLine[line].push(alert);
+              });
+              
+              // Post comment for each line with issues
+              for (const [lineNum, lineAlerts] of Object.entries(alertsByLine)) {
+                const line = parseInt(lineNum);
+                const severity = lineAlerts[0].Severity || 'warning';
+                const check = lineAlerts[0].Check || '';
                 
-                // Group alerts by line
-                const alertsByLine = {};
-                alerts.forEach(alert => {
-                  const line = alert.Line || 1;
-                  if (!alertsByLine[line]) {
-                    alertsByLine[line] = [];
-                  }
-                  alertsByLine[line].push(alert);
-                });
+                const body = lineAlerts.map(alert => {
+                  const message = alert.Message || '';
+                  const link = alert.Link ? `\n\n[Learn more](${alert.Link})` : '';
+                  return `**${alert.Severity || 'warning'}**: ${message}${link}`;
+                }).join('\n\n---\n\n') + `\n\n*Rule: \`${check}\`*`;
                 
-                // Post comment for each line with issues
-                for (const [lineNum, lineAlerts] of Object.entries(alertsByLine)) {
-                  const line = parseInt(lineNum);
-                  const severity = lineAlerts[0].Severity || 'warning';
-                  const check = lineAlerts[0].Check || '';
-                  
-                  const body = lineAlerts.map(alert => {
-                    const message = alert.Message || '';
-                    const link = alert.Link ? `\n\n[Learn more](${alert.Link})` : '';
-                    return `**${alert.Severity || 'warning'}**: ${message}${link}`;
-                  }).join('\n\n---\n\n') + `\n\n*Rule: \`${check}\`*`;
-                  
-                  try {
-                    await github.rest.pulls.createReviewComment({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      pull_number: context.issue.number,
-                      commit_id: context.payload.pull_request.head.sha,
-                      path: file,
-                      line: line,
-                      body: body
-                    });
-                    commentCount++;
-                  } catch (error) {
-                    console.log(`Error posting comment for ${file}:${line}: ${error.message}`);
-                  }
+                try {
+                  await github.rest.pulls.createReviewComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: context.issue.number,
+                    commit_id: context.payload.pull_request.head.sha,
+                    path: file,
+                    line: line,
+                    body: body
+                  });
+                  commentCount++;
+                } catch (error) {
+                  console.log(`Error posting comment for ${file}:${line}: ${error.message}`);
                 }
               }
-              console.log(`Posted ${commentCount} comment(s) on the PR`);
-            } catch (error) {
-              console.log('Error running Vale check:');
-              console.log(error.message);
             }
+            console.log(`Posted ${commentCount} comment(s) on the PR`);
 
