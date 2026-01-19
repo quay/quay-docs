@@ -32,6 +32,11 @@ jobs:
           sudo gem install asciidoctor
           asciidoctor --version
 
+      - name: Sync Vale styles
+        run: |
+          # Sync Vale styles to download the AsciiDocDITA package
+          vale sync || echo "Vale sync completed"
+
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v40
@@ -101,14 +106,12 @@ jobs:
             
             console.log(`Checking files: ${changedFiles.join(', ')}`);
             
-            // Verify Vale can see the config
-            try {
-              const configOutput = execSync('vale ls-config', { encoding: 'utf-8' });
-              console.log('Vale configuration:');
-              console.log(configOutput);
-            } catch (error) {
-              console.log('Warning: Could not get Vale config:', error.message);
-            }
+            // Check if this is a fork PR
+            const isFork = context.payload.pull_request?.head?.repo?.full_name !== context.payload.pull_request?.base?.repo?.full_name;
+            const pullNumber = context.payload.pull_request?.number || context.issue.number;
+            const commitId = context.payload.pull_request?.head?.sha;
+            
+            console.log(`PR Number: ${pullNumber}, Is Fork: ${isFork}`);
             
             // Run Vale and get JSON output
             // Ensure we're in the workspace directory
@@ -120,61 +123,17 @@ jobs:
               const valeOutput = execSync(`vale --output=JSON ${changedFiles.join(' ')}`, {
                 encoding: 'utf-8',
                 maxBuffer: 10 * 1024 * 1024,
-                stdio: ['pipe', 'pipe', 'pipe'],
-                cwd: process.env.GITHUB_WORKSPACE
+                stdio: ['pipe', 'pipe', 'pipe']
               });
-              console.log('Vale stdout:', valeOutput);
               if (valeOutput && valeOutput.trim()) {
                 valeResults = JSON.parse(valeOutput);
-              } else {
-                console.log('Vale returned empty output - no issues found');
-                return;
               }
             } catch (error) {
               // Vale returns non-zero exit code when issues are found, but still outputs JSON
-              console.log('Vale exit code:', error.status);
-              console.log('Vale stdout:', error.stdout);
-              console.log('Vale stderr:', error.stderr);
-              
-              // Check stderr first for runtime errors, then stdout for linting results
-              let output = error.stderr || error.stdout || '';
-              
-              // If stderr contains error info, check it first
-              if (error.stderr && error.stderr.trim()) {
-                try {
-                  const stderrParsed = JSON.parse(error.stderr);
-                  // Check if this is a runtime error (has Code like "E100")
-                  if (stderrParsed.Code && stderrParsed.Code.startsWith('E')) {
-                    console.log('Vale runtime error detected:', stderrParsed.Text);
-                    console.log('This usually means a dependency is missing (e.g., asciidoctor)');
-                    return;
-                  }
-                } catch (e) {
-                  // stderr might not be JSON, continue to check stdout
-                }
-              }
-              
-              // Try to parse stdout as linting results
-              output = error.stdout || '';
+              const output = error.stdout || error.stderr || '';
               try {
                 if (output && output.trim()) {
-                  const parsed = JSON.parse(output);
-                  // Check if this is a runtime error object (has Code property)
-                  if (parsed.Code && parsed.Code.startsWith('E')) {
-                    console.log('Vale runtime error detected:', parsed.Text);
-                    console.log('This usually means a dependency is missing (e.g., asciidoctor)');
-                    return;
-                  }
-                  // Check if it's a single error object instead of file-based results
-                  if (parsed.Code && !Array.isArray(parsed) && Object.keys(parsed).length <= 5) {
-                    console.log('Vale runtime error detected:', parsed.Text || parsed.message);
-                    return;
-                  }
-                  // Otherwise, it's actual linting results
-                  valeResults = parsed;
-                } else {
-                  console.log('No Vale output to parse - this might mean no issues were found');
-                  return;
+                  valeResults = JSON.parse(output);
                 }
               } catch (parseError) {
                 console.log('Could not parse Vale output as JSON');
@@ -184,47 +143,13 @@ jobs:
               }
             }
             
-<<<<<<< Updated upstream
-            // Check if valeResults is empty or has no actual file results
-            if (!valeResults || Object.keys(valeResults).length === 0) {
-              console.log('No Vale issues found in changed files');
-              return;
-            }
             
-            // Filter out error objects that aren't file paths
-            const fileResults = {};
-            for (const [key, value] of Object.entries(valeResults)) {
-              // Skip if key looks like an error property (Path, Text, Code, etc.)
-              if (['Path', 'Text', 'Code', 'Span', 'Line'].includes(key) && typeof value !== 'object') {
-                continue;
-              }
-              // Only process if value is an array (alerts for a file)
-              if (Array.isArray(value)) {
-                fileResults[key] = value;
-              }
-            }
-            
-            console.log('Vale results:', JSON.stringify(fileResults, null, 2));
-            console.log('Number of files with issues:', Object.keys(fileResults).length);
-            
-            if (Object.keys(fileResults).length === 0) {
-              console.log('No files with linting issues found');
-              return;
-            }
-            
-            // Debug: List all files in the repo to verify paths
-            try {
-              const repoFiles = execSync('find . -name "*.adoc" -type f | head -20', { encoding: 'utf-8' });
-              console.log('Sample .adoc files in repo:', repoFiles);
-            } catch (e) {
-              console.log('Could not list repo files');
-            }
-            
-            // Post comments for each file with issues
+            // Collect ALL issues (process each alert individually)
+            let allIssues = [];
             let commentCount = 0;
-            let allComments = []; // Collect all comments for summary
             
-            for (const [file, alerts] of Object.entries(fileResults)) {
+            // Process each file and each alert individually
+            for (const [file, alerts] of Object.entries(valeResults)) {
               if (!alerts || alerts.length === 0) continue;
               
               console.log(`\n=== Processing file: ${file} ===`);
@@ -260,7 +185,6 @@ jobs:
               }
               
               console.log(`Using file path: ${actualFilePath} (original: ${file})`);
-=======
             // Check if this is a fork PR
             const isFork = context.payload.pull_request?.head?.repo?.full_name !== context.payload.pull_request?.base?.repo?.full_name;
             const pullNumber = context.payload.pull_request?.number || context.issue.number;
@@ -277,7 +201,6 @@ jobs:
               if (!alerts || alerts.length === 0) continue;
               
               console.log(`Processing file: ${file} with ${alerts.length} alert(s)`);
->>>>>>> Stashed changes
               
               // Read file to get line content
               let fileContent = [];
@@ -291,279 +214,67 @@ jobs:
               // Process EACH alert individually (don't group by line)
               for (const alert of alerts) {
                 const line = alert.Line || 1;
-<<<<<<< Updated upstream
-                if (!alertsByLine[line]) {
-                  alertsByLine[line] = [];
-                }
-                alertsByLine[line].push(alert);
-              });
-              
-              // Collect all comments for this file
-              const fileComments = [];
-              
-              // Post comment for each line with issues
-              for (const [lineNum, lineAlerts] of Object.entries(alertsByLine)) {
-                const line = parseInt(lineNum);
-                const severity = lineAlerts[0].Severity || 'warning';
-                const check = lineAlerts[0].Check || '';
-=======
                 const severity = alert.Severity || 'warning';
                 const check = alert.Check || '';
                 const message = alert.Message || '';
                 const link = alert.Link ? `\n\n[Learn more](${alert.Link})` : '';
->>>>>>> Stashed changes
                 
                 const body = `**${severity}**: ${message}${link}\n\n*Rule: \`${check}\`*`;
                 
-<<<<<<< Updated upstream
-                fileComments.push({
-                  path: actualFilePath,
-                  line: line,
-                  body: body
-                });
-                
-                // Also collect for summary comment
-                allComments.push({
-                  file: actualFilePath,
-                  line: line,
-                  message: lineAlerts[0].Message || '',
-                  severity: severity
-                });
-              }
-              
-              // Post all comments for this file at once using createReview
-              if (fileComments.length > 0) {
-                try {
-                  // Create a review with all comments
-                  await github.rest.pulls.createReview({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: pullNumber,
-                    commit_id: commitId,
-                    event: 'COMMENT',
-                    comments: fileComments
-                  });
-                  commentCount += fileComments.length;
-                  console.log(`Posted ${fileComments.length} comment(s) for ${file}`);
-                } catch (error) {
-                  console.log(`Error creating review for ${file}: ${error.message}`);
-                  
-                  // Fallback: try posting individual review comments
-                  for (const comment of fileComments) {
-                    try {
-                      await github.rest.pulls.createReviewComment({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        pull_number: pullNumber,
-                        commit_id: commitId,
-                        path: comment.path,
-                        line: comment.line,
-                        body: comment.body
-                      });
-                      commentCount++;
-                    } catch (reviewError) {
-                      console.log(`Error posting review comment for ${comment.path}:${comment.line}: ${reviewError.message}`);
-                      
-                      // Final fallback: post as general PR comment
-                      try {
-                        const commentBody = `**File:** \`${comment.path}\` (line ${comment.line})\n\n${comment.body}`;
-                        await github.rest.issues.createComment({
-                          owner: context.repo.owner,
-                          repo: context.repo.repo,
-                          issue_number: pullNumber,
-                          body: commentBody
-                        });
-                        commentCount++;
-                        console.log(`Posted as general comment for ${comment.path}:${comment.line}`);
-                      } catch (commentError) {
-                        console.log(`Error posting general comment: ${commentError.message}`);
-                      }
-                    }
-=======
-                // Collect for annotations/fallback
-                allIssues.push({
-                  file: file,
-                  line: line,
-                  severity: severity,
-                  message: message,
-                  check: check,
-                  body: body
-                });
-                
-                // Try to post comment (only if not a fork PR)
-                if (!isFork) {
-                  try {
-                    await github.rest.pulls.createReviewComment({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      pull_number: pullNumber,
-                      commit_id: commitId,
-                      path: file,
-                      line: line,
-                      body: body
-                    });
-                    commentCount++;
-                  } catch (error) {
-                    console.log(`Error posting comment for ${file}:${line}: ${error.message}`);
->>>>>>> Stashed changes
                   }
                 }
               }
             }
             
-<<<<<<< Updated upstream
             // If no inline comments were posted, use annotations for fork PRs or create summary comment
             if (commentCount === 0 && allComments.length > 0) {
               console.log('No inline comments were posted...');
               
-              // For fork PRs, use workflow annotations (they show up in the Checks tab)
-              if (isFork) {
-                console.log('This is a fork PR. Using workflow annotations instead of comments...');
-                
-                // Post annotations for each issue (these show up in the Checks tab)
-                for (const comment of allComments) {
-                  const annotationLevel = comment.severity === 'error' ? 'error' : 'warning';
-                  if (annotationLevel === 'error') {
-                    core.error(comment.message, {
-                      file: comment.file,
-                      startLine: comment.line,
-                      endLine: comment.line,
-                      title: `Vale: ${comment.severity}`
-                    });
-                  } else {
-                    core.warning(comment.message, {
-                      file: comment.file,
-                      startLine: comment.line,
-                      endLine: comment.line,
-                      title: `Vale: ${comment.severity}`
-                    });
-                  }
+              // Create an annotation for EACH issue individually
+              for (const issue of allIssues) {
+                if (issue.severity === 'error') {
+                  core.error(issue.message, {
+                    file: issue.file,
+                    startLine: issue.line,
+                    endLine: issue.line,
+                    title: `Vale: ${issue.check}`
+                  });
+                } else {
+                  core.warning(issue.message, {
+                    file: issue.file,
+                    startLine: issue.line,
+                    endLine: issue.line,
+                    title: `Vale: ${issue.check}`
+                  });
                 }
-                
-                // Also create a summary in the workflow run
-                let summary = `## ⚠️ Vale Linting Issues Found\n\n`;
-                summary += `Found **${allComments.length} issue(s)** in **${Object.keys(fileResults).length} file(s)**:\n\n`;
-                
-                const byFile = {};
-                for (const comment of allComments) {
-                  if (!byFile[comment.file]) {
-                    byFile[comment.file] = [];
-                  }
-                  byFile[comment.file].push(comment);
-                }
-                
-                for (const [file, fileComments] of Object.entries(byFile)) {
-                  summary += `### \`${file}\`\n\n`;
-                  for (const comment of fileComments) {
-                    summary += `- **Line ${comment.line}** (${comment.severity}): ${comment.message}\n`;
-                  }
-                  summary += `\n`;
-                }
-                
-                summary += `---\n*Note: This is a fork PR. Comments cannot be posted, but issues are shown in the annotations above.*`;
-                
-                await core.summary.addRaw(summary).write();
-                
-                core.setFailed(`Vale found ${allComments.length} issue(s). See annotations in the Checks tab.`);
-                return;
               }
               
-              try {
-                let summaryBody = `## ⚠️ Vale Linting Issues Found\n\n`;
-                summaryBody += `Found **${allComments.length} issue(s)** in **${Object.keys(fileResults).length} file(s)**:\n\n`;
-                
-                // Group by file
-                const byFile = {};
-                for (const comment of allComments) {
-                  if (!byFile[comment.file]) {
-                    byFile[comment.file] = [];
-                  }
-                  byFile[comment.file].push(comment);
+              // Create workflow summary
+              let summary = `## ⚠️ Vale Linting Issues Found\n\n`;
+              summary += `Found **${allIssues.length} issue(s)** in **${Object.keys(valeResults).length} file(s)**:\n\n`;
+              
+              // Group by file for summary
+              const byFile = {};
+              for (const issue of allIssues) {
+                if (!byFile[issue.file]) {
+                  byFile[issue.file] = [];
                 }
-                
-                for (const [file, fileComments] of Object.entries(byFile)) {
-                  summaryBody += `### \`${file}\`\n\n`;
-                  for (const comment of fileComments) {
-                    summaryBody += `- **Line ${comment.line}** (${comment.severity}): ${comment.message}\n`;
-                  }
-                  summaryBody += `\n`;
-                }
-                
-                summaryBody += `---\n*Please review and fix these issues before merging.*`;
-                
-                const commentResult = await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: pullNumber,
-                  body: summaryBody
-                });
-                console.log(`Posted summary comment on PR: ${commentResult.data.html_url}`);
-              } catch (summaryError) {
-                console.log(`Error posting summary comment: ${summaryError.message}`);
-                console.log(`Status: ${summaryError.status}`);
-                
-                // Fallback: use workflow annotations if comments fail
-                console.log('Falling back to workflow annotations...');
-                for (const comment of allComments) {
-                  if (comment.severity === 'error') {
-                    core.error(comment.message, {
-                      file: comment.file,
-                      startLine: comment.line,
-                      endLine: comment.line,
-                      title: `Vale: ${comment.severity}`
-                    });
-                  } else {
-                    core.warning(comment.message, {
-                      file: comment.file,
-                      startLine: comment.line,
-                      endLine: comment.line,
-                      title: `Vale: ${comment.severity}`
-                    });
-                  }
-                }
-                
-                // Create workflow summary
-                let summary = `## ⚠️ Vale Linting Issues Found\n\n`;
-                summary += `Found **${allComments.length} issue(s)** in **${Object.keys(fileResults).length} file(s)**:\n\n`;
-                
-                const byFile = {};
-                for (const comment of allComments) {
-                  if (!byFile[comment.file]) {
-                    byFile[comment.file] = [];
-                  }
-                  byFile[comment.file].push(comment);
-                }
-                
-                for (const [file, fileComments] of Object.entries(byFile)) {
-                  summary += `### \`${file}\`\n\n`;
-                  for (const comment of fileComments) {
-                    summary += `- **Line ${comment.line}** (${comment.severity}): ${comment.message}\n`;
-                  }
-                  summary += `\n`;
-                }
-                
-                summary += `---\n*Issues are shown in the annotations above. Comments could not be posted due to permissions.*`;
-                await core.summary.addRaw(summary).write();
-                
-                if (summaryError.status === 403) {
-                  console.log('403 Forbidden - Check repository permissions and branch protection settings');
-                  core.setFailed(`Vale found ${allComments.length} issue(s). See annotations in the Checks tab.`);
-                } else {
-                  console.log(`Error details:`, JSON.stringify(summaryError.response?.data || summaryError.message, null, 2));
-                  core.setFailed(`Vale found ${allComments.length} issue(s). See annotations in the Checks tab.`);
-                }
+                byFile[issue.file].push(issue);
               }
-            }
-            
-            console.log(`\n=== Summary ===`);
-            console.log(`Posted ${commentCount} inline comment(s) on the PR`);
-            console.log(`Total issues found: ${allComments.length}`);
-            
-            // Fail the workflow if issues were found but no comments were posted
-            if (commentCount === 0 && allComments.length > 0) {
-              const errorMsg = `Vale found ${allComments.length} issue(s) but could not post comments. Check workflow logs for details.`;
-              console.error(errorMsg);
-              core.setFailed(errorMsg);
+              
+              for (const [file, fileIssues] of Object.entries(byFile)) {
+                summary += `### \`${file}\`\n\n`;
+                for (const issue of fileIssues) {
+                  summary += `- **Line ${issue.line}** (${issue.severity}): ${issue.message} - *${issue.check}*\n`;
+                }
+                summary += `\n`;
+              }
+              
+              if (isFork) {
+                summary += `---\n*Note: This is a fork PR. Comments cannot be posted, but all issues are shown in the annotations above.*`;
+              } else {
+                summary += `---\n*Issues are shown in the annotations above. Comments could not be posted due to permissions.*`;
+              }
               
               // Also output the issues as workflow output for visibility
               core.setOutput('vale_issues', JSON.stringify(allComments));
@@ -572,7 +283,6 @@ jobs:
               // Successfully posted comments, but still mark as having issues
               core.setOutput('vale_issues', JSON.stringify(allComments));
               core.setOutput('vale_issues_count', allComments.length.toString());
-=======
             // For fork PRs or if comments failed, use workflow annotations
             if (isFork || (commentCount === 0 && allIssues.length > 0)) {
               console.log(`Creating workflow annotations for ${allIssues.length} issue(s)...`);
@@ -629,6 +339,5 @@ jobs:
               core.setFailed(`Vale found ${allIssues.length} issue(s). See annotations in the Checks tab.`);
             } else {
               console.log(`Posted ${commentCount} comment(s) on the PR`);
->>>>>>> Stashed changes
             }
 
