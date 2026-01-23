@@ -7,6 +7,11 @@ To create backups of your {productname-ocp} deployment for disaster recovery, yo
 
 Database backups should be performed regularly using either the supplied tools on the PostgreSQL image or your own backup infrastructure. The {productname} Operator does not ensure that the PostgreSQL database is backed up.
 
+[IMPORTANT]
+====
+PostgreSQL and S3 object storage backups must be taken at the same time to avoid desynchronization. If backups are taken at different times, the database might contain references to storage blobs that are not present in the storage backup, which can cause data inconsistency and restore failures.
+====
+
 [NOTE]
 ====
 This procedure covers backing up your {productname} PostgreSQL database. It does not cover backing up the Clair PostgreSQL database. Backing up the Clair PostgreSQL database is not needed because it can be recreated. If you opt to recreate it from scratch, you wait for the information to be repopulated after all images inside of your {productname} deployment are scanned. During this downtime, security reports are unavailable. 
