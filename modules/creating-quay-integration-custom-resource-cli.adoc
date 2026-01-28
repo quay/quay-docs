@@ -2,7 +2,14 @@
 [id="creating-quay-integration-custom-resource-cli"]
 = Creating the QuayIntegration custom resource using the CLI
 
-Use the following procedure to create the `QuayIntegration` custom resource using the command-line interface.
+[role="_abstract"]
+To create the `QuayIntegration` custom resource from the command line, you can define the configuration in a YAML file and apply it using the oc create command.
+
+.Prerequisites
+
+* You have installed the {qbo} on {ocp}.
+* You have created a secret containing the OAuth access token in {ocp}.
+* You have installed the OpenShift CLI (`oc`).
 
 .Procedure
 
@@ -21,21 +28,26 @@ $ touch quay-integration.yaml
   metadata:
     name: example-quayintegration
   spec:
-    clusterID: openshift  <1>
+    clusterID: openshift
     credentialsSecret:
       namespace: openshift-operators
-      name: quay-integration<2>
-    quayHostname: https://<QUAY_URL>   <3>
-    insecureRegistry: false <4>
+      name: quay-integration
+    quayHostname: https://<QUAY_URL>
+    insecureRegistry: false
 ----
-<1> The clusterID value should be unique across the entire ecosystem. This value is required and defaults to `openshift`.
-<2> The `credentialsSecret` property refers to the namespace and name of the secret containing the token that was previously created.
-<3> Replace the `QUAY_URL` with the hostname of your {productname} instance.
-<4> If {productname} is using self signed certificates, set the property to `insecureRegistry: true`.
++
+where:
++
+--
+`spec.clusterID`:: Specifies the unique identifier for the {ocp} cluster. This value is required and defaults to `openshift`.
+`spec.credentialsSecret`:: Specifies the namespace and name of the secret containing the token that was previously created.
+`spec.quayHostname`:: Specifies the hostname of your {productname} instance.
+`spec.insecureRegistry`:: Specifies whether {productname} is using self signed certificates. If it is, set the property to `insecureRegistry: true`.
+--
++
+For a list of all configuration fields, see "`QuayIntegration` configuration fields".
 
-For a list of all configuration fields, see "QuayIntegration configuration fields".
-
-. Create the `QuayIntegration` custom resource:
+. Create the `QuayIntegration` custom resource by entering the following command:
 +
 ----
 $ oc create -f quay-integration.yaml
