@@ -1,8 +1,9 @@
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 [id="quay-bridge-operator-test"]
 = Using the {qbo}
 
-Use the following procedure to use the {qbo}. 
+[role="_abstract"]
+To verify that the {qbo} synchronizes your {ocp} projects with {productname}, you can create a test project and confirm that organizations, robot accounts, and image repositories are created automatically.
 
 .Prerequisites 
 
@@ -44,7 +45,6 @@ $ oc get secrets builder-quay-openshift deployer-quay-openshift default-quay-ope
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 stevsmit@stevsmit ocp-quay $ oc get secrets builder-quay-openshift deployer-quay-openshift default-quay-openshift
@@ -62,7 +62,6 @@ $ oc describe sa builder default deployer
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 ...
@@ -87,7 +86,6 @@ $ oc new-app --template=httpd-example
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 --> Deploying template "e2e-demo/httpd-example" to project e2e-demo
@@ -114,7 +112,6 @@ $ oc get build httpd-example-1 --template='{{ .spec.output.to.name }}'
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 example-registry-quay-quay-enterprise.apps.quay-ocp.gcp.quaydev.org/openshift_e2e-demo/httpd-example:latest
@@ -132,7 +129,6 @@ $ oc describe is httpd-example
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 Name:			httpd-example
@@ -160,7 +156,6 @@ $ oc get route httpd-example --template='{{ .spec.host }}'
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 httpd-example-e2e-demo.apps.quay-ocp.gcp.quaydev.org
@@ -181,8 +176,3 @@ The command waits until the project resources have been removed. This can be byp
 ====
 
 . After the command completes, navigate to your {productname} repository and confirm that the `openshift_e2e-demo` Organization is no longer available. 
-
-.Additional resources
-
-* Best practices dictate that all communication between a client and an image registry be facilitated through secure means. Communication should leverage HTTPS/TLS with a certificate trust between the parties. While {productname} can be configured to serve an insecure configuration, proper certificates should be utilized on the server and configured on the client. Follow the link:https://docs.openshift.com/container-platform/{ocp-y}/security/certificate_types_descriptions/proxy-certificates.html[{ocp} documentation] for adding and managing certificates at the container runtime level. 
-
