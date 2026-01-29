@@ -1,0 +1,57 @@
+:_mod-docs-content-type: PROCEDURE
+[id="check-resource-allocation"]
+= Checking resource allocation
+
+[role="_abstract"]
+To check resource allocation for your {productname} deployment and monitor disk, CPU, and memory usage, you can use `oc exec` or `podman exec` for disk usage and `oc adm top pods` or `podman stats` for other resources.
+
+.Procedure 
+
+. Obtain a list of running containers.
+
+. Monitor disk usage of your {productname} deployment. 
+
+.. If you are using the {productname} Operator on {ocp}, enter the following command:
++
+[source,terminal]
+----
+$ oc exec -it <quay_database_pod_name> -- df -ah 
+----
+
+.. If you are using a standalone deployment of {productname}, enter the following command:
++
+[source,terminal]
+----
+$ podman exec -it <quay_database_conatiner_name> df -ah 
+----
+
+. Monitor other resource usage. 
+
+.. Enter the following command to check resource allocation on a {productname} Operator deployment:
++
+[source,terminal]
+----
+$ oc adm top pods
+----
+
+.. Enter the following command to check the status of a specific pod on a standalone deployment of {productname}:
++
+[source,terminal]
+----
+$ podman pod stats <pod_name>
+----
+
+.. Enter the following command to check the status of a specific container on a standalone deployment of {productname}:
++
+[source,terminal]
+----
+$ podman stats <container_name>
+----
++
+The following information is returned:
++
+* *CPU %*. The percentage of CPU usage by the container since the last measurement. This value represents the container's share of the available CPU resources.
+* *MEM USAGE / LIMIT*. The current memory usage of the container followed by its memory limit. The values are displayed in the format `current_usage / memory_limit`. For example, `300.4MiB / 7.795GiB` indicates that the container is currently using 300.4 megabytes of memory out of a limit of 7.795 gigabytes.
+* *MEM %*. The percentage of memory usage by the container in relation to its memory limit.
+* *NET I/O*. The network I/O (input/output) statistics of the container. It displays the amount of data transmitted and received by the container over the network. The values are displayed in the format: `transmitted_bytes / received_bytes`.
+* *BLOCK I/O*. The block I/O (input/output) statistics of the container. It represents the amount of data read from and written to the block devices (for example, disks) used by the container. The values are displayed in the format `read_bytes / written_bytes`.
