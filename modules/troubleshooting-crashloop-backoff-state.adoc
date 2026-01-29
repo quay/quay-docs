@@ -1,0 +1,92 @@
+:_mod-docs-content-type: PROCEDURE
+[id="troubleshooting-crashloop-backoff-state"]
+= Troubleshooting crashloopbackoff states
+
+[role="_abstract"]
+To troubleshoot `crashloopbackoff` states for your {productname} deployment and restore pods or containers, you can scale down the Quay Operator and database, then edit the database deployment as needed.
+
+.Procedure
+
+. If your container or pod is in a `crashloopbackoff` state, you can enter the following commands.
+
+.. Enter the following command to scale down the {productname} Operator:
++
+[source,terminal]
+----
+$ oc scale deployment/quay-operator.v3.8.z  --replicas=0
+----
++
+.Example output
+[source,terminal]
+----
+deployment.apps/quay-operator.v3.8.z scaled
+----
+
+.. Enter the following command to scale down the {productname} database:
++
+[source,terminal]
+----
+$ oc scale deployment/<quay_database> --replicas=0
+----
++
+.Example output
+[source,terminal]
+----
+deployment.apps/<quay_database> scaled
+----
+
+.. Enter the following command to edit the {productname} database:
++
+[WARNING]
+====
+Interacting with the PostgreSQL database is potentially destructive. It is highly recommended that you perform the following procedure with the help of a {productname} Support Specialist. 
+====
++
+[source,terminal]
+----
+$ oc edit deployment <quay_database> 
+----
++
+[source,yaml]
+----
+...
+ template:
+   metadata:
+     creationTimestamp: null
+     labels:
+       quay-component: <quay_database>
+       quay-operator/quayregistry: quay-operator.v3.8.z
+   spec:
+     containers:
+     - env:
+       - name: POSTGRESQL_USER
+         value: postgres
+       - name: POSTGRESQL_DATABASE
+         value: postgres
+       - name: POSTGRESQL_PASSWORD
+         value: postgres
+       - name: POSTGRESQL_ADMIN_PASSWORD
+         value: postgres
+       - name: POSTGRESQL_MAX_CONNECTIONS
+         value: "1000"
+       image: registry.redhat.io/rhel8/postgresql-10@sha256:a52ad402458ec8ef3f275972c6ebed05ad64398f884404b9bb8e3010c5c95291
+       imagePullPolicy: IfNotPresent
+       name: postgres
+       command: ["/bin/bash", "-c", "sleep 86400"] <1>
+...
+----
++
+** Add the `command: ["/bin/bash", "-c", "sleep 86400"]` line in the same indentation. 
++
+.Example output
+[source,terminal]
+----
+deployment.apps/<quay_database> edited
+----
+
+.. Execute the following command inside of your `<quay_database>`:
++
+[source,terminal]
+----
+$ oc exec -it <quay_database> -- cat /var/lib/pgsql/data/userdata/postgresql/logs/* /path/to/desired_directory_on_host
+----
