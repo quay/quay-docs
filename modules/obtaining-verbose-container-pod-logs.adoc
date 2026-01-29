@@ -1,0 +1,55 @@
+:_mod-docs-content-type: PROCEDURE
+[id="obtaining-verbose-container-pod-logs"]
+= Examining verbose logs
+
+[role="_abstract"]
+To get a detailed status check of your {product-title} database pod or container, you can use oc logs or podman logs with --previous and copy PostgreSQL logs with oc cp or podman cp. Enable DEBUGLOG=true for additional debugging information.
+
+[NOTE]
+====
+Additional debugging information can be returned if you have deployed {productname} in one of the following ways:
+
+* You have deployed {productname} by passing in the `DEBUGLOG=true` variable.
+* You have deployed {productname} with LDAP authentication enabled by passing in the `DEBUGLOG=true` and `USERS_DEBUG=1` variables.
+* You have configured {productname-ocp} by updating the `QuayRegistry` resource to include `DEBUGLOG=true`. 
+
+For more information, see "Running {productname} in debug mode".
+====
+
+.Procedure
+
+. Enter the following commands to examine verbose database logs.
+
+.. If you are using the {productname} Operator on {ocp}, enter the following commands:
++
+[source,terminal]
+----
+$ oc logs <quay_pod_name> --previous 
+----
++
+[source,terminal]
+----
+$ oc logs <quay_pod_name> --previous -c <container_name>
+----
++
+[source,terminal]
+----
+$ oc cp <quay_pod_name>:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host
+----
+
+.. If you are using a standalone deployment of {productname}, enter the following commands:
++
+[source,terminal]
+----
+$ podman logs <quay_container_id> --previous
+----
++
+[source,terminal]
+----
+$ podman logs <quay_container_id> --previous -c <container_name>
+----
++
+[source,terminal]
+----
+$ podman cp <quay_container_id>:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host
+----

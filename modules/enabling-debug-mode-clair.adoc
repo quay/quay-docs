@@ -1,0 +1,56 @@
+:_mod-docs-content-type: PROCEDURE
+[id="enabling-debug-mode-clair"]
+== Enabling debug mode for Clair
+
+[role="_abstract"]
+To enable debug mode for Clair in {productname} and get verbose logging for troubleshooting, you can update your `clair-config.yaml` file to include the `log_level: debug` parameter.
+
+[NOTE]
+====
+For Clair on {productname-ocp} deployments, you must link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/vulnerability_reporting_with_clair_on_red_hat_quay/index#custom-clair-configuration-managed-database[Running a custom Clair configuration with a managed Clair database].
+====
+
+.Procedure
+
+. Update your `clair-config.yaml` file to include the debug option. 
+
+.. On standalone {productname} deployments:
+
+... Add the following configuration field to your `clair-config.yaml` file:
++
+[source,yaml]
+----
+log_level: debug
+----
+
+... Restart your Clair deployment by entering the following command:
++
+[source,terminal]
+----
+$ podman restart <clair_container_name>
+----
+
+.. On {productname-ocp} deployments:
+
+... On the {ocp} web console, click *Operators* -> *Installed Operators* -> *Quay Registry*. 
+
+... Click the name of your registry, for example, *Example Registry*. You are redirected to the *Details* page of your registry.
+
+... Click the Config Bundle Secret, for example, *example-registry-config-bundle-xncls*. 
+
+... Confirm that you are running a custom Clair configuration by looking for the `clair-config.yaml` file under the *Data* section of the *Details* page of your secret. 
+
+... If you have a `clair-config.yaml` file, click *Actions* -> *Edit Secret*. If you do not, see "Running a custom Clair configuration with a managed Clair database". 
+
+... Update your `clair-config.yaml` file to include the `log_level: debug` configuration variable. For example:
++
+[source,yaml]
+----
+log_level: debug
+----
+
+... Click *Save*. 
+
+... You can check the status of your Clair deployment by clicking *Workloads* -> *Pods*. The `clair-app` pod should report `1/1` under the *Ready* category. 
+
+... You can confirm that Clair is returning debugging information by clicking the *clair-app* pod that is ready -> *Logs*.
