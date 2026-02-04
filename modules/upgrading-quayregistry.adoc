@@ -1,0 +1,12 @@
+:_mod-docs-content-type: CONCEPT
+[id="upgrading-quayregistry_{context}"]
+= Upgrading a QuayRegistry resource
+
+[role="_abstract"]
+The {productname} Operator reconciles `QuayRegistry` resources and upgrades them when the Operator version differs from the current version. When an upgrade is supported, the Operator applies it and updates status; when not, it returns an error and leaves the QuayRegistry unchanged.
+
+The following logic is used:
+
+* If `status.currentVersion` is unset, reconcile as normal.
+* If `status.currentVersion` equals the Operator version, reconcile as normal.
+* If `status.currentVersion` does not equal the Operator version, check if it can be upgraded. If it can, perform upgrade tasks and set the `status.currentVersion` to the Operator's version once complete. If it cannot be upgraded, return an error and leave the `QuayRegistry` and its deployed Kubernetes objects alone.

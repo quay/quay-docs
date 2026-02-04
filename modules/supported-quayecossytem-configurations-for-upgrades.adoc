@@ -1,0 +1,38 @@
+:_mod-docs-content-type: CONCEPT
+[id="supported-quayecossytem-configurations-for-upgrades_{context}"]
+= Supported QuayEcosystem Configurations for Upgrades
+
+[role="_abstract"]
+The {productname} Operator reports errors in its logs and in `status.conditions` if migrating a `QuayEcosystem` component fails or is unsupported. 
+
+All unmanaged components should migrate successfully because no Kubernetes resources need to be adopted and all the necessary values are already provided in {productname}'s `config.yaml` file.
+
+*Database*::
+
+Ephemeral database not supported (`volumeSize` field must be set).
+
+*Redis*::
+
+Nothing special needed.
+
+*External Access*::
+
+Only passthrough `Route` access is supported for automatic migration. Manual migration required for other methods.
++
+* `LoadBalancer` without custom hostname:
+After the `QuayEcosystem` is marked with label `"quay-operator/migration-complete": "true"`, delete the `metadata.ownerReferences` field from existing `Service` _before_ deleting the `QuayEcosystem` to prevent Kubernetes from garbage collecting the `Service` and removing the load balancer. A new `Service` will be created with `metadata.name` format `<QuayEcosystem-name>-quay-app`. Edit the `spec.selector` of the existing `Service` to match the `spec.selector` of the new `Service` so traffic to the old load balancer endpoint will now be directed to the new pods. You are now responsible for the old `Service`; the Quay Operator will not manage it.
++
+* `LoadBalancer`/`NodePort`/`Ingress` with custom hostname:
+A new `Service` of type `LoadBalancer` will be created with `metadata.name` format `<QuayEcosystem-name>-quay-app`. Change your DNS settings to point to the `status.loadBalancer` endpoint provided by the new `Service`.
+
+*Clair*::
+
+Nothing special needed.
+
+*Object Storage*::
+
+`QuayEcosystem` did not have a managed object storage component, so object storage will always be marked as unmanaged. Local storage is not supported.
+
+*Repository Mirroring*::
+
+Nothing special needed.

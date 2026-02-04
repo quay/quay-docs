@@ -1,0 +1,28 @@
+:_mod-docs-content-type: PROCEDURE
+[id="upgrading-quayecosystem_{context}"]
+= Upgrading a QuayEcosystem
+
+[role="_abstract"]
+To migrate an existing `QuayEcosystem` to a `QuayRegistry` managed by the {productname} Operator, add the `migration` label to the `QuayEcosystem` custom resource and wait for the new `QuayRegistry` to start. You can then verify the migration and delete the old `QuayEcosystem`.
+
+.Procedure
+
+. Add `"quay-operator/migrate": "true"` to the `metadata.labels` of the `QuayEcosystem`.
++
+[source,terminal]
+----
+$ oc edit quayecosystem <quayecosystem_name>
+----
++
+[source,yaml]
+----
+metadata:
+  labels:
+    quay-operator/migrate: "true"
+----
+
+. Wait for a `QuayRegistry` CR to be created with the same `metadata.name` as your `QuayEcosystem`. The `QuayEcosystem` CR is marked with the label `"quay-operator/migration-complete": "true"`.
+
+. After the `status.registryEndpoint` of the new `QuayRegistry` is set, access {productname} and confirm that all data and settings were migrated successfully.
+
+. If everything works correctly, you can delete the `QuayEcosystem`. Kubernetes garbage collection cleans up all old resources.
