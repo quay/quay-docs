@@ -1,0 +1,30 @@
+:_mod-docs-content-type: PROCEDURE
+[id="upgrading-red-hat-quay_{context}"]
+= Upgrading {productname} to version {productmin}
+
+[role="_abstract"]
+To upgrade {productname} to the next version, change the Operator update channel in the {ocp} Web Console and wait for the upgrade pods to complete. You can then verify the database images and access your registry.
+
+.Procedure
+
+. In the {ocp} Web Console, navigate to *Operators* -> *Installed Operators*. 
+
+. Click on the {productname} Operator. 
+
+. Navigate to the *Subscription* tab. 
+
+. Under *Subscription details* click *Update channel*. 
+
+. Select *stable-3.16* -> *Save*.
+
+. Check the progress of the new installation under *Upgrade status*. Wait until the upgrade status changes to *1 installed* before proceeding. 
+
+. In your {ocp} cluster, navigate to *Workloads* -> *Pods*. Existing pods should be terminated, or in the process of being terminated. 
+
+. Wait for the following pods, which are responsible for upgrading the database and alembic migration of existing data, to spin up: `clair-postgres-upgrade`, `quay-postgres-upgrade`, and `quay-app-upgrade`. 
+
+. After the `clair-postgres-upgrade`, `quay-postgres-upgrade`, and `quay-app-upgrade` pods are marked as *Completed*, the remaining pods for your {productname} deployment spin up. This takes approximately ten minutes. 
+
+. Verify that the `quay-database` uses the `postgresql-13` image, and `clair-postgres` pods now uses the `postgresql-15` image. 
+
+. After the `quay-app` pod is marked as *Running*, you can reach your {productname} registry. 

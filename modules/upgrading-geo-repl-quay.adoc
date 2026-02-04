@@ -2,7 +2,8 @@
 [id="upgrading-geo-repl-quay"]
 = Upgrading a geo-replication deployment of standalone {productname}
 
-Use the following procedure to upgrade your geo-replication {productname} deployment.
+[role="_abstract"]
+To upgrade a geo-replication deployment of standalone {productname}, stop operations on all instances, back up the deployment, then follow the procedure to upgrade each system. Expect intermittent downtime when upgrading to the next y-stream release.
 
 [IMPORTANT]
 ====
@@ -11,16 +12,17 @@ Use the following procedure to upgrade your geo-replication {productname} deploy
 * It is highly recommended to back up your {productname} deployment before upgrading.
 ====
 
+[NOTE]
+====
+This procedure assumes that you are running {productname} services on three (or more) systems. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/deploy_red_hat_quay_-_high_availability/index#preparing_for_red_hat_quay_high_availability[Preparing for {productname} high availability].
+====
+
+
 .Prerequisites
 
 * You have logged into `registry.redhat.io`
 
 .Procedure
-
-[NOTE]
-====
-This procedure assumes that you are running {productname} services on three (or more) systems. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/deploy_red_hat_quay_-_high_availability/index#preparing_for_red_hat_quay_high_availability[Preparing for {productname} high availability].
-====
 
 . Obtain a list of all {productname} instances on each system running a {productname} instance.
 
@@ -32,11 +34,6 @@ $ sudo podman ps
 ----
 +
 .Example output
-+
-[source,terminal]
-+
-.Example output
-+
 [source,terminal]
 ----
 CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
@@ -51,9 +48,7 @@ $ sudo podman ps
 ----
 +
 .Example output
-+
 [source,terminal]
-+
 ----
 CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
 7ae0c9a8b37d  registry.redhat.io/quay/quay-rhel8:v{producty-n1}  registry        5 minutes ago   Up 2 seconds ago   0.0.0.0:82->8080/tcp, 0.0.0.0:445->8443/tcp  quay02
@@ -67,9 +62,7 @@ $ sudo podman ps
 ----
 +
 .Example output
-+
 [source,terminal]
-+
 ----
 CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
 e75c4aebfee9  registry.redhat.io/quay/quay-rhel8:v{producty-n1}  registry        4 seconds ago   Up 4 seconds ago   0.0.0.0:84->8080/tcp, 0.0.0.0:447->8443/tcp  quay03
@@ -141,7 +134,6 @@ $ sudo podman ps
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
