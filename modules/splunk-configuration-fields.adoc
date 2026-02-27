@@ -28,6 +28,12 @@ Use the following fields to configure {productname} to export action logs to a S
 | *.index_prefix* | String | The index prefix used by Splunk.
 
 | *.ssl_ca_path* | String | The relative container path to a `.pem` file containing the certificate authority (CA) for SSL validation.
+
+| *.search_timeout* | Integer | The timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.
+
+| *.max_results* | Integer | The maximum number of results to return per search query. Larger values require more memory.
+
+| *.export_batch_size* | Integer | The batch size for log export operations.
 |===
 
 .Splunk configuration example YAML
@@ -45,6 +51,9 @@ LOGS_MODEL_CONFIG:
         verify_ssl: False
         index_prefix: <splunk_log_index_name>
         ssl_ca_path: <location_to_ssl-ca-cert.pem>
+        search_timeout: 60
+        max_results: 10000
+        export_batch_size: 5000
 # ...
 ----
 
@@ -79,6 +88,19 @@ The following fields are available when configuring Splunk HTTP Event Collector 
 | *.splunk_sourcetype* | String | The Splunk `sourcetype` to associate with the event.
 
 | *.timeout* | Integer | Timeout in seconds for HTTP requests to Splunk HEC endpoint. Prevents requests from hanging indefinitely when Splunk is unresponsive.
+
+| *.search_timeout* | Integer | The timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.
+
+| *.max_results* | Integer | The maximum number of results to return per search query. Larger values require more memory.
+
+| *.export_batch_size* | Integer | The batch size for log export operations.
+
+| *.search_host* | String | The Splunk management host for search API. Defaults to HEC host if not specified.
+
+| *.search_port* | Integer | The Splunk management port for search API. Defaults to 8089 if not specified.
+
+| *.search_token* +
+(Optional) | String | The bearer token for Splunk search API. Required because HEC tokens are ingest-only and cannot search.
 |===
 
 .Splunk HEC example YAML
@@ -98,5 +120,11 @@ LOGS_MODEL_CONFIG:
     splunk_host: quay-dev
     splunk_sourcetype: quay_logs
     timeout: 10
+    search_token: <bearer_token>
+    search_host: <splunk.example.com>
+    search_port: 8089
+    search_timeout: 60
+    max_results: 10000
+    export_batch_size: 5000
 # ...
 ----

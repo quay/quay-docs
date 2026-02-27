@@ -4,25 +4,78 @@
 
 The following configuration fields have been added to {productname} 3.17.
 
-[id="example_one_config"]
-== Example one
+[id="splunk_configuration_fields"]
+== Additional configuration fields for action log storage using Splunk
 
-The following configuration options have been added to track image activities. When enabled, clear visibility into how often and when image tags are pulled are provided in the UI. 
+The following configuration options have been added when using Splunk to store {productname} usage logs.
 
-.Image activity configuration fields
-[cols="3a,1a,2a",options="header"]
+.Additional Splunk configuration fields
+[cols="2a,1a,2a",options="header"]
 |===
 | Field | Type | Description
-|*FEATURE_IMAGE_PULL_STATS* |Boolean | Whether to track and display image pull statistics. + 
+|*.search_timeout* |Integer | Timeout, in seconds, for Splunk search queries. Increase for slow Splunk clusters or complex queries. + 
  + 
-**Default:** False
+**Default:** `60` +
+ +
+**Minimum:** `5` +
+ +
+**Maximum:** `300`
 
-|*REDIS_FLUSH_INTERVAL_SECONDS* |Integer | Interval, in seconds, at which the Redis flush worker clears old data. Shorter intervals keep data fresher and help prevent Redis from bloating, while longer intervals reduce flush frequency. + 
+|*.max_results* |Integer | Maximum number of results to return per search query. Larger values require more memory. + 
  + 
-**Default:** 300 (5 minutes)
+**Default:** `10000` +
+ +
+**Minimum:** `100` +
+ +
+**Maximum:** `50000`
 
-|*PULL_METRICS_REDIS* |Object | Connection settings for the Redis database used to store image pull metrics. The `host` field specifies the Redis server hostname, and the optional `db` field identifies the Redis database index to use. + 
+|*.export_batch_size* |Integer | Batch size for log export operations. + 
  + 
-**Default:** {"host": "<redis_host>", "password": "<redis_password>", "port": "<port>", "db": 1}
+**Default:** `5000` +
+ +
+**Minimum:** `100` +
+ +
+**Maximum:** `10000`
+|===
 
+.Additional Splunk HEC configuration fields
+[cols="2a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+|*.search_timeout* |Integer | Timeout, in seconds, for Splunk search queries. Increase for slow Splunk clusters or complex queries. + 
+ + 
+**Default:** `60` +
+ +
+**Minimum:** `5` +
+ +
+**Maximum:** `300`
+
+|*.max_results* |Integer | Maximum number of results to return per search query. Larger values require more memory. + 
+ + 
+**Default:** `10000` +
+ +
+**Minimum:** `100` +
+ +
+**Maximum:** `50000`
+
+|*.export_batch_size* |Integer | Batch size for log export operations. + 
+ + 
+**Default:** `5000` +
+ +
+**Minimum:** `100` +
+ +
+**Maximum:** `10000`
+
+|*.search_host* |String | Splunk management host for search API. Defaults to HEC host if not specified. + 
+ + 
+**Example:** `splunk-mgmt.example.com`
+
+|*.search_port* |Integer | Splunk management port for search API. + 
+ + 
+**Default:** `8089`
+
+|*.search_token* +
+(Optional) |String | Bearer token for Splunk search API. Required because HEC tokens are ingest-only and cannot search. See link:https://docs.splunk.com/Documentation/SplunkCloud/latest/Config/ManageHECtokens[Manage HEC tokens] for more information. + 
+ + 
+**Example:** `splunk-mgmt.example.com`
 |===
