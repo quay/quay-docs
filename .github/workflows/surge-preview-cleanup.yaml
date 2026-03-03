@@ -1,0 +1,61 @@
+name: Surge Preview Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup:
+    name: Teardown Preview
+    runs-on: ubuntu-22.04
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+    - name: Teardown Surge deployment
+      run: |
+        DEPLOY_DOMAIN="quay-docs-pr-${{ github.event.pull_request.number }}.surge.sh"
+        npx surge teardown $DEPLOY_DOMAIN --token $SURGE_TOKEN
+      env:
+        SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+
+    - name: Update PR comment
+      uses: actions/github-script@v8
+      with:
+        script: |
+          const prNumber = context.payload.pull_request.number;
+          const deployDomain = `quay-docs-pr-${prNumber}.surge.sh`;
+
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+          });
+
+          const botComment = comments.find(comment =>
+            comment.user.type === 'Bot' &&
+            comment.body.includes('Surge Preview Deployment')
+          );
+
+          const commentBody = `## Surge Preview Deployment
+
+          🧹 **Preview deployment has been cleaned up**
+
+          The preview at \`${deployDomain}\` has been torn down since this PR was closed.`;
+
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: commentBody
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: commentBody
+            });
+          }
