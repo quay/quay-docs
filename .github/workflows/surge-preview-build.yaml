@@ -1,0 +1,34 @@
+name: Surge Preview Build
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build:
+    name: Build Preview
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout PR code
+      uses: actions/checkout@v5
+
+    - name: Install asciidoctor
+      run: sudo gem install asciidoctor
+
+    - name: Build docs
+      run: bash build_docs
+
+    - name: Save PR number
+      if: success()
+      run: |
+        mkdir -p ./preview-build
+        echo ${{ github.event.pull_request.number }} > ./preview-build/pr_number.txt
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: preview-build
+        path: |
+          dist/
+          preview-build/pr_number.txt
