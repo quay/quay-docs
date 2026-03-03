@@ -1,0 +1,51 @@
+:_mod-docs-content-type: PROCEDURE
+[id="making-tag-immutable-api"]
+= Managing tag immutability by using the {productname} API
+
+[role="_abstract"]
+To prevent a tag from being changed or deleted, you can manage its immutability by using the {productname} API. Use the `PUT /api/v1/repository/{repository}/tag/{tag}` endpoint to set or remove immutability for a tag.
+
+.Prerequisites
+
+* You have logged into {productname}.
+* You have set `FEATURE_IMMUTABLE_TAGS` to `True` in your `config.yaml` file.
+
+.Procedure
+
+. Use the `PUT /api/v1/repository/{repository}/tag/{tag}` endpoint to set immutability for a tag. For example:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "immutable": true
+  }' \
+  https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>/tag/<tag>
+----
++
+.Example output
+[source,terminal]
+----
+"Updated"
+----
+
+. Use the `PUT /api/v1/repository/{repository}/tag/{tag}` endpoint to remove immutability for a tag. For example:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "immutable": false
+  }' \
+  https://<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>/tag/<tag>
+----
++
+.Example output
+[source,terminal]
+----
+"Updated"
+----

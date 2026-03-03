@@ -1,0 +1,34 @@
+:_mod-docs-content-type: PROCEDURE
+[id="creating-immutability-policy-api"]
+= Creating an immutability policy by using the {productname} API
+
+[role="_abstract"]
+To protect image tags from overwrite or deletion, you can create an immutability policy for an organization or a repository in {product-title} by using the API. Send a `POST` request with your bearer token and a JSON body that includes the tag pattern and match rule.
+
+.Prerequisites
+
+* You have created an OAuth access token.
+* You have set `FEATURE_IMMUTABLE_TAGS` to `True` in your `config.yaml` file.
+
+.Procedure
+
+* Create an immutability policy for an organization by using the `POST /api/v1/organization/{orgname}/immutabilitypolicy/` endpoint. For example:
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"tagPattern": ".*", "tagPatternMatches": true}' http://<quay-server.example.com>/api/v1/organization/<organization_name>/immutabilitypolicy/
+----
+
+* Create an immutability policy for an organization repository by using the `POST /api/v1/repository/{repository}/immutabilitypolicy/` endpoint. For example:
++
+[source,text]
+----
+$ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"tagPattern": ".*", "tagPatternMatches": true}' http://<quay-server.example.com>/api/v1/repository/<namespace>/<repository_name>/immutabilitypolicy/
+----
++
+.Example output
++
+[source,terminal]
+----
+{"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7"}
+----

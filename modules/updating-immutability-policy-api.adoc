@@ -1,0 +1,31 @@
+:_mod-docs-content-type: PROCEDURE
+[id="updating-immutability-policy-api"]
+= Updating an immutability policy by using the {productname} API
+
+[role="_abstract"]
+To change the tag pattern or match rule of an existing policy, you can update an immutability policy for an organization or a repository in {product-title} by using the API. Send a `PUT` request with your bearer token and the policy UUID, and a JSON body with the new tag pattern and match rule.
+
+.Prerequisites
+
+* You have created an OAuth access token.
+* You have set `FEATURE_IMMUTABLE_TAGS` to `True` in your `config.yaml` file.
+
+.Procedure
+
+* Update an immutability policy for an organization by using the `PUT /api/v1/organization/{orgname}/immutabilitypolicy/{policy_uuid}/` endpoint. For example:
++
+[source,terminal]
+----
+curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"tagPattern": ".*", "tagPatternMatches": true}' \
+  "https://<quay-server.example.com>/api/v1/organization/test/immutabilitypolicy/3aae3390-de53-4b82-a2b7-4da8fe5dbe11"
+----
+
+* Update an immutability policy for a repository by using the `PUT /api/v1/repository/{repository}/immutabilitypolicy/{policy_uuid}/` endpoint. For example:
++
+[source,terminal]
+----
+$ curl -X PUT -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"tagPattern": ".*", "tagPatternMatches": true}' http://<quay-server.example.com>/api/v1/repository/<repository_name>/<namespace>/immutabilitypolicy/<policy_uuid>/
+----
