@@ -1,0 +1,54 @@
+:_mod-docs-content-type: PROCEDURE
+[id="proc_splunk-hec-obtaining-bearer-token"]
+= Generating an HEC ingest token
+
+Obtain an HEC ingest token for Splunk HEC by using the Splunk web UI or the Splunk REST API.
+
+[NOTE]
+====
+Splunk HEC tokens are ingest-only and cannot search.
+====
+
+.Prerequisites
+
+* You have installed Splunk and created a username.
+
+.Procedure
+
+. To create an HEC token using the Splunk web UI:
+
+.. Log in to the Splunk via the web UI.
+
+.. Click *Settings* -> *Data Inputs* -> *HTTP Event Collector*.
+
+.. Click *New Token*. 
+
+.. Name the token, for example, `quay-hec`, and select the target index, for example, `quay_logs`.
+
+.. Click *Submit* and copy the token value.
+
+. To create an HEC token using the Splunk REST API:
+
+.. Enable HEC by entering the following command:
++
+[source,terminal]
+----
+$ curl -k -u <username>:<password> \
+ https://<splunk.example.com>:8089/servicesNS/admin/splunk_httpinput/data/inputs/http/http \
+ -d "disabled=0"
+----
+
+.. Create an HEC token by entering the following command:
++
+[source,terminal]
+----
+$ curl -k -u <username>:<password> \
+ "https://<splunk.example.com>:8089/servicesNS/admin/splunk_httpinput/data/inputs/http?output_mode=json" \
+ -d "name=quay-hec" -d "index=quay_logs"
+----
++
+.Example output:
+[source,terminal]
+----
+{"entry":[{"content":{"token":"<your_bearer_token>"}}]}
+----

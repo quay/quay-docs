@@ -1,0 +1,103 @@
+:_mod-docs-content-type: PROCEDURE
+[id="proc_splunk-audit-log-ui-display"]
+= Displaying Splunk audit logs in the {productname} UI
+
+[role="_abstract"]
+When you enable Splunk log forwarding in {productname}, you can view and query audit logs in the organization, repository, and superuser admin panels. This read capability matches other log backends so you can review audit logs in the UI instead of using Splunk directly.
+
+.Prerequisites
+
+* You have created an `hec_token`. 
++
+[NOTE]
+====
+For the HEC producer, two tokens are required: `hec_token` for writing logs and `search_token` for reading logs in the UI. The `search_token` is a bearer token (the same type you create in "Generating a Splunk bearer token"). HEC tokens are ingest-only and cannot run searches.
+====
+
+* You have configured Quay to forward action logs to Splunk
+
+.Procedure
+
+. Update your `config.yaml` file:
+
+.. To display Splunk SDK audit logs on the {productname} UI, use the following reference:
++
+[source,yaml]
+----
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  producer: splunk
+  splunk_config:
+    host: <splunk.example.com>
+    port: 8089
+    bearer_token: <your_bearer_token>
+    url_scheme: https
+    verify_ssl: false
+    index_prefix: quay_logs
+    search_timeout: 60
+    max_results: 10000
+    export_batch_size: 5000
+----
++
+where:
++
+--
+`<splunk.example.com>`:: Specifies the host name of your Splunk instance.
+`<your_bearer_token>`:: Specifies the bearer token you generated in the "Generating a Splunk bearer token" guide.
+`index_prefix`:: Specifies the Splunk index prefix.
+--
+
+. To display Splunk HEC logs on the {productname} UI, include the generated `search_token` and `hec_token`. For example:
++
+[source,yaml]
+----
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  producer: splunk_hec
+  splunk_hec_config:
+    host: <splunk.example.com>
+    port: 8088
+    hec_token: <your_hec_token>
+    search_token: <your_bearer_token>
+    url_scheme: https
+    verify_ssl: true
+    ssl_ca_path: conf/stack/ca.pem
+    index: quay_logs
+    splunk_host: <quay-server.example.com>
+    splunk_sourcetype: access_combined
+    timeout: 10
+    search_host: <splunk.example.com>
+    search_port: 8089
+    search_timeout: 60
+    max_results: 10000
+    export_batch_size: 5000
+----
++
+where:
++
+--
+`<splunk.example.com>`:: Specifies the host name of your Splunk instance (used for both the HEC endpoint and the search API).
+`8088`:: Specifies the port number for the Splunk HEC endpoint.
+`<your_hec_token>`:: Specifies the HEC token you generated in the "Generating a Splunk HEC token" guide.
+`<your_bearer_token>`:: Optional. Specifies the bearer token you generated in the "Generating a Splunk bearer token" guide.
+`<quay-server.example.com>`:: Specifies the host name of your {product-title} instance.
+--
+
+. Restart your {productname} instance to apply the changes.
+
+. Push an example image to your {productname} instance to generate an audit log by entering the following command. Note that you can push to an organization or a repository.
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<organization_name>/busybox:test
+----
+
+. On the {productname} UI, open the Logs view in one of these places:
++
+** *Organizations* -> *<organization_name>* -> *Logs*
+** *Repositories* -> *<organization_name>* / *<repository_name>* -> *Logs* 
+** *Superuser* -> *Usage Logs* 
+
+.Results
+
+* The `busybox:test` Splunk audit is available.
