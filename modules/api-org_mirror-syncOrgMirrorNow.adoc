@@ -1,0 +1,40 @@
+
+= syncOrgMirrorNow
+Trigger immediate discovery and sync for the organization.
+
+        Sets sync_status to SYNC_NOW and sync_start_date to now for
+        immediate pickup by the repomirrorworker.
+
+        Returns 204 on success, 404 if config not found or already syncing.
+
+[discrete]
+== POST /api/v1/organization/{orgname}/mirror/sync-now
+
+
+
+**Authorizations: **oauth2_implicit (**org:admin**)
+
+
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+[discrete]
+== Example command
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror/sync-now
+----

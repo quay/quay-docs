@@ -1,0 +1,42 @@
+
+= cancelOrgMirrorSync
+Cancel ongoing discovery or sync operation.
+
+        Transitions the config to CANCEL status from any state except already CANCEL.
+        The worker detects the CANCEL status and propagates it to associated repository
+        syncs during tag processing. Repo status changes are applied when the worker
+        picks up the cancellation request, not immediately.
+
+        Returns 204 on success, 404 if config not found, 400 if already cancelled.
+
+[discrete]
+== POST /api/v1/organization/{orgname}/mirror/sync-cancel
+
+
+
+**Authorizations: **oauth2_implicit (**org:admin**)
+
+
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|201|Successful creation|
+|400|Bad Request|&lt;&lt;_apierror,ApiError&gt;&gt;
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+[discrete]
+== Example command
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror/sync-cancel
+----
