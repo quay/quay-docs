@@ -5,4 +5,10 @@
 The following sections note known issues and limitations for {productname} 3.17.
 
 [id="build-logs-download-error-v2-ui"]
-== Cannot download build logs from the v2 UI
+== Repositories persist after filter changes
+
+When an Organization-level mirror is configured, repositories that were previously discovered and mirrored are not automatically deleted if the `repository_filters` pattern is updated to exclude them.
+
+While the excluded repositories stop syncing new data, they remain in the database as stale entries. This behavior differs from Repository-level mirroring, which automatically prunes obsolete tags when filters change. This may lead to repository accumulation and increased database overhead in large environments.
+
+As a temporary workaround, users can delete the entire mirror configuration by using the `DELETE /api/v1/organization/{orgname}/mirror` API endpoint. Note that this can be disruptive and loses sync history and other metadata.
