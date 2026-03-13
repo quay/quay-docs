@@ -1,0 +1,75 @@
+:_mod-docs-content-type: PROCEDURE
+[id="config-ui-mirroring-organization"]
+= Enabling mirroring for an organization with the web console
+
+[role="_abstract"]
+To automatically synchronize container images between registries, you can use the {productname} web console to enable mirroring for your {productname} organization. Configuring this automated synchronization ensures that your deployment always has access to the most up-to-date container files.
+
+[NOTE]
+====
+Organization-level mirroring cannot be configured on an existing organization that already contains repositories. A dedicated organization must be created specifically to serve as a mirror target, with all repositories within the organization managed exclusively by the mirroring configuration.
+====
+
+.Prequisites
+
+* You have a Quay organization with sufficient permissions.
+* You have created a robot account.
+* You have access to a source Harbor instance.
+** You have Harbor credentials, such as a username and a password or an API token.
+
+.Procedure
+
+. Click *Organizations*.
+
+. Find your organization listed under the *Name* column and then click on the name of the organization.
+
+. Click *Settings* -> *Organization state*.
+
+. Click the *Mirror* radio button to set the organization state to mirroring. 
+
+. Click the *Submit* button. Completion of this step takes you to the *Mirroring* tab. 
+
+. Under the *Source Registry* section, complete the following settings:
+ 
+. For *Source Registry Type* field, select *Quay* or *Harbor*.
+
+. In the *Source Registry URL* field, enter a valid URL, for example, `https://registry.example.com`.
+
+. For *Source Namespace*, enter the namespace or project name on the source registry. For example, `my-project`. 
+
+. Select *Private* or *Public* for *Repository Visibility*.
+
+. For *Start Date*, set the date in `yyyy-mm-dd` format and set the time.
+
+. Set the *Sync interval*. Set the integer in the box and select *seconds*, *minutes*, *hours*, *days*, or *weeks* from the drop-down menu. 
+
+. Set the *Skopeo Timeout* value for Skopeo operations. 
+
+. Select a *Robot User* from the drop-down menu. 
+
+. Set any desired *Filter Patterns*. 
+
+. In the *Credentials* section, do one of the following actions:
++
+.. If you specified *Harbor* for *Source Registry Type*, enter your username and password for the source registry. 
++
+.. If you specified *Quay* for *Source Registry Type*, you must specify `$oauthtoken` for the *Username* field and `OAUTH_TOKEN` for the *Password* field.
+
+. Optional: In *Advanced Settings*: 
++
+.. For *Verify TLS*, click the checkbox to verify certificates.
++
+.. Set an *HTTP Proxy* URL.
++
+.. Set an *HTTPS Proxy* URL.
++
+.. Set a *No Proxy* URL.
+
+. When you have configured the desired settings, click *Enable Organization Mirror*.
+
+.Verification
+
+. On the {productname} web console, click *Organizations* -> the organization name -> *Mirroring*. 
+
+. Scroll to the *Status* section to view the status and verify the connection. 
+
