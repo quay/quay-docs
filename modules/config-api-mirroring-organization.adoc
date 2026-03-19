@@ -1,0 +1,141 @@
+:_mod-docs-content-type: PROCEDURE
+[id="mirroring-creating-org-api"]
+= Configuring a mirrored organization by using the API
+
+Use the following procedure to configure a mirrored organization by using the {productname} API.
+
+[NOTE]
+====
+Organization-level mirroring cannot be configured on an existing organization that already contains repositories. A dedicated organization must be created specifically to serve as a mirror target, with all repositories within the organization managed exclusively by the mirroring configuration.
+====
+
+.Prerequisites
+
+* You have generated an OAuth access token.
+
+.Procedure
+
+. Use the `POST /api/v1/organization/{orgname}/mirror` endpoint to create a new organization-level mirroring configuration:
++
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror" \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "external_registry_type": "quay",
+    "external_registry_url": "https://quay.io",
+    "external_namespace": "<external_namespace>",
+    "robot_username": "<orgname>+<robot_account>",
+    "visibility": "private",
+    "sync_interval": 3600,
+    "sync_start_date": "2025-01-01T00:00:00Z",
+    "is_enabled": true
+  }'
+----
+
+. Use the `GET /api/v1/organization/{orgname}/mirror` endpoint to retrieve the organization-level mirroring configuration:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror
+----
++
+.Example output
++
+[source,terminal]
+----
+{"is_enabled": true, "external_registry_type": "quay", "external_registry_url": "http://quay.io", "external_namespace": "test", "external_registry_username": null, "external_registry_config": {}, "repository_filters": [], "robot_username": "example+test", "visibility": "private", "sync_interval": 3600, "sync_start_date": "2025-01-01T00:00:00Z", "sync_expiration_date": null, "sync_status": "NEVER_RUN", "sync_retries_remaining": 3, "skopeo_timeout": 300, "creation_date": "2026-03-09T18:39:21.993431Z"}
+----
+
+. Use the `GET /api/v1/organization/{orgname}/mirror/repositories` endpoint to obtain a list of repositories that are being mirrored in the organization:
++
+[source,terminal]
+----
+$ curl -X GET \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  "https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror/repositories?page=1&limit=100"
+----
++
+.Example output
++
+[source,terminal]
+----
+{"repositories": [], "page": 1, "limit": 100, "total": 0, "has_next": false}
+----
+
+. Use the `POST /api/v1/organization/{orgname}/mirror/sync-now` endpoint to trigger an immediate sync of all repositories in the organization:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror/sync-now
+----
++
+This command does not return output in the CLI.
+
+. Use the `POST /api/v1/organization/{orgname}/mirror/sync-cancel` endpoint to cancel a pending sync of all repositories in the organization:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror/sync-cancel
+----
++
+This command does not return output in the CLI.
+
+. Use the `PUT /api/v1/organization/{orgname}/mirror` endpoint to update the organization-level mirroring configuration:
++
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"is_enabled": true, "sync_interval": 7200}' \
+  https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror
+----
++
+.Example output
++
+[source,terminal]
+----
+" "
+----
+
+. Use the `POST /api/v1/organization/{orgname}/mirror/verify` endpoint to verify the connection to the external registry for the organization-level mirroring configuration:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror/verify
+----
++
+.Example output
+[source,terminal]
+----
+{"success": false, "message": "Unexpected response: 301"}
+----
+
+. Use the `DELETE /api/v1/organization/{orgname}/mirror` endpoint to delete the organization-level mirroring configuration:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Accept: application/json" \
+  https://<quay-server.example.com>/api/v1/organization/<orgname>/mirror
+----
++
+This command does not return output in the CLI.
