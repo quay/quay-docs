@@ -4,7 +4,7 @@
 
 The following configuration fields have been added to {productname} 3.17.
 
-[id="splunk_configuration_fields"]
+[id="additional-splunk-configuration-fields-configuration-fields"]
 == Additional configuration fields for action log storage using Splunk
 
 The following configuration options have been added when using Splunk to store {productname} usage logs.
@@ -80,12 +80,12 @@ The following configuration options have been added when using Splunk to store {
 **Example:** `splunk-mgmt.example.com`
 |===
 
-[id="example_one_config"]
+[id="sparse-manifest-index-configuration-field"]
 == Sparse manifest index configuration field
 
 The following configuration options have been added to enable multi-architecture filtering. 
 
-.Multi-architecture filtering configuration field
+.Multi-architecture filtering configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
@@ -95,7 +95,7 @@ The following configuration options have been added to enable multi-architecture
 
 |*REPO_MIRROR_MAX_MANIFEST_LIST_SIZE* |Integer | Maximum size in bytes of manifest list JSON to parse during mirroring. Prevents DoS via oversized manifests. +
  +
-**Default:** `10485760` (10MB).
+**Default:** `10485760` (10MB)
 
 |*REPO_MIRROR_MAX_MANIFEST_ENTRIES* |Integer |Maximum number of manifest entries to process during architecture-filtered mirroring. Prevents DoS via manifest lists with excessive entries. +
  +
@@ -103,7 +103,7 @@ The following configuration options have been added to enable multi-architecture
 
 |===
 
-.Example multi-architecture filtering configuration
+.Multi-architecture filtering example YAML
 [source,yaml]
 ----
 # ...
@@ -114,11 +114,11 @@ REPO_MIRROR_MAX_MANIFEST_ENTRIES: 1000
 ----
 
 [id="immutability-policy-configuration-field"]
-== Immutability policy configuration field
+== Immutable tags configuration field
 
-The following configuration option has been added to enable immutability policies.
+The following configuration option has been added to enable immutable tags.
 
-.Immutability policy configuration field
+.Immutable tags configuration field
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
@@ -126,3 +126,62 @@ The following configuration option has been added to enable immutability policie
  + 
 **Default:** False
 |===
+
+.Immutable tags example YAML
+[source,yaml]
+----
+# ...
+FEATURE_IMMUTABLE_TAGS: true
+# ...
+----
+
+[id="mirroring-organization-configuration-fields"]
+== Mirroring configuration fields for organizations
+
+Mirroring in {productname} enables automatic synchronization of organizations with upstream sources. This feature is useful for maintaining local mirrors of remote container images, ensuring availability in disconnected environments or improving performance through caching.
+
+.Mirroring configuration for an organization mirror
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+| **FEATURE_ORG_MIRROR** | Boolean | Enable or disable organization-level mirroring. + 
+ + 
+ **Default:** `False` 
+| **ORG_MIRROR_INTERVAL** | Integer | Worker processing interval in seconds.  + 
+ + 
+**Default:** 30
+| **ORG_MIRROR_BATCH_SIZE** | Integer | Number of organization mirrors to process for each iteration.  + 
+ + 
+**Default:** 100 
+| **ORG_MIRROR_MAX_SYNC_DURATION** | Integer | Maximum sync duration in seconds. + 
+ + 
+ **Default:** 3600
+
+|**ORG_MIRROR_DEFAULT_SKOPEO_TIMEOUT** | Integer | Default skopeo timeout in seconds. 
+
+*Default*: 300
+| **ORG_MIRROR_DISCOVERY_TIMEOUT** | Integer | Discovery timeout in seconds.  + 
+ + 
+**Default:** 600 
+| **ORG_MIRROR_MAX_REPOS_PER_ORG** | Integer | Maximum repositories to discover for each organization.  + 
+ + 
+**Default:** 10000 
+| **ORG_MIRROR_MAX_RETRIES** | Integer | Maximum sync retries for a failure operation.  + 
+ + 
+**Default:** 3
+|===
+
+.Mirroring configuration example YAML
+[source,yaml]
+----
+# ...
+FEATURE_ORG_MIRROR: true
+ORG_MIRROR_INTERVAL: 60
+ORG_MIRROR_BATCH_SIZE: 100
+ORG_MIRROR_MAX_SYNC_DURATION: 3600
+ORG_MIRROR_DEFAULT_SKOPEO_TIMEOUT: 600
+ORG_MIRROR_DISCOVERY_TIMEOUT: 600
+ORG_MIRROR_MAX_REPOS_PER_ORG: 5000
+ORG_MIRROR_MAX_RETRIES: 3
+# ...
+----
