@@ -1,0 +1,39 @@
+:_mod-docs-content-type: PROCEDURE
+[id="enabling-repository-mirroring-quay"]
+= Enabling repository mirroring for {productname}
+
+[role="abstract"]
+To use mirrored repositories, you can set `FEATURE_REPO_MIRROR` to `true` in your `config.yaml` file. Restart the registry after you update the configuration.
+
+.Procedure
+
+. To enable mirroring for repositories, set `FEATURE_REPO_MIRROR: true` in your `config.yaml` file:
++
+[source,yaml]
+----
+# ...
+FEATURE_REPO_MIRROR: true
+REPO_MIRROR_INTERVAL: 30
+REPO_MIRROR_SERVER_HOSTNAME: "openshift-quay-service"
+REPO_MIRROR_TLS_VERIFY: true
+REPO_MIRROR_ROLLBACK: false
+FEATURE_SPARSE_INDEX: true
+REPO_MIRROR_MAX_MANIFEST_LIST_SIZE: 10485760
+REPO_MIRROR_MAX_MANIFEST_ENTRIES: 1000
+# ...
+----
++
+where:
++
+--
+`FEATURE_REPO_MIRROR`:: Specifies whether to enable or disable repository-level mirroring.
+`REPO_MIRROR_INTERVAL`:: Specifies the worker processing interval in seconds.
+`REPO_MIRROR_SERVER_HOSTNAME`:: Specifies the hostname of the server hosting the mirrored repository.
+`REPO_MIRROR_TLS_VERIFY`:: Specifies whether to verify the TLS certificate of the mirrored repository.
+`REPO_MIRROR_ROLLBACK`:: Specifies whether to rollback the repository if the mirroring fails.
+`FEATURE_SPARSE_INDEX`:: Specifies whether to allow sparse manifest indexes.
+`REPO_MIRROR_MAX_MANIFEST_LIST_SIZE`:: Specifies the maximum size of the manifest list in bytes.
+`REPO_MIRROR_MAX_MANIFEST_ENTRIES`:: Specifies the maximum number of manifest entries to process.
+--
+
+. Restart your {productname} registry.

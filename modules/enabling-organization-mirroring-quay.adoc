@@ -1,0 +1,39 @@
+:_mod-docs-content-type: PROCEDURE
+[id="enabling-organization-mirroring-quay"]
+= Enabling organization mirroring for {productname}
+
+[role="abstract"]
+To use mirrored organizations, you can set `FEATURE_ORG_MIRROR` to `true` in your `config.yaml` file. Restart the registry after you update the configuration.
+
+.Procedure
+
+. To enable organization mirroring, set `FEATURE_ORG_MIRROR: true` in your `config.yaml` file:
++
+[source,yaml]
+----
+# ...
+FEATURE_ORG_MIRROR: true
+ORG_MIRROR_INTERVAL: 60
+ORG_MIRROR_BATCH_SIZE: 100
+ORG_MIRROR_MAX_SYNC_DURATION: 3600
+ORG_MIRROR_DEFAULT_SKOPEO_TIMEOUT: 600
+ORG_MIRROR_DISCOVERY_TIMEOUT: 600
+ORG_MIRROR_MAX_REPOS_PER_ORG: 5000
+ORG_MIRROR_MAX_RETRIES: 3
+# ...
+----
++
+where:
++
+--
+`FEATURE_ORG_MIRROR`:: Specifies whether to enable or disable organization-level mirroring.
+`ORG_MIRROR_INTERVAL`:: Specifies the worker processing interval in seconds.
+`ORG_MIRROR_BATCH_SIZE`:: Specifies the number of organization mirrors to process for each iteration.
+`ORG_MIRROR_MAX_SYNC_DURATION`:: Specifies the maximum sync duration in seconds.
+`ORG_MIRROR_DEFAULT_SKOPEO_TIMEOUT`:: Specifies the default skopeo timeout in seconds.
+`ORG_MIRROR_DISCOVERY_TIMEOUT`:: Specifies the discovery timeout in seconds.
+`ORG_MIRROR_MAX_REPOS_PER_ORG`:: Specifies the maximum repositories to discover for each organization.
+`ORG_MIRROR_MAX_RETRIES`:: Specifies the maximum sync retries for a failure operation.
+--
+
+. Restart your {productname} registry.
