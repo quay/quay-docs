@@ -2,8 +2,39 @@
 [id="bug-fixes-317"]
 = {productname} bug fixes
 
-The following issues were fixed with {productname} 3.17:
+The following issues were fixed with {productname} 3.17. 
 
-* link:https://issues.redhat.com/browse/PROJQUAY-9668[*PROJQUAY-9668*]. In this update, numerous LDAP queries during login due to various organization memberships previously resulted in timeouts and prevented user login. In this release, we've decreased the excessive LDAP queries during login. Consequently, LDAP user login no longer times out due to excessive queries, enhancing login speed for affected users.
+[NOTE]
+====
+Not all bug fixes included in the link:https://access.redhat.com/errata/RHBA-2026:5684[RHBA-2026:5684] advisory are documented here. Many of the bugs included in the advisory were found and resolved when testing new features included as part of this release.
+====
 
-* link:https://issues.redhat.com/browse/PROJQUAY-9720[*PROJQUAY-9720*]. In this update, the upstream build process now actively excludes the `.npm` directory from the image, as a `.dockerignore` for it was previously missing. Consequently, the NPM cache no longer persists in local development images, reducing image size. With this release, the NPM cache is no longer incorporated in local Quay image builds. As a result, the NPM cache will not be present in locally built upstream images, ensuring faster and cleaner builds.
+* link:https://issues.redhat.com/browse/PROJQUAY-11080[*PROJQUAY-10609*]. Previously, the RHEL-9 image migration caused SHA-1 signing errors due to the deprecated RSA-SHA1 algorithm. Consequently, image pulls failed because of a cryptography policy change. 
++
+With this release, the system actively enables the SHA-1 algorithm in its crypto policy, resolving the issue with RHEL-9 image pulls.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10588[*PROJQUAY-10588*]. Previously, emails from users with lengths exceeding 64 characters were not migrated due to a length filter in the data migration. This led to end users receiving duplicate emails for organizations during migration, causing confusion and potential data inconsistencies. 
++
+This release adds an `OrganizationContactEmail` table and allows end users to manage multiple organization email contacts easily.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10575[*PROJQUAY-10575*]. Previously, there was an issue causing log failure when canceling repository mirroring. This issue has been resolved, and the mirroring operation no longer fails.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10609[*PROJQUAY-10609*]. Previously, image pulls were failing due to the deprecated `RSA-SHA1` algorithm in the RHEL-9 image. With this release, the RHEL-9 cryptography policy has been updated, enabling SHA-1 for RSA signing. As a result, the SHA-1 algorithm is now supported, allowing image pulls without issues.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10273[*PROJQUAY-10273*]. Previously, users were unable to download the `auth.json` file, affecting the management of Robot Accounts. With this release, the option to download the `auth.json` file has been reintroduced to the new UI, enabling users to now view and download `auth.json` files for Robot Accounts.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-9750[*PROJQUAY-9750*]. In previous versions, browser incompatibility led to inconsistencies in the design of the calendar pop-up, specifically for service key and repository mirror configuration. This inconsistency was noticeable across browsers, with hour and minute options missing in Mozilla Firefox and Safari. 
++
+In this release, the calendar pop-up in the Quay UI has been standardized, ensuring consistency across browsers, including hour and minute options. As a result, the calendar pop-up is now uniform across browsers.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-9729[*PROJQUAY-9729*]. Previously, attempting to run automated tests after merging downstream builds without updating downstream documentation used UBI (Universal Base Image) minimal adoption, resulted in an image size increase due to failed Continuous Integration (CI). 
++
+This update resolves the issue, leading to a smaller image size and reduced Common Vulnerabilities and Exposures (CVE) surface, thereby enhancing overall system security and performance.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-7025[*PROJQUAY-7025*]. Previously, the web UI update led to incomplete link display for foreign organizations and repositories for superusers, resulting in incomplete superuser access. This caused missing links and log retrieval errors. 
++
+This issue has been resolved, enabling superusers to access all links in foreign organizations and repositories.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-6934[*PROJQUAY-6934*]. Previously, the user interface previously displayed inappropriate error messages when configured with the Splunk `LOGS_MODEL` parameter. These messages caused confusion for users when working with Splunk. 
++
+With this release, the user interface shows accurate error messages for Splunk logs. This improvement results in the correct display of the `Method not implemented, Splunk does not support log searches`` message.
