@@ -17,3 +17,12 @@ As a temporary workaround, users can delete the entire mirror configuration by u
 == Status inconsistency between summary and dropdown in organization mirroring
 
 When an organization mirror is initiated or canceled, the dashboard displays conflicting counts for task states. The *Scheduled* state in the header shoes a count, for example, `53` items, however when selecting *Scheduled* from the dropdown list it reports `0` items. This is a known issue and will be fixed in a future version of {productname}.
+
+[id="tag-pruning-unsupported-org-level-mirroring"]
+== Tag pruning not supported in Organization-level mirroring
+
+When using Organization-level repository mirroring, tags deleted from the upstream source registry are not automatically removed from the downstream {productname} mirror.
+
+As a result, the mirror retains a cumulative history of all synced tags. If a tag is removed upstream to save space or deprecate a version, it remains available in the Quay mirror. If all tags are deleted from an upstream repository, the mirror continues to host the last successfully synced set of tags rather than becoming empty.
+
+If a tag must be removed from the mirror for security or storage reasons, it must be manually deleted from the Red Hat Quay repository. Configuration options to enable automatic pruning are planned for a future release. For more information, see link:https://redhat.atlassian.net/browse/PROJQUAY-9603[PROJQUAY-9603].
