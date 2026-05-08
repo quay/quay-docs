@@ -21,8 +21,21 @@ When an organization mirror is initiated or canceled, the dashboard displays con
 [id="tag-pruning-unsupported-org-level-mirroring"]
 == Tag pruning not supported in Organization-level mirroring
 
-When using Organization-level repository mirroring, tags deleted from the upstream source registry are not automatically removed from the downstream {productname} mirror.
+In the current implementation of Organization-level repository mirroring, {productname} does not replicate deletions from the source registry. If any of the following entities are removed or absent in the upstream source, they persist in the local Quay mirror:
 
-As a result, the mirror retains a cumulative history of all synced tags. If a tag is removed upstream to save space or deprecate a version, it remains available in the Quay mirror. If all tags are deleted from an upstream repository, the mirror continues to host the last successfully synced set of tags rather than becoming empty.
+* *Source namespaces or organizations and their repositories*. If the entire upstream source namespace (for example, a Harbor project or Quay organization) is removed, all previously mirrored repositories and their content remain in the local mirror.
 
-If a tag must be removed from the mirror for security or storage reasons, it must be manually deleted from the Red Hat Quay repository. Configuration options to enable automatic pruning are planned for a future release. For more information, see link:https://redhat.atlassian.net/browse/PROJQUAY-9603[PROJQUAY-9603].
+* *Individual repositories*. Repositories previously discovered and synced continue to be tracked and served even if removed from the upstream source.
+
+* *Image tags*. Tags that existed at the time of the last sync persist in the mirror even if deleted upstream.
+
+* *Referrers*. OCI Referrers API artifacts, such as Cosign signatures and SBOMs are not currently mirrored. When present locally, they are not cleaned up automatically
+
+The downstream mirror acts as a cumulative archive. If an upstream namespace is emptied or its repositories and tags are removed, the mirror continues to serve the last successfully synchronized versions of those objects. This might lead to higher storage consumption in the mirror than in the source.
+
+[NOTE]
+====
+Note: This behavior differs from repository-level mirroring, which automatically removes local tags that are no longer present in the source registry. 
+
+Manual deletion via the {productname} UI or API is required to remove these entities from the mirror. A future release will introduce a configurable option to automatically delete absent items, including organizations, repositories, tags, referrers, and manifest list children from the local mirror.
+====
