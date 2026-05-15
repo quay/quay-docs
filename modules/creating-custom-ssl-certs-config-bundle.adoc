@@ -34,7 +34,7 @@ $ oc -n <namespace> create secret generic custom-ssl-config-bundle-secret \
 ----
 <1> Where `<config.yaml>` is your `base64 decoded` `config.yaml` file.
 <2> Where `<ssl.cert>` is your `ssl.cert` file.
-<3> Optional. The `--from-file=extra_ca_cert_<name-of-certificate>.crt=ca-certificate-bundle.crt` field allows {productname} to recognize custom Certificate Authority (CA) files. If you are using LDAP, OIDC, or another service that uses custom CAs, you must add them via the `extra_ca_cert` path. For more information, see "Adding additional Certificate Authorities to {productname-ocp}."
+<3> Optional. Add each additional CA PEM using a Secret key that starts with `extra_ca_cert_` (for example, `--from-file=extra_ca_cert_<name-of-certificate>.crt=ca-certificate-bundle.crt`). The {productname} Operator writes these files under `conf/stack/extra_ca_certs/` in the deployed bundle. For LDAP, OIDC, or other integrations that need custom CAs, supply the PEMs this way and use `conf/stack/extra_ca_certs/<file>` in `config.yaml` when a field such as `ssl_ca_path` requires an explicit path.
 <4> Where `<ssl.key>` is your `ssl.key` file.
 
 . Optional. You can check the content of the `custom-ssl-config-bundle-secret.yaml` file by entering the following command:
