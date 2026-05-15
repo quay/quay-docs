@@ -3,7 +3,9 @@
 [id="adding-ca-certs-to-config"]
 = Adding additional Certificate Authorities to {productname-ocp}
 
-The following example shows you how to add additional Certificate Authorities to your {productname-ocp} deployment.
+The following example shows you how to add additional Certificate Authorities to your {productname-ocp} deployment by extending the `configBundleSecret`.
+
+Additional CAs are not declared as an `extra_ca_certs` field inside `config.yaml`. Each CA is a separate entry in the Secret: the key must start with `extra_ca_cert_`, and the remainder of the key name becomes the file name under `conf/stack/extra_ca_certs/` after the Operator reconciles the registry.
 
 .Prerequisites
 
@@ -33,7 +35,7 @@ $ oc -n <namespace> create secret generic extra-ca-certificate-config-bundle-sec
   --dry-run=client -o yaml > extra-ca-certificate-config-bundle-secret.yaml
 ----
 <1> Where `<config.yaml>` is your `base64 decoded` `config.yaml` file.
-<2> The extra CA file to be added to into the system trust bundle.
+<2> The extra CA file to be added to the system trust bundle.
 <3> Optional. A second CA file to be added into the system trust bundle.
 <4> Optional. A third CA file to be added into the system trust bundle.
 
@@ -57,7 +59,7 @@ data:
 kind: Secret
 metadata:
   creationTimestamp: null
-  name: custom-ssl-config-bundle-secret
+  name: extra-ca-certificate-config-bundle-secret
   namespace: <namespace>
 ----
 
