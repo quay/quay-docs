@@ -3,8 +3,19 @@
 [id="config-additional-cas-ocp"]
 = Adding additional Certificate Authorities to {productname-ocp}
 
-On {productname-ocp}, the `extra_ca_certs` configuration field is is used to populate additional Certificate Authorities (CAs) into the CA directory, which then adds the CAs into the system trust bundle. These certificates are used by {productname} to verify SSL/TLS connections with external services like LDAP, OIDC, and storage systems. 
+On {productname-ocp}, additional Certificate Authorities (CAs) are merged into the registry trust store from the `conf/stack/extra_ca_certs/` directory inside the final configuration bundle. {productname} uses those CAs to verify TLS to external services such as LDAP, OIDC, and storage endpoints.
 
-When deploying or redeploying {productname-ocp}, you can add one, or multiple, CAs into the CA directory to ensure that external services are properly secured and validated. On {productname-ocp} deployments, you must manually add the `extra_ca_certs` configuration field to your `config.yaml` file and re-upload the `config.yaml` to {ocp}.
+This path is the same logical location as the `extra_ca_certs` directory used on standalone deployments. On {productname-ocp}, you do not create that directory on a node yourself. Instead, add each CA PEM file to the `configBundleSecret` as its own Secret data entry whose key name begins with `extra_ca_cert_`. The {productname} Operator extracts these keys when it reconciles the registry and writes the files under `conf/stack/extra_ca_certs/`. The file name in that directory is the key name with the `extra_ca_cert_` prefix removed. For example, a Secret key `extra_ca_cert_ldap-ca.pem` is available at runtime as `conf/stack/extra_ca_certs/ldap-ca.pem`.
 
-The following procedures show you how to download your existing configuration file, add additional CAs to your {productname-ocp} deployment, and then re-upload the configuration file.
+You do not add an `extra_ca_certs` list or block to `config.yaml` only to load those CAs on {productname-ocp}. The supported approach is the `extra_ca_cert_*` keys in the bundle Secret, as shown in the procedures that follow.
+
+When another setting requires an explicit path to one of those PEM files (for example, `ssl_ca_path` for a given integration), set the path in `config.yaml` to the runtime location under `conf/stack/extra_ca_certs/`, for example:
+
+[source,yaml]
+----
+# ...
+ssl_ca_path: conf/stack/extra_ca_certs/ldap-ca.pem
+# ...
+----
+
+The following procedures show you how to download your existing configuration file, include additional CA files in the `configBundleSecret`, and re-apply the bundle so that {ocp} deploys the updated configuration.
