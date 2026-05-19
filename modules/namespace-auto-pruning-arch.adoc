@@ -2,9 +2,11 @@
 [id="namespace-auto-pruning-arch"]
 = Namespace auto-pruning architecture
 
-For the namespace auto-pruning feature, two distinct database tables within a database schema were created: one for `namespaceautoprunepolicy` and another for `autoprunetaskstatus`. An auto-prune worker carries out the configured policies. 
+[role="_abstract"]
+{productname} namespace auto-pruning uses database tables for policies and task status and an auto-prune worker that runs configured policies. You can use this overview to understand how policies are stored and executed.
 
-[discrete]
+For the namespace auto-pruning feature, two distinct database tables within a database schema were created: one for `namespaceautoprunepolicy` and another for `autoprunetaskstatus`. An auto-prune worker carries out the configured policies.
+
 [id="namespaceautoprunepolicy-database-table"]
 == Namespace auto prune policy database table
 
@@ -22,7 +24,6 @@ The `namespaceautoprunepolicy` database table holds the policy configuration for
 | `policy` | text | JSON | Policy configuration
 |===
 
-[discrete]
 [id="autoprunetaskstatus-database-table"]
 == Auto-prune task status database table
 
@@ -45,20 +46,16 @@ The `autoprunetaskstatus` table registers tasks to be executed by the auto-prune
 
 The following sections detail information about the auto-prune worker. 
 
-[id="auto-prune-task-creation"]
-=== Auto-prune-task-creation
+Auto-prune task creation:: When a new policy is created in the `namespaceautoprunepolicy` database table, a row is also created in the `autoprunetask` table. This is done in the same transaction. The auto-prune worker uses the entry in the `autoprunetask` table to identify which namespace it should execute policies for.
 
-When a new policy is created in the `namespaceautoprunepolicy` database table, a row is also created in the `autoprunetask` table. This is done in the same transaction. The auto-prune worker uses the entry in the `autoprunetask` table to identify which namespace it should execute policies for. 
-
-[id="auto-prune-worker-execution"]
-=== Auto-prune worker execution
+Auto-prune worker execution:: The auto-pruning worker is an asynchronous job that executes configured policies. Its workflow is based on values in the `autoprunetask` table. When a task begins, the following occurs: 
 
 The auto-pruning worker is an asynchronous job that executes configured policies. Its workflow is based on values in the `autoprunetask` table. When a task begins, the following occurs: 
 
 * The auto-prune worker starts on a set interval, which defaults at 30 seconds. 
 * The auto-prune worker selects a row from `autoprunetask` with the least, or null, `last_ran_ms` and `FOR UPDATE SKIP LOCKED`. 
 ** A null `last_ran_ms` indicates that the task was never ran. 
-** A task that hasn't been ran in he longest amount of time, or has never been run at all, is prioritized. 
+** A task that has not run for the longest amount of time, or has never been run at all, is prioritized. 
 
 * The auto-prune worker obtains the policy configuration from the `namespaceautoprunepolicy` table.
 ** If no policy configuration exists, the entry from `autoprunetask` is deleted for this namespace and the procedure stops immediately. 
