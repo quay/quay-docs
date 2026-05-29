@@ -1,0 +1,39 @@
+:_mod-docs-content-type: REFERENCE
+[id="rn-3-16-4"]
+= RHSA-2026:19375 - {productname} 3.16.4 release
+
+Issued 2026-05-19
+
+[role="_abstract"]
+{productname} release 3.16.4 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHSA-2026:19375[RHSA-2026:19375] advisory.
+
+[id="bug-fixes-316-4"]
+== {productname} 3.16.4 bug fixes
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11174[*PROJQUAY-11174*]. Previously, {productname} rejected RFC 9068 access tokens that use the `at+jwt` token type because `is_jwt()` did not recognize that `typ` value. As a result, authentication failed for clients that send standards-compliant access tokens.
++
+With this release, {productname} accepts RFC 9068 access tokens with `JWT` token type. As a result, OIDC and OAuth clients that use these tokens can authenticate successfully.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11579[*PROJQUAY-11579*]. Previously, the branding logo on the {productname} login page was nearly invisible in dark mode on self-hosted deployments. The logo used dark text against a dark background, so the product name was unreadable.
++
+With this release, the login page displays a logo that remains visible in both light and dark mode. As a result, branding is readable regardless of browser or OS theme settings.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11578[*PROJQUAY-11578*]. Previously, after the config tool migration, the {productname} Operator rejected a `configBundleSecret` that contained `PULL_METRICS_REDIS` when Redis was a managed component. The Operator reported that Redis was managed but the secret contained required Redis fields, which blocked deployment reconciliation.
++
+With this release, you can include `PULL_METRICS_REDIS` in the configuration when Redis is managed without triggering a managed-component conflict. As a result, Operator-based deployments reconcile successfully with pull-metrics Redis settings.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11544[*PROJQUAY-11544*]. Previously, the {productname} UI prompted OIDC users for a local password during user verification even though they signed in through an identity provider. Users without a local password in the database could not complete verification.
++
+With this release, the UI verifies OIDC users through the identity provider instead of requiring a local password. As a result, OIDC users can complete verification and continue using the registry.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11334[*PROJQUAY-11334*]. Previously, a malformed struct tag on `DistributedStorageArgs.Signature` caused storage configuration to serialize as `Signature` instead of `signature_version`. Operator-managed object storage deployments could fail during upgrade with `TypeError: RadosGWStorage.__init__() got an unexpected keyword argument 'Signature'`.
++
+With this release, the signature version field correctly and omits empty values. As a result, Operator-managed storage configurations load without upgrade failures.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10884[*PROJQUAY-10884*]. Previously, the {productname} UI used PatternFly 5 components. PatternFly 5 support is being removed from the {ocp} console ecosystem, which required a UI framework update.
++
+With this release, the {productname} UI is migrated to PatternFly 6. The UI remains compatible with current {ocp} console standards.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10872[*PROJQUAY-10872*]. Previously, `repositorygcworker` failed to delete images from storage when storage replication was enabled, returning `TypeError: Population must be a sequence`. Python 3.12 no longer allows `random.sample()` on a set, which left orphaned blobs in the storage backend.
++
+With this release, garbage collection passes a sequence to `random.sample()` when selecting storage locations. As a result, repository garbage collection removes replicated blobs and frees storage space.
