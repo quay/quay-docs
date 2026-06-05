@@ -1,0 +1,91 @@
+:_mod-docs-content-type: REFERENCE
+[id="rn-3-17-2"]
+= RHSA-2026:22465 - {productname} 3.17.2 release
+
+Issued 2026-06-02
+
+[role="_abstract"]
+{productname} release 3.17.2 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHSA-2026:22465[RHSA-2026:22465] advisory.
+
+[id="bug-fixes-317-2"]
+== {productname} 3.17.2 bug fixes
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11543[*PROJQUAY-11543*]. Previously, the {productname} UI prompted OIDC users for a local password during user verification even though they signed in through an identity provider. Users without a password in the database could not complete verification.
++
+With this release, the UI verifies OIDC users through the identity provider instead of requiring a local password. As a result, OIDC users can complete verification and continue using the registry.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11532[*PROJQUAY-11532*]. Previously, when {productname} returned a bad gateway response, nginx served HTTP 404 because the `502.html` error page was missing from the container image.
++
+With this release, the correct error page is included and nginx returns HTTP 502 for upstream failures. As a result, clients receive the expected status code when the registry is unavailable.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11523[*PROJQUAY-11523*]. Previously, changing a repository mirror tag pattern in the UI required re-entering credentials for private upstream repositories even when credentials were already stored.
++
+With this release, stored mirror credentials persist when you update tag patterns. As a result, you can adjust mirroring filters without repeating credential entry.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11504[*PROJQUAY-11504*]. Previously, canceling an in-progress repository mirror produced a log message that included `null Not applicable Not applicable` instead of a clear cancellation status.
++
+With this release, canceled mirror operations write a readable log entry. As a result, administrators can interpret mirror cancellation events in usage logs.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11502[*PROJQUAY-11502*]. Previously, searching for a repository that does not exist left a circular loading spinner on the page indefinitely.
++
+With this release, the UI stops loading and reports that no matching repository was found. As a result, search results display correctly for invalid repository names.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11485[*PROJQUAY-11485*]. Previously, the UI blocked creation of a proxy cache configuration when organization-level mirroring was disabled, even when proxy caching was allowed for the organization.
++
+With this release, you can configure proxy caching independently of organization mirroring settings. As a result, organizations can use proxy caches without enabling organization mirrors.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11442[*PROJQUAY-11442*]. Previously, the manifest history view displayed a vertical tracking line on pages where no tags shared the same digest.
++
+With this release, the UI shows the digest relationship line only when multiple tags reference the same manifest. As a result, the manifest history view is easier to read.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11414[*PROJQUAY-11414*]. Previously, canceling an organization mirror sync cleared the configured next sync date.
++
+With this release, canceling a sync retains the scheduled next sync time. As a result, organization mirrors resume on the expected schedule after cancellation.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11392[*PROJQUAY-11392*]. Previously, deleting an organization mirror configuration left affected repositories in the `ORG_MIRROR` state.
++
+With this release, repositories return to a normal state when organization mirror configuration is removed. As a result, repositories remain usable after mirror cleanup.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11374[*PROJQUAY-11374*]. Previously, you could not select the `None` permission option in the repository permissions dropdown when creating a robot account in the new UI.
++
+With this release, the `None` option is selectable in the create robot account dialog. As a result, you can assign repository permissions as intended.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11333[*PROJQUAY-11333*]. Previously, {productname} could submit non-image artifacts to Clair for vulnerability scanning.
++
+With this release, only supported image content is sent for scanning. As a result, Clair processes relevant container images without errors from unsupported artifact types.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11332[*PROJQUAY-11332*]. Previously, a malformed struct tag on `DistributedStorageArgs.Signature` caused storage configuration to serialize as `Signature` instead of `signature_version`. Operator-managed object storage deployments could fail during upgrade with `TypeError: RadosGWStorage.__init__() got an unexpected keyword argument 'Signature'`.
++
+With this release, the signature version field serializes correctly and omits empty values. As a result, Operator-managed storage configurations load without upgrade failures.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11330[*PROJQUAY-11330*]. Previously, the usage logs chart in the new UI did not include `change_tag_immutability` actions.
++
+With this release, tag immutability changes appear in usage logs. As a result, administrators can audit immutability policy updates from the UI.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11297[*PROJQUAY-11297*]. Previously, the branding logo on the {productname} login page was nearly invisible in dark mode on self-hosted deployments. The logo used dark text against a dark background, so the product name was unreadable.
++
+With this release, the login page displays a logo that remains visible in both light and dark mode. As a result, branding is readable regardless of browser or OS theme settings.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11236[*PROJQUAY-11236*]. Previously, text entered in the repository filter field appeared in unrelated UI locations on the page.
++
+With this release, filter input is scoped to the repository list. As a result, repository filtering behaves predictably in the new UI.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11205[*PROJQUAY-11205*]. Previously, {productname} rejected RFC 9068 access tokens that use the `at+jwt` token type because `is_jwt()` did not recognize that `typ` value. As a result, authentication failed for clients that send standards-compliant access tokens.
++
+With this release, {productname} accepts RFC 9068 access tokens with `at+jwt` token type. As a result, OIDC and OAuth clients that use these tokens can authenticate successfully.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11175[*PROJQUAY-11175*]. Previously, canceling an organization mirror sync generated a continuous stream of `Organization mirror sync failed - Sync cancelled` log messages.
++
+With this release, canceled organization mirror jobs stop logging repeated failure messages. As a result, usage logs remain readable after mirror cancellation.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11162[*PROJQUAY-11162*]. Previously, Clair's indexer could not clean up temporary files on filesystems that require `O_TMPFILE` support.
++
+With this release, Clair indexing uses `O_TMPFILE` for temporary file cleanup where supported. As a result, vulnerability indexing runs reliably on supported storage backends.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10873[*PROJQUAY-10873*]. Previously, if a rejected `securityContext` override was applied to the mirror component on a `QuayRegistry` CR, mirror pods terminated and could not be recreated while the invalid override remained in the spec.
++
+With this release, mirror deployments recover when unsupported `securityContext` overrides are removed or corrected. As a result, repository mirroring resumes after invalid security context changes.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-7340[*PROJQUAY-7340*]. Previously, skopeo commands generated by {productname} included passwords in plain text in command output or logs.
++
+With this release, credentials are handled without exposing passwords in skopeo command strings. As a result, mirror and copy operations do not leak secrets in logs.
