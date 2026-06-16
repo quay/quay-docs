@@ -1,0 +1,27 @@
+:_mod-docs-content-type: REFERENCE
+[id="rn-3-17-3"]
+= RHSA-2026:XXXXX - {productname} 3.17.3 release
+
+Issued YYYY-MM-DD
+
+[role="_abstract"]
+{productname} release 3.17.3 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHSA-2026:XXXXX[RHSA-2026:XXXXX] advisory.
+
+[id="bug-fixes-317-3"]
+== {productname} 3.17.3 bug fixes
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11668[*PROJQUAY-11668*]. Previously, the *Generate Access Token* page in the {productname} UI loaded external resources from `fonts.googleapis.com` and `netdna.bootstrapcdn.com`. In air-gapped environments, those requests timed out and the page took 30–40 seconds to render.
++
+With this release, the page no longer depends on external CDN or font resources. As a result, OAuth access token generation works promptly in disconnected deployments.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11586[*PROJQUAY-11586*]. Previously, when {productname} ran behind an {ocp} HAProxy ingress controller, usage logs recorded the ingress or load balancer IP address instead of the client source IP for push and pull operations.
++
+With this release, {productname} records the client IP address in action logs when deployed behind HAProxy ingress. As a result, administrators can audit registry activity by end-user source address.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10909[*PROJQUAY-10909*]. Previously, race conditions during blob deletion could remove data from storage while the database still referenced the blob. This could occur during proxy-cache placeholder blob cleanup or garbage collection, causing manifest pulls to fail.
++
+With this release, blob deletion is synchronized to prevent orphaned database references. As a result, image pulls remain reliable during concurrent garbage collection and proxy-cache operations.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-6975[*PROJQUAY-6975*]. Previously, you could not reuse the same email address for multiple organizations because the organization record required a unique internal email value.
++
+With this release, organizations support an optional *Contact Email* field that can be shared across multiple organizations. Organization notifications and recovery email are sent to the contact email when it is set. As a result, administrators who manage multiple organizations can use one notification address without creating duplicate internal organization emails.
