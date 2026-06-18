@@ -1,57 +1,28 @@
 :_mod-docs-content-type: PROCEDURE
-
+[id="deploying-quay-ha"]
 = Deploying {productname}
 
-To deploy the {productname} service on the nodes in your cluster, you use the same `Quay` container
-you used to create the configuration file. The differences here are that you:
+Deploy the {productname} service on each node in your cluster by mounting the shared `config.yaml` bundle and starting the registry container.
 
-* Identify directories where the configuration files and data are stored
-* Run the command with `--sysctl net.core.somaxconn=4096`
-* Don't use the `config` option or password
-
-For a basic setup, you can deploy on a single node; for high availability you probably want
-three or more nodes (for example, quay01, quay02, and quay03).
+For a basic setup, you can deploy on a single node. For high availability, deploy three or more nodes, for example `quay01`, `quay02`, and `quay03`.
 
 [NOTE]
 ====
-The resulting {productname} service will listen on regular port 8080 and SSL port 8443.
-This is different from previous releases of {productname}, which listened on
-standard ports 80 and 443, respectively.
-In this document, we map 8080 and 8443 to standard ports 80 and 443 on the host, respectively.
-Througout the rest of this document, we assume you have mapped the ports in this way.
+The resulting {productname} service listens on port `8080` for HTTP and port `8443` for HTTPS.
+This differs from earlier releases, which listened on ports `80` and `443` respectively.
+This guide maps `8080` and `8443` to standard ports `80` and `443` on the host.
 ====
 
-Here is what you do:
+.Procedure
 
-. **Create directories**: Create two directories to store configuration information and data on the host.
-For example:
-+
-....
-# mkdir -p /mnt/quay/config
-# #optional: if you don't choose to install an Object Store
-# mkdir -p /mnt/quay/storage
-....
+. On each {productname} node, confirm that `/mnt/quay/config` contains `config.yaml` and any required TLS certificate files from link:#configuring-quay-ha[Configuring {productname}].
 
-. **Copy config files**: Copy the tarball (`quay-config.tar.gz`) to the configuration directory
-and unpack it. For example:
-+
-....
-# cp quay-config.tar.gz /mnt/quay/config/
-# tar xvf quay-config.tar.gz
-config.yaml ssl.cert ssl.key
-....
-
-. **Deploy {productname}**:
-Having already authenticated to Quay.io
-(see link:https://access.redhat.com/solutions/3533201[Accessing {productname}])
-run {productname} as a container, as follows:
+. Deploy {productname} on the node. After you authenticate to `registry.redhat.io` (see link:https://access.redhat.com/solutions/3533201[Accessing {productname}]), run the following command:
 +
 [NOTE]
 ====
-Add `-e DEBUGLOG=true` to the `podman run` command line for
-the `Quay` container to enable debug level logging.
-Add `-e IGNORE_VALIDATION=true` to bypass validation during
-the startup process.
+Add `-e DEBUGLOG=true` to the `podman run` command line for the `Quay` container to enable debug-level logging.
+Add `-e IGNORE_VALIDATION=true` to bypass validation during the startup process.
 ====
 +
 [subs="verbatim,attributes"]
@@ -63,48 +34,37 @@ the startup process.
    -v /mnt/quay/storage:/datastorage:Z \
    -d {productrepo}/{quayimage}:{productminv}
 ----
++
+[NOTE]
+====
+Create `/mnt/quay/storage` on each node before running the registry container. Image blobs are stored in Ceph Object Gateway for this high availability example, but {productname} still uses `/datastorage` for the `storage_path` defined in `config.yaml`.
+====
 
-. **Open browser to UI**: Once the `Quay` container has started, go to your web browser and
-open the URL, to the node running the `Quay` container.
+. Open a browser to the URL of the node running the `Quay` container.
 
-. **Log into {productname}**: Using the superuser account you created during
-configuration, log in and make sure {productname} is working properly.
+. Log in to {productname} with the superuser account defined in `config.yaml` and confirm that the registry is working.
 
-. **Add more {productname} nodes**: At this point, you have the option of
-adding more nodes to this {productname} cluster by simply
-going to each node, then adding the tarball and starting the `Quay` container as just shown.
+. Repeat the deployment on the remaining {productname} nodes in the cluster.
 
-. **Add optional features**: To add more features to your {productname} cluster, such as
-Clair images scanning and Repository Mirroring, continue on to the next section.
+. Optional. To add Clair image scanning or repository mirroring, continue with the following sections.
 
 == Add Clair image scanning to {productname}
 
 Setting up and deploying Clair image scanning for your
-{productname} deployment is described in link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#clair-v4[Clair Security Scanning]
+{productname} deployment is described in link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#clair-v4[Clair Security Scanning].
 
 [[add-repo-mirroring]]
-== Add repository mirroring {productname}
+== Add repository mirroring to {productname}
+
 Enabling repository mirroring allows you to create container image repositories
-on your {productname} cluster that exactly match the content of a selected
-external registry, then sync the contents of those repositories on
-a regular schedule and on demand.
+on your {productname} cluster that match the content of a selected
+external registry, then sync those repositories on a regular schedule and on demand.
 
-To add the repository mirroring feature to your {productname} cluster:
+.Procedure
 
-* Run the repository mirroring worker. To do this, you start a quay pod with the
-`repomirror` option.
-* Select "Enable Repository Mirroring in the {productname} Setup tool.
-* Log into your {productname} Web UI and begin creating mirrored repositories
-as described in link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index[Repository Mirroring in {productname}].
+. Set `FEATURE_REPO_MIRROR: true` in your `config.yaml` file. For optional mirroring fields, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#enabling-repository-mirroring-quay[Enabling repository mirroring for {productname}].
 
-The following procedure assumes you already have a running
-{productname} cluster on an OpenShift platform, with the {productname} Setup
-container running in your browser:
-
-. **Start the repo mirroring worker**: Start the `Quay` container in `repomirror` mode.
-This example assumes you have configured TLS communications using a certificate
-that is currently stored in `/root/ca.crt`. If not, then remove the line that adds
-`/root/ca.crt` to the container:
+. Start the repository mirroring worker on a {productname} node:
 +
 [subs="verbatim,attributes"]
 ----
@@ -113,12 +73,9 @@ $ sudo podman run -d --name mirroring-worker \
   -v /root/ca.crt:/etc/pki/ca-trust/source/anchors/ca.crt \
   {productrepo}/{quayimage}:{productminv} repomirror
 ----
-. **Log into config tool**: Log into the {productname} Setup Web UI (config tool).
-. **Enable repository mirroring**: Scroll down the Repository Mirroring section
-and select the Enable Repository Mirroring check box, as shown here:
-. **Select HTTPS and cert verification**: If you want to require HTTPS
-communications and verify certificates during mirroring, select this check box.
-image:repo_mirror_config.png[Enable mirroring and require HTTPS and verified certificates]
-. **Save configuration**: Select the Save Configuration Changes button. Repository
-mirroring should now be enabled on your {productname} cluster. Refer to
-link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index[Repository Mirroring in {productname}] for details on setting up your own mirrored container image repositories.
++
+If you do not use a custom CA certificate, omit the `-v /root/ca.crt:...` line.
+
+. Restart the {productname} registry containers so they load the updated configuration.
+
+. Create mirrored repositories in the {productname} web UI as described in link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index[Repository Mirroring in {productname}].
