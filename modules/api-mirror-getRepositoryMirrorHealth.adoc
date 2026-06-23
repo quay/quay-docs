@@ -1,0 +1,102 @@
+:_mod-docs-content-type: REFERENCE
+
+
+= getRepositoryMirrorHealth
+Return health status for repository mirroring operations.
+
+[discrete]
+== GET /api/v1/repository/mirror/health
+
+**Authorizations:** oauth2_implicit (**super:user** for global queries; organization membership or user administration for namespace-scoped queries)
+
+Returns HTTP `200` when mirroring is healthy and HTTP `503` when unhealthy.
+
+This endpoint requires a fresh login. A validated OAuth or SSO token satisfies the check. A password-based browser session must be within `FRESH_LOGIN_TIMEOUT` (default: `10m`). Robot accounts cannot call this endpoint.
+
+Access control:
+
+* Without the `namespace` query parameter, the caller must be a superuser with full access, or a global read-only superuser.
+* With `namespace`, organization members can query their organization. For a user namespace, the caller must be that user or have user-admin permission. Superusers can query any namespace.
+
+For a global summary without per-repository samples, superusers can also call `GET /api/v1/superuser/mirror/health`. See link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getsuperuserrepositorymirrorhealth[getSuperUserRepositoryMirrorHealth].
+
+[discrete]
+== Query parameters
+
+[options="header", width=100%, cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|query|**namespace** +
+_optional_|Filter the health check to a specific namespace|string
+|query|**detailed** +
+_optional_|Include per-repository breakdown|boolean
+|query|**limit** +
+_optional_|Maximum repositories in the detailed response when `detailed=true` (default: 100, max: 1000)|integer
+|query|**offset** +
+_optional_|Offset into the sorted mirror list for paginated details (default: 0)|integer
+|===
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Mirroring is healthy|object
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Namespace not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|503|Mirroring is unhealthy|object
+|===
+
+[discrete]
+== Example commands
+
+Query health for a namespace that you can administer. Include `detailed=true` for a per-repository breakdown:
+
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/repository/mirror/health?namespace=<orgname>&detailed=true" \
+     -H "Authorization: Bearer <access_token>"
+----
+
+Query global mirror health as a superuser with full access:
+
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/repository/mirror/health" \
+     -H "Authorization: Bearer <access_token>"
+----
+
+Substitute an OAuth access token that includes the `super:user` scope for global queries. For namespace-scoped queries, use a token or fresh login session for an organization member or namespace administrator.
+
+.Example output
+[source,json]
+----
+{
+  "healthy": true,
+  "workers": {
+    "active": 1,
+    "configured": 1,
+    "status": "healthy"
+  },
+  "repositories": {
+    "total": 0,
+    "syncing": 0,
+    "completed": 0,
+    "failed": 0,
+    "never_run": 0,
+    "details": [],
+    "pagination": {
+      "limit": 100,
+      "offset": 0,
+      "has_more": false
+    }
+  },
+  "tags_pending": 0,
+  "last_check": "2026-07-16T20:11:54.820064Z",
+  "issues": []
+}
+----
+
+For metric names, example Prometheus queries, and health determination logic, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#mirroring-metrics-health[Monitoring repository mirroring].

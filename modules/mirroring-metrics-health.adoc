@@ -1,0 +1,114 @@
+:_mod-docs-content-type: REFERENCE
+[id="mirroring-metrics-health"]
+= Monitoring repository mirroring
+
+[role="_abstract"]
+{productname} exposes Prometheus metrics and a health API endpoint for repository mirroring. Use these tools to monitor synchronization progress, detect failures, and configure alerts in Prometheus or Grafana.
+
+Metrics are published from the mirror worker process through the existing Prometheus push gateway (typically port `9091`). The health API endpoint reads repository state from the database and, when available, worker metrics from the in-process Prometheus registry.
+
+[id="repository-mirror-prometheus-metrics"]
+== Repository mirror Prometheus metrics
+
+The following table describes the primary repository mirroring metrics added in {productname} 3.18.
+
+.Repository mirror metrics
+[cols="2a,1a,3a",options="header"]
+|===
+| Metric | Type | Description
+
+| `quay_repository_mirror_pending_tags`
+| Gauge
+| Number of tags pending synchronization. Labels: `namespace`, `repository`.
+
+| `quay_repository_mirror_last_sync_status`
+| Gauge
+| Status of the last synchronization attempt. Labels: `namespace`, `repository`, `last_error_reason`. Values: `0` (failed), `1` (success), `2` (in progress). Use `last_error_reason=""` for per-repository counts.
+
+| `quay_repository_mirror_sync_complete`
+| Gauge
+| Whether all tags synchronized in the last run. Labels: `namespace`, `repository`. Values: `0` (incomplete), `1` (complete).
+
+| `quay_repository_mirror_sync_failures_total`
+| Counter
+| Cumulative synchronization failures. Labels: `namespace`, `reason`.
+
+| `quay_repository_mirror_workers_active`
+| Gauge
+| Set to `1` while a mirror worker process is running. Sum across worker targets for total active workers.
+
+| `quay_repository_mirror_last_sync_timestamp`
+| Gauge
+| Unix timestamp when the last sync attempt started. Labels: `namespace`, `repository`.
+
+| `quay_repository_mirror_sync_duration_seconds`
+| Histogram
+| Sync operation duration aggregated by namespace.
+
+| `quay_repository_rows_unmirrored`
+| Gauge
+| Number of repositories not yet mirrored. Maintained for backward compatibility.
+|===
+
+[id="example-prometheus-queries-mirror"]
+== Example Prometheus queries
+
+Use the following example queries to monitor repository mirroring:
+
+.Failing repositories
+[source,terminal]
+----
+quay_repository_mirror_last_sync_status{last_error_reason=""} == 0
+----
+
+.Repositories that have not synced in over one hour
+[source,terminal]
+----
+(time() - quay_repository_mirror_last_sync_timestamp) > 3600
+----
+
+.Failure rate per namespace over five minutes
+[source,terminal]
+----
+rate(quay_repository_mirror_sync_failures_total[5m])
+----
+
+[id="repository-mirror-health-endpoint"]
+== Repository mirror health endpoint
+
+{productname} exposes two health endpoints for repository mirroring:
+
+* `GET /api/v1/repository/mirror/health` — namespace-scoped or global health. Without `namespace`, the caller must be a superuser with full access. With `namespace`, organization members can query their organization, and user-namespace owners or user administrators can query that namespace.
+* `GET /api/v1/superuser/mirror/health` — global summary for superusers, without repository-identifying issue samples.
+
+Both endpoints require a fresh login. A validated OAuth or SSO token satisfies the check. A password-based browser session must be within `FRESH_LOGIN_TIMEOUT` (default: `10m`).
+
+The responses include overall health, worker status, repository counts, pending tags, and any detected issues. HTTP `200` means healthy; HTTP `503` means unhealthy.
+
+Optional query parameters for `GET /api/v1/repository/mirror/health`:
+
+* `namespace` — limit results to one namespace
+* `detailed` — include per-repository details
+* `limit` and `offset` — paginate detailed results
+
+.Example: namespace health with details
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/repository/mirror/health?namespace=<orgname>&detailed=true" \
+     -H "Authorization: Bearer <access_token>"
+----
+
+.Example: global superuser summary
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/superuser/mirror/health" \
+     -H "Authorization: Bearer <access_token>"
+----
+
+For endpoint parameters, response schema, and authorization requirements, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getrepositorymirrorhealth[getRepositoryMirrorHealth] and link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getsuperuserrepositorymirrorhealth[getSuperUserRepositoryMirrorHealth].
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#monitoring-single-namespace[Enabling monitoring when the {productname} Operator is installed in a single namespace]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/release_notes/index#repository-mirror-metrics-health[Repository mirror metrics and health monitoring]
