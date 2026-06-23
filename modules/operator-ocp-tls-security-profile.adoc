@@ -1,0 +1,23 @@
+:_mod-docs-content-type: CONCEPT
+[id="operator-ocp-tls-security-profile"]
+= {ocp} cluster TLS security profile inheritance
+
+[role="_abstract"]
+When you deploy {productname-ocp}, the {productname} Operator can read the cluster-wide `tlsSecurityProfile` from the {ocp} `APIServer` cluster resource and apply the corresponding `SSL_PROTOCOLS` and `SSL_CIPHERS` settings to the registry and mirror workers. This aligns {productname} with the platform TLS policy without manual configuration.
+
+[id="how-tls-profile-inheritance-works"]
+== How TLS profile inheritance works
+
+The Operator reads `spec.tlsSecurityProfile` from the `APIServer` cluster resource and translates the profile into {productname} `SSL_PROTOCOLS` and `SSL_CIPHERS` values in the generated `config.yaml`. Supported profile types are `Old`, `Intermediate`, `Modern`, and `Custom`. If the cluster has no profile set, the Operator defaults to the `Intermediate` profile (TLS 1.2 and TLS 1.3).
+
+To fully override cluster-profile inheritance, set both `SSL_PROTOCOLS` and `SSL_CIPHERS` in the `configBundleSecret`. Setting either field disables inheritance for both fields. On Kubernetes clusters without the `config.openshift.io` API, the Operator does not inject TLS settings and {productname} uses its built-in defaults.
+
+[id="managed-unmanaged-tls-profile-inheritance"]
+== Managed TLS and unmanaged TLS
+
+How the cluster TLS security profile applies depends on whether the Operator or {productname} terminates TLS:
+
+* When the `tls` component is set to `managed`, the {ocp} Route enforces the cluster TLS profile. No additional TLS protocol or cipher configuration is required in the config bundle.
+* When the `tls` component is set to `unmanaged`, {productname} terminates TLS directly. When neither `SSL_PROTOCOLS` nor `SSL_CIPHERS` is set in the config bundle, {productname} inherits the cluster TLS security profile.
+
+For information about custom certificates with unmanaged TLS, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#operator-custom-ssl-certs-config-bundle[Configuring custom SSL/TLS certificates for {productname-ocp}].
