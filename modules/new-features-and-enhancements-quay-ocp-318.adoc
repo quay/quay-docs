@@ -4,5 +4,13 @@
 
 The following updates have been made to {productname-ocp}.
 
-[id="example_one"]
-== Example one
+[id="operator-sts-cco-unmanaged-s3"]
+== AWS STS authentication for unmanaged S3 storage on {product-rosa} and OpenShift Dedicated
+
+The {productname} Operator integrates with the {ocp} Cloud Credential Operator (CCO) so that `quay-app` pods can authenticate to AWS S3 without static access keys when `objectstorage` is set to `unmanaged`. This supports STS-enforced clusters, including {product-rosa} and OpenShift Dedicated, where IAM-role-only policies prohibit long-lived credentials.
+
+When you set the IAM role ARN on the Operator subscription (`ROLEARN`), the Operator detects STS-capable AWS clusters, creates a `CredentialRequest`, and mounts CCO-provisioned credentials into `quay-app` pods. Configure `S3Storage` in the config bundle with bucket and region details only — do not include `s3_access_key` or `s3_secret_key`.
+
+If `ROLEARN` is not set, existing installations are unchanged. The Operator blocks rollout with actionable conditions when credentials conflict or CCO provisioning fails.
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_operator_features/index#configuring-quay-sts-cco-s3-storage[Configuring AWS S3 storage with STS and the Cloud Credential Operator].

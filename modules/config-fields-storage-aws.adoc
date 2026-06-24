@@ -66,6 +66,30 @@ DISTRIBUTED_STORAGE_PREFERENCE:
 <3> The generated AWS S3 user secret key.
 <4> The Amazon Web Services region. Defaults to `us-east-1`.
 
+[id="config-fields-storage-aws-sts-cco"]
+== AWS S3 storage with Operator STS and CCO
+
+On STS-enabled AWS clusters, including {product-rosa} and OpenShift Dedicated, the {productname} Operator can provision short-lived credentials through the Cloud Credential Operator when you set the IAM role ARN on the Operator subscription and use unmanaged object storage. Use the `S3Storage` driver without `s3_access_key` or `s3_secret_key` in the config bundle.
+
+.AWS S3 storage with Operator STS example
+[source,yaml]
+----
+# ...
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+    - S3Storage
+    - host: s3.<region>.amazonaws.com
+      s3_bucket: <s3_bucket_name>
+      s3_region: <region>
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+  - default
+# ...
+----
+
+For installation and IAM role setup, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_operator_features/index#configuring-quay-sts-cco-s3-storage[Configuring AWS S3 storage with STS and the Cloud Credential Operator].
+
 [id="aws-cloudfront-storage-example"]
 == AWS CloudFront storage
 

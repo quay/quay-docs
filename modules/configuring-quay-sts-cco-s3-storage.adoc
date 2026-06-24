@@ -1,0 +1,132 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-quay-sts-cco-s3-storage"]
+= Configuring AWS S3 storage with STS and the Cloud Credential Operator
+
+[role="_abstract"]
+On STS-enabled {ocp} clusters on AWS, including {product-rosa}, and Red Hat OpenShift Dedicated, you can configure {productname-ocp} to use your own S3 bucket without static AWS access keys. Set the IAM role ARN on the {productname} Operator subscription, set `objectstorage` to `unmanaged`, and configure `S3Storage` in the config bundle without `s3_access_key` or `s3_secret_key`. The Operator creates a Cloud Credential Operator (CCO) `CredentialRequest` and mounts short-lived credentials into the `quay-app` pods.
+
+[NOTE]
+====
+This procedure requires {ocp} 4.14 or later on AWS with CCO in STS-compatible mode. It applies only when `objectstorage` is `unmanaged`. If `ROLEARN` is not set on the Operator subscription, existing installations are unchanged.
+====
+
+.Prerequisites
+
+* An STS-enabled AWS cluster ({product-rosa}, OpenShift Dedicated, or self-managed {ocp} on AWS).
+* An IAM role with an OIDC trust policy for the `quay-app` service account and permissions to access your S3 bucket.
+* A `QuayRegistry` with `objectstorage` set to `unmanaged`.
+* Cluster administrator access to install the Operator and edit the `configBundleSecret`.
+
+.Procedure
+
+. Get the cluster `serviceAccountIssuer` value:
++
+[source,terminal]
+----
+$ oc get authentication.config.openshift.io cluster -o jsonpath='{.spec.serviceAccountIssuer}' | sed -e 's|^https://||'
+----
++
+.Example output
+[source,terminal]
+----
+oidc.op1.openshiftapps.com/1234567890
+----
+
+. Create or update the IAM role trust policy so the `quay-app` service account can assume the role. Replace the account ID, OIDC provider path, namespace, and registry name with your values:
++
+[source,json]
+----
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<aws_account_id>:oidc-provider/<serviceAccountIssuer>"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "<serviceAccountIssuer>:sub": "system:serviceaccount:<quay_namespace>:<registry_name>-quay-app"
+        }
+      }
+    }
+  ]
+}
+----
+
+. Attach an IAM policy that grants the S3 permissions required by {productname}, including `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, `s3:ListBucket`, `s3:GetBucketLocation`, `s3:ListBucketMultipartUploads`, `s3:AbortMultipartUpload`, and `s3:ListMultipartUploadParts`.
+
+. Install or upgrade the {productname} Operator and set the **Role ARN** field to your IAM role ARN. The Operator exposes this field when AWS token authentication is enabled on the cluster. Alternatively, set the `ROLEARN` environment variable on the Operator subscription.
+
+. Configure your `QuayRegistry` with unmanaged object storage:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: <registry_name>
+  namespace: <quay_namespace>
+spec:
+  components:
+    - kind: objectstorage
+      managed: false
+  configBundleSecret: <config_bundle_secret_name>
+----
+
+. Update the `config.yaml` file in your `configBundleSecret` to use `S3Storage` without static credentials:
++
+[source,yaml]
+----
+# ...
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+    - S3Storage
+    - host: s3.<region>.amazonaws.com
+      s3_bucket: <s3_bucket_name>
+      s3_region: <region>
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+  - default
+# ...
+----
++
+[IMPORTANT]
+====
+Do not set `s3_access_key` or `s3_secret_key` in the config bundle when using the Operator STS path. If static AWS keys are present while `ROLEARN` is set, the Operator sets `RolloutBlocked` with reason `ConflictingCredentials`.
+====
+
+. Wait for the Operator to create and provision the CCO `CredentialRequest`. Verify the request and secret:
++
+[source,terminal]
+----
+$ oc get credentialsrequest -n <quay_namespace>
+----
++
+[source,terminal]
+----
+$ oc get secret <registry_name>-quay-app-aws -n <quay_namespace>
+----
+
+. Verify the `QuayRegistry` is available and not blocked:
++
+[source,terminal]
+----
+$ oc get quayregistry <registry_name> -n <quay_namespace> -o jsonpath='{.status.conditions[?(@.type=="Available")].status}{"\n"}'
+----
++
+If the `QuayRegistry` resource is unavailable, check for the following conditions:
++
+`CredentialRequestNotProvisioned`:: CCO has not yet provisioned credentials, or the IAM role or trust policy is misconfigured. Verify the `CredentialRequest` status and IAM role configuration.
++
+`ConflictingCredentials`:: Remove `s3_access_key` and `s3_secret_key` from `DISTRIBUTED_STORAGE_CONFIG` in the config bundle.
+
+. Push and pull an image to confirm S3 access through STS credentials.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-storage-aws-sts-cco[AWS S3 storage with Operator STS and CCO]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws/4/html/authentication_and_authorization/assuming-an-aws-iam-role-for-a-service-account[Assuming an AWS IAM role for a service account on {product-rosa}]
