@@ -3,11 +3,21 @@
 = Volume size overrides
 
 [role="_abstract"]
-Volume size overrides let you specify the desired size of storage resources for managed components in your {productname} deployment. You can set larger volumes upfront for performance reasons or when your storage backend does not support resizing.
+Volume size overrides let you specify the desired capacity and storage class for managed components that use persistent or ephemeral volumes in your {productname} deployment. You can set larger volumes upfront for performance reasons or when your storage backend does not support resizing.
 
-The default size for Clair and the PostgreSQL databases is `50Gi`.
+The default size for the managed `postgres` and `clairpostgres` persistent volumes is `50Gi`. The default size for the managed `clair` ephemeral scratch volume is `20Gi`.
 
-In the following example, the volume size for the Clair and the Quay PostgreSQL databases has been set to `70Gi`:
+Use `overrides.volumeSize` and `overrides.storageClassName` on the `postgres`, `clairpostgres`, and `clair` components in the `QuayRegistry` custom resource. For `postgres` and `clairpostgres`, set these overrides during initial installation of the component. Changing `storageClassName` after a database PVC is created is not supported.
+
+[NOTE]
+====
+To expand database storage on an existing deployment, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_operator_features/index#operator-resize-storage[Resizing managed storage].
+====
+
+In the following example, storage overrides are applied to three managed components:
+
+* On `clair`, `volumeSize` and `storageClassName` configure ephemeral scratch storage for image layer extraction at `/var/tmp`.
+* On `postgres` and `clairpostgres`, `volumeSize` and `storageClassName` configure the managed PostgreSQL database persistent volumes.
 
 [source,yaml]
 ----
@@ -28,13 +38,25 @@ spec:
     - kind: clair
       managed: true
       overrides:
-        volumeSize: 70Gi
+        volumeSize: 50Gi
+        storageClassName: fast-ssd
     - kind: postgres
       managed: true
       overrides:
         volumeSize: 70Gi
+        storageClassName: local-path
     - kind: clairpostgres
       managed: true
       overrides:
         volumeSize: 70Gi
+        storageClassName: local-path
 ----
+
+where:
+
+`spec.components.clair.overrides.volumeSize`:: Specifies the desired capacity for the ephemeral scratch volume.
+`spec.components.clair.overrides.storageClassName`:: Specifies the storage class to use for the ephemeral scratch volume.
+`spec.components.postgres.overrides.volumeSize`:: Specifies the desired capacity for the database persistent volume.
+`spec.components.postgres.overrides.storageClassName`:: Specifies the storage class to use for the database persistent volume.
+`spec.components.clairpostgres.overrides.volumeSize`:: Specifies the desired capacity for the database persistent volume.
+`spec.components.clairpostgres.overrides.storageClassName`:: Specifies the storage class to use for the database persistent volume.
