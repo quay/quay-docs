@@ -1,0 +1,47 @@
+:_mod-docs-content-type: REFERENCE
+[id="operator-managed-postgres-tls"]
+= TLS encryption for Operator-managed PostgreSQL
+
+[role="_abstract"]
+You can enable TLS encryption for Operator-managed PostgreSQL databases used by {productname} and Clair. Configure TLS through the `overrides.tls` fields on the `postgres` and `clairpostgres` components in the `QuayRegistry` custom resource.
+
+[IMPORTANT]
+====
+This feature configures transport encryption for Operator-managed PostgreSQL connections. It is distinct from the managed `tls` component, which handles {productname}'s external HTTPS endpoint.
+====
+
+When TLS is enabled, the Operator configures PostgreSQL to accept encrypted connections and mounts the TLS certificates on the database pod. TLS is opt-in. Existing deployments continue to use unencrypted database connections until you explicitly enable it.
+
+[NOTE]
+====
+After you enable TLS, confirm that PostgreSQL reports `ssl = on`. Optionally verify that {productname} or Clair client sessions appear in `pg_stat_ssl`, or that the registry database URI includes an `sslmode` setting such as `verify-full`, depending on your Operator version and configuration.
+====
+
+You can enable TLS independently for the `postgres` and `clairpostgres` components.
+
+[id="operator-managed-postgres-tls-cert-options"]
+== Certificate options
+
+.Operator-managed PostgreSQL TLS certificate sources
+[cols="2a,3a",options="header"]
+|===
+| Option | Description
+
+| {ocp} Service CA (default on {ocp})
+| When you set `overrides.tls.enabled: true` without a `secretRef`, the Operator uses the {ocp} Service CA on clusters that support Routes. The Operator annotates the PostgreSQL Service with `service.beta.openshift.io/serving-cert-secret-name` and mounts the generated serving certificate.
+
+| Operator-generated self-signed certificates
+| On Kubernetes clusters without the {ocp} Service CA, the Operator generates ECDSA P-256 certificates with a 10-year validity period when no `secretRef` is provided.
+
+| User-provided or cert-manager certificates
+| Reference a Secret containing `ca.crt`, `tls.crt`, and `tls.key` by using `overrides.tls.secretRef.name`. This format is compatible with cert-manager output. When the referenced Secret changes, the Operator reconciles the deployment.
+|===
+
+[NOTE]
+====
+This feature does not provide mutual TLS (mTLS) or automatic certificate rotation. To integrate with enterprise PKI or automate rotation, use `secretRef` with cert-manager or your own certificate management process.
+====
+
+.Additional resources
+
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.22/html/security_and_compliance/cert-manager-operator-for-red-hat-openshift[cert-manager Operator for Red Hat OpenShift]
