@@ -39,3 +39,31 @@ For information about custom certificates and the config bundle, see link:https:
 For more information about NIST post-quantum cryptography standards, see link:https://csrc.nist.gov/projects/post-quantum-cryptography[Post-Quantum Cryptography]. 
 
 For the latest compliance information for OpenShift Container Platform, RHEL, and Red Hat Enterprise Linux CoreOS (RHCOS), see link:https://access.redhat.com/articles/2918071[Compliance Activities and Government Standards].
+
+[id="redis-component-resource-overrides"]
+== Redis component resource overrides
+
+With this release, you can override CPU and memory requests and limits for the Operator-managed `redis` component in the `QuayRegistry` custom resource. This brings `redis` in line with other managed components, such as `quay`, `clair`, `mirror`, and `postgres`, that already support resource overrides through `spec.components[].overrides.resources`.
+
+When you do not set resource overrides for `redis`, the Operator uses the following defaults:
+
+* Requests: `500m` CPU and `1Gi` memory
+* Limits: `4000m` CPU and `16Gi` memory
+
+For example, to tune Redis resources for a smaller cluster, add an entry like the following under `spec.components`:
+
+[source,yaml]
+----
+    - kind: redis
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: 400m
+            memory: 400Mi
+          requests:
+            cpu: 400m
+            memory: 400Mi
+----
+
+For more information about configuring resource requests and limits, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploy_red_hat_quay_operator/index#configuring-resources-managed-components[Configuring QuayRegistry CR resources].
