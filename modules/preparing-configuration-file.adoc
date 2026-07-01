@@ -1,0 +1,57 @@
+:_mod-docs-content-type: PROCEDURE
+[id="preparing-configuration-file"]
+= Preparing the YAML configuration file by using the CLI
+
+[role="_abstract"]
+To prepare your proof of concept {productname} deployment for launch, you can create a `config.yaml` file with database, Redis, and storage settings and copy it to your configuration directory. You can use the CLI to build the configuration bundle that the registry container reads at startup.
+
+.Procedure
+
+. Enter the following command to create a minimal `config.yaml` file that is used to deploy the {productname} container:
++
+[source,terminal]
+----
+$ touch config.yaml
+----
+
+. Copy and paste the following YAML configuration into the `config.yaml` file:
++
+[source,yaml]
+----
+BUILDLOGS_REDIS:
+    host: quay-server.example.com
+    password: strongpassword
+    port: 6379
+CREATE_NAMESPACE_ON_PUSH: true
+DATABASE_SECRET_KEY: a8c2744b-7004-4af2-bcee-e417e7bdd235
+DB_URI: postgresql://quayuser:quaypass@quay-server.example.com:5432/quay
+DISTRIBUTED_STORAGE_CONFIG:
+    default:
+        - LocalStorage
+        - storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+FEATURE_MAILING: false
+SECRET_KEY: e9bd34f4-900c-436a-979e-7530e5d74ac8
+SERVER_HOSTNAME: quay-server.example.com
+SETUP_COMPLETE: true
+USER_EVENTS_REDIS:
+    host: quay-server.example.com
+    password: strongpassword
+    port: 6379
+----
+
+. Create a directory to copy the {productname} configuration bundle to:
++
+[source,terminal]
+----
+$ mkdir $QUAY/config
+----
+
+. Copy the {productname} configuration file to the directory:
++
+[source,terminal]
+----
+$ cp -v config.yaml $QUAY/config
+----

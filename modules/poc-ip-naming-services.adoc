@@ -1,0 +1,50 @@
+:_mod-docs-content-type: CONCEPT
+[id="poc-ip-naming-services"]
+= IP addressing and naming services for a proof of concept deployment
+
+[role="_abstract"]
+Container networking for a proof of concept {productname} deployment can use naming services, host networking, or port mapping. This guide uses port mapping with a static host IP address.
+
+You can configure the component containers in {productname} to communicate with each other in several ways, for example:
+
+* **Using a naming service**. If you want your deployment to survive container restarts, which typically result in changed IP addresses, you can implement a naming service. For example, the `dnsname` plugin allows containers to resolve each other by name.
+
+* **Using the host network**. You can use the `podman run` command with the `--net=host` option and then use container ports on the host when specifying the addresses in the configuration. This option is susceptible to port conflicts when two containers want to use the same port. This method is not recommended.
+
+* **Configuring port mapping**. You can use port mappings to expose ports on the host and then use these ports in combination with the host IP address or host name.
+
+This document uses port mapping and assumes a static IP address for your host system.
+
+.Sample proof of concept port mapping
+[%header, cols="2,1,1"]
+|===
+|Component
+|Port mapping
+|Address
+
+|Quay
+|`-p 80:8080` `-p 443:8443`
+|\http://quay-server.example.com
+
+|Postgres for Quay
+|`-p 5432:5432`
+|quay-server.example.com:5432
+
+|Redis
+|`-p 6379:6379`
+|quay-server.example.com:6379
+
+|Postgres for Clair V4
+|`-p 5433:5432`
+|quay-server.example.com:5433
+
+|Clair V4
+|`-p 8081:8080`
+|\http://quay-server.example.com:8081
+
+|===
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://github.com/containers/dnsname[dnsname]
