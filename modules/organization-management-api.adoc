@@ -4,3 +4,40 @@
 = Establishing quota with the {productname} API
 
 Organizations can be created and managed through API endpoints. With the {productname} API, you can create organizations, view organization information, create proxy caches for an organization, edit users with access to the organization, change organization details, delete organizations, and more.
+
+Use the `contact_email` field to set or update the email address for receiving automated system alerts (quota warnings, security notifications, build failures).
+
+.Procedure
+
+. Set the contact email when creating an organization:
++
+[source,terminal]
+----
+$ curl -X POST \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+-d '{"name": "engineering", "contact_email": "team@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/"
+----
+
+. Update the contact email for an existing organization:
++
+[source,terminal]
+----
+$ curl -X PUT \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+-d '{"contact_email": "new-team@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+. Remove the contact email (notifications will default to organization owners):
++
+[source,terminal]
+----
+$ curl -X PUT \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+-d '{"contact_email": null}' \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----

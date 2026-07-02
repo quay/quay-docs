@@ -22,6 +22,25 @@ ifeval::["{context}" == "use-quay"]
 {productname},
 endif::[]
 each repository requires a connection with either an _Organization_ or a _User_. This affiliation defines ownership and access control for the repositories.
+ 
+== Organization account architecture
+
+In {productname}, Organizations are architecturally implemented as a specialized type of user account. This design allows Organizations to share the same underlying account infrastructure as individual users, but it introduces specific considerations for email configuration:
+
+* **Account email (internal)**: Organizations have an internal account identifier email that is part of the underlying user account table. This field enforces a global uniqueness constraint across all users and organizations in the {productname} deployment.
+
+* **Contact email (recommended)**: Organizations have a separate `contact_email` field that is decoupled from the account identifier. This field is specifically designed for receiving automated system alerts, notifications, and recovery communications. Multiple organizations can share the same contact email address without conflicts.
+
+[IMPORTANT]
+====
+When creating or managing organizations, use the `contact_email` field for notification purposes rather than relying on the account email. The contact email field:
+
+* Does not enforce global uniqueness, allowing teams to use shared distribution lists.
+* Prevents authentication conflicts when an email for an organization matches an email from a user.
+* Ensures reliable delivery of quota warnings, security alerts, and other system notifications.
+====
+
+The distinction between these email fields addresses a common issue where organizations were forced to use dummy or fake email addresses to avoid account collision errors, which resulted in undelivered notifications.
 
 ////
 [discrete]

@@ -21,14 +21,15 @@ Description of a new organization.
 [options="header", width=100%, cols=".^3a,.^9a,.^4a"]
 |===
 |Name|Description|Schema
-|**name** + 
+|**name** +
 _required_|Organization username|string
-|**email** + 
-_optional_|Organization contact email|string
-|**recaptcha_response** + 
+|**email** +
+_optional_|*Deprecated.* Legacy organization contact email field. For backward compatibility only. Use `contact_email` instead. If provided without `contact_email`, the value is copied to `contact_email`. If both are provided, `contact_email` takes precedence.|string
+|**contact_email** +
+_optional_|Central email address for receiving automated system alerts such as quota warnings, security notifications, and build failures. Multiple organizations can share the same contact email address (for example, a team distribution list). This field is decoupled from individual user account identities and does not enforce a global uniqueness constraint, eliminating authentication failures and account collision errors. If not specified, notifications default to the organization creator and owners.|string or null
+|**recaptcha_response** +
 _optional_|The (may be disabled) recaptcha response code for verification|string
 |===
-
 
 [discrete]
 == Responses
@@ -43,13 +44,92 @@ _optional_|The (may be disabled) recaptcha response code for verification|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+== Best practices
+
+When creating organizations, consider the following:
+
+* **Use contact_email for reliability**: Always specify a `contact_email` to ensure automated notifications (quota warnings, security alerts, build failures) are delivered to a
+monitored inbox.
+
+* **Share emails across organizations**: Multiple organizations can use the same `contact_email` address. This is useful for teams managing multiple namespaces who want all alerts
+sent to a shared distribution list.
+
+* **Avoid dummy emails**: The `contact_email` field eliminates the need for fake or dummy email addresses that were previously required to avoid account collision errors.
+
+* **Optional email field**: If `contact_email` is not specified, notifications automatically default to the organization creator and owners. This is suitable for small teams where
+individual notifications are preferred.
+
 
 [discrete]
-== Example command
+== Example 1: Create organization with contact email (recommended)
 
 [source,terminal]
 ----
-$ curl -X POST   -H "Authorization: Bearer <bearer_token>" -H "Content-Type: application/json"   -d '{
-    "name": "<new_organization_name>"
-  }'   "https://<quay-server.example.com>/api/v1/organization/"
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "engineering",
+    "contact_email": "team-notifications@example.com"
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/"
 ----
+
+This is the recommended approach. Notifications for quota warnings, security alerts, and other system events are sent to `team-notifications@example.com`.
+
+[discrete]
+== Example 2: Create organization without email (notifications default to owners)
+
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "engineering"
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/"
+----
+
+When no email is specified, automated notifications are sent to the organization creator and owners.
+
+[discrete]
+== Example 3: Create organization with shared team email
+
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "engineering",
+    "contact_email": "devops-team@example.com"
+  "https://<quay-server.example.com>/api/v1/organization/"
+
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "qa-team",
+    "contact_email": "devops-team@example.com"
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/"
+----
+
+Multiple organizations can share the same `contact_email` without conflicts. Both `engineering` and `qa-team` organizations receive notifications at `devops-team@example.com`.
+
+[discrete]
+== Example 4: Legacy email parameter (backward compatibility)
+
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "engineering",
+    "email": "team-notifications@example.com"
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/"
+----
+

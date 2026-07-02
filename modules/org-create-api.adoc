@@ -16,19 +16,34 @@ Use the following procedure to create a new organization using the {productname}
 
 . Enter the following command to create a new organization using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createorganization[`POST /api/v1/organization/`] endpoint:
 +
-[source,terminal]
-----
-$ curl -X POST   -H "Authorization: Bearer <bearer_token>" -H "Content-Type: application/json"   -d '{
-    "name": "<new_organization_name>"
-  }'   "https://<quay-server.example.com>/api/v1/organization/"
-----
-+
-Example output
+*With contact_email (recommended):*
 +
 [source,terminal]
 ----
-"Created"
+$ curl -X POST -H "Authorization: Bearer <bearer_token>" -H "Content-Type: application/json" \
+  -d '{"name": "engineering", "contact_email": "team@example.com"}' \
+  "https://<quay-server.example.com>/api/v1/organization/"
 ----
++
+*Without email (notifications default to owners):*
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <bearer_token>" -H "Content-Type: application/json" \
+  -d '{"name": "engineering"}' \
+  "https://<quay-server.example.com>/api/v1/organization/"
+----
++
+*With both email fields (contact_email takes precedence):*
++
+[source,terminal]
+----
+$ curl -X POST -H "Authorization: Bearer <bearer_token>" -H "Content-Type: application/json" \
+  -d '{"name": "engineering", "email": "old@example.com", "contact_email": "team@example.com"}' \
+  "https://<quay-server.example.com>/api/v1/organization/"
+----
++
+Example output: `"Created"`
 
 . After creation, organization details can be changed, such as adding an email address, with the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#changeorganizationdetails[`PUT /api/v1/organization/{orgname}`] command. For example: 
 +

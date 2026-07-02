@@ -31,16 +31,22 @@ Description of updates for an existing organization
 [options="header", width=100%, cols=".^3a,.^9a,.^4a"]
 |===
 |Name|Description|Schema
-|**email** + 
-_optional_|Organization contact email|string
-|**invoice_email** + 
+|**email** +
+_optional_|*Deprecated.* Legacy organization contact email field. For backward compatibility only. Use `contact_email`
+instead. If provided without `contact_email`, the value is copied to `contact_email`. If both are provided, `contact_email`
+takes precedence.|string
+|**contact_email** +
+_optional_|Central email address for receiving automated system alerts such as quota warnings, security notifications, and
+build failures. Multiple organizations can share the same contact email address. This field is decoupled from individual user
+account identities and does not enforce a global uniqueness constraint. Set to `null` or empty string to remove the contact
+email (notifications will default to organization owners).|string or null
+|**invoice_email** +
 _optional_|Whether the organization desires to receive emails for invoices|boolean
-|**invoice_email_address** + 
-_optional_|The email address at which to receive invoices|
-|**tag_expiration_s** + 
+|**invoice_email_address** +
+_optional_|The email address at which to receive invoices|string or null
+|**tag_expiration_s** +
 _optional_|The number of seconds for tag expiration|integer
 |===
-
 
 [discrete]
 == Responses
@@ -55,11 +61,159 @@ _optional_|The number of seconds for tag expiration|integer
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
-[discrete]
-== Example command
+A successful update (HTTP 200) returns the updated organization details, including the new `contact_email` value:
 
+[source,json]
+----
+{
+  "name": "engineering",
+  "email": "team-notifications@example.com",
+  "contact_email": "team-notifications@example.com",
+  "avatar": {
+    "name": "engineering",
+    "hash": "abc123...",
+    "color": "#ff0000",
+    "kind": "user"
+  },
+  "is_admin": true,
+  "is_member": true,
+  "teams": {...},
+  "ordered_teams": ["owners", "developers"],
+  "invoice_email": false,
+  "invoice_email_address": null,
+  "tag_expiration_s": 1209600,
+  "is_free_account": true
+} 
+----
+
+== Best practices
+
+When updating organization details, consider the following:
+
+* **Use contact_email for system notifications**: The `contact_email` field is specifically for automated system alerts (quota warnings, security notifications, build failures). Use `invoice_email_address` for billing communications.
+
+* **Share emails across organizations**: Multiple organizations can use the same `contact_email` address. This is useful for teams managing multiple namespaces who want all alerts sent to a shared distribution list.
+
+* **Remove contact_email when needed**: Set `contact_email` to `null` or an empty string to remove it. When no contact email is specified, notifications automatically default to organization owners.
+
+* **Validate email addresses**: Ensure the email address is valid and monitored. Invalid email addresses will be rejected by the API.
+
+
+== Example commands
+
+[discrete]
+== Example 1: Set or change the contact email
+
+[source,terminal]
 ----
 $ curl -X PUT \
   -H "Authorization: Bearer <bearer_token>" \
-  "<quay-server.example.com>/api/v1/organization/<organization_name>"
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_email": "new-team-notifications@example.com"
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+Changes the contact email of the organization to `new-team-notifications@example.com`. All automated notifications (quota warnings, security alerts, build failures) are sent to this address.
+
+[discrete]
+== Example 2: Remove the contact email (notifications default to owners)
+
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_email": null
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+Or if using an empty string, enter the following command:
+
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_email": ""
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+Removes the contact email. Automated notifications get sent to organization owners instead.
+
+[discrete]
+== Example 3: Update contact email and tag expiration
+
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_email": "devops-team@example.com",
+    "tag_expiration_s": 2592000
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+Updates multiple organization settings in a single request. Sets the contact email to `devops-team@example.com` and tag expiration to 30 days (2592000 seconds).
+
+[discrete]
+== Example 4: Share contact email across multiple organizations
+
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_email": "shared-alerts@example.com"
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/engineering"
+
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_email": "shared-alerts@example.com"
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/qa-team"
+----
+
+Example receives notifications at `shared-alerts@example.com`.
+
+[discrete]
+== Example 5: Update invoice email settings
+
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "invoice_email": true,
+    "invoice_email_address": "billing@example.com"
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+Enables invoice emails and sets the invoice email address. Note that `invoice_email_address` is separate from `contact_email` and is used specifically for billing communications.
+
+[discrete]
+== Example 6: Legacy email parameter (backward compatibility)
+
+[source,terminal]
+----
+$ curl -X PUT \
+  -H "Authorization: Bearer <bearer_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "team-notifications@example.com"
+  }' \
+  "https://<quay-server.example.com>/api/v1/organization/engineering"
 ----

@@ -34,6 +34,58 @@ _required_|The name of the organization|string
 |404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 
+== Response body schema (application/json)
+
+[options="header", width=100%, cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|**name**|Organization name|string
+|**email**|For backward compatibility, returns the value of `contact_email` (or empty string if null). Visible only to org admins and superusers.|string
+|**contact_email**|Email address for receiving automated system alerts (quota warnings, security notifications). Can be shared across multiple organizations. Returns `null` if not configured (notifications default to org owners). Visible only to org admins and superusers.|string or null
+|**avatar**|Avatar information for the organization.|object
+|**is_admin**|Determines if the current user is an admin of the organization.|boolean
+|**is_member**|Determines if the current user is a member of the organization.|boolean
+|**teams**|If the user is a member of the organization, states the team within the organization.|object
+|**ordered_teams**|Alphabetically ordered list of team names.|array of strings
+|**invoice_email**|Determines if an invoice email is set.|boolean
+|**invoice_email_address**|If set, specifies the invoice email address.|string or null
+|**tag_expiration_s**|Tag expiration time in seconds.|integer
+|**is_free_account**|Specifies a free account.|boolean
+|===
+
+[discrete]
+== Example response (200 OK)
+
+[source,json]
+----
+{
+  "name": "myorg",
+  "email": "team-notifications@example.com",
+  "contact_email": "team-notifications@example.com",
+  "avatar": {
+    "name": "myorg",
+    "hash": "abc123...",
+    "color": "#ff0000",
+    "kind": "user"
+  },
+  "is_admin": true,
+  "is_member": true,
+  "teams": {
+    "owners": {
+      "avatar": {...},
+      "can_view": true,
+      "repo_count": 5,
+      "member_count": 3
+    }
+  },
+  "ordered_teams": ["owners", "developers"],
+  "invoice_email": false,
+  "invoice_email_address": null,
+  "tag_expiration_s": 1209600,
+  "is_free_account": true
+}
+----
+
 [discrete]
 == Example command
 
@@ -43,3 +95,25 @@ $ curl -X GET \
   -H "Authorization: Bearer <bearer_token>" \
   "<quay-server.example.com>/api/v1/organization/<organization_name>"
 ----
+
+[discrete]
+== Example response when contact_email is not set
+
+[source,json]
+----
+{
+  "name": "myorg",
+  "email": "",
+  "contact_email": null,
+  "avatar": { ... },
+  "is_admin": true,
+  "is_member": true,
+  "teams": { ... },
+  "ordered_teams": ["owners"],
+  "invoice_email": false,
+  "invoice_email_address": null,
+  "tag_expiration_s": 1209600,
+  "is_free_account": true
+}
+----
+
