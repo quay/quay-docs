@@ -1,0 +1,105 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="org-contact-email-api-change"]
+= Managing organization contact email with the API
+
+[role="_abstract"]
+Use the `contact_email` field to configure where automated system alerts are sent for an organization. This field is decoupled from user account identities, allowing multiple organizations to share the same email address without authentication conflicts.
+
+The `contact_email` field has the following properties:
+
+* Receives automated notifications including quota warnings, security alerts, and build failures
+* Can be shared across multiple organizations (useful for team distribution lists)
+* An optional field so if not set, notifications default to organization owners
+* Does not enforce global uniqueness constraints
+
+[NOTE]
+====
+Before the `contact_email` field, organizations were forced to use unique dummy email addresses to avoid account collision errors. This resulted in undelivered notifications. Always use a real, monitored email address for the `contact_email` field.
+====
+
+.Prerequisites
+
+* You have link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/inde
+x#creating-oauth-access-token[Created an OAuth access token].
+* You have organization administrator permissions.
+
+.Procedure
+
+* To retrieve the current contact email, use the following `GET /api/v1/organization/{orgname}` endpoint:
++
+[source,terminal]
+----
+$ curl -X GET \
+-H "Authorization: Bearer <bearer_token>" \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----
++
+.Example response
+[source,json]
+----
+{
+"name": "engineering",
+"email": "team-notifications@example.com",
+"contact_email": "team-notifications@example.com",
+"is_admin": true,
+...
+}
+----
++
+When `contact_email` is not set, the response returns `null` and `email` returns an empty string.
+
+* To set the contact email when creating an organization, use the following `POST /api/v1/organization/` endpoint:
++
+[source,terminal]
+----
+$ curl -X POST \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+-d '{"name": "engineering", "contact_email": "team-alerts@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/"
+----
+
+* To change the contact email for an existing organization, use the following `PUT /api/v1/organization/{orgname}` endpoint:
++
+[source,terminal]
+----
+$ curl -X PUT \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+-d '{"contact_email": "new-team-alerts@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+* To remove the contact email, set the `contact_email` field to `null`. Notifications then default to organization owners.
++
+[source,terminal]
+----
+$ curl -X PUT \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+-d '{"contact_email": null}' \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+* If you want multiple organizations to use the same `contact_email` address, use team distribution lists. These lists can send all alerts for multiple namespaces to a single shared inbox.
++
+[source,terminal]
+----
+$ curl -X PUT -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+-d '{"contact_email": "devops-team@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----
++
+[source,terminal]
+----
+$ curl -X PUT -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+-d '{"contact_email": "devops-team@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/qa-team"
+----
++
+The command examples show that both `engineering` and `qa-team` receive notifications at `devops-team@example.com`.
+
