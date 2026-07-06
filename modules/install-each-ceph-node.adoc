@@ -1,0 +1,60 @@
+:_mod-docs-content-type: PROCEDURE
+[id="install-each-ceph-node"]
+= Installing each Ceph node
+
+[role="_abstract"]
+To prepare Ceph nodes for a {productname} deployment, you can verify prerequisites, configure OSD storage, install RHEL, and create an Ansible administration user on each node.
+
+.Procedure
+
+. Review prerequisites for setting up Ceph nodes in _Additional resources_. In particular:
++
+* Decide if you want to use RAID controllers on OSD nodes.
++
+* Decide if you want a separate cluster network for your Ceph network configuration.
+
+. Prepare OSD storage (ceph01, ceph02, and ceph03 only). Set up the OSD storage
+on the three OSD nodes (ceph01, ceph02, and ceph03). See OSD Ansible Settings
+in _Additional resources_ for details on supported storage types that you will enter into your Ansible
+configuration later.  For this example, a single, unformatted block device
+(`/dev/sdb`), that is separate from the operating system, is configured on each
+of the OSD nodes. If you are installing on metal, you might want to add an extra hard drive to the machine for this purpose.
+
+. Install Red Hat Enterprise Linux Server edition, as described in _Additional resources_.
+
+. Register and subscribe each Ceph node as described in _Additional resources_. Here is how to subscribe to the necessary repos:
++
+[source,terminal]
+----
+# subscription-manager repos --disable=*
+# subscription-manager repos --enable=rhel-7-server-rpms
+# subscription-manager repos --enable=rhel-7-server-extras-rpms
+# subscription-manager repos --enable=rhel-7-server-rhceph-3-mon-rpms
+# subscription-manager repos --enable=rhel-7-server-rhceph-3-osd-rpms
+# subscription-manager repos --enable=rhel-7-server-rhceph-3-tools-rpms
+----
+
+. Create an ansible user with root privilege on each node. Choose any name you like. For example:
++
+[source,terminal]
+----
+# USER_NAME=ansibleadmin
+# useradd $USER_NAME -c "Ansible administrator"
+# passwd $USER_NAME
+New password: *********
+Retype new password: *********
+# cat << EOF >/etc/sudoers.d/admin
+admin ALL = (root) NOPASSWD:ALL
+EOF
+# chmod 0440 /etc/sudoers.d/$USER_NAME
+----
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/{producty}/html-single/installation_guide_for_red_hat_enterprise_linux/index#requirements-for-installing-rhcs[Requirements for Installing Red Hat Ceph Storage]
+* link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/{producty}/html-single/installation_guide_for_red_hat_enterprise_linux/index#considerations-for-using-a-raid-controller-with-osd-nodes[Considerations for using a RAID controller with OSD nodes]
+* link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/{producty}/html-single/installation_guide_for_red_hat_enterprise_linux/index#verifying-the-network-configuration-for-red-hat-ceph-storage[Verifying the network configuration for Red Hat Ceph Storage]
+* link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/{producty}/html-single/installation_guide_for_red_hat_enterprise_linux/index#installing-a-red-hat-ceph-storage-cluster[Installing a Red Hat Ceph Storage cluster]
+* link:https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/installation_guide/[Red Hat Enterprise Linux 7 Installation Guide]
+* link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/{producty}/html-single/installation_guide_for_red_hat_enterprise_linux/#registering-red-hat-ceph-storage-nodes-to-cdn-and-attaching-subscriptions[Registering Red Hat Ceph Storage Nodes]

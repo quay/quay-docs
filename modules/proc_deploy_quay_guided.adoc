@@ -2,7 +2,8 @@
 [id="configuring-quay-ha"]
 = Configuring {productname}
 
-Before you run the {productname} service as a container, create the `config.yaml` file that defines database, Redis, storage, and registry settings for your high availability deployment.
+[role="_abstract"]
+To configure {productname} for high availability, you can create a `config.yaml` file that defines database, Redis, storage, and registry settings before starting the registry containers.
 
 .Prerequisites
 
@@ -24,23 +25,23 @@ Before you run the {productname} service as a container, create the `config.yaml
 ----
 AUTHENTICATION_TYPE: Database
 PREFERRED_URL_SCHEME: https
-SERVER_HOSTNAME: quay.example.com <1>
+SERVER_HOSTNAME: quay.example.com
 SECRET_KEY: <secret_key_value>
 DATABASE_SECRET_KEY: <database_secret_key_value>
 SETUP_COMPLETE: true
-DB_URI: postgresql://quayuser:quaypass@db01:5432/quaydb <2>
+DB_URI: postgresql://quayuser:quaypass@db01:5432/quaydb
 BUILDLOGS_REDIS:
-  host: db01 <3>
+  host: db01
   port: 6379
 USER_EVENTS_REDIS:
-  host: db01 <3>
+  host: db01
   port: 6379
 DISTRIBUTED_STORAGE_CONFIG:
   radosGWStorage:
     - RadosGWStorage
     - access_key: <access_key>
       bucket_name: <bucket_name>
-      hostname: db01 <4>
+      hostname: db01
       is_secure: false
       port: '7480'
       secret_key: <secret_key>
@@ -49,14 +50,17 @@ DISTRIBUTED_STORAGE_PREFERENCE:
   - radosGWStorage
 DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
 SUPER_USERS:
-  - quayadmin <5>
+  - quayadmin
 ----
 +
-<1> Use the hostname or IP address that clients use to reach the {productname} service, typically the load balancer front end.
-<2> Match the database user, password, host, and database name from link:#setting-up-load-balancer-database[Setting up the HAProxy load balancer and the PostgreSQL database].
-<3> Use the load balancer hostname that exposes Redis on port `6379`.
-<4> Use the load balancer hostname that exposes the Ceph RADOS gateway on port `7480`. For additional RadosGW fields, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-storage-rados[Ceph Object Gateway (RadosGW) storage example].
-<5> Optional. Adds an initial superuser account. You can also add superusers after deployment by editing `config.yaml`.
+where:
++
+`SERVER_HOSTNAME`:: Specifies the hostname or IP address that clients use to reach the {productname} service, typically the load balancer front end.
+`DB_URI`:: Specifies the database user, password, host, and database name from "Setting up the HAProxy load balancer and the PostgreSQL database."
+`BUILDLOGS_REDIS.host`:: Specifies the load balancer hostname that exposes Redis on port `6379`.
+`USER_EVENTS_REDIS.host`:: Specifies the load balancer hostname that exposes Redis on port `6379`.
+`DISTRIBUTED_STORAGE_CONFIG.radosGWStorage.hostname`:: Specifies the load balancer hostname that exposes the Ceph RADOS gateway on port `7480`. For additional RadosGW fields, see "Ceph Object Gateway (RadosGW) storage example."
+`SUPER_USERS`:: Specifies an initial superuser account. This field is optional.
 
 . Configure additional registry settings as needed. The following fields are commonly updated for production high availability deployments:
 +
