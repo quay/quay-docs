@@ -5,7 +5,7 @@
 ifeval::["{productname}" == "Red Hat Quay"]
 
 [role="_abstract"]
-Managed storage is object storage that the {productname} Operator provisions automatically using the `ObjectBucketClaim` Kubernetes API. This approach decouples the Operator from vendor-specific storage implementations and enables integration with various storage providers.
+Managed storage is object storage that the {productname} Operator automatically provisions through the `ObjectBucketClaim` Kubernetes API. You can use managed storage to deploy a registry without configuring an external object storage provider.
 
 If you are using managed object storage, the {productname} Operator can provision it for you using this `ObjectBucketClaim` mechanism. The NooBaa component of {odf} is a common provider that implements the `ObjectBucketClaim` API.
 
@@ -38,7 +38,22 @@ Since {productname} does not support local filesystem storage, users can leverag
 
 By the nature of `PersistentVolume`, this is not a scale-out, highly available solution and does not replace a scale-out storage system like {odf}. Only a single instance of the gateway is running. If the pod running the gateway becomes unavailable due to rescheduling, updates or unplanned downtime, this will cause temporary degradation of the connected {productname} instances.
 
-Deploying {productname-ocp} using {odf} requires you to download the Local Storage Operator, the {odf} Operator, and then Multicloud Object Gateway using the {ocp} UI. See the following {odf} documentation for these steps:
+Deploying {productname-ocp} using {odf} requires you to download the Local Storage Operator, the {odf} Operator, and then Multicloud Object Gateway using the {ocp} UI. See _Additional resources_ for {odf} documentation for these steps.
+
+[id="about-odf"]
+== About {odf}
+
+{odf} is a provider of agnostic persistent storage for {ocp} supporting file, block, and object storage, either in-house or in hybrid clouds. As a Red{nbsp}Hat storage solution, {odf} is completely integrated with {ocp} for deployment, management, and monitoring. For more information, see _Additional resources_.
+endif::[]
+
+ifeval::["{productname}" == "Project Quay"]
+If you want the Operator to manage object storage for {productname}, your cluster needs to be capable of providing it through the `ObjectBucketClaim` API. There are multiple implementations of this API available, for instance, NooBaa in combination with Kubernetes `PersistentVolumes` or scalable storage backends like Ceph. Refer to _Additional resources_ for more details on how to deploy this component.
+endif::[]
+
+ifeval::["{productname}" == "Red Hat Quay"]
+
+[role="_additional-resources"]
+.Additional resources
 
 * link:https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/deploy-using-local-storage-devices-bm#installing-local-storage-operator_local-bare-metal[Local Storage Operator]
 
@@ -46,12 +61,15 @@ Deploying {productname-ocp} using {odf} requires you to download the Local Stora
 
 * link:https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/deploy-standalone-multicloud-object-gateway[Creating a standalone Multicloud Object Gateway]
 
-[id="about-odf"]
-== About {odf}
-
-{odf} is a provider of agnostic persistent storage for {ocp} supporting file, block, and object storage, either in-house or in hybrid clouds. As a Red{nbsp}Hat storage solution, {odf} is completely integrated with {ocp} for deployment, management, and monitoring. For more information, see the link:https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19[{odf} documentation].
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19[{odf} documentation]
 endif::[]
 
 ifeval::["{productname}" == "Project Quay"]
-If you want the Operator to manage object storage for {productname}, your cluster needs to be capable of providing it through the `ObjectBucketClaim` API. There are multiple implementations of this API available, for instance, link:https://operatorhub.io/operator/noobaa-operator[NooBaa] in combination with Kubernetes `PersistentVolumes` or scalable storage backends like Ceph. Refer to the link:https://github.com/noobaa/noobaa-core[NooBaa documentation] for more details on how to deploy this component.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://operatorhub.io/operator/noobaa-operator[NooBaa Operator on OperatorHub]
+
+* link:https://github.com/noobaa/noobaa-core[NooBaa documentation]
 endif::[]
