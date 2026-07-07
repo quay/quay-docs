@@ -11,7 +11,23 @@ The following configuration fields enable and customize quota management functio
 | Field | Type | Description
 | **FEATURE_QUOTA_MANAGEMENT** | Boolean |  Enables configuration, caching, and validation for quota management feature. 
 
-**Default:** `False`
+**Default:** `false`
+
+| **FEATURE_QUOTA_NOTIFICATIONS** | Boolean | Enables external notification channels, such as email, for quota threshold alerts. When enabled, namespace owners receive proactive notifications when storage consumption crosses configured warning or critical thresholds.
+
+**Default:** `false`
+
+| **FEATURE_MAILING** | Boolean | Enables email delivery features across {productname}. Must be `true` with SMTP server settings configured for email quota notifications to be delivered to contact email addresses or administrators.
+
+**Default:** `true`
+
+| **QUOTA_NOTIFICATION_COOLDOWN_SECONDS** | Integer | Cooldown period in seconds before re-sending a quota notification for the same threshold (default: 86400 / 24 hours). The system prevents repeated notifications for the same namespace and threshold combination within this window. If storage usage drops below a threshold and later crosses the threshold again, the notification state is cleared and the notification will re-fire upon the new crossing. Notification claims (`claim_notification()`) are handled atomically in the backend to prevent notification storms caused by concurrent image pushes.
+
+**Default:** `86400`
+
+| **QUOTA_NOTIFICATION_WORKER_POLL_PERIOD** | Integer | Runs every 5 minutes to catch threshold crossings that happened between pushes. That is, when quota limits are lowered.
+
+**Default:** `300`
 
 | **DEFAULT_SYSTEM_REJECT_QUOTA_BYTES** | String | Enables system default quota reject byte allowance for all organizations. 
 
@@ -19,7 +35,7 @@ By default, no limit is set.
 
 | **QUOTA_BACKFILL** | Boolean | Enables the quota backfill worker to calculate the size of pre-existing blobs. 
 
-**Default**: `True`
+**Default**: `true`
 
 |**QUOTA_TOTAL_DELAY_SECONDS** |String | The time delay for starting the quota backfill. Rolling deployments can cause incorrect totals. This field *must* be set to a time longer than it takes for the rolling deployment to complete. 
 
@@ -27,11 +43,11 @@ By default, no limit is set.
 
 |**PERMANENTLY_DELETE_TAGS** |Boolean | Enables functionality related to the removal of tags from the time machine window. 
 
-**Default**: `False`
+**Default**: `false`
 
 |**RESET_CHILD_MANIFEST_EXPIRATION** |Boolean |Resets the expirations of temporary tags targeting the child manifests. With this feature set to `True`, child manifests are immediately garbage collected. 
 
-**Default**: `False`
+**Default**: `false`
 |===
 
 .Quota management example YAML
@@ -39,9 +55,12 @@ By default, no limit is set.
 ----
 # ...
 FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_QUOTA_NOTIFICATIONS: true
 DEFAULT_SYSTEM_REJECT_QUOTA_BYTES: "100gb"
 QUOTA_BACKFILL: true
-QUOTA_TOTAL_DELAY_SECONDS: "3600"
+QUOTA_TOTAL_DELAY_SECONDS: 3600
+QUOTA_NOTIFICATION_COOLDOWN_SECONDS: 86400
+QUOTA_NOTIFICATION_WORKER_POLL_PERIOD: 300s
 PERMANENTLY_DELETE_TAGS: true
 RESET_CHILD_MANIFEST_EXPIRATION: true
 # ...
