@@ -1,0 +1,86 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="creating-quota-notifications-api.adoc"]
+= Creating quota notifications by using the API
+
+[role="_abstract"]
+You can create and manage quota notifications for organization and user namespaces.
+
+.Prerequisites
+
+* You have link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#creating-oauth-access-token[Created an OAuth access 
+token].
+* `FEATURE_QUOTA_MANAGEMENT` is enabled in your {productname} configuration.
+* `FEATURE_QUOTA_NOTIFICATIONS` is enabled in your {productname} configuration.
+* You have established quota limits for your organization or user namespace.
+* You have administrative privileges for the namespace.
+
+.Procedure
+
+. To create an organization quota notification, enter a command similar to the following examplen:
++
+[source,terminal]
+----
+$ curl -X POST \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+--data '{
+    "event": "quota_warning",
+    "method": "email",
+    "config": {},
+    "eventConfig": {}
+}' \
+https://<quay-server.example.com>/api/v1/organization/<orgname>/notifications
+----
++
+.Example output
++
+[source,json]
+----
+{
+"uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+"title": null,
+"event": "quota_warning",
+"method": "email",
+"config": {},
+"event_config": {},
+"number_of_failures": 0
+}
+----
+
+. Optional: You can create a quota error notification by changing the event type. Do complete this task, run a command similar to the following command:
++
+[source,terminal]
+----
+$ curl -X POST \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+--data '{
+    "event": "quota_error",
+    "method": "slack",
+    "config": {
+    "url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    },
+    "eventConfig": {}
+}' \
+https://<quay-server.example.com>/api/v1/organization/<orgname>/notifications
+----
+
+. To create a user namespace quota notification, enter a command similar to the following example:
++
+[source,terminal]
+----
+$ curl -X POST \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+--data '{
+    "event": "quota_warning",
+    "method": "email",
+    "config": {},
+    "eventConfig": {}
+}' \
+https://<quay-server.example.com>/api/v1/user/namespacenotifications
+----
