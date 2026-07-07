@@ -3,17 +3,15 @@
 = Enabling read-only mode for {productname-ocp}
 
 [role="_abstract"]
-To maintain service availability during backup and restore operations, you can enable read-only mode for your {productname} deployment on {ocp}. Read-only mode restricts write access to ensure data integrity while keeping the registry online.
+Read-only mode keeps your {productname-ocp} registry online during backup and restore by blocking write operations. You can use this mode when scaling down the deployment is unacceptable.
 
 When backing up and restoring, you are required to scale down your {productname-ocp} deployment. This results in service unavailability during the backup period which, in some cases, might be unacceptable. Enabling read-only mode ensures service availability during the backup and restore procedure for {productname-ocp} deployments.
 
 [NOTE]
 ====
-In some cases, a read-only option for {productname} is not possible since it requires inserting a service key and other manual configuration changes. As an alternative to read-only mode, {productname} administrators might consider enabling the `DISABLE_PUSHES` feature. When this field is set to `True`, users are unable to push images or image tags to the registry when using the CLI. Enabling `DISABLE_PUSHES` differs from `read-only` mode because the database is not set as `read-only` when it is enabled. 
+In some cases, you cannot enable read-only mode for {productname} because it requires inserting a service key and other manual configuration changes. As an alternative to read-only mode, {productname} administrators might consider enabling the `DISABLE_PUSHES` feature. When this field is set to `True`, users are unable to push images or image tags to the registry when using the CLI. Enabling `DISABLE_PUSHES` differs from `read-only` mode because the database is not set as `read-only` when it is enabled.
 
-This field might be useful in some situations such as when {productname} administrators want to calculate their registry's quota and disable image pushing until after calculation has completed. With this method, administrators can avoid putting putting the whole registry in `read-only` mode, which affects the database, so that most operations can still be done.
-
-For information about enabling this configuration field, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-misc[Miscellaneous configuration fields].
+This field might be useful in some situations such as when {productname} administrators want to calculate their registry's quota and disable image pushing until after calculation has completed. With this method, administrators can avoid putting the whole registry in `read-only` mode, which affects the database, so that most operations can still be done.
 ====
 
 [id="prerequisites-for-enabling-read-only-mode"]
@@ -22,7 +20,7 @@ For information about enabling this configuration field, see link:https://docs.r
 You must meet the following prerequisites to enable read-only mode for {productname-ocp}:
 
 * If you are using {rhel} 7.x:
-** You have enabled the Red Hat Software Collections List  (RHSCL).
+** You have enabled the Red Hat Software Collections List (RHSCL).
 ** You have installed Python 3.6.
 ** You have downloaded the `virtualenv` package.
 ** You have installed the `git` CLI.
@@ -32,6 +30,11 @@ You must meet the following prerequisites to enable read-only mode for {productn
 ** You have downloaded the `python3-virtualenv` package.
 ** You have installed the `git` CLI.
 
-* You have cloned the `https://github.com/quay/quay.git` repository.
+* You have cloned the quay/quay repository.
 * You have installed the `oc` CLI.
 * You have access to the cluster with `cluster-admin` privileges.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-misc[Miscellaneous configuration fields]
