@@ -2,13 +2,16 @@
 [id="supported-aws-storage-backends"]
 = Supported AWS storage backends
 
+[role="_abstract"]
+You can configure {productname} to use AWS S3, STS, or CloudFront storage backends in `DISTRIBUTED_STORAGE_CONFIG`. Use these examples to set credentials, regions, and distribution settings for each backend.
+
 {productname} supports multiple Amazon Web Services (AWS) storage backends:
 
 * *S3 storage*: Standard support for AWS S3 buckets that uses AWS's native object storage service.
 * *STS S3 storage*: Support for AWS Security Token Service (STS) to assume IAM roles, allowing for more secure S3 operations.
 * *CloudFront S3 storage*: Integrates with AWS CloudFront to enable high-availability distribution of content while still using AWS S3 as the origin.
 
-The following sections provide example YAMLs and additional information about each AWS storage backend.
+The following sections provide example YAML configurations and additional information about each AWS storage backend.
 
 [id="config-fields-storage-aws"]
 == Amazon Web Services S3 storage
@@ -21,27 +24,30 @@ The following sections provide example YAMLs and additional information about ea
 # ...
 DISTRIBUTED_STORAGE_CONFIG:
   default:
-    - S3Storage <1>
+    - S3Storage
     - host: s3.us-east-2.amazonaws.com
       s3_access_key: ABCDEFGHIJKLMN
       s3_secret_key: OL3ABCDEFGHIJKLMN
       s3_bucket: quay_bucket
-      s3_region: <region> <2>
+      s3_region: <region>
       storage_path: /datastorage/registry
 DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
 DISTRIBUTED_STORAGE_PREFERENCE:
     - default
 # ...
 ----
-<1> The `S3Storage` storage driver should only be used for AWS S3 buckets. Note that this differs from general S3 access, where the RadosGW driver or other storage services can be used. For an example, see "Example B: Using RadosGW with general S3 access".
-<2> The Amazon Web Services region. Defaults to `us-east-1`.
+
+where:
+
+`DISTRIBUTED_STORAGE_CONFIG.default`:: Specifies the `S3Storage` storage driver for AWS S3 buckets. Note that this differs from general S3 access, where the RadosGW driver or other storage services can be used. For an example, see "Example B: Using RadosGW with general S3 access".
+`DISTRIBUTED_STORAGE_CONFIG.default.s3_region`:: Specifies the Amazon Web Services region. Defaults to `us-east-1`.
 
 [id="config-fields-storage-aws-sts"]
 == Amazon Web Services STS S3 storage
 
 AWS Security Token Service (STS) provides temporary, limited-privilege credentials for accessing AWS resources, improving security by avoiding the need to store long-term access keys. This is useful in environments such as {ocp} where credentials can be rotated or managed through IAM roles.
 
-The following YAML shows an example configuration for using AWS STS with {productname-ocp} configurations. 
+The following YAML shows an example configuration for using AWS STS with {productname-ocp} configurations.
 
 .AWS STS S3 storage example
 [source,yaml]
@@ -50,21 +56,24 @@ The following YAML shows an example configuration for using AWS STS with {produc
 DISTRIBUTED_STORAGE_CONFIG:
    default:
     - STSS3Storage
-    - sts_role_arn: <role_arn> <1>
+    - sts_role_arn: <role_arn>
       s3_bucket: <s3_bucket_name>
       storage_path: <storage_path>
-      sts_user_access_key: <s3_user_access_key> <2>
-      sts_user_secret_key: <s3_user_secret_key> <3>
-      s3_region: <region> <4>
+      sts_user_access_key: <s3_user_access_key>
+      sts_user_secret_key: <s3_user_secret_key>
+      s3_region: <region>
 DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
 DISTRIBUTED_STORAGE_PREFERENCE:
     - default
 # ...
 ----
-<1> The unique Amazon Resource Name (ARN). 
-<2> The generated AWS S3 user access key.
-<3> The generated AWS S3 user secret key.
-<4> The Amazon Web Services region. Defaults to `us-east-1`.
+
+where:
+
+`DISTRIBUTED_STORAGE_CONFIG.default.sts_role_arn`:: Specifies the unique Amazon Resource Name (ARN).
+`DISTRIBUTED_STORAGE_CONFIG.default.sts_user_access_key`:: Specifies the generated AWS S3 user access key.
+`DISTRIBUTED_STORAGE_CONFIG.default.sts_user_secret_key`:: Specifies the generated AWS S3 user secret key.
+`DISTRIBUTED_STORAGE_CONFIG.default.s3_region`:: Specifies the Amazon Web Services region. Defaults to `us-east-1`.
 
 [id="aws-cloudfront-storage-example"]
 == AWS CloudFront storage
@@ -75,9 +84,9 @@ Use the following example when configuring AWS CloudFront for your {productname}
 
 [NOTE]
 ====
-* When configuring AWS Cloudfront storage, the following conditions must be met for proper use with {productname}:
-** You must set an *Origin path* that is consistent with {productname}'s storage path as defined in your `config.yaml` file. Failure to meet this require results in a `403` error when pulling an image. For more information, see link:https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesOriginPath[Origin path].
-** You must configure a link:https://docs.aws.amazon.com/whitepapers/latest/secure-content-delivery-amazon-cloudfront/s3-origin-with-cloudfront.html[*Bucket policy*] and a link:https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html[*Cross-origin resource sharing (CORS)*] policy. 
+* When configuring AWS CloudFront storage, the following conditions must be met for proper use with {productname}:
+** You must set an *Origin path* that is consistent with {productname}'s storage path as defined in your `config.yaml` file. Failure to meet this requirement results in a `403` error when pulling an image.
+** You must configure a *Bucket policy* and a *Cross-origin resource sharing (CORS)* policy.
 ====
 
 .Cloudfront S3 example YAML
@@ -110,15 +119,15 @@ DISTRIBUTED_STORAGE_PREFERENCE:
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::<AWS_ACCOUNT_ID>:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>" <1> <2>
+                "AWS": "arn:aws:iam::<AWS_ACCOUNT_ID>:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
             },
             "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::<S3_BUCKET_NAME>/*" <3>
+            "Resource": "arn:aws:s3:::<S3_BUCKET_NAME>/*"
         },
         {
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::<AWS_ACCOUNT_ID>:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>" <1> <2> 
+                "AWS": "arn:aws:iam::<AWS_ACCOUNT_ID>:user/CloudFront Origin Access Identity <CLOUDFRONT_OAI_ID>"
             },
             "Action": "s3:ListBucket",
             "Resource": "arn:aws:s3:::<S3_BUCKET_NAME>"
@@ -127,6 +136,15 @@ DISTRIBUTED_STORAGE_PREFERENCE:
 }
 
 ----
-<1> The identifier, or account ID, of the AWS account that owns the CloudFront OAI and S3 bucket.
-<2> The CloudFront Origin Access Identity (OAI) that accesses the S3 bucket. 
-<3> Specifies that CloudFront can access all objects (`/*`) inside of the S3 bucket.
+
+* `<AWS_ACCOUNT_ID>` is the identifier, or account ID, of the AWS account that owns the CloudFront OAI and S3 bucket.
+* `<CLOUDFRONT_OAI_ID>` is the CloudFront Origin Access Identity (OAI) that accesses the S3 bucket.
+* `arn:aws:s3:::<S3_BUCKET_NAME>` specifies that CloudFront can access the specified bucket in the S3 bucket.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesOriginPath[Origin path]
+* link:https://docs.aws.amazon.com/whitepapers/latest/secure-content-delivery-amazon-cloudfront/s3-origin-with-cloudfront.html[Bucket policy]
+* link:https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html[Cross-origin resource sharing (CORS)]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-storage-rados[Example B: Using RadosGW with general S3 access]

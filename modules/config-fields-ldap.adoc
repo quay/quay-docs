@@ -2,6 +2,7 @@
 [id="config-fields-ldap"]
 = LDAP configuration fields
 
+[role="_abstract"]
 The following configuration fields allow administrators to integrate {productname} with an LDAP-based authentication system. When `AUTHENTICATION_TYPE` is set to `LDAP`, {productname} can authenticate users against an LDAP directory and support additional, optional features such as team synchronization, superuser access control, restricted user roles, and secure connection parameters.
 
 This section provides YAML examples for the following LDAP scenarios:
@@ -18,14 +19,12 @@ This section provides YAML examples for the following LDAP scenarios:
 [cols="2a,1a,2a",options="header"]
 |===
 | Field | Type | Description
-| **AUTHENTICATION_TYPE** +
-(Required) | String | Must be set to `LDAP`.
-| **FEATURE_TEAM_SYNCING** | Boolean | Whether to allow for team membership to be synced from a backing group in the authentication engine (OIDC, LDAP, or Keystone). + 
- + 
-**Default:**  `True`
-| **FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP** | Boolean | If enabled, non-superusers can setup team syncrhonization. + 
- + 
+| **AUTHENTICATION_TYPE** (Required) | String | Must be set to `LDAP`.
+| **FEATURE_TEAM_SYNCING** | Boolean | Whether to allow for team membership to be synced from a backing group in the authentication engine (OIDC, LDAP, or Keystone). **Default:**  `True`
+| **FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP** | Boolean | If enabled, non-superusers can setup team syncrhonization. 
+
 **Default:**  `False`
+
 | **LDAP_ADMIN_DN** | String | The admin DN for LDAP authentication.
 | **LDAP_ADMIN_PASSWD** | String | The admin password for LDAP authentication.
 | **LDAP_ALLOW_INSECURE_FALLBACK** | Boolean | Whether or not to allow SSL insecure fallback for LDAP authentication.
@@ -37,14 +36,9 @@ This section provides YAML examples for the following LDAP scenarios:
 | **LDAP_USER_RDN** | Array of String|  The user RDN for LDAP authentication.
 | **LDAP_SECONDARY_USER_RDNS** | Array of String | Provide Secondary User Relative DNs if there are multiple Organizational Units where user objects are located.
 
-| **TEAM_RESYNC_STALE_TIME**  | String | If team syncing is enabled for a team, how often to check its membership and resync if necessary. + 
- + 
-**Pattern:** + 
-`^[0-9]+(w\|m\|d\|h\|s)$` + 
-**Example:** + 
-`2h` + 
-**Default:** + 
-`30m` 
+| **TEAM_RESYNC_STALE_TIME**  | String | If team syncing is enabled for a team, how often to check its membership and resync if necessary. **Pattern:** `^[0-9]+(w\|m\|d\|h\|s)$` **Example:** `2h`
+
+**Default:** `30m`
 
 | **LDAP_SUPERUSER_FILTER** | String | Subset of the `LDAP_USER_FILTER` configuration field. When configured, allows {productname} administrators the ability to configure Lightweight Directory Access Protocol (LDAP) users as superusers when {productname} uses LDAP as its authentication provider.
 
@@ -62,62 +56,66 @@ This field requires that your `AUTHENTICATION_TYPE` is set to `LDAP`.
 
 *Default:* `False` 
 
-| **LDAP_TIMEOUT** |Integer | Specifies the time limit, in seconds, for LDAP operations. This limits the amount of time an LDAP search, bind, or other operation can take. Similar to the `-l` option in `ldapsearch`, it sets a client-side operation timeout. +
- +
+| **LDAP_TIMEOUT** |Integer | Specifies the time limit, in seconds, for LDAP operations. This limits the amount of time an LDAP search, bind, or other operation can take. Similar to the `-l` option in `ldapsearch`, it sets a client-side operation timeout. 
+
 **Default:** `10`
 
-| **LDAP_NETWORK_TIMEOUT** |Integer | Specifies the time limit, in seconds, for establishing a connection to the LDAP server. This is the maximum time {productname} waits for a response during network operations, similar to the `-o nettimeout` option in `ldapsearch`. +
- +
+| **LDAP_NETWORK_TIMEOUT** |Integer | Specifies the time limit, in seconds, for establishing a connection to the LDAP server. This is the maximum time {productname} waits for a response during network operations, similar to the `-o nettimeout` option in `ldapsearch`. 
+
 **Default:** `10`
 
-|**FEATURE_LDAP_CACHING** |Boolean | enable in-memory caching for LDAP permission check results (superuser, restricted user). Reduces LDAP server load. +
- +
+|**FEATURE_LDAP_CACHING** |Boolean | enable in-memory caching for LDAP permission check results (superuser, restricted user). Reduces LDAP server load. 
+
 **Default:** `False`
 
-|**LDAP_CACHE_TTL** |Integer | Time-to-live, in seconds, for cached LDAP permission results. +
- +
+|**LDAP_CACHE_TTL** |Integer | Time-to-live, in seconds, for cached LDAP permission results. 
+
 **Default:** `60`
+
 |===
 
 .Basic LDAP configuration example YAML
 [source,yaml]
 ----
 # ...
-AUTHENTICATION_TYPE: LDAP <1>
+AUTHENTICATION_TYPE: LDAP
 # ...
-LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com <2>
-LDAP_ADMIN_PASSWD: ABC123 <3>
-LDAP_ALLOW_INSECURE_FALLBACK: false <4>
-LDAP_BASE_DN: <5>
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
+LDAP_ADMIN_PASSWD: ABC123
+LDAP_ALLOW_INSECURE_FALLBACK: false
+LDAP_BASE_DN:
   - dc=example
   - dc=com
-LDAP_EMAIL_ATTR: mail <6>
-LDAP_UID_ATTR: uid <7>
-LDAP_URI: ldap://<example_url>.com <8>
-LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=<domain_name>,dc=com) <9>
-LDAP_USER_RDN: <10>
+LDAP_EMAIL_ATTR: mail
+LDAP_UID_ATTR: uid
+LDAP_URI: ldap://<example_url>.com
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=<domain_name>,dc=com)
+LDAP_USER_RDN:
   - ou=people
-LDAP_SECONDARY_USER_RDNS: <11>
+LDAP_SECONDARY_USER_RDNS:
     - ou=<example_organization_unit_one>
     - ou=<example_organization_unit_two>
     - ou=<example_organization_unit_three>
     - ou=<example_organization_unit_four>
-FEATURE_LDAP_CACHING: true <12>
-LDAP_CACHE_TTL: 10  <13>
+FEATURE_LDAP_CACHING: true
+LDAP_CACHE_TTL: 10
 ----
-<1> Required. Must be set to `LDAP`.
-<2> Required. The admin DN for LDAP authentication.
-<3> Required. The admin password for LDAP authentication.
-<4> Required. Whether to allow SSL/TLS insecure fallback for LDAP authentication.
-<5> Required. The base DN for LDAP authentication.
-<6> Required. The email attribute for LDAP authentication.
-<7> Required. The UID attribute for LDAP authentication.
-<8> Required. The LDAP URI.
-<9> Required. The user filter for LDAP authentication.
-<10> Required. The user RDN for LDAP authentication.
-<11> Optional. Secondary User Relative DNs if there are multiple Organizational Units where user objects are located.
-<12> Optional. Specifies whether to enable in-memory caching for LDAP permission check results (superuser, restricted user). Reduces LDAP server load. Defaults to `False`.
-<13> Specifies the time-to-live, in seconds, for cached LDAP permission results. Defaults to `60`. 
+
+where:
+
+`AUTHENTICATION_TYPE`:: Specifies `LDAP` for LDAP authentication type.
+`LDAP_ADMIN_DN`:: Specifies the admin DN for LDAP authentication. This field is required.
+`LDAP_ADMIN_PASSWD`:: Specifies the admin password for LDAP authentication. This field is required.
+`LDAP_ALLOW_INSECURE_FALLBACK`:: Specifies whether to allow SSL/TLS insecure fallback for LDAP authentication. This field is required.
+`LDAP_BASE_DN`:: Specifies the base DN for LDAP authentication. This field is required.
+`LDAP_EMAIL_ATTR`:: Specifies the email attribute for LDAP authentication. This field is required.
+`LDAP_UID_ATTR`:: Specifies the UID attribute for LDAP authentication. This field is required.
+`LDAP_URI`:: Specifies the LDAP URI. This field is required.
+`LDAP_USER_FILTER`:: Specifies the user filter for LDAP authentication. This field is required.
+`LDAP_USER_RDN`:: Specifies the user RDN for LDAP authentication. This field is required.
+`LDAP_SECONDARY_USER_RDNS`:: Specifies secondary User Relative DNs if there are multiple Organizational Units where user objects are located. This field is optional.
+`FEATURE_LDAP_CACHING`:: Specifies whether to enable in-memory caching for LDAP permission check results (superuser, restricted user). Reduces LDAP server load. Defaults to `False`. This field is optional.
+`LDAP_CACHE_TTL`:: Specifies the time-to-live, in seconds, for cached LDAP permission results. Defaults to `60`.
 
 .LDAP restricted user configuration example YAML
 [source,yaml]
@@ -125,7 +123,7 @@ LDAP_CACHE_TTL: 10  <13>
 # ...
 AUTHENTICATION_TYPE: LDAP
 # ...
-FEATURE_RESTRICTED_USERS: true <1>
+FEATURE_RESTRICTED_USERS: true
 # ...
 LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
 LDAP_ADMIN_PASSWD: ABC123
@@ -138,7 +136,7 @@ LDAP_EMAIL_ATTR: mail
 LDAP_UID_ATTR: uid
 LDAP_URI: ldap://<example_url>.com
 LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
-LDAP_RESTRICTED_USER_FILTER: (<filterField>=<value>) <2>
+LDAP_RESTRICTED_USER_FILTER: (<filterField>=<value>)
 LDAP_USER_RDN:
     - ou=<example_organization_unit>
     - o=<organization_id>
@@ -148,8 +146,11 @@ FEATURE_LDAP_CACHING: true
 LDAP_CACHE_TTL: 10
 # ...
 ----
-<1> Must be set to `True` when configuring an LDAP restricted user.
-<2> Configures specified users as restricted users.
+
+where:
+
+`FEATURE_RESTRICTED_USERS`:: Specify `True` when configuring an LDAP restricted user.
+`LDAP_RESTRICTED_USER_FILTER`:: Specifies configured users as restricted users.
 
 .LDAP superuser configuration reference example YAML
 [source,yaml]
@@ -168,7 +169,7 @@ LDAP_EMAIL_ATTR: mail
 LDAP_UID_ATTR: uid
 LDAP_URI: ldap://<example_url>.com
 LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
-LDAP_SUPERUSER_FILTER: (<filterField>=<value>) <1>
+LDAP_SUPERUSER_FILTER: (<filterField>=<value>)
 LDAP_USER_RDN:
     - ou=<example_organization_unit>
     - o=<organization_id>
@@ -178,4 +179,5 @@ FEATURE_LDAP_CACHING: true
 LDAP_CACHE_TTL: 10
 # ...
 ----
-<1> Configures specified users as superusers.
+
+`LDAP_SUPERUSER_FILTER`:: Specify configured users as superusers.

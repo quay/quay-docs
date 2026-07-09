@@ -2,6 +2,9 @@
 [id="config-fields-storage-noobaa"]
 = {odf}
 
+[role="_abstract"]
+You can configure {productname} to use {odf} object storage by defining a `DISTRIBUTED_STORAGE_CONFIG` entry for the storage backend. Use this example as a starting point for required fields and optional tuning parameters.
+
 The following YAML shows a sample configuration using an {odf}: 
 
 [source,yaml]
@@ -16,8 +19,11 @@ DISTRIBUTED_STORAGE_CONFIG:
       is_secure: 'true'
       port: '443'
       storage_path: /datastorage/registry
-      maximum_chunk_size_mb: 100 <1>
-      server_side_assembly: true <2>
+      maximum_chunk_size_mb: 100
+      server_side_assembly: true
 ----
-<1> Defines the maximum chunk size, in MB, for the final copy. Has no effect if `server_side_assembly` is set to `False`.
-<2> Optional. Whether {productname} should try and use server side assembly and the final chunked copy instead of client assembly. Defaults to `True`.
+
+where:
+
+`DISTRIBUTED_STORAGE_CONFIG.rhocsStorage.maximum_chunk_size_mb`:: Specifies the maximum chunk size, in MB, for the final copy. Has no effect if `server_side_assembly` is set to `False`.
+`DISTRIBUTED_STORAGE_CONFIG.rhocsStorage.server_side_assembly`:: Specifies whether {productname} tries to use server-side assembly and the final chunked copy instead of client assembly. Defaults to `True`. This field is optional.

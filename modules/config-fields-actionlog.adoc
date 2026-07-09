@@ -6,27 +6,26 @@
 [id="config-fields-actionlog"]
 = Action log storage configuration fields
 
-{productname} maintains a detailed action log to track user and system activity, including repository events, authentication actions, and image operations. By default, this log data is stored in the database, but administrators can configure their deployment to export or forward logs to external systems like Elasticsearch or Splunk for advanced analysis, auditing, or compliance.
-
-.Additional resources
-* link:https://docs.redhat.com/en/documentation/red_hat_quay/3.14/html/manage_red_hat_quay/proc_manage-log-storage[Configuring action log storage for Elasticsearch and Splunk]
+[role="_abstract"]
+The following configuration fields control how {productname} stores, exports, rotates, and audits action logs for registry activity. You can use these fields to export or forward logs to external systems like Elasticsearch or Splunk for advanced analysis, auditing, or compliance.
 
 .Action log storage configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
-| **FEATURE_LOG_EXPORT**  | Boolean |  Whether to allow exporting of action logs. +
- +
+| **FEATURE_LOG_EXPORT**  | Boolean |  Whether to allow exporting of action logs. 
+
 **Default:** `True`
-| **LOGS_MODEL** | String | Specifies the preferred method for handling log data. +
- +
-**Values:** One of `database`, `transition_reads_both_writes_es`, `elasticsearch`, `splunk` +
+
+| **LOGS_MODEL** | String | Specifies the preferred method for handling log data. **Values:** One of `database`, `transition_reads_both_writes_es`, `elasticsearch`, `splunk` 
+
 **Default:** `database`
+
 | **LOGS_MODEL_CONFIG** | Object |  Logs model config for action logs.
 
-| **ALLOW_WITHOUT_STRICT_LOGGING** | Boolean | When set to `True`, if the external log system like Splunk or ElasticSearch is intermittently unavailable, allows users to push images normally. Events are logged to the stdout instead. Overrides `ALLOW_PULLS_WITHOUT_STRICT_LOGGING` if set. +
- +
- **Default:** False
+| **ALLOW_WITHOUT_STRICT_LOGGING** | Boolean | When set to `True`, if the external log system like Splunk or ElasticSearch is intermittently unavailable, allows users to push images normally. Events are logged to the stdout instead. Overrides `ALLOW_PULLS_WITHOUT_STRICT_LOGGING` if set. 
+
+**Default:** False
 |===
 
 .Action log storage example YAML
@@ -54,18 +53,17 @@ This section describes configuration fields related to action log rotation and a
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
-| **FEATURE_ACTION_LOG_ROTATION** | Boolean |  Enabling log rotation and archival will move all logs older than 30 days to storage. +
- +
-**Default:** `False`
+| **FEATURE_ACTION_LOG_ROTATION** | Boolean |  Enabling log rotation and archival will move all logs older than 30 days to storage. 
 
-| **ACTION_LOG_ARCHIVE_LOCATION** | String | If action log archiving is enabled, the storage engine in which to place the archived data. +
- +
+**Default:** `False`
+| **ACTION_LOG_ARCHIVE_LOCATION** | String | If action log archiving is enabled, the storage engine in which to place the archived data. 
+
 **Example:**: `s3_us_east`
-| **ACTION_LOG_ARCHIVE_PATH** | String | If action log archiving is enabled, the path in storage in which to place the archived data. +
- +
+| **ACTION_LOG_ARCHIVE_PATH** | String | If action log archiving is enabled, the path in storage in which to place the archived data. 
+
 **Example:** `archives/actionlogs`
-| **ACTION_LOG_ROTATION_THRESHOLD** | String | The time interval after which to rotate logs. +
- +
+| **ACTION_LOG_ROTATION_THRESHOLD** | String | The time interval after which to rotate logs. 
+
 **Example:** `30d`
 |===
 
@@ -89,26 +87,25 @@ This section covers the configuration fields for audit logging within {productna
 [cols="2a,1a,2a",options="header"]
 |===
 |Field | Type |Description
-| **ACTION_LOG_AUDIT_LOGINS** | Boolean | When set to `True`, tracks advanced events such as logging into, and out of, the UI, and logging in using Docker for regular users, robot accounts, and for application-specific token accounts. +
- +
+| **ACTION_LOG_AUDIT_LOGINS** | Boolean | When set to `True`, tracks advanced events such as logging into, and out of, the UI, and logging in using Docker for regular users, robot accounts, and for application-specific token accounts. 
+
 **Default:** `True`
 
-| **ACTION_LOG_AUDIT_LOGIN_FAILURES** | Boolean | Whether logging of failed logins attempts is enabled. +
- +
+| **ACTION_LOG_AUDIT_LOGIN_FAILURES** | Boolean | Whether logging of failed logins attempts is enabled. 
+
 **Default:** `False`
 
-| **ACTION_LOG_AUDIT_PULL_FAILURES** | Boolean | Whether logging of failed image pull attempts is enabled. +
- +
+| **ACTION_LOG_AUDIT_PULL_FAILURES** | Boolean | Whether logging of failed image pull attempts is enabled. 
+
 **Default:** `False`
 
-| **ACTION_LOG_AUDIT_PUSH_FAILURES** | Boolean | Whether logging of failed image push attempts is enabled. +
- +
+| **ACTION_LOG_AUDIT_PUSH_FAILURES** | Boolean | Whether logging of failed image push attempts is enabled. 
+
 **Default:** `False`
 
-| **ACTION_LOG_AUDIT_DELETE_FAILURES** | Boolean | Whether logging of failed image delete attempts is enabled. +
- +
-**Default:** `False`
+| **ACTION_LOG_AUDIT_DELETE_FAILURES** | Boolean | Whether logging of failed image delete attempts is enabled. 
 
+**Default:** `False`
 |===
 
 .Audit logs configuration example YAML
@@ -122,3 +119,8 @@ ACTION_LOG_AUDIT_PUSH_FAILURES: false
 ACTION_LOG_AUDIT_DELETE_FAILURES: false
 # ...
 ----
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/manage_red_hat_quay/proc_manage-log-storage[Configuring action log storage for Elasticsearch and Splunk]

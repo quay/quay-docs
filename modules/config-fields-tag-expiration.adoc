@@ -2,57 +2,46 @@
 [id="config-fields-tag-expiration"]
 = Tag expiration configuration fields
 
-The following configuration options are available to automate tag expiration and garbage collection. These features help manage storage usage by enabling cleanup of unused or expired tags based on defined policies.
+[role="_abstract"]
+The following configuration fields are available to automate tag expiration and garbage collection. These features help manage storage usage by enabling cleanup of unused or expired tags based on defined policies.
 
 .Tag expiration configuration fields
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
-| **FEATURE_GARBAGE_COLLECTION** | Boolean | Whether garbage collection of repositories is enabled. + 
- + 
-**Default:** True
-| **TAG_EXPIRATION_OPTIONS** +
-(Required) | Array of string | If enabled, the options that users can select for expiration of tags in their namespace. + 
- + 
-**Pattern:** + 
-`^[0-9]+(y\|w\|m\|d\|h\|s)$`
-| **DEFAULT_TAG_EXPIRATION** +
-(Required) | String | The default, configurable tag expiration time for time machine. + 
- + 
-**Pattern:**  + 
-`^[0-9]+(y\w\|m\|d\|h\|s)$` + 
-**Default:**  `2w`
-| **FEATURE_CHANGE_TAG_EXPIRATION**  | Boolean | Whether users and organizations are allowed to change the tag expiration for tags in their namespace. + 
- + 
+| **FEATURE_GARBAGE_COLLECTION** | Boolean | Whether garbage collection of repositories is enabled. 
+
 **Default:** True
 
-| **FEATURE_AUTO_PRUNE** | Boolean | When set to `True`, enables functionality related to the auto-pruning of tags. 
- +
+| **TAG_EXPIRATION_OPTIONS** (Required) | Array of string | If enabled, the options that users can select for expiration of tags in their namespace. **Pattern:** `^[0-9]+(y\|w\|m\|d\|h\|s)$`
+| **DEFAULT_TAG_EXPIRATION** (Required) | String | The default, configurable tag expiration time for time machine. **Pattern:** `^[0-9]+(y\w\|m\|d\|h\|s)$` 
+
+**Default:**  `2w`
+
+| **FEATURE_CHANGE_TAG_EXPIRATION**  | Boolean | Whether users and organizations are allowed to change the tag expiration for tags in their namespace. 
+
+**Default:** True
+
+| **FEATURE_AUTO_PRUNE** | Boolean | When set to `True`, enables functionality related to the auto-pruning of tags.  
+
 *Default:* `False`
 
-| *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES* |Integer | The interval, in minutes, that defines the frequency to re-run notifications for expiring images. +
- +
+| *NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES* |Integer | The interval, in minutes, that defines the frequency to re-run notifications for expiring images. 
+
 **Default:** `300`
 
 |*DEFAULT_NAMESPACE_AUTOPRUNE_POLICY* | Object | The default organization-wide auto-prune policy.
 
 |{nbsp}{nbsp}{nbsp} *.method: number_of_tags* | Object | The option specifying the number of tags to keep. 
 
-|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *method: number_of_tags*, denotes the number of tags to keep. +
-
-For example, to keep two tags, specify `2`.
-
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *method: number_of_tags*, denotes the number of tags to keep. For example, to keep two tags, specify `2`.
 |{nbsp}{nbsp}{nbsp} *.creation_date* | Object | The option specifying the duration of which to keep tags. 
-|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *creation_date*, denotes how long to keep tags. +
-
-Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`). Must include a valid integer. For example, to keep tags for one year, specify `1y`.
-
+|{nbsp}{nbsp}{nbsp} *.value: <integer>* | Integer | When used with *creation_date*, denotes how long to keep tags. Can be set to seconds (`s`), days (`d`), months (`m`), weeks (`w`), or years (`y`). Must include a valid integer. For example, to keep tags for one year, specify `1y`.
 |*AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD* |Integer | The period in which the auto-pruner worker runs at the registry level. By default, it is set to run one time per day (one time per 24 hours). Value must be in seconds.
 
-|*FEATURE_IMAGE_EXPIRY_TRIGGER* |Boolean |Allows users to set up notifications on image expiration. Notifications are only returned on the v2 UI. + 
- + 
-**Default:** False
+|*FEATURE_IMAGE_EXPIRY_TRIGGER* |Boolean |Allows users to set up notifications on image expiration. Notifications are only returned on the v2 UI. 
 
+**Default:** False
 |===
 
 .Example tag expiration example YAML
@@ -71,12 +60,13 @@ FEATURE_AUTO_PRUNE: true
 NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES: 300
 DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
   method: number_of_tags
-  value: 10 <1>
+  value: 10
 AUTO_PRUNING_DEFAULT_POLICY_POLL_PERIOD: 86400
 FEATURE_IMAGE_EXPIRY_TRIGGER: false
 # ...
 ----
-<1> Specifies ten tags to remain.
++
+`DEFAULT_NAMESPACE_AUTOPRUNE_POLICY.value`:: Specifies ten tags to remain.
 
 .Registry auto-prune policy by creation date example YAML
 [source,yaml]
@@ -84,7 +74,8 @@ FEATURE_IMAGE_EXPIRY_TRIGGER: false
 # ...
 DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
   method: creation_date
-  value: 1y <1>
+  value: 1y
 # ...
 ----
-<1> Specifies tags to be pruned one year after their creation date.
+
+`DEFAULT_NAMESPACE_AUTOPRUNE_POLICY.value`:: Specifies tags to be pruned one year after their creation date.
