@@ -2,53 +2,35 @@
 [id="config-fields-scanner"]
 = Clair security scanner configuration fields
 
-{productname} can leverage Clair security scanner to detect vulnerabilities in container images. These configuration fields control how the scanner is enabled, how frequently it indexes new content, which endpoints are used, and how notifications are handled.
+[role="_abstract"]
+The following configuration fields control how the Clair security scanner is enabled, how frequently it indexes new content, which endpoints are used, and how notifications are handled.
 
 .Security scanner configuration
 [cols="3a,1a,2a",options="header"]
 |===
 | Field | Type | Description
-| **FEATURE_SECURITY_SCANNER** | Boolean |  Enable or disable the security scanner + 
- + 
- **Default:** `False`
-| **FEATURE_SECURITY_NOTIFICATIONS** | Boolean | If the security scanner is enabled, turn on or turn off security notifications + 
- + 
- **Default:** `False`
+| **FEATURE_SECURITY_SCANNER** | Boolean |  Enable or disable the security scanner **Default:** `False`
+| **FEATURE_SECURITY_NOTIFICATIONS** | Boolean | If the security scanner is enabled, turn on or turn off security notifications **Default:** `False`
 | **SECURITY_SCANNER_V4_REINDEX_THRESHOLD** | String | This parameter is used to determine the minimum time, in seconds, to wait before re-indexing a manifest that has either previously failed or has changed states since the last indexing. The data is calculated from the `last_indexed datetime` in the *manifestsecuritystatus* table. This parameter is used to avoid trying to re-index every failed manifest on every indexing run. The default time to re-index is 300 seconds.
-| **SECURITY_SCANNER_V4_ENDPOINT** | String | The endpoint for the V4 security scanner + 
- + 
-**Pattern:** + 
-`^http(s)?://(.)+$` +
- + 
-**Example:** + 
-`http://192.168.99.101:6060`
-| **SECURITY_SCANNER_V4_PSK** | String | The generated pre-shared key (PSK) for Clair
-// TODO 36 Check that SECURITY_SCANNER_NOTIFICATIONS can be dropped 
-// | **SECURITY_SCANNER_NOTIFICATIONS** | String | 
-| **SECURITY_SCANNER_ENDPOINT** | String |  The endpoint for the V2 security scanner + 
- + 
-**Pattern:** + 
-`^http(s)?://(.)+$` +
- + 
-**Example:** + 
-`http://192.168.99.100:6060`
-| **SECURITY_SCANNER_INDEXING_INTERVAL** | Integer | This parameter is used to determine the number of seconds between indexing intervals in the security scanner. When indexing is triggered, {productname} will query its database for manifests that must be indexed by Clair. These include manifests that have not yet been indexed and manifests that previously failed indexing. +
- +
-**Default:** 30
+| **SECURITY_SCANNER_V4_ENDPOINT** | String | The endpoint for the V4 security scanner **Pattern:** `^http(s)?://(.)+$` **Example:** `http://192.168.99.101:6060`
+| **SECURITY_SCANNER_V4_PSK** | String | The generated pre-shared key (PSK) for Clair // TODO 36 Check that SECURITY_SCANNER_NOTIFICATIONS can be dropped //
+| **SECURITY_SCANNER_NOTIFICATIONS** | String |
+| **SECURITY_SCANNER_ENDPOINT** | String |  The endpoint for the V2 security scanner **Pattern:** `^http(s)?://(.)+$` **Example:** `http://192.168.99.100:6060`
+| **SECURITY_SCANNER_INDEXING_INTERVAL** | Integer | This parameter is used to determine the number of seconds between indexing intervals in the security scanner. When indexing is triggered, {productname} will query its database for manifests that must be indexed by Clair. These include manifests that have not yet been indexed and manifests that previously failed indexing. **Default:** 30
+| **FEATURE_SECURITY_SCANNER_NOTIFY_ON_NEW_INDEX** | Boolean | Whether to allow sending notifications about vulnerabilities for new pushes. 
 
-| **FEATURE_SECURITY_SCANNER_NOTIFY_ON_NEW_INDEX** | Boolean | Whether to allow sending notifications about vulnerabilities for new pushes.
- +
 **Default**: `True`
 
-| **SECURITY_SCANNER_V4_MANIFEST_CLEANUP** | Boolean | Whether the {productname} garbage collector removes manifests that are not referenced by other tags or manifests.
- +
+| **SECURITY_SCANNER_V4_MANIFEST_CLEANUP** | Boolean | Whether the {productname} garbage collector removes manifests that are not referenced by other tags or manifests. 
+
 **Default**: `True`
 
 | *NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX* | String | Set minimal security level for new notifications on detected vulnerabilities. Avoids creation of large number of notifications after first index. If not defined, defaults to `High`. Available options include `Critical`, `High`, `Medium`, `Low`, `Negligible`, and `Unknown`.
 
-| *SECURITY_SCANNER_V4_INDEX_MAX_LAYER_SIZE* | String | The maximum layer size allowed for indexing. If the layer size exceeds the configured size, the {productname} UI returns the following message: `The manifest for this tag has layer(s) that are too large to index by the Quay Security Scanner`. The default is `8G`, and the maximum recommended is `10G`. Accepted values are `B`, `K`, `M`, `T`, and `G`.
- +
- **Default**: `8G`
+| *SECURITY_SCANNER_V4_INDEX_MAX_LAYER_SIZE* | String | The maximum layer size allowed for indexing. If the layer size exceeds the configured size, the {productname} UI returns the following message: `The manifest for this tag has layer(s) that are too large to index by the Quay Security Scanner`. The default is `8G`, and the maximum recommended is `10G`. Accepted values are `B`, `K`, `M`, `T`, and `G`. 
+
+**Default**: `8G`
+
 |===
 
 .Security scanner YAML configuration
@@ -64,10 +46,11 @@ SECURITY_SCANNER_V4_MANIFEST_CLEANUP: true
 SECURITY_SCANNER_V4_ENDPOINT: http://quay-server.example.com:8081
 SECURITY_SCANNER_V4_PSK: MTU5YzA4Y2ZkNzJoMQ==
 SERVER_HOSTNAME: quay-server.example.com
-SECURITY_SCANNER_V4_INDEX_MAX_LAYER_SIZE: 8G <1>
+SECURITY_SCANNER_V4_INDEX_MAX_LAYER_SIZE: 8G
 # ...
 ----
-<1> Recommended maximum is `10G`.
+
+Recommended maximum is `10G`.
 
 [id="reindexing-clair-v4"]
 == Re-indexing with Clair v4

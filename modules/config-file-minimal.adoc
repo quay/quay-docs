@@ -2,128 +2,39 @@
 [id="config-file-minimal"]
 = Required configuration fields
 
-The following configuration fields are required for an on premise deployment of {productname}:
+[role="_abstract"]
+The following configuration fields are required to start an on-premises {productname} deployment. You must include each field in your `config.yaml` file before the registry can start.
 
+.Required configuration fields
+[cols="3a,1a,2a",options="header"]
 |===
-| *Field* | *Type* | *Description* 
-| **AUTHENTICATION_TYPE** +
-(Required) | String | The authentication engine to use for credential authentication. + 
- + 
-**Values:** + 
-One of `Database`, `LDAP`, `JWT`, `Keystone`, `OIDC` + 
- + 
-**Default:** `Database`
+| *Field* | *Type* | *Description*
 
-| **BUILDLOGS_REDIS** +
-(Required) | Object | Redis connection details for build logs caching.
-|**.host**  +
-(Required)| String | The hostname at which Redis is accessible.
-|**.password** | String | The password to connect to the Redis instance.
+| **AUTHENTICATION_TYPE** (Required) | String | The authentication engine to use for credential authentication. **Values:** One of `Database`, `LDAP`, `JWT`, `Keystone`, `OIDC`. **Default:** `Database`.
 
-| **DATABASE_SECRET_KEY**  +
-(Required) | String | Key used to encrypt sensitive fields within the database. This value should never be changed once set, otherwise all reliant fields, for example, repository mirror username and password configurations, are invalidated. +
-This value is set automatically by the {productname} Operator for Operator-based deployments. For standalone deployments, administrators can provide their own key using Open SSL or a similar tool. Key length should not exceed 63 characters.
+| **BUILDLOGS_REDIS** (Required) | Object | Redis connection details for build logs caching.
 
-| **DB_URI** +
-(Required) | String | The URI for accessing the database, including any credentials.
+| **.host** (Required) | String | The hostname at which Redis is accessible.
 
-| **DISTRIBUTED_STORAGE_CONFIG** +
-(Required) | Object | Configuration for storage engine(s) to use in {productname}. Each key represents an unique identifier for a storage engine. The value consists of a tuple of (key, value) forming an object describing the storage engine parameters. +
- +
- **Default:** `[]`
+| **.password** | String | The password to connect to the Redis instance.
 
-| **SECRET_KEY** +
-(Required) | String | Key used to encrypt the session cookie and the CSRF token needed for correct interpretation of the user session. The value should not be changed when set. Should be persistent across all {productname} instances. If not persistent across all instances, login failures and other errors related to session persistence might occur.
+| **DATABASE_SECRET_KEY** (Required) | String | Key used to encrypt sensitive fields within the database. This value should never be changed once set, otherwise all reliant fields, for example, repository mirror username and password configurations, are invalidated. This value is set automatically by the {productname} Operator for Operator-based deployments. For standalone deployments, administrators can provide their own key using Open SSL or a similar tool. Key length should not exceed 63 characters.
 
-| **SERVER_HOSTNAME**  +
-(Required) | String | The URL at which {productname} is accessible, without the scheme.
+| **DB_URI** (Required) | String | The URI for accessing the database, including any credentials.
 
-| **SETUP_COMPLETE**  +
-(Required) | Boolean | This is an artifact left over from earlier versions of the software and currently it **must** be specified with a value of `True`.
+| **DISTRIBUTED_STORAGE_CONFIG** (Required) | Object | Configuration for storage engine(s) to use in {productname}. Each key represents an unique identifier for a storage engine. The value consists of a tuple of (key, value) forming an object describing the storage engine parameters. **Default:** `[]`
 
-| **USER_EVENTS_REDIS** +
-(Required) | Object | Redis connection details for user event handling.
-|**.host**  +
-(Required)| String | The hostname at which Redis is accessible.
-|**.port**  +
-(Required)| Number | The port at which Redis is accessible.
-|**.password** | String | The password to connect to the Redis instance.
+| **SECRET_KEY** (Required) | String | Key used to encrypt the session cookie and the CSRF token needed for correct interpretation of the user session. The value should not be changed when set. Should be persistent across all {productname} instances. If not persistent across all instances, login failures and other errors related to session persistence might occur.
+
+| **SERVER_HOSTNAME** (Required) | String | The URL at which {productname} is accessible, without the scheme.
+
+| **SETUP_COMPLETE** (Required) | Boolean | This is an artifact left over from earlier versions of the software and currently it **must** be specified with a value of `True`.
+
+| **USER_EVENTS_REDIS** (Required) | Object | Redis connection details for user event handling.
+
+| **.host** (Required) | String | The hostname at which Redis is accessible.
+
+| **.port** (Required) | Number | The port at which Redis is accessible.
+
+| **.password** | String | The password to connect to the Redis instance.
 |===
-
-
-[id="sample-config-file-minimal"]
-== Minimal configuration file examples
-
-This section provides two examples of a minimal configuration file: one example that uses local storage, and another example that uses cloud-based storage with Google Cloud Platform.
-
-[id="minimal-configuration-local-storage"]
-=== Minimal configuration using local storage
-
-The following example shows a sample minimal configuration file that uses local storage for images.
-
-[IMPORTANT]
-====
-Only use local storage when deploying a registry for proof of concept purposes. It is not intended for production purposes. When using local storage, you must map the registry to a local directory to the `datastorage` path in the container when starting the registry. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/proof_of_concept_-_deploying_red_hat_quay[Proof of Concept - Deploying {productname}]
-====
-
-.Local storage minimal configuration
-[source,yaml]
-----
-AUTHENTICATION_TYPE: Database
-BUILDLOGS_REDIS:
-    host: <quay-server.example.com>
-    password: <password>
-    port: <port>
-DATABASE_SECRET_KEY: <example_database_secret_key>
-DB_URI: postgresql://<username>:<password>@<registry_url>.com:<port>/quay
-DISTRIBUTED_STORAGE_CONFIG:
-  default:
-    - LocalStorage
-    - storage_path: /datastorage/registry
-SECRET_KEY: <example_secret_key>
-SERVER_HOSTNAME: <server_host_name>
-SETUP_COMPLETE: true
-USER_EVENTS_REDIS:
-  host: <redis_events_url>
-  password: <password>
-  port: <port>
-----
-
-[id="minimal-configuration-cloud-based-storage"]
-=== Minimal configuration using cloud-based storage
-
-In most production environments, {productname} administrators use cloud or enterprise-grade storage backends provided by supported vendors. The following example shows you how to configure {productname} to use Google Cloud Platform for image storage. For a complete list of supported storage providers, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3.14/html-single/configure_red_hat_quay/index#config-fields-storage[Image storage].
-
-[NOTE]
-====
-When using a cloud or enterprise-grade storage backend, additional configuration, such as mapping the registry to a local directory, is not required.
-====
-
-.Cloud storage minimal configuration
-[source,yaml]
-----
-AUTHENTICATION_TYPE: Database
-BUILDLOGS_REDIS:
-    host: <quay-server.example.com>
-    password: <password>
-    port: <port>
-DATABASE_SECRET_KEY: <example_database_secret_key>
-DB_URI: postgresql://<username>:<password>@<registry_url>.com:<port>/quay
-DISTRIBUTED_STORAGE_CONFIG:
-    default:
-        - GoogleCloudStorage
-        - access_key: <access_key>
-          bucket_name: <bucket_name>
-          secret_key: <secret_key>
-          storage_path: /datastorage/registry
-DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
-DISTRIBUTED_STORAGE_PREFERENCE:
-    - default
-SECRET_KEY: <example_secret_key>
-SERVER_HOSTNAME: <server_host_name>
-SETUP_COMPLETE: true
-USER_EVENTS_REDIS:
-  host: <redis_events_url>
-  password: <password>
-  port: <port>
-----

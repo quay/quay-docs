@@ -6,11 +6,8 @@
 [id="config-fields-model-card-rendering"]
 = Model card rendering configuration fields
 
-{productname} supports the rendering of Model Cards—a form of metadata documentation commonly used in machine learning workflows—to improve the visibility and management of model-related content within OCI-compliant images.
-
-.Additional information
-* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#viewing-model-card-information[Viewing model card information by using the UI]
-* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#creating-an-image-repository-via-skopeo-copy[Creating a repository by using Skopeo]
+[role="_abstract"]
+The following configuration fields enable {productname} to display Model Card metadata in the UI for OCI-compliant machine learning images. Model Cards are a form of metadata documentation commonly used in machine learning workflows to improve the visibility and management of model-related content within OCI-compliant images.
 
 .Model card rendering configuration fields
 |===
@@ -25,14 +22,23 @@
 .Model card example YAML
 [source,yaml]
 ----
-FEATURE_UI_MODELCARD: true <1>
-UI_MODELCARD_ARTIFACT_TYPE: application/x-mlmodel <2>
-UI_MODELCARD_ANNOTATION: <3>
+FEATURE_UI_MODELCARD: true
+UI_MODELCARD_ARTIFACT_TYPE: application/x-mlmodel
+UI_MODELCARD_ANNOTATION:
   org.opencontainers.image.description: "Model card metadata"
-UI_MODELCARD_LAYER_ANNOTATION: <4>
+UI_MODELCARD_LAYER_ANNOTATION:
   org.opencontainers.image.title: README.md
 ----
-<1> Enables the *Model Card* image tab in the UI.
-<2> Defines the model card artifact type. In this example, the artifact type is `application/x-mlmodel`.
-<3> Optional. If an image does not have an `artifactType` defined, this field is checked at the manifest level. If a matching annotation is found, the system then searches for a layer with an annotation matching `UI_MODELCARD_LAYER_ANNOTATION`.
-<4> Optional. If an image has an `artifactType` defined and multiple layers, this field is used to locate the specific layer containing the model card.
+
+where:
+
+* `FEATURE_UI_MODELCARD`:: Specifies enabling the *Model Card* image tab in the UI.
+* `UI_MODELCARD_ARTIFACT_TYPE`:: Specifies the model card artifact type. In this example, the artifact type is `application/x-mlmodel`.
+* `UI_MODELCARD_ANNOTATION`:: Specifies manifest-level annotation lookup when an image does not have an `artifactType` defined. If a matching annotation is found, the system then searches for a layer with an annotation matching `UI_MODELCARD_LAYER_ANNOTATION`. This field is optional.
+* `UI_MODELCARD_LAYER_ANNOTATION`:: Specifies the layer annotation used to locate the specific layer containing the model card when an image has an `artifactType` defined and multiple layers. This field is optional.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#viewing-model-card-information[Viewing model card information by using the UI]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#creating-an-image-repository-via-skopeo-copy[Creating a repository by using Skopeo]

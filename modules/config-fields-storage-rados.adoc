@@ -2,11 +2,12 @@
 [id="config-fields-storage-rados"]
 = Ceph Object Gateway (RadosGW) storage example
 
-{productname} supports using Ceph Object Gateway (RadosGW) as an object storage backend. RadosGW is a component of link:https://www.redhat.com/en/technologies/storage/ceph[Red Hat Ceph Storage], which is a storage platform engineered for private architecture. Red Hat Ceph Storage provides an S3-compatible REST API for interacting with Ceph.
+[role="_abstract"]
+You can configure {productname} to use Ceph Object Gateway (RadosGW) as an S3-compatible storage backend. Use this example to set required authentication fields and optional assembly settings.
 
 [NOTE]
 ====
-RadosGW is an on-premise S3-compatible storage solution. It implements the S3 API and requires the same authentication fields, such as `access_key`, `secret_key`, and `bucket_name`. For more information about Ceph Object Gateway and the S3 API, see link:https://www.ibm.com/docs/en/storage-ceph/8.0.0?topic=ceph-object-gateway[Ceph Object Gateway].
+RadosGW is an on-premises S3-compatible storage solution. It implements the S3 API and requires the same authentication fields, such as `access_key`, `secret_key`, and `bucket_name`.
 ====
 
 The following YAML shows an example configuration using RadosGW.
@@ -15,7 +16,7 @@ The following YAML shows an example configuration using RadosGW.
 [source,yaml]
 ----
 DISTRIBUTED_STORAGE_CONFIG:
-  radosGWStorage: <1>
+  radosGWStorage:
     - RadosGWStorage
     - access_key: <access_key_here>
       bucket_name: <bucket_name_here>
@@ -24,9 +25,19 @@ DISTRIBUTED_STORAGE_CONFIG:
       port: '443'
       secret_key: <secret_key_here>
       storage_path: /datastorage/registry
-      maximum_chunk_size_mb: 100 <2>
-      server_side_assembly: true <3>
+      maximum_chunk_size_mb: 100
+      server_side_assembly: true
 ----
-<1> Used for general s3 access. Note that general s3 access is not strictly limited to Amazon Web Services (AWS) s3, and can be used with RadosGW or other storage services. For an example of general s3 access using the AWS S3 driver, see "AWS S3 storage".
-<2> Optional. Defines the maximum chunk size in MB for the final copy. Has no effect if `server_side_assembly` is set to `False`.
-<3> Optional. Whether {productname} should try and use server side assembly and the final chunked copy instead of client assembly. Defaults to `True`.
+
+where:
+
+`DISTRIBUTED_STORAGE_CONFIG.radosGWStorage`:: Specifies general S3 access. Note that general S3 access is not strictly limited to Amazon Web Services (AWS) S3, and can be used with RadosGW or other storage services. For an example of general S3 access using the AWS S3 driver, see "AWS S3 storage".
+`DISTRIBUTED_STORAGE_CONFIG.radosGWStorage.maximum_chunk_size_mb`:: Specifies the maximum chunk size in MB for the final copy. Has no effect if `server_side_assembly` is set to `False`. This field is optional.
+`DISTRIBUTED_STORAGE_CONFIG.radosGWStorage.server_side_assembly`:: Specifies whether {productname} tries to use server-side assembly and the final chunked copy instead of client assembly. Defaults to `True`. This field is optional.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://www.redhat.com/en/technologies/storage/ceph[Red Hat Ceph Storage]
+* link:https://www.ibm.com/docs/en/storage-ceph/8.0.0?topic=ceph-object-gateway[Ceph Object Gateway]
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-storage-aws[AWS S3 storage]

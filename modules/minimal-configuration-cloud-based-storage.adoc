@@ -1,0 +1,46 @@
+// module included in the following assemblies:
+
+// * config_quay/master.adoc
+
+:_mod-docs-content-type: REFERENCE
+[id="minimal-configuration-cloud-based-storage"]
+= Minimal configuration using cloud-based storage
+
+[role="_abstract"]
+A minimal `config.yaml` for on-premises {productname} can use cloud-based object storage such as Google Cloud Platform. Use this pattern when you deploy {productname} with a supported enterprise storage backend.
+
+In most production environments, {productname} administrators use cloud or enterprise-grade storage backends provided by supported vendors. The following example shows you how to configure {productname} to use Google Cloud Platform for image storage. For a complete list of supported storage providers, see "Image storage".
+
+[NOTE]
+====
+When using a cloud or enterprise-grade storage backend, additional configuration, such as mapping the registry to a local directory, is not required.
+====
+
+.Cloud storage minimal configuration
+[source,yaml]
+----
+AUTHENTICATION_TYPE: Database
+BUILDLOGS_REDIS:
+    host: <quay-server.example.com>
+    password: <password>
+    port: <port>
+DATABASE_SECRET_KEY: <example_database_secret_key>
+DB_URI: postgresql://<username>:<password>@<registry_url>.com:<port>/quay
+DISTRIBUTED_STORAGE_CONFIG:
+    default:
+        - GoogleCloudStorage
+        - access_key: <access_key>
+          bucket_name: <bucket_name>
+          secret_key: <secret_key>
+          storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+SECRET_KEY: <example_secret_key>
+SERVER_HOSTNAME: <server_host_name>
+SETUP_COMPLETE: true
+USER_EVENTS_REDIS:
+  host: <redis_events_url>
+  password: <password>
+  port: <port>
+----

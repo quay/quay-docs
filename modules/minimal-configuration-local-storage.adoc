@@ -1,0 +1,38 @@
+// module included in the following assemblies:
+
+// * config_quay/master.adoc
+
+:_mod-docs-content-type: REFERENCE
+[id="minimal-configuration-local-storage"]
+= Minimal configuration using local storage
+
+[role="_abstract"]
+A minimal `config.yaml` for on-premises {productname} uses local storage for images. Use this example only for proof of concept deployments, not production.
+
+[IMPORTANT]
+====
+Only use local storage when deploying a registry for proof of concept purposes. Local storage is not intended for production purposes. When using local storage, you must map the registry to a local directory to the `datastorage` path in the container when starting the registry. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/proof_of_concept_-_deploying_red_hat_quay[Proof of Concept - Deploying {productname}]
+====
+
+.Local storage minimal configuration
+[source,yaml]
+----
+AUTHENTICATION_TYPE: Database
+BUILDLOGS_REDIS:
+    host: <quay-server.example.com>
+    password: <password>
+    port: <port>
+DATABASE_SECRET_KEY: <example_database_secret_key>
+DB_URI: postgresql://<username>:<password>@<registry_url>.com:<port>/quay
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+    - LocalStorage
+    - storage_path: /datastorage/registry
+SECRET_KEY: <example_secret_key>
+SERVER_HOSTNAME: <server_host_name>
+SETUP_COMPLETE: true
+USER_EVENTS_REDIS:
+  host: <redis_events_url>
+  password: <password>
+  port: <port>
+----
