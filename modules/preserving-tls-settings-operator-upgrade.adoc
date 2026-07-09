@@ -1,0 +1,57 @@
+:_mod-docs-content-type: PROCEDURE
+[id="preserving-tls-settings-operator-upgrade_{context}"]
+= Preserving TLS settings before upgrading {productname-ocp}
+
+[role="_abstract"]
+Starting with {productname} {producty}, the {productname} Operator inherits the cluster-wide TLS security profile from the OpenShift `APIServer` configuration when neither `SSL_PROTOCOLS` nor `SSL_CIPHERS` is set in the `configBundleSecret` resource. Before upgrading to {producty}, review your cluster profile and, if needed, set both fields explicitly to preserve your current TLS behavior.
+
+When the `tls` component is set to `managed`, the OpenShift Route already enforces the cluster TLS profile and no action is required. When the `tls` component is set to `unmanaged`, {productname} terminates TLS directly and inherits the cluster profile after upgrade unless you override it in the config bundle. If you use unmanaged TLS and have already set both `SSL_PROTOCOLS` and `SSL_CIPHERS` in the config bundle, no additional TLS configuration is required before upgrading. Setting only one of these fields disables cluster-profile inheritance for both fields.
+
+.Prerequisites
+
+* You have cluster administrator access to review the {ocp} `APIServer` configuration.
+* You can edit the `configBundleSecret` referenced by your `QuayRegistry` custom resource (CR).
+
+.Procedure
+
+. Review the cluster TLS security profile:
++
+[source,terminal]
+----
+$ oc get apiserver cluster -o jsonpath='{.spec.tlsSecurityProfile}{"\n"}'
+----
+
+. If you must preserve your current TLS settings, add `SSL_PROTOCOLS` and `SSL_CIPHERS` to the `config.yaml` file in your `configBundleSecret` before upgrading. For example:
++
+[source,yaml]
+----
+# ...
+SSL_PROTOCOLS:
+  - TLSv1.2
+  - TLSv1.3
+SSL_CIPHERS:
+  - ECDHE-RSA-AES128-GCM-SHA256
+  - ECDHE-ECDSA-AES128-GCM-SHA256
+  - ECDHE-RSA-AES256-GCM-SHA384
+  - ECDHE-ECDSA-AES256-GCM-SHA384
+  # Add other required ciphers
+# ...
+----
++
+[NOTE]
+====
+Include every cipher suite your clients require. To fully override cluster-profile inheritance, set both `SSL_PROTOCOLS` and `SSL_CIPHERS`. Setting either field disables inheritance for both fields.
+====
+
+. Update the `configBundleSecret` with the modified `config.yaml` file. You can edit the secret in the {ocp} web console or recreate it from a local file. For example:
++
+[source,terminal]
+----
+$ oc create secret generic <config_bundle_secret_name> \
+  --from-file config.yaml=./config.yaml \
+  --dry-run=client -o yaml | oc apply -f -
+----
++
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#modifying-configuration-file-ocp[Modifying the configuration file by using the {ocp} web console] and link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#overriding-cluster-tls-security-profile[Overriding the cluster TLS security profile].
+
+. Proceed with the {productname} Operator upgrade. If the cluster TLS profile is acceptable and neither `SSL_PROTOCOLS` nor `SSL_CIPHERS` is set, no additional TLS configuration is required.

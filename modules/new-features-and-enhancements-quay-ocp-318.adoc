@@ -4,5 +4,38 @@
 
 The following updates have been made to {productname-ocp}.
 
-[id="example_one"]
-== Example one
+[id="ocp-tls-security-profile-inheritance"]
+== {ocp} cluster TLS security profile inheritance & Post-Quantum Cryptography (PQC) readiness
+
+When the `tls` component is set to `unmanaged`, the {productname} Operator inherits the cluster's TLS security profile from the `APIServer` configuration when neither `SSL_PROTOCOLS` nor `SSL_CIPHERS` is configured in the `configBundleSecret` resource. This helps align {productname} with the platform TLS policy and supports Post-Quantum Cryptography (PQC) readiness when the cluster profile requires TLS 1.3.
+
+To fully override or preserve TLS behavior, set both `SSL_PROTOCOLS` and `SSL_CIPHERS` in the `configBundleSecret` resource. Setting either field disables cluster-profile inheritance for both fields; partial configuration is not supported. Supported profile types are `Old`, `Intermediate`, `Modern`, and `Custom`. If the cluster has no profile set, the Operator defaults to the `Intermediate` profile (TLS 1.2 and TLS 1.3).
+
+.TLS security profile inheritance by TLS mode
+[cols="2a,3a,3a",options="header"]
+|===
+| TLS mode | Before this release | After this release
+
+| Managed TLS (Operator-managed route)
+| {ocp} Route enforces the cluster TLS profile
+| No change
+
+| Unmanaged TLS (`tls` component set to `unmanaged`)
+| {productname} used built-in TLS defaults
+| {productname} inherits the cluster TLS security profile when neither `SSL_PROTOCOLS` nor `SSL_CIPHERS` is configured
+|===
+
+[IMPORTANT]
+====
+If you use unmanaged TLS and require specific TLS settings that differ from the cluster default, set both `SSL_PROTOCOLS` and `SSL_CIPHERS` in your `configBundleSecret` resource before upgrading. Setting only one field disables cluster-profile inheritance for both fields. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#preserving-tls-settings-operator-upgrade_upgrade-quay-v3[Preserving TLS settings before upgrading {productname-ocp}].
+====
+
+On Kubernetes clusters without the `config.openshift.io` API, the Operator does not inject TLS settings and {productname} uses its built-in defaults.
+
+For more information about SSL/TLS configuration fields, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-ssl[SSL/TLS configuration fields].
+
+For information about custom certificates and the config bundle, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#operator-custom-ssl-certs-config-bundle[Configuring custom SSL/TLS certificates for {productname-ocp}]. For information about TLS protocol and cipher inheritance, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#operator-ocp-tls-security-profile[{ocp} cluster TLS security profile inheritance].
+
+For more information about NIST post-quantum cryptography standards, see link:https://csrc.nist.gov/projects/post-quantum-cryptography[Post-Quantum Cryptography]. 
+
+For the latest compliance information for OpenShift Container Platform, RHEL, and Red Hat Enterprise Linux CoreOS (RHCOS), see link:https://access.redhat.com/articles/2918071[Compliance Activities and Government Standards].
