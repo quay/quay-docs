@@ -2,7 +2,8 @@
 [id="creating-custom-ssl-certs-config-bundle"]
 = Creating a custom SSL/TLS configBundleSecret resource
 
-After creating your custom SSL/TLS certificates, you can create a custom `configBundleSecret` resource for {productname-ocp}, which allows you to upload `ssl.cert` and `ssl.key` files.
+[role="_abstract"]
+To upload custom SSL/TLS certificates to {productname-ocp}, you can create a `configBundleSecret` resource that includes your `ssl.cert` and `ssl.key files` and reference it from the `QuayRegistry` custom resource. You then set the tls component to unmanaged so {productname} terminates TLS with your certificates.
 
 .Prerequisites
 
@@ -25,17 +26,19 @@ $ touch custom-ssl-config-bundle-secret.yaml
 [source,terminal]
 ----
 $ oc -n <namespace> create secret generic custom-ssl-config-bundle-secret \
-  --from-file=config.yaml=</path/to/config.yaml> \ <1>
-  --from-file=ssl.cert=</path/to/ssl.cert> \ <2>
-  --from-file=extra_ca_cert_<name-of-certificate>.crt=ca-certificate-bundle.crt
- \ <3>
-  --from-file=ssl.key=</path/to/ssl.key> \ <4>
+  --from-file=config.yaml=</path/to/config.yaml> \
+  --from-file=ssl.cert=</path/to/ssl.cert> \
+  --from-file=extra_ca_cert_<name-of-certificate>.crt=ca-certificate-bundle.crt \
+  --from-file=ssl.key=</path/to/ssl.key> \
   --dry-run=client -o yaml > custom-ssl-config-bundle-secret.yaml
 ----
-<1> Where `<config.yaml>` is your `base64 decoded` `config.yaml` file.
-<2> Where `<ssl.cert>` is your `ssl.cert` file.
-<3> Optional. Add each additional CA PEM using a Secret key that starts with `extra_ca_cert_` (for example, `--from-file=extra_ca_cert_<name-of-certificate>.crt=ca-certificate-bundle.crt`). The {productname} Operator writes these files under `conf/stack/extra_ca_certs/` in the deployed bundle. For LDAP, OIDC, or other integrations that need custom CAs, supply the PEMs this way and use `conf/stack/extra_ca_certs/<file>` in `config.yaml` when a field such as `ssl_ca_path` requires an explicit path.
-<4> Where `<ssl.key>` is your `ssl.key` file.
++
+where:
+
+`--from-file=config.yaml=</path/to/config.yaml>`:: Specifies your base64 decoded `config.yaml` file.
+`--from-file=ssl.cert=</path/to/ssl.cert>`:: Specifies your `ssl.cert` file.
+`--from-file=extra_ca_cert_<name-of-certificate>.crt=ca-certificate-bundle.crt`:: Specifies an additional CA PEM using a Secret key that starts with `extra_ca_cert_` (for example, `--from-file=extra_ca_cert_<name-of-certificate>.crt=ca-certificate-bundle.crt`). The {productname} Operator writes these files under `conf/stack/extra_ca_certs/` in the deployed bundle. For LDAP, OIDC, or other integrations that need custom CAs, supply the PEMs this way and use `conf/stack/extra_ca_certs/<file>` in `config.yaml` when a field such as `ssl_ca_path` requires an explicit path. This parameter is optional.
+`--from-file=ssl.key=</path/to/ssl.key>`:: Specifies your `ssl.key` file.
 
 . Optional. You can check the content of the `custom-ssl-config-bundle-secret.yaml` file by entering the following command:
 +
@@ -45,7 +48,6 @@ $ cat custom-ssl-config-bundle-secret.yaml
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 apiVersion: v1
@@ -69,7 +71,6 @@ $ oc create -n <namespace> -f custom-ssl-config-bundle-secret.yaml
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 secret/custom-ssl-config-bundle-secret created
@@ -83,7 +84,6 @@ $ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 quayregistry.quay.redhat.com/example-registry patched
@@ -97,7 +97,6 @@ $ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 quayregistry.quay.redhat.com/example-registry patched
@@ -111,7 +110,6 @@ $ oc get quayregistry <registry_name> -n <namespace> -o yaml
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 # ...
@@ -133,7 +131,6 @@ $ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 quayregistry.quay.redhat.com/example-registry patched
@@ -169,7 +166,6 @@ $ oc get pods -n <namespace> | grep quay
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 example-registry-quay-app-6c5bc8ffb7-4qr5v            1/1     Running   0               18m
@@ -219,7 +215,6 @@ $  openssl s_client -connect <quay-server.example.com>:443
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 # ...

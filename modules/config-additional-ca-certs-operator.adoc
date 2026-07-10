@@ -3,6 +3,7 @@
 [id="config-additional-cas-ocp"]
 = Adding additional Certificate Authorities to {productname-ocp}
 
+[role="_abstract"]
 On {productname-ocp}, additional Certificate Authorities (CAs) are merged into the registry trust store from the `conf/stack/extra_ca_certs/` directory inside the final configuration bundle. {productname} uses those CAs to verify TLS to external services such as LDAP, OIDC, and storage endpoints.
 
 This path is the same logical location as the `extra_ca_certs` directory used on standalone deployments. On {productname-ocp}, you do not create that directory on a node yourself. Instead, add each CA PEM file to the `configBundleSecret` as its own Secret data entry whose key name begins with `extra_ca_cert_`. The {productname} Operator extracts these keys when it reconciles the registry and writes the files under `conf/stack/extra_ca_certs/`. The file name in that directory is the key name with the `extra_ca_cert_` prefix removed. For example, a Secret key `extra_ca_cert_ldap-ca.pem` is available at runtime as `conf/stack/extra_ca_certs/ldap-ca.pem`.
