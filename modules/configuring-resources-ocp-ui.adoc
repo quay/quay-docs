@@ -3,7 +3,7 @@
 = Configuring resource requests by using the {ocp} web console
 
 [role="_abstract"]
-To configure resource requests for your {productname} registry components, you can use the {ocp} web console to edit the `QuayRegistry` custom resource. You can set CPU and memory limits and requests for `quay`, `clair`, `mirroring`, and database pods.
+To configure resource requests for your {productname} registry components, you can use the {ocp} web console to edit the `QuayRegistry` custom resource. You can set CPU and memory limits and requests for `quay`, `clair`, `mirror`, `redis`, and database pods.
 
 .Procedure
 
@@ -58,6 +58,16 @@ spec:
           requests:
             cpu: "4"   # Requesting 4 CPU
             memory: "10Gi"   # Requesting 10 Gibi of memory
+    - kind: redis
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: "400m"   # Limiting to 400 millicpu or 0.4 CPU
+            memory: "400Mi"   # Limiting to 400 Mebibytes of memory
+          requests:
+            cpu: "400m"   # Requesting 400 millicpu or 0.4 CPU
+            memory: "400Mi"   # Requesting 400 Mebibytes of memory
     - kind: clairpostgres
       managed: true
       overrides:
