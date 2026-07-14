@@ -2,4 +2,18 @@
 [id="new-features-and-enhancements-318"]
 = {productname} new features and enhancements
 
-The following updates have been made to {productname}.
+[role="_abstract"]
+The following updates have been made to {productname} 3.18.
+
+[id="entra-v2-multi-issuer-oidc"]
+== Microsoft Entra ID v2 token and multi-issuer OIDC support
+
+With this release, {productname} supports multiple OIDC issuers and audiences per identity provider in `*_LOGIN_CONFIG` blocks. You can configure {productname} to accept Microsoft Entra ID v1.0 and v2.0 tokens from the same provider, validate custom token audiences for `On-Behalf-Of` (OBO) API flows, and optionally restrict which client applications can authenticate by using the authorized party (`azp`) claim.
+
+This enhancement enables integrations with Red Hat Developer Hub (RHDH), Red Hat Dev Spaces, and other tools that use modern Entra ID v2.0 access tokens. Existing configurations that use a single `OIDC_ISSUER` continue to work without changes.
+
+{productname} now validates token audiences on API bearer-token requests. Audience verification is no longer disabled for SSO bearer tokens.
+
+Federated robot authentication also supports an optional `audiences` array on each federation configuration entry. When configured, {productname} validates the external OIDC token audience during robot token exchange. When absent, audience validation is skipped and a deprecation warning is logged. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/release_notes/index#robot-federation-audiences-318[Robot federation `audiences` field].
+
+For configuration field descriptions, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/release_notes/index#oidc-multi-issuer-config-fields-318[OIDC multi-issuer configuration fields]. For setup and migration procedures, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#configuring-entra-v2-multi-issuer-oidc[Configuring Microsoft Entra ID v2 and multi-issuer OIDC].

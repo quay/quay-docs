@@ -1,0 +1,52 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-entra-v2-multi-issuer-oidc"]
+= Configuring Microsoft Entra ID v2 and multi-issuer OIDC
+
+You can configure multiple issuers and audiences per OIDC provider. This support enables Microsoft Entra ID v2.0 access tokens, dual v1.0 and v2.0 acceptance during migration, and On-Behalf-Of (OBO) API flows used by integrations such as Red Hat Developer Hub (RHDH).
+
+.Prerequisites
+
+* You have an Entra ID app registration for {productname} with a client secret and redirect URIs for your {productname} hostname.
+* You can edit the {productname} `config.yaml` file or Operator `configBundleSecret` resource.
+
+.Procedure
+
+. In the Azure Portal, open your {productname} app registration and set `requestedAccessTokenVersion` to `2` in the app manifest. The field might appear as `api.requestedAccessTokenVersion`.
++
+For OBO flows, expose an API on the {productname} app registration, for example `api://quay-api`, and grant the upstream application permission to that scope.
+
+. Update your `*_LOGIN_CONFIG` block with the v2.0 discovery endpoint and multi-issuer settings. For example:
++
+[source,yaml]
+----
+AUTHENTICATION_TYPE: OIDC
+# ...
+AZURE_LOGIN_CONFIG:
+  CLIENT_ID: <quay_app_client_id>
+  CLIENT_SECRET: <quay_app_client_secret>
+  OIDC_SERVER: https://login.microsoftonline.com/<tenant-id>/v2.0/
+  SERVICE_NAME: Microsoft Entra ID
+  OIDC_DISABLE_USER_ENDPOINT: true
+  OIDC_ISSUERS:
+    - https://sts.windows.net/<tenant-id>/
+    - https://login.microsoftonline.com/<tenant-id>/v2.0
+  OIDC_AUDIENCES:
+    - <quay_app_client_id>
+    - api://quay-api
+  OIDC_ALLOWED_CLIENTS:
+    - <quay_app_client_id>
+    - <upstream_app_client_id>
+  USE_PKCE: true
+  PKCE_METHOD: "S256"
+  PUBLIC_CLIENT: true
+# ...
+----
+
+. Restart your {productname} deployment or reconcile the Operator so the updated configuration is applied.
++
+[NOTE]
+====
+* Set `OIDC_SERVER` to the v2.0 endpoint. The v2.0 JWKS endpoint includes v1.0 signing keys, so one discovery URL supports both token versions.
+* If you set `OIDC_ALLOWED_CLIENTS`, include your {productname} application's own `CLIENT_ID`. Direct user logins set `azp` to the application's client ID. Omit `OIDC_ALLOWED_CLIENTS` if you do not need to restrict OBO clients.
+* Do not request Microsoft Graph scopes such as `openid profile email` when you need tokens with a custom audience. Use application-specific scopes such as `api://quay-api/registry.access` instead.
+====

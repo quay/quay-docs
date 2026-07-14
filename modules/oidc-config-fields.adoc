@@ -22,7 +22,10 @@ You can configure {productname} to authenticate users through any OpenID Connect
 | **{nbsp}{nbsp}{nbsp}.LOGIN_SCOPES** | Object | Scopes {productname} requests during the OIDC login flow. Must include `openid`. Each scope listed here must also appear in the IdP's `scopes_supported` array from `/.well-known/openid-configuration`.
 | **{nbsp}{nbsp}{nbsp}.OIDC_ENDPOINT_CUSTOM_PARAMS** | String | Support for custom query parameters on OIDC endpoints. The following endpoints are supported: `authorization_endpoint`, `token_endpoint`, and `user_endpoint`.
 | **{nbsp}{nbsp}{nbsp}.OIDC_ISSUER** | String | Allows the user to define the issuer to verify. For example, JWT tokens container a parameter known as `iss` which defines who issued the token. By default, this is read from the `.well-know/openid/configuration` endpoint, which is exposed by every OIDC provider. If this verification fails, there is no login. 
-| **{nbsp}{nbsp}{nbsp}.OIDC_SERVER** (Required) | String | The address of the OIDC server that is being used for authentication. **Example:** `\https://sts.windows.net/6c878.../`
+| **{nbsp}{nbsp}{nbsp}.OIDC_ISSUERS** | Array of String | Accepted issuer URLs for this provider. When set, {productname} accepts tokens whose `iss` claim matches any entry. Use this field to accept multiple issuers, for example Microsoft Entra ID v1.0 and v2.0 URLs during migration. If not set, {productname} uses `OIDC_ISSUER`.
+| **{nbsp}{nbsp}{nbsp}.OIDC_AUDIENCES** | Array of String | Accepted audience values for bearer token and On-Behalf-Of (OBO) flows. When set, {productname} validates the token `aud` claim against this list. `CLIENT_ID` is always implicitly included. If not set, audience validation defaults to `CLIENT_ID`.
+| **{nbsp}{nbsp}{nbsp}.OIDC_ALLOWED_CLIENTS** | Array of String | Optional whitelist of authorized party (`azp`) client IDs. When set, only tokens from these client applications are accepted. If not set, all clients are accepted. When restricting OBO clients, include your application's own `CLIENT_ID` so direct user login continues to work.
+| **{nbsp}{nbsp}{nbsp}.OIDC_SERVER** (Required) | String | The OIDC discovery base URL for authentication. {productname} uses path joining for OIDC discovery, so the URL must end with a trailing `/`. **Example:** `\https://login.microsoftonline.com/<tenant-id>/v2.0/`
 | **{nbsp}{nbsp}{nbsp}.PREFERRED_USERNAME_CLAIM_NAME** |String |Sets the preferred username to a parameter from the token.
 | **{nbsp}{nbsp}{nbsp}.SERVICE_ICON** | String | Changes the icon on the login screen.
 
@@ -70,6 +73,15 @@ AUTHENTICATION_TYPE: OIDC
     user_endpoint:
       some: "param"
   OIDC_ISSUER: <oidc_issuer_url>
+  OIDC_ISSUERS:
+    - <issuer_url_1>
+    - <issuer_url_2>
+  OIDC_AUDIENCES:
+    - <client_id>
+    - <custom_api_audience>
+  OIDC_ALLOWED_CLIENTS:
+    - <client_id>
+    - <upstream_client_id>
   OIDC_SERVER: <oidc_server_address>
   PREFERRED_USERNAME_CLAIM_NAME: <preferred_username_claim>
   SERVICE_ICON: <service_icon_url>
@@ -87,3 +99,30 @@ AUTHENTICATION_TYPE: OIDC
 .Additional resources
 
 * link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/manage_red_hat_quay/configuring-oidc-authentication[Configuring OIDC for {productname}]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#configuring-entra-v2-multi-issuer-oidc[Configuring Microsoft Entra ID v2 and multi-issuer OIDC]
+
+.OIDC example YAML for Microsoft Entra ID v2 with dual-issuer support
+[source,yaml]
+----
+AUTHENTICATION_TYPE: OIDC
+# ...
+AZURE_LOGIN_CONFIG:
+  CLIENT_ID: <quay_app_client_id>
+  CLIENT_SECRET: <quay_app_client_secret>
+  OIDC_SERVER: https://login.microsoftonline.com/<tenant-id>/v2.0/
+  SERVICE_NAME: Microsoft Entra ID
+  OIDC_DISABLE_USER_ENDPOINT: true
+  OIDC_ISSUERS:
+    - https://sts.windows.net/<tenant-id>/
+    - https://login.microsoftonline.com/<tenant-id>/v2.0
+  OIDC_AUDIENCES:
+    - <quay_app_client_id>
+    - api://quay-api
+  OIDC_ALLOWED_CLIENTS:
+    - <quay_app_client_id>
+    - <upstream_app_client_id>
+  USE_PKCE: true
+  PKCE_METHOD: "S256"
+  PUBLIC_CLIENT: true
+# ...
+----

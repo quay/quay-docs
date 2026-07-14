@@ -1,6 +1,9 @@
-:_mod-docs-content-type: PROCEDURE
+:_mod-docs-content-type: CONCEPT
 [id="configuring-oidc-authentication"]
 = Configuring OIDC for {productname}
+
+[role="_abstract"]
+Configure OpenID Connect (OIDC) so users can authenticate to {productname} with an external identity provider.
 
 Configuring OpenID Connect (OIDC) for {productname} can provide several benefits to your deployment. For example, OIDC allows users to authenticate to {productname} using their existing credentials from an OIDC provider, such as link:https://access.redhat.com/documentation/en-us/red_hat_single_sign-on/7.0[Red Hat Single Sign-On], Google, Github, Microsoft, or others. Other benefits of OIDC include centralized user management, enhanced security, and single sign-on (SSO). Overall, OIDC configuration can simplify user authentication and management, enhance security, and provide a seamless user experience for {productname} users.
 
@@ -8,57 +11,5 @@ The following procedures show you how to configure Microsoft Entra ID on a stand
 
 [NOTE]
 ====
-By following these procedures, you will be able to add any OIDC provider to {productname}, regardless of which identity provider you choose to use. 
+By following these procedures, you can add any OIDC provider to {productname}, regardless of which identity provider you choose to use.
 ====
-
-[id="configuring-entra-oidc"]
-== Configuring Microsoft Entra ID OIDC on a standalone deployment of {productname}
-
-By integrating Microsoft Entra ID authentication with {productname}, your organization can take advantage of the centralized user management and security features offered by Microsoft Entra ID. Some features include the ability to manage user access to {productname} repositories based on their Microsoft Entra ID roles and permissions, and the ability to enable multi-factor authentication and other security features provided by Microsoft Entra ID.
-
-Azure Active Directory (Microsoft Entra ID) authentication for {productname} allows users to authenticate and access {productname} using their Microsoft Entra ID credentials.
-
-Use the following procedure to configure Microsoft Entra ID by updating the {productname} `config.yaml` file directly.
-
-.Procedure
-
-[NOTE]
-====
-* Using the following procedure, you can add any ODIC provider to {productname}, regardless of which identity provider is being added.
-* If your system has a firewall in use, or proxy enabled, you must whitelist all Azure API endpoints for each Oauth application that is created. Otherwise, the following error is returned: `x509: certificate signed by unknown authority`.
-====
-
-. Use the following reference and update your `config.yaml` file with your desired OIDC provider's credentials:
-+
-[source,yaml]
-----
-AUTHENTICATION_TYPE: OIDC
-# ...
-AZURE_LOGIN_CONFIG: <1>
-    CLIENT_ID: <client_id> <2>
-    CLIENT_SECRET: <client_secret> <3>
-    OIDC_SERVER: <oidc_server_address_> <4>
-    SERVICE_NAME: Microsoft Entra ID <5>
-    VERIFIED_EMAIL_CLAIM_NAME: <verified_email> <6>
-    USE_PKCE: True <7>
-    PKCE_METHOD: "S256" <8>
-    PUBLIC_CLIENT: True <9>
-# ...
-----
-<1> The parent key that holds the OIDC configuration settings. In this example, the parent key used is `AZURE_LOGIN_CONFIG`, however, the string `AZURE` can be replaced with any arbitrary string based on your specific needs, for example `ABC123`.However, the following strings are not accepted: `GOOGLE`, `GITHUB`. These strings are reserved for their respective identity platforms and require a specific `config.yaml` entry contingent upon when platform you are using.
-<2> The client ID of the application that is being registered with the identity provider. 
-<3> The client secret of the application that is being registered with the identity provider.
-<4> The address of the OIDC server that is being used for authentication. In this example, you must use `sts.windows.net` as the issuer identifier. Using `https://login.microsoftonline.com` results in the following error: `Could not create provider for AzureAD. Error: oidc: issuer did not match the issuer returned by provider, expected "https://login.microsoftonline.com/73f2e714-xxxx-xxxx-xxxx-dffe1df8a5d5" got "https://sts.windows.net/73f2e714-xxxx-xxxx-xxxx-dffe1df8a5d5/"`. 
-<5> The name of the service that is being authenticated.
-<6> The name of the claim that is used to verify the email address of the user.
-<7> Specifies whether to enable Proof Key for Code Exchange (PKCE) for OIDC authentication. Defaults to `False`.
-<8> Specifies the  code challenge method used to generate the `code_challenge` sent in the initial authorization request. Defaults to `S256`.
-<9> Specifies whether to omit `client_secret` during token request when the client is public. Defaults to `False`.
-
-. Proper configuration of Microsoft Entra ID results three redirects with the following format:
-+
-* `\https://QUAY_HOSTNAME/oauth2/<name_of_service>/callback`
-* `\https://QUAY_HOSTNAME/oauth2/<name_of_service>/callback/attach`
-* `\https://QUAY_HOSTNAME/oauth2/<name_of_service>/callback/cli`
-
-. Restart your {productname} deployment.
