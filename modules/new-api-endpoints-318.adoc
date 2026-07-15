@@ -13,3 +13,27 @@ Robot federation configuration entries now support an optional `audiences` array
 A future release will require the `audiences` field for federated robot authentication.
 
 Configure federation entries by using the {productname} v2 UI or `POST /api/v1/organization/{orgname}/robots/{robot_shortname}/federation`. In {productname} 3.18, create and update requests persist `issuer` and `subject` only; audience validation applies when `audiences` is present in the stored federation configuration. For field descriptions, examples, and current API limitations, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createorgrobotfederation[createOrgRobotFederation] and link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#configuring-federation-audiences[Configuring federation audiences].
+
+[id="organization-application-token-api-318"]
+== Organization application OAuth token lifecycle
+
+{productname} 3.18 adds REST API endpoints to manage OAuth API tokens for organization applications:
+
+[cols="1a,3a,2a",options="header"]
+|===
+|Method |Endpoint |Description
+|`POST` |`/api/v1/organization/{orgname}/applications/{client_id}/tokens` |Create a token
+|`GET` |`/api/v1/organization/{orgname}/applications/{client_id}/tokens` |List token metadata
+|`DELETE` |`/api/v1/organization/{orgname}/applications/{client_id}/tokens/{token_uuid}` |Revoke a token
+|===
+
+Create requests accept `name`, `scope`, and optional `expiration` (seconds). The bearer token secret is returned only in the create response.
+
+For API schemas and examples, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createorganizationapplicationtoken[createOrganizationApplicationToken], link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#listorganizationapplicationtokens[listOrganizationApplicationTokens], and link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#deleteorganizationapplicationtoken[deleteOrganizationApplicationToken].
+
+[id="bootstrap-token-renewal-api-318"]
+== Bootstrap token renewal
+
+When `FEATURE_PROGRAMMATIC_BOOTSTRAP` is enabled, `POST /api/v1/bootstrap/renew` rotates the bootstrap OAuth token. The new token is written to the configured filesystem path or {kubernetes} Secret, and the previous token is invalidated immediately. The response is `{"status": "rotated"}`.
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#renewbootstraptoken[renewBootstrapToken] and link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#renewing-bootstrap-token[Renewing the bootstrap token].

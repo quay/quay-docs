@@ -1,0 +1,30 @@
+:_mod-docs-content-type: PROCEDURE
+[id="renewing-bootstrap-token"]
+= Renewing the bootstrap token
+
+[role="_abstract"]
+To keep automation running when the bootstrap OAuth token approaches expiry, you can renew it through the {productname} REST API before the previous token is invalidated.
+
+.Procedure
+
+. Renew the token by using the bootstrap token as Bearer authentication:
++
+[source,terminal]
+----
+$ curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST \
+  https://<quay-server.example.com>/api/v1/bootstrap/renew
+----
++
+The following example shows a successful response:
++
+[source,json]
+----
+{"status": "rotated"}
+----
+
+. Read the new token value from `BOOTSTRAP_TOKEN_PATH` or the configured {kubernetes} Secret. The previous bootstrap token is invalidated immediately.
++
+[NOTE]
+====
+If the bootstrap token is already expired, renewal is accepted only from localhost. On {kubernetes} and {ocp}, use port forwarding to send the renewal request through the local ingress path.
+====

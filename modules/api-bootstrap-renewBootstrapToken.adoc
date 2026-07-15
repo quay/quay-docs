@@ -1,0 +1,51 @@
+:_mod-docs-content-type: REFERENCE
+
+= renewBootstrapToken
+
+Rotate the programmatic bootstrap OAuth token.
+
+[discrete]
+== POST /api/v1/bootstrap/renew
+
+Renew the bootstrap token and write the new token value to `BOOTSTRAP_TOKEN_PATH` or the configured {kubernetes} Secret. The previous bootstrap token is invalidated immediately. The response does not include the new token value; read it from the configured storage location after renewal.
+
+This endpoint is available only when `FEATURE_PROGRAMMATIC_BOOTSTRAP` is `true`.
+
+**Authorizations:** Bearer token (bootstrap token)
+
+[discrete]
+== Request body
+
+No request body.
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful renewal|`{"status": "rotated"}`
+|401|Invalid, missing, or expired bootstrap token|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+[NOTE]
+====
+When the bootstrap token is expired, renewal is accepted only from localhost. On {kubernetes} and {ocp}, use port forwarding and ensure the request includes the `X-Quay-Bootstrap-Renewal-Location: local` header set by the ingress layer.
+====
+
+[discrete]
+== Example command
+
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/api/v1/bootstrap/renew" \
+  -H "Authorization: Bearer <bootstrap_token>"
+----
+
+.Example response
+
+[source,json]
+----
+{"status": "rotated"}
+----

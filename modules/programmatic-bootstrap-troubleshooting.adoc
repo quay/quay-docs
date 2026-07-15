@@ -1,0 +1,36 @@
+:_mod-docs-content-type: CONCEPT
+[id="programmatic-bootstrap-troubleshooting"]
+= Troubleshooting programmatic bootstrap
+
+[role="_abstract"]
+Use these checks when programmatic bootstrap token provisioning fails in {productname}, including missing token files, authorization errors, and renewal failures.
+
+If the token file or Secret is empty after startup:
+
+* Verify that `FEATURE_PROGRAMMATIC_BOOTSTRAP` is `true`.
+
+* Verify that `BOOTSTRAP_TOKEN_OWNER` is set and listed in `SUPER_USERS`.
+
+* Verify that the bootstrap token owner exists in the {productname} database.
+
+* Check {productname} startup logs for bootstrap provisioning errors.
+
+* If the bootstrap token file or Secret is still missing after the first restart, restart {productname} again or run `python3 /quay-registry/boot.py` inside the {productname} container after confirming `BOOTSTRAP_TOKEN_OWNER` exists in the database.
+
+If you receive `403 Forbidden` when using the bootstrap token:
+
+* Confirm that the token has not expired.
+
+* Confirm that bootstrap provisioning was not disabled and the token revoked.
+
+* Confirm that the target API endpoint is authorized by the bootstrap token scope.
+
+If renewal returns `401 Unauthorized`:
+
+* If the token is expired, send the renewal request from localhost or through a port-forwarded local ingress path.
+
+* Confirm that you are passing the bootstrap token value, not a different OAuth token.
+
+If rate limiting returns `429 Too Many Requests`:
+
+* Bootstrap and token management endpoints are subject to existing rate limiting when `FEATURE_RATE_LIMITS` is enabled. Adjust request frequency or review your rate limit configuration.

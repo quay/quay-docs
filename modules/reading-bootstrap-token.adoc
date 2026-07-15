@@ -1,0 +1,38 @@
+:_mod-docs-content-type: PROCEDURE
+[id="reading-bootstrap-token"]
+= Reading the bootstrap token
+
+[role="_abstract"]
+To obtain the bootstrap OAuth token after {productname} starts with programmatic bootstrap enabled, you can read the token from the configured local file or {kubernetes} Secret.
+
+.Procedure
+
+. For standalone or virtual machine deployments, read the token from the `BOOTSTRAP_TOKEN_PATH` file:
++
+[source,terminal]
+----
+$ BOOTSTRAP_TOKEN=$(jq -r '.access_token' /var/lib/quay/quay-machine-token.json)
+----
++
+[NOTE]
+====
+{productname} writes the bootstrap token file with `0600` permissions owned by the {productname} process user. If you cannot read the file from the host, read it from inside the {productname} container instead. For example:
++
+[source,terminal]
+----
+$ BOOTSTRAP_TOKEN=$(docker exec quay cat /datastorage/bootstrap-token.json | jq -r '.access_token')
+----
+====
+
+. For {kubernetes} and {ocp} deployments, read the token from the configured {kubernetes} Secret:
++
+[source,terminal]
+----
+$ BOOTSTRAP_TOKEN=$(oc get secret quay-bootstrap-token -n quay-enterprise \
+  -o jsonpath='{.data.token\.json}' | base64 -d | jq -r '.access_token')
+----
++
+[NOTE]
+====
+{kubernetes} Secret propagation can take up to 60 seconds after renewal or initial provisioning. Verify that the Secret mount path matches your Operator configuration.
+====
