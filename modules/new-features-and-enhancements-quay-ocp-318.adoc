@@ -67,3 +67,25 @@ For example, to tune Redis resources for a smaller cluster, add an entry like th
 ----
 
 For more information about configuring resource requests and limits, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploy_red_hat_quay_operator/index#configuring-resources-managed-components[Configuring QuayRegistry CR resources].
+
+[id="clair-ephemeral-storage-overrides-rn"]
+== Clair ephemeral storage overrides
+
+With this release, you can configure `volumeSize` and `storageClassName` overrides on the managed `clair` component in the `QuayRegistry` custom resource. These overrides customize the ephemeral volume that Clair uses for image layer extraction at `/var/tmp`.
+
+When you do not set overrides, the Operator requests `20Gi` of ephemeral storage with no explicit storage class. Large or unexpected images can exhaust this scratch space and disrupt vulnerability scanning.
+
+For example:
+
+[source,yaml]
+----
+    - kind: clair
+      managed: true
+      overrides:
+        volumeSize: 50Gi
+        storageClassName: fast-ssd
+----
+
+These overrides apply to Clair scratch storage only. They do not resize the managed Clair PostgreSQL database.
+
+For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/clair/index#clair-ephemeral-storage-overrides[Configuring ephemeral storage for managed Clair].
