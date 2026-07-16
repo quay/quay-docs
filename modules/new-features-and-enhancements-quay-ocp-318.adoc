@@ -2,6 +2,7 @@
 [id="new-features-and-enhancements-quay-ocp-318"]
 = {productname-ocp} new features and enhancements
 
+[role="_abstract"]
 The following updates have been made to {productname-ocp}.
 
 [id="ocp-tls-security-profile-inheritance"]
@@ -89,3 +90,12 @@ For example:
 These overrides apply to Clair scratch storage only. They do not resize the managed Clair PostgreSQL database.
 
 For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/clair/index#clair-ephemeral-storage-overrides[Configuring ephemeral storage for managed Clair].
+
+[id="external-tls-secret-reference"]
+== External TLS Secret reference for the QuayRegistry CR
+
+The {productname} Operator supports referencing an external `kubernetes.io/tls` Secret for registry HTTPS certificates through the `QuayRegistry` CR. This feature enables automated certificate rotation without embedding `ssl.cert` and `ssl.key` files in the `configBundleSecret` CR. Certificate sources can include cert-manager, HashiCorp Vault, or manually updated Secrets. When the referenced Secret changes, the Operator performs a rolling restart of {productname} pods.
+
+The `QuayRegistry` status includes a `ComponentTLSReady` condition that reports whether TLS from the external Secret is valid and applied.
+
+For configuration steps, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#operator-external-tls-secret-reference[Referencing an external TLS Secret for {productname-ocp}]. For a cert-manager example, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#example-certificate-manager[Example: Using cert-manager with an external TLS Secret].

@@ -29,3 +29,29 @@ The following optional fields were added to `*_LOGIN_CONFIG` blocks in {productn
 If both `OIDC_ISSUER` and `OIDC_ISSUERS` are set, `OIDC_ISSUERS` takes precedence and {productname} logs a warning.
 
 For field reference details, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#oidc-config-fields[OIDC configuration fields]. For configuration examples, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#configuring-entra-v2-multi-issuer-oidc[Configuring Microsoft Entra ID v2 and multi-issuer OIDC].
+The following configuration fields have been added to {productname} 3.18.
+
+[id="quayregistry-tls-secretref"]
+== QuayRegistry TLS component fields
+
+The following fields apply to the `tls` entry in `spec.components` of the `QuayRegistry` CR when deploying {productname-ocp}.
+
+.QuayRegistry TLS component fields
+[cols="2a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+
+|`secretRef` |Object | References an external TLS Secret in the same namespace as the `QuayRegistry` CRD. Valid only when `managed` is `false`. The Secret must be of type `kubernetes.io/tls` and contain `tls.crt` and `tls.key` data keys. The Operator watches the Secret and triggers a rolling restart of {productname} pods when certificate data changes. Do not use with `ssl.cert` and `ssl.key` files in the `configBundleSecret`.
+
+|`secretRef.name` |String | Name of the Kubernetes Secret that stores the TLS certificate and private key.
+|===
+
+.QuayRegistry TLS status condition
+[cols="2a,1a,2a",options="header"]
+|===
+| Condition | Type | Description
+
+|`ComponentTLSReady` |Status | Reports whether TLS from the configured source (external Secret or config bundle) is valid and applied to the registry deployment.
+|===
+
+For procedures and examples, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#operator-external-tls-secret-reference[Referencing an external TLS Secret for {productname-ocp}].

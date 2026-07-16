@@ -1,0 +1,28 @@
+:_mod-docs-content-type: REFERENCE
+[id="config-updates-318"]
+= New configuration fields with {productname} 3.18
+
+The following sections detail new configuration fields added in {productname} 3.18.
+
+[id="config-updates-quayregistry-tls-secretref"]
+== QuayRegistry TLS component fields
+
+The following fields apply to the `tls` entry in `spec.components` of the `QuayRegistry` CR when deploying {productname-ocp}.
+
+.QuayRegistry TLS component fields
+[cols="2a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+
+|`secretRef` |Object | References an external TLS Secret in the same namespace as the `QuayRegistry`. Valid only when `managed` is `false`. The Secret must be of type `kubernetes.io/tls` and contain `tls.crt` and `tls.key` data keys. The Operator watches the Secret and triggers a rolling restart of {productname} pods when certificate data changes. Do not use with `ssl.cert` and `ssl.key` files in the `configBundleSecret`.
+
+|`secretRef.name` |String | Name of the Kubernetes Secret that stores the TLS certificate and private key.
+|===
+
+.QuayRegistry TLS status condition
+[cols="2a,1a,2a",options="header"]
+|===
+| Condition | Type | Description
+
+|`ComponentTLSReady` |Status | Reports whether TLS from the configured source (external Secret or config bundle) is valid and applied to the registry deployment.
+|===
