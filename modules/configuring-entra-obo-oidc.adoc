@@ -1,0 +1,17 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-entra-obo-oidc"]
+= Configuring On-Behalf-Of (OBO) flows
+
+To allow an upstream service such as RHDH to call {productname} APIs on behalf of authenticated users:
+
+. In the Azure Portal, expose an API on the {productname} app registration and add a scope, for example `registry.access` under `api://quay-api`.
+
+. Create a second app registration for the upstream service and grant it permission to the {productname} API scope.
+
+. Add the exposed API identifier to `OIDC_AUDIENCES` in your {productname} configuration, for example `api://quay-api`.
+
+. Add the upstream application's client ID to `OIDC_ALLOWED_CLIENTS`.
++
+OBO tokens have `aud: api://quay-api` and `azp: <upstream_client_id>`. {productname} validates both claims.
++
+For more information about the Microsoft OBO flow, see link:https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow[Microsoft identity platform and OAuth 2.0 On-Behalf-Of flow].

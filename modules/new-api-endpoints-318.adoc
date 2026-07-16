@@ -2,4 +2,14 @@
 [id="new-api-endpoints-318"]
 = API endpoint enhancements
 
-The following API endpoints were added in {productname} 3.18.
+[role="_abstract"]
+The following API changes were made in {productname} 3.18.
+
+[id="robot-federation-audiences-318"]
+== Robot federation `audiences` field
+
+Robot federation configuration entries now support an optional `audiences` array in addition to `issuer` and `subject`. During federated robot token exchange (`GET /oauth2/federation/robot/token`), when `audiences` is present on the matching federation entry, {productname} validates the external OIDC token audience against that list. When `audiences` is absent, audience validation is skipped and {productname} logs a deprecation warning advising you to configure audiences.
+
+A future release will require the `audiences` field for federated robot authentication.
+
+Configure federation entries by using the {productname} v2 UI or `POST /api/v1/organization/{orgname}/robots/{robot_shortname}/federation`. In {productname} 3.18, create and update requests persist `issuer` and `subject` only; audience validation applies when `audiences` is present in the stored federation configuration. For field descriptions, examples, and current API limitations, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createorgrobotfederation[createOrgRobotFederation] and link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#configuring-federation-audiences[Configuring federation audiences].

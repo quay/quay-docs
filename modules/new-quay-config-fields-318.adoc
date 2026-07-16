@@ -2,6 +2,7 @@
 [id="new-quay-config-fields-318"]
 = {productname} configuration fields updates and changes
 
+[role="_abstract"]
 The following configuration fields have been added or changed in {productname} 3.18.
 
 [id="ssl-protocols-ciphers-operator-inheritance"]
@@ -10,3 +11,21 @@ The following configuration fields have been added or changed in {productname} 3
 When you deploy {productname-ocp}, the Operator can populate the existing `SSL_PROTOCOLS` and `SSL_CIPHERS` fields from the cluster-wide {ocp} `tlsSecurityProfile` when neither field is set in the `configBundleSecret` resource. To fully override or preserve TLS behavior, set both fields. Setting either field disables cluster-profile inheritance for both fields.
 
 For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/release_notes/index#ocp-tls-security-profile-inheritance[{ocp} cluster TLS security profile inheritance] and link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/upgrade_red_hat_quay/index#preserving-tls-settings-operator-upgrade_upgrade-quay-v3[Preserving TLS settings before upgrading {productname-ocp}].
+
+[id="oidc-multi-issuer-config-fields-318"]
+== OIDC multi-issuer and multi-audience fields
+
+The following optional fields were added to `*_LOGIN_CONFIG` blocks in {productname} 3.18:
+
+.OIDC multi-issuer fields
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+| **{nbsp}{nbsp}{nbsp}.OIDC_ISSUERS** | Array of String | Accepted issuer URLs for the provider. When set, {productname} accepts tokens whose `iss` claim matches any entry. If not set, {productname} uses the existing `OIDC_ISSUER` value.
+| **{nbsp}{nbsp}{nbsp}.OIDC_AUDIENCES** | Array of String | Accepted audience values for bearer token and On-Behalf-Of (OBO) flows. When set, {productname} validates the token `aud` claim against this list. `CLIENT_ID` is always implicitly included. If not set, audience validation defaults to `CLIENT_ID`.
+| **{nbsp}{nbsp}{nbsp}.OIDC_ALLOWED_CLIENTS** | Array of String | Optional whitelist of authorized party (`azp`) client IDs. When set, only tokens from these client applications are accepted. If not set, all clients are accepted.
+|===
+
+If both `OIDC_ISSUER` and `OIDC_ISSUERS` are set, `OIDC_ISSUERS` takes precedence and {productname} logs a warning.
+
+For field reference details, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#oidc-config-fields[OIDC configuration fields]. For configuration examples, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#configuring-entra-v2-multi-issuer-oidc[Configuring Microsoft Entra ID v2 and multi-issuer OIDC].

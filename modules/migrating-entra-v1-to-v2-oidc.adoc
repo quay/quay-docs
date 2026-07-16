@@ -1,0 +1,20 @@
+:_mod-docs-content-type: PROCEDURE
+[id="migrating-entra-v1-to-v2-oidc"]
+= Migrating from Entra ID v1.0 to v2.0
+
+To migrate without interrupting existing clients:
+
+. Set `OIDC_SERVER` to the v2.0 endpoint (`https://login.microsoftonline.com/<tenant-id>/v2.0/`).
+
+. Add both issuer URLs to `OIDC_ISSUERS`:
++
+[source,yaml]
+----
+  OIDC_ISSUERS:
+    - https://sts.windows.net/<tenant-id>/
+    - https://login.microsoftonline.com/<tenant-id>/v2.0
+----
++
+. Update upstream clients to v2.0 tokens.
+
+. After all clients use v2.0, remove the v1.0 issuer from `OIDC_ISSUERS`.
