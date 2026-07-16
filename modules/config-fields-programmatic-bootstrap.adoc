@@ -3,7 +3,7 @@
 = Programmatic bootstrap configuration fields
 
 [role="_abstract"]
-Use these configuration fields to control filesystem-based bootstrap OAuth token provisioning for automated {productname} deployments. The feature remains disabled until you enable it.
+Use these configuration fields to control bootstrap OAuth token provisioning for automated {productname} deployments. The feature remains disabled until you enable it. Standalone deployments store the token in a local file. {productname-ocp} Operator deployments store the token in a Kubernetes Secret that the Operator creates and mounts.
 
 .Programmatic bootstrap fields
 [cols="3a,1a,2a",options="header"]
@@ -27,15 +27,15 @@ Use these configuration fields to control filesystem-based bootstrap OAuth token
 
 **Default:** `org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read`
 
-| **PROGRAMMATIC_TOKEN_K8S_SECRET** | String | {kubernetes} Secret name used to store the bootstrap token when {productname} runs in {kubernetes}. When set, {productname} writes the token to this Secret instead of `BOOTSTRAP_TOKEN_PATH`.
+| **PROGRAMMATIC_TOKEN_K8S_SECRET** | String | {kubernetes} Secret name used to store the bootstrap token when {productname} runs in {kubernetes}. When set, {productname} writes the token to this Secret instead of `BOOTSTRAP_TOKEN_PATH`. On {productname-ocp}, the Operator sets this field to `<quayregistry_name>-bootstrap-token` when programmatic bootstrap is enabled. Do not set this field manually in Operator-managed deployments.
 
-| **PROGRAMMATIC_TOKEN_K8S_KEY** | String | Secret data key that stores the bootstrap token JSON.
+| **PROGRAMMATIC_TOKEN_K8S_KEY** | String | Secret data key that stores the bootstrap token JSON. On {productname-ocp}, the Operator sets this field to `token.json`.
 
 **Default:** `token.json`
 
-| **PROGRAMMATIC_TOKEN_K8S_NAMESPACE** | String | {kubernetes} namespace that contains the bootstrap token Secret. When unset, {productname} uses the pod service account namespace.
+| **PROGRAMMATIC_TOKEN_K8S_NAMESPACE** | String | {kubernetes} namespace that contains the bootstrap token Secret. When unset, {productname} uses the pod service account namespace. On {productname-ocp}, the Operator uses the `QuayRegistry` namespace.
 
-| **PROGRAMMATIC_TOKEN_PATH** | String | Operator-rendered mount path accepted for configuration compatibility. {productname} uses `BOOTSTRAP_TOKEN_PATH` for local file storage.
+| **PROGRAMMATIC_TOKEN_PATH** | String | Operator-rendered mount path for configuration compatibility. On {productname-ocp}, the Operator sets this field to `/var/lib/quay/bootstrap-token/token.json`. Standalone deployments use `BOOTSTRAP_TOKEN_PATH` for local file storage.
 |===
 
 .Programmatic bootstrap example YAML (standalone)
@@ -47,22 +47,26 @@ SUPER_USERS:
 BOOTSTRAP_TOKEN_OWNER: quayadmin
 BOOTSTRAP_TOKEN_PATH: /var/lib/quay/quay-machine-token.json
 BOOTSTRAP_TOKEN_EXPIRATION: 7776000
-BOOTSTRAP_TOKEN_SCOPE: org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read
+BOOTSTRAP_TOKEN_SCOPE: "org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read"
 ----
 
-.Programmatic bootstrap example YAML ({ocp})
+.Programmatic bootstrap example YAML ({productname-ocp} `configBundleSecret`)
 [source,yaml]
 ----
 FEATURE_PROGRAMMATIC_BOOTSTRAP: true
 SUPER_USERS:
   - quayadmin
 BOOTSTRAP_TOKEN_OWNER: quayadmin
-PROGRAMMATIC_TOKEN_K8S_SECRET: quay-bootstrap-token
-PROGRAMMATIC_TOKEN_K8S_KEY: token.json
-PROGRAMMATIC_TOKEN_K8S_NAMESPACE: quay-enterprise
 BOOTSTRAP_TOKEN_EXPIRATION: 7776000
-BOOTSTRAP_TOKEN_SCOPE: org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read
+BOOTSTRAP_TOKEN_SCOPE: "org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read"
 ----
+
+[NOTE]
+====
+For Operator deployments, omit `BOOTSTRAP_TOKEN_PATH` and the `PROGRAMMATIC_TOKEN_K8S_*` fields from the `configBundleSecret`. The Operator injects `PROGRAMMATIC_TOKEN_K8S_SECRET`, `PROGRAMMATIC_TOKEN_K8S_KEY`, and `PROGRAMMATIC_TOKEN_PATH`, and creates the `<quayregistry_name>-bootstrap-token` Secret, Role, and RoleBinding automatically.
+
+Always quote `BOOTSTRAP_TOKEN_SCOPE`. Unquoted values that contain `:` can be misparsed by YAML.
+====
 
 [IMPORTANT]
 ====

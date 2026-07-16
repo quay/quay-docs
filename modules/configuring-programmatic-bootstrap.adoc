@@ -1,14 +1,14 @@
 :_mod-docs-content-type: PROCEDURE
 [id="configuring-programmatic-bootstrap"]
-= Configuring programmatic bootstrap
+= Configuring programmatic bootstrap on standalone deployments
 
 [role="_abstract"]
-To configure filesystem-based bootstrap OAuth token provisioning in {productname}, you can set `FEATURE_PROGRAMMATIC_BOOTSTRAP` and related fields, then restart the registry.
+To configure filesystem-based bootstrap OAuth token provisioning in a standalone {productname} deployment, you can set `FEATURE_PROGRAMMATIC_BOOTSTRAP` and related fields in the `config.yaml` file, then restart the registry.
 
 .Prerequisites
 
-* You have a {productname} deployment with at least one superuser account created.
-* You can modify the {productname} configuration file or Operator `configBundleSecret` resource.
+* You have a standalone {productname} deployment with at least one superuser account created.
+* You can modify the {productname} `config.yaml` file.
 
 .Procedure
 
@@ -21,13 +21,11 @@ SUPER_USERS:
   - quayadmin
 BOOTSTRAP_TOKEN_OWNER: quayadmin
 BOOTSTRAP_TOKEN_EXPIRATION: 7776000
-BOOTSTRAP_TOKEN_SCOPE: org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read
+BOOTSTRAP_TOKEN_SCOPE: "org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read"
 BOOTSTRAP_TOKEN_PATH: /datastorage/bootstrap-token.json
 ----
 +
-* For standalone deployments, set `BOOTSTRAP_TOKEN_PATH` to a directory that the {productname} process can write. In containerized deployments, use a mounted storage path such as `/datastorage/bootstrap-token.json`.
-+
-* For {kubernetes} and {ocp} deployments, set `PROGRAMMATIC_TOKEN_K8S_SECRET` and related fields.
+Set `BOOTSTRAP_TOKEN_PATH` to a directory that the {productname} process can write. In containerized standalone deployments, use a mounted storage path such as `/datastorage/bootstrap-token.json`. Quote the `BOOTSTRAP_TOKEN_SCOPE` value so YAML does not misparse scopes that contain `:`.
 
 . Restart {productname} after you update the configuration.
 +
@@ -40,7 +38,7 @@ If you enable `FEATURE_PROGRAMMATIC_BOOTSTRAP` on a deployment that is already r
 +
 .. Check {productname} startup logs for a `Bootstrap token provisioned` message.
 +
-.. Confirm that the bootstrap token file or {kubernetes} Secret exists at the configured storage location. For example, on a standalone deployment:
+.. Confirm that the bootstrap token file exists at the configured storage location. For example:
 +
 [source,terminal]
 ----

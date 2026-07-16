@@ -17,6 +17,10 @@ If the token file or Secret is empty after startup:
 
 * If the bootstrap token file or Secret is still missing after the first restart, restart {productname} again or run `python3 /quay-registry/boot.py` inside the {productname} container after confirming `BOOTSTRAP_TOKEN_OWNER` exists in the database.
 
+* On {productname-ocp}, confirm that the Operator created the `<quayregistry_name>-bootstrap-token` Secret, Role, and RoleBinding, and that Quay application pods have rolled out with the updated `configBundleSecret`. An empty Secret before the pods restart is expected; the Quay process writes `token.json` after startup.
+
+* Confirm that `BOOTSTRAP_TOKEN_SCOPE` is a quoted YAML string. Unquoted scope values that contain `:` can be misparsed.
+
 If you receive `403 Forbidden` when using the bootstrap token:
 
 * Confirm that the token has not expired.

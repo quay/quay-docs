@@ -1,0 +1,115 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-programmatic-bootstrap-ocp"]
+= Configuring programmatic bootstrap on {ocp}
+
+[role="_abstract"]
+To enable filesystem-independent bootstrap OAuth token provisioning for {productname-ocp}, you can add the programmatic bootstrap fields to the `configBundleSecret` resource. The {productname} Operator creates the bootstrap token Secret, Role, and RoleBinding, injects the Kubernetes storage fields, and restarts the Quay pods.
+
+[IMPORTANT]
+====
+Programmatic bootstrap token provisioning is a Tech Preview feature in {productname} {producty}. Tech Preview features are not supported with Red Hat production service-level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using Tech Preview features in production environments. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+====
+
+.Prerequisites
+
+* You have deployed a {productname} registry on {ocp} by using the {productname} Operator.
+* You have created at least one superuser account. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#creating-first-user[Creating the first user].
+* You can edit the `configBundleSecret` resource that is referenced by your `QuayRegistry` custom resource (CR).
+
+.Procedure
+
+. Retrieve the name of the `configBundleSecret` resource:
++
+[source,terminal]
+----
+$ oc get quayregistry <quayregistry_name> -n <quay_namespace> \
+  -o jsonpath='{.spec.configBundleSecret}{"\n"}'
+----
++
+.Example output
+[source,terminal]
+----
+example-registry-config-bundle-abc12
+----
+
+. Export the current `config.yaml` file from the secret:
++
+[source,terminal]
+----
+$ oc get secret -n <quay_namespace> <config_bundle_secret_name> \
+  -o jsonpath='{.data.config\.yaml}' | base64 -d > config.yaml
+----
+
+. Edit `config.yaml` and add the programmatic bootstrap fields. For example:
++
+[source,yaml]
+----
+FEATURE_PROGRAMMATIC_BOOTSTRAP: true
+SUPER_USERS:
+  - quayadmin
+BOOTSTRAP_TOKEN_OWNER: quayadmin
+BOOTSTRAP_TOKEN_EXPIRATION: 7776000
+BOOTSTRAP_TOKEN_SCOPE: "org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read"
+----
++
+[IMPORTANT]
+====
+* `BOOTSTRAP_TOKEN_OWNER` must be an existing superuser that is also listed under `SUPER_USERS`.
+* Quote the `BOOTSTRAP_TOKEN_SCOPE` value. Unquoted scope strings that contain `:` can be misparsed by YAML.
+* Do not set `BOOTSTRAP_TOKEN_PATH` for Operator deployments. The Operator stores the token in a Kubernetes Secret.
+* You do not need to set `PROGRAMMATIC_TOKEN_K8S_SECRET`, `PROGRAMMATIC_TOKEN_K8S_KEY`, or `PROGRAMMATIC_TOKEN_K8S_NAMESPACE`. The Operator injects those values and creates the Secret named `<quayregistry_name>-bootstrap-token`.
+====
+
+. Create a new config bundle secret that includes the updated `config.yaml` file:
++
+[source,terminal]
+----
+$ oc create secret generic <new_config_bundle_secret_name> \
+  --from-file=config.yaml=./config.yaml \
+  -n <quay_namespace>
+----
+
+. Update the `QuayRegistry` CR to reference the new secret:
++
+[source,terminal]
+----
+$ oc patch quayregistry <quayregistry_name> -n <quay_namespace> \
+  --type=merge -p '{"spec":{"configBundleSecret":"<new_config_bundle_secret_name>"}}'
+----
++
+The Operator reconciles the change, creates the `<quayregistry_name>-bootstrap-token` Secret with accompanying Role and RoleBinding resources, mounts the Secret into the Quay application pods, and restarts Quay-related pods.
+
+. Wait for the Quay application pods to become ready:
++
+[source,terminal]
+----
+$ oc get pods -n <quay_namespace> -l quay-component=quay-app
+----
+
+. Verify that the Operator created the bootstrap token Secret:
++
+[source,terminal]
+----
+$ oc get secret <quayregistry_name>-bootstrap-token -n <quay_namespace>
+----
+
+. Read the bootstrap token from the Secret:
++
+[source,terminal]
+----
+$ BOOTSTRAP_TOKEN=$(oc get secret <quayregistry_name>-bootstrap-token -n <quay_namespace> \
+  -o jsonpath='{.data.token\.json}' | base64 -d | jq -r '.access_token')
+----
++
+[NOTE]
+====
+Secret propagation can take up to 60 seconds after the Quay pods start. If `token.json` is missing, wait and retry the command.
+====
+
+. Optional. Confirm that Quay startup logs include a bootstrap provisioning message:
++
+[source,terminal]
+----
+$ oc logs -n <quay_namespace> deploy/<quayregistry_name>-quay-app -c quay-app \
+  | grep -i 'bootstrap token'
+----
