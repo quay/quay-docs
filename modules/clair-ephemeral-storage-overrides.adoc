@@ -40,9 +40,17 @@ When no overrides are specified, the Operator preserves the default `20Gi` reque
 
 . Save the changes and wait for the Operator to reconcile the Clair deployment.
 
-. Verify that the Clair deployment includes the updated ephemeral volume claim template:
+. Verify that the Clair deployment includes the updated ephemeral volume claim template. Confirm that the `storage` and `storageClassName` values match your overrides:
 +
 [source,terminal]
 ----
-$ oc get deploy -n <namespace> <registry_name>-clair-app -o yaml | grep -A5 indexer-layer-storage
+$ oc get deploy -n <namespace> <registry_name>-clair-app \
+  -o jsonpath='{.spec.template.spec.volumes[?(@.name=="indexer-layer-storage")].ephemeral.volumeClaimTemplate.spec}{"\n"}'
+----
++
+.Example output
++
+[source,terminal]
+----
+{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"50Gi"}},"storageClassName":"fast-ssd","volumeMode":"Filesystem"}
 ----
