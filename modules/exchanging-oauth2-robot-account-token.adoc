@@ -1,0 +1,75 @@
+:_mod-docs-content-type: PROCEDURE
+[id="exchanging-oauth2-robot-account-token"]
+= Exchanging an OAuth2 access token for a {productname} robot account token
+
+[role="_abstract"]
+To authenticate a federated robot account in {productname}, you can exchange an OAuth2 access token for a robot token. The robot token expires after one hour.
+
+[NOTE]
+====
+The following example uses a Python script to exchange the OAuth2 access token for a {productname} robot account token.
+====
+
+.Prerequisites
+
+* You have the `python3` CLI tool installed.
+
+.Procedure
+
+. Save the following Python script in a `.py` file, for example, `robot_fed_token_auth.py`
++
+[source,python]
+----
+import requests
+import os
+
+TOKEN=os.environ.get('TOKEN')
+robot_user = "fed-test+robot1"
+
+def get_quay_robot_token(fed_token):
+    URL = "https://<quay-server.example.com>/oauth2/federation/robot/token"
+    response = requests.get(URL, auth=(robot_user,fed_token))
+    print(response)
+    print(response.text)
+
+if __name__ == "__main__":
+    get_quay_robot_token(TOKEN)
+----
++
+where:
+
+`response = requests.get(URL, auth=(robot_user,fed_token))`:: Specifies that if your {productname} deployment is using custom SSL/TLS certificates, the response must be `response = requests.get(URL,auth=(robot_user,fed_token),verify=False)`, which includes the `verify=False` flag.
+
+. Export the OAuth2 access token as `TOKEN`. For example:
++
+[source,terminal]
+----
+$ export TOKEN = eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJTVmExVHZ6eDd2cHVmc1dkZmc1SHdua1ZDcVlOM01DN1N5T016R0QwVGhVIn0...
+----
+
+. Run the `robot_fed_token_auth.py` script by entering the following command:
++
+[source,terminal]
+----
+$ python3 robot_fed_token_auth.py
+----
++
+.Example output
++
+[source,terminal]
+----
+<Response [200]>
+{"token": "string..."}
+----
++
+[IMPORTANT]
+====
+This token expires after one hour. After one hour, a new token must be generated.
+====
+
+. Export the robot account access token as `QUAY_TOKEN`. For example:
++
+[source,terminal]
+----
+$ export QUAY_TOKEN=291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6InByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZ
+----
