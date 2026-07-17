@@ -1,0 +1,51 @@
+:_mod-docs-content-type: PROCEDURE
+[id="setting-robot-federation"]
+= Setting up a robot account federation by using the {productname} v2 UI
+
+[role="_abstract"]
+To configure robot account federation in {productname}, you can use the v2 UI. You map an OIDC issuer and subject to a robot account.
+
+This procedure uses Red Hat Single Sign-On, which is based on the Keycloak project. The steps, and the information used to set up a robot account federation, vary depending on your OIDC provider.
+
+.Prerequisites
+
+* You have created an organization. The following example uses `fed_test`.
+* You have created a robot account. The following example uses `fest_test+robot1`.
+* You have configured a OIDC for your {productname} deployment. The following example uses Red Hat Single Sign-On.
+
+.Procedure
+
+. On the Red Hat Single Sign-On main page:
+
+.. Select the appropriate realm that is authenticated for use with {productname}. Store the issuer URL, for example, `\https://keycloak-auth-realm.quayadmin.org/realms/quayrealm`.
+
+.. Click *Users* -> the name of the user to be linked with the robot account for authentication. You must use the same user account that you used when generating the OAuth2 access token.
+
+.. On the *Details* page, store the *ID* of the user, for example, `449e14f8-9eb5-4d59-a63e-b7a77c75f770`.
++
+[NOTE]
+====
+The information collected in this step will vary depending on your OIDC provider. For example, with Red Hat Single Sign-On, the *ID* of a user is used as the *Subject* to set up the robot account federation in a subsequent step. For a different OIDC provider, like Microsoft Entra ID, this information is stored as the *Subject*.
+====
+
+. On your {productname} registry:
+
+.. Navigate to *Organizations* and click the name of your organization, for example, *fed_test*.
+
+.. Click *Robot Accounts*.
+
+.. Click the menu kebab -> *Set robot federation*.
+
+.. Click the *+* symbol. 
+
+.. In the popup window, include the following information:
++
+* *Issuer URL*: `\https://keycloak-auth-realm.quayadmin.org/realms/quayrealm`. For Red Hat Single Sign-On, this is the URL of your Red Hat Single Sign-On realm. This might vary depending on your OIDC provider.
+* *Subject*: `449e14f8-9eb5-4d59-a63e-b7a77c75f770`. For Red Hat Single Sign-On, the *Subject* is the *ID* of your Red Hat Single Sign-On user. This varies depending on your OIDC provider. For example, if you are using Microsoft Entra ID, the *Subject* will be the *Subject* or your Entra ID user.
+
+.. Click *Save*. 
++
+[NOTE]
+====
+The {productname} v2 UI federation modal accepts *Issuer URL* and *Subject* only. For federation audience validation behavior and current API limits, see the related topic on configuring federation audiences.
+====

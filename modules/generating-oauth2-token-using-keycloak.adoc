@@ -1,0 +1,98 @@
+:_mod-docs-content-type: PROCEDURE
+[id="generating-oauth2-token-using-keycloak"]
+= Generating an OAuth2 token with Red Hat Single Sign-On
+
+[role="_abstract"]
+To exchange an external OIDC token for a {productname} robot account token, you can first generate an OAuth2 token by using Red Hat Single Sign-On. These steps vary depending on your OIDC provider.
+
+.Procedure
+
+. On the Red Hat Single Sign-On UI:
+
+.. Click *Clients* and then the name of the application or service that can request authentication of a user.
+
+.. On the *Settings* page of your client, ensure that the following options are set or enabled:
++
+* *Client ID*
+* *Valid redirect URI*
+* *Client authentication*
+* *Authorization*
+* *Standard flow*
+* *Direct access grants*
++
+[NOTE]
+====
+Settings can differ depending on your setup.
+====
+
+.. On the *Credentials* page, store the *Client Secret* for future use.
+
+.. On the *Users* page, click *Add user* and enter a username, for example, `service-account-quaydev`. Then, click *Create*.
+
+.. Click the name of of the user, for example *service-account-quaydev* on the *Users* page. 
+
+.. Click the *Credentials* tab -> *Set password* -> and provide a password for the user. If warranted, you can make this password temporary by selecting the *Temporary* option. 
+
+.. Click the *Realm settings* tab -> *OpenID Endpoint Configuration*. Store the `/protocol/openid-connect/token` endpoint. For example:
++
+[source,text]
+----
+http://localhost:8080/realms/master/protocol/openid-connect/token
+----
+
+. On a web browser, navigate to the following URL:
++
+[source,text]
+----
+http://<keycloak_url>/realms/<realm_name>/protocol/openid-connect/auth?response_type=code&client_id=<client_id>
+----
+
+. When prompted, log in with the *service-account-quaydev* user and the temporary password you set. Complete the login by providing the required information and setting a permanent password if necessary.
+
+. You are redirected to the URI address provided for your client. For example:
++
+[source,text]
+----
+https://localhost:3000/cb?session_state=5c9bce22-6b85-4654-b716-e9bbb3e755bc&iss=http%3A%2F%2Flocalhost%3A8080%2Frealms%2Fmaster&code=ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43
+----
++
+Take note of the `code` provided in the address. For example:
++
+[source,text]
+----
+code=ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43
+----
++
+[NOTE]
+====
+This is a temporary code that can only be used one time. If necessary, you can refresh the page or revisit the URL to obtain another code.
+====
+
+. On your terminal, use the following `curl -X POST` command to generate a temporary OAuth2 access token:
++
+[source,terminal]
+----
+$ curl -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
+-H "Content-Type: application/x-www-form-urlencoded" \
+-d "client_id=quaydev" \
+-d "client_secret=g8gPsBLxVrLo2PjmZkYBdKvcB9C7fmBz" \
+-d "grant_type=authorization_code"
+-d "code=ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43"
+----
++
+where:
+
+`http://localhost:8080/realms/master/protocol/openid-connect/token`:: Specifies the `protocol/openid-connect/token` endpoint found on the *Realm settings* page of the Red Hat Single Sign-On UI.
+`quaydev`:: Specifies the Client ID used for this procedure.
+`g8gPsBLxVrLo2PjmZkYBdKvcB9C7fmBz`:: Specifies the Client Secret for the Client ID.
+`ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43`:: Specifies the code returned from the redirect URI.
++
+.Example output
++
+[source,terminal]
+----
+{"access_token":"eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJTVmExVHZ6eDd2cHVmc1dkZmc1SHdua1ZDcVlOM01DN1N5T016R0QwVGhVIn0...",
+"expires_in":60,"refresh_expires_in":1800,"refresh_token":"eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJiNTBlZTVkMS05OTc1LTQwMzUtYjNkNy1lMWQ5ZTJmMjg0MTEifQ.oBDx6B3pUkXQO8m-M3hYE7v-w25ak6y70CQd5J8f5EuldhvTwpWrC1K7yOglvs09dQxtq8ont12rKIoCIi4WXw","token_type":"Bearer","not-before-policy":0,"session_state":"5c9bce22-6b85-4654-b716-e9bbb3e755bc","scope":"profile email"}
+----
+
+. Store the `access_token` from the previously step, as it will be exchanged for a {productname} robot account token in the following procedure.

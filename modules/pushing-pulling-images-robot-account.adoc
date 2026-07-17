@@ -1,0 +1,56 @@
+:_mod-docs-content-type: PROCEDURE
+[id="pushing-pulling-images-robot-account"]
+= Pushing and pulling images 
+
+[role="_abstract"]
+To push and pull images with a federated robot account in {productname}, you can log in with the robot token. Permissions determine which repositories you can access.
+
+.Prerequisites 
+
+* You have exported the OAuth2 access token into a new robot account access token.
+
+.Procedure
+
+. Log in to your {productname} registry using the `fest_test+robot1` robot account and the `QUAY_TOKEN` access token. For example:
++
+[source,terminal]
+----
+$ podman login <quay-server.example.com> -u fed_test+robot1 -p $QUAY_TOKEN
+----
+
+. Pull an image from a {productname} repository for which the robot account has the proper permissions. For example:
++
+[source,terminal]
+----
+$ podman pull <quay-server.example.com/<repository_name>/<image_name>> 
+----
++
+.Example output
++
+[source,terminal]
+----
+Getting image source signatures
+Copying blob 900e6061671b done  
+Copying config 8135583d97 done  
+Writing manifest to image destination
+Storing signatures
+8135583d97feb82398909c9c97607159e6db2c4ca2c885c0b8f590ee0f9fe90d
+0.57user 0.11system 0:00.99elapsed 68%CPU (0avgtext+0avgdata 78716maxresident)k
+800inputs+15424outputs (18major+6528minor)pagefaults 0swaps
+----
+
+. Attempt to pull an image from a {productname} repository for which the robot account does _not_ have the proper permissions. For example:
++
+[source,terminal]
+----
+$ podman pull <quay-server.example.com/<different_repository_name>/<image_name>> 
+----
++
+.Example output
++
+[source,terminal]
+----
+Error: initializing source docker://quay-server.example.com/example_repository/busybox:latest: reading manifest in quay-server.example.com/example_repository/busybox: unauthorized: access to the requested resource is not authorized
+----
++
+After one hour, the credentials for this robot account are set to expire. Afterwards, you must generate a new access token for this robot account.
