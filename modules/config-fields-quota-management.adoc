@@ -11,7 +11,15 @@ The following configuration fields enable and customize quota management functio
 | Field | Type | Description
 | **FEATURE_QUOTA_MANAGEMENT** | Boolean |  Enables configuration, caching, and validation for quota management feature. 
 
-**Default:** `False`
+**Default:** `false`
+
+| **FEATURE_QUOTA_NOTIFICATIONS** | Boolean | Enables external notification channels, such as email, for quota threshold alerts. When enabled, namespace owners receive proactive notifications when storage consumption crosses configured warning or critical thresholds.
+
+**Default:** `false`
+
+| **QUOTA_NOTIFICATION_COOLDOWN_SECONDS** | Integer | Cooldown period in seconds before re-sending a quota notification for the same threshold. Prevents cascading notifications by ensuring a quota warning notification for a given namespace and threshold level is not re-fired more than once per threshold-crossing event.
+
+**Default:** `86400` (24 hours)
 
 | **DEFAULT_SYSTEM_REJECT_QUOTA_BYTES** | String | Enables system default quota reject byte allowance for all organizations. 
 
@@ -19,7 +27,7 @@ By default, no limit is set.
 
 | **QUOTA_BACKFILL** | Boolean | Enables the quota backfill worker to calculate the size of pre-existing blobs. 
 
-**Default**: `True`
+**Default**: `true`
 
 |**QUOTA_TOTAL_DELAY_SECONDS** |String | The time delay for starting the quota backfill. Rolling deployments can cause incorrect totals. This field *must* be set to a time longer than it takes for the rolling deployment to complete. 
 
@@ -27,11 +35,11 @@ By default, no limit is set.
 
 |**PERMANENTLY_DELETE_TAGS** |Boolean | Enables functionality related to the removal of tags from the time machine window. 
 
-**Default**: `False`
+**Default**: `false`
 
 |**RESET_CHILD_MANIFEST_EXPIRATION** |Boolean |Resets the expirations of temporary tags targeting the child manifests. With this feature set to `True`, child manifests are immediately garbage collected. 
 
-**Default**: `False`
+**Default**: `false`
 |===
 
 .Quota management example YAML
@@ -39,9 +47,11 @@ By default, no limit is set.
 ----
 # ...
 FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_QUOTA_NOTIFICATIONS: true
 DEFAULT_SYSTEM_REJECT_QUOTA_BYTES: "100gb"
 QUOTA_BACKFILL: true
 QUOTA_TOTAL_DELAY_SECONDS: "3600"
+QUOTA_NOTIFICATION_COOLDOWN_SECONDS: "86400"
 PERMANENTLY_DELETE_TAGS: true
 RESET_CHILD_MANIFEST_EXPIRATION: true
 # ...
