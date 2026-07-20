@@ -1,0 +1,118 @@
+:_mod-docs-content-type: PROCEDURE
+[id="viewing-quota-usage-api"]
+= Viewing quota usage by using the API
+
+[role="_abstract"]
+To view quota usage for an organization, you can use the {productname} API.
+
+.Procedure
+
+* To view the storage consumed, `GET` data from the */api/v1/repository* endpoint:
++
+Enter the following command:
++
+[source,terminal]
+----
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/repository?last_modified=true&namespace=testorg&popularity=true&public=true'  | jq
+----
++
+.Example output
+[source,json]
+----
+{
+  "repositories": [
+    {
+      "namespace": "testorg",
+      "name": "ubuntu",
+      "description": null,
+      "is_public": false,
+      "kind": "image",
+      "state": "NORMAL",
+      "quota_report": {
+        "quota_bytes": 27959066,
+        "configured_quota": 104857600
+      },
+      "last_modified": 1651225630,
+      "popularity": 0,
+      "is_starred": false
+    }
+  ]
+}
+----
+
+* To view the quota report for the repositories in the organization, use the */api/v1/repository* endpoint:
++
+Enter the following command:
++
+[source,terminal]
+----
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/repository?last_modified=true&namespace=testorg&popularity=true&public=true'
+----
++
+.Example output
+[source,json]
+----
+{
+  "repositories": [
+    {
+      "namespace": "testorg",
+      "name": "ubuntu",
+      "description": null,
+      "is_public": false,
+      "kind": "image",
+      "state": "NORMAL",
+      "quota_report": {
+        "quota_bytes": 27959066,
+        "configured_quota": 104857600
+      },
+      "last_modified": 1651225630,
+      "popularity": 0,
+      "is_starred": false
+    },
+    {
+      "namespace": "testorg",
+      "name": "nginx",
+      "description": null,
+      "is_public": false,
+      "kind": "image",
+      "state": "NORMAL",
+      "quota_report": {
+        "quota_bytes": 59231659,
+        "configured_quota": 104857600
+      },
+      "last_modified": 1651229507,
+      "popularity": 0,
+      "is_starred": false
+    }
+  ]
+}
+----
+
+* To view the quota information in the organization details, use the */api/v1/organization/{orgname}* endpoint:
++
+Enter the following command:
++
+[source,terminal]
+----
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg' | jq
+----
++
+.Example output
+[source,json]
+----
+{
+  "name": "testorg",
+  ...
+  "quotas": [
+    {
+      "id": 1,
+      "limit_bytes": 104857600,
+      "limits": []
+    }
+  ],
+  "quota_report": {
+    "quota_bytes": 87190725,
+    "configured_quota": 104857600
+  }
+}
+----

@@ -1,13 +1,15 @@
- 
 // module included in the following assemblies:
 
 // * use_quay/master.adoc
 // * quay_io/master.adoc
 
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 
 [id="creating-an-image-repository-via-skopeo-copy"]
 = Creating a repository by using Skopeo
+
+[role="_abstract"]
+To create a repository in {productname} when Podman cannot pull an artifact type, you can use the skopeo copy command to copy the artifact from a source registry.
 
 In some cases, the `podman` CLI tool is unable to pull certain artifact types, for example, `application/x-mlmodel`, or other AI/ML artifacts. Attempting to use `podman pull` with this artifact type results in the following error:
 
@@ -23,7 +25,7 @@ As an alternative, you can use `skopeo copy` to copy an artifact from one locati
 * You have installed the `skopeo` CLI.
 * You have logged in to a source registry (in this example, `\registry.redhat.io`) and have a valid authentication file (`~/.docker/config.json`). Alternatively, you can provide credentials by using the `--src-username` and `--src-password` parameters when running a command with the `skopeo` CLI.
 * You have logged in to your {productname} repository.
-* Depending on the size of your AI/ML artifact, you might have to link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#preparing-registry-large-artifacts[Prepare your registry to accept large artifacts].
+* Depending on the size of your AI/ML artifact, you might have to prepare your registry to accept large artifacts.
 
 .Procedure
 
@@ -31,23 +33,25 @@ As an alternative, you can use `skopeo copy` to copy an artifact from one locati
 +
 [source,terminal]
 ----
-$ sudo skopeo copy --dest-tls-verify=false --all \ <1> <2>
-  --src-username <source_username> --src-password <source_password> \ <3>
-  --src-authfile ~/.docker/config.json \ <4>
-  --dest-username <username> --dest-password <password> \ <5>
-  docker://registry.redhat.io/rhelai1/granite-8b-code-instruct:1.4-1739210683 \ <6>
-  docker://quay-server.example.com/<namespace>/granite-8b-code-instruct:latest <7>
+$ sudo skopeo copy --dest-tls-verify=false --all \
+  --src-username <source_username> --src-password <source_password> \
+  --src-authfile ~/.docker/config.json \
+  --dest-username <username> --dest-password <password> \
+  docker://registry.redhat.io/rhelai1/granite-8b-code-instruct:1.4-1739210683 \
+  docker://quay-server.example.com/<namespace>/granite-8b-code-instruct:latest
 ----
-<1> Optional. `--dest-tls-verify=false` disables SSL/TLS verification for the destination registry. 
-<2> Optional. The `--all` flag optionally copies all image manifests, including multi-architecture images.
-<3> Optional. If you are not logged into a registry, you can pass in the source registry credentials with these parameters.
-<4> Optional. The path to your Docker authentication file. Typically located at `~/.docker/config.json`.
-<5> Your {productname} registry username and password.
-<6>  The source image or artifact from the Red{nbsp}Hat container registry. Ensure that you are logged in to the registry and that you can pull the image.
-<7> The URL of your {productname} repository appended with a namespace and the name of the image. 
++
+where:
+
+`--dest-tls-verify=false`:: Specifies that SSL/TLS verification for the destination registry is disabled. This parameter is optional.
+`--all`:: Specifies that all image manifests are copied, including multi-architecture images. This parameter is optional.
+`--src-username` / `--src-password`:: Specifies the source registry credentials. This parameter is optional. If you are not logged into a registry, you can pass in the source registry credentials with these parameters.
+`--src-authfile`:: Specifies the path to your Docker authentication file. Typically located at `~/.docker/config.json`. This parameter is optional.
+`--dest-username` / `--dest-password`:: Specifies your {productname} registry username and password.
+`docker://registry.redhat.io/...`:: Specifies the source image or artifact from the Red{nbsp}Hat container registry. Ensure that you are logged in to the registry and that you can pull the image.
+`docker://quay-server.example.com/...`:: Specifies the URL of your {productname} repository appended with a namespace and the name of the image.
 +
 .Example output
-+
 [source,terminal]
 ----
 Getting image source signatures
@@ -70,4 +74,4 @@ Storing signatures
 
 .Next steps
 
-* After you have pushed a machine learning artifact to your {productname} repository, you can link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#viewing-and-modifying-tags[View tag information by using the UI] or link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/use_red_hat_quay/index#viewing-model-card-information[View model card information by using the UI].
+* After you have pushed a machine learning artifact to your {productname} repository, you can view tag information by using the UI or view model card information by using the UI.

@@ -1,0 +1,40 @@
+:_mod-docs-content-type: PROCEDURE
+[id="viewing-reject-warning-limits"]
+= Viewing reject and warning limits by using the API
+
+[role="_abstract"]
+To view reject and warning limits for an organization quota, you can use the {productname} API.
+
+.Procedure
+
+. View the _reject_ and _warning_ limits by using the */api/v1/organization/{orgname}/quota* endpoint. For example:
++
+[source,terminal]
+----
+$  curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json'  https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg/quota | jq
+----
++
+.Example output
+[source,json]
+----
+[
+  {
+    "id": 1,
+    "limit_bytes": 104857600,
+    "default_config": false,
+    "limits": [
+      {
+        "id": 2,
+        "type": "Warning",
+        "limit_percent": 50
+      },
+      {
+        "id": 1,
+        "type": "Reject",
+        "limit_percent": 80
+      }
+    ],
+    "default_config_exists": false
+  }
+]
+----
