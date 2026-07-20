@@ -1,0 +1,58 @@
+:_mod-docs-content-type: PROCEDURE
+[id="setting-quota-api"]
+= Setting quota by using the API
+
+[role="_abstract"]
+To set quota limitations for an organization, you can use the {productname} API.
+
+.Procedure
+
+. To set a quota for an organization, you can use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createorganizationquota[`POST /api/v1/organization/{orgname}/quota`] endpoint:
++
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota" \
+     -H "Authorization: Bearer <access_token>" \
+     -H "Content-Type: application/json" \
+     -d '{
+         "limit_bytes": 10737418240,
+         "limits": "10 Gi"
+     }'
+----
++
+.Example output
+[source,terminal]
+----
+"Created"
+----
+
+. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#listorganizationquota[`GET /api/v1/organization/{orgname}/quota`] command to see if your organization already has an established quota:
++
+[source,terminal]
+----
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json'  https://<quay-server.example.com>/api/v1/organization/<organization_name>/quota  | jq
+----
++
+.Example output
+[source,terminal]
+----
+[{"id": 1, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}]
+----
+
+. You can use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#changeorganizationquota[`PUT /api/v1/organization/{orgname}/quota/{quota_id}`] command to modify the existing quota limitation. For example:
++
+[source,terminal]
+----
+$ curl -X PUT "https://<quay-server.example.com>/api/v1/organization/<orgname>/quota/<quota_id>" \
+     -H "Authorization: Bearer <access_token>" \
+     -H "Content-Type: application/json" \
+     -d '{                                
+         "limit_bytes": <limit_in_bytes>
+     }' 
+----
++
+.Example output
+[source,json]
+----
+{"id": 1, "limit_bytes": 21474836480, "limit": "20.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}
+----

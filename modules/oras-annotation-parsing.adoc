@@ -1,8 +1,11 @@
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 [id="annotation-parsing-oras"]
 = Annotation parsing
 
-Some OCI media types do not utilize labels and, as such, critical information such as expiration timestamps are not included. {productname} supports metadata passed through annotations to accommodate OCI media types that do not include these labels for metadata transmission. Tools such as ORAS (OCI Registry as Storage) can now be used to embed information with artifact types to help ensure that images operate properly, for example, to expire.
+[role="_abstract"]
+Some OCI media types do not include labels for metadata such as expiration. You can use ORAS annotations with {productname} to embed that metadata in artifacts.
+
+Tools such as ORAS (OCI Registry as Storage) can now be used to embed information with artifact types to help ensure that images operate properly, for example, to expire.
 
 The following procedure uses ORAS to add an expiration date to an OCI media artifact.
 
@@ -13,7 +16,7 @@ If you pushed an image with `podman push`, and then add an annotation with `oras
 
 .Prerequisites
 
-* You have downloaded the `oras` CLI. For more information, see link:https://oras.land/docs/installation[Installation].
+* You have downloaded the `oras` CLI.
 * You have pushed an OCI media artifact to your {productname} repository.
 
 ////
@@ -44,7 +47,6 @@ $ podman build -t <myartifact_image> .
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 STEP 1/2: FROM alpine
@@ -65,7 +67,6 @@ $ podman images
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 REPOSITORY                                 TAG         IMAGE ID      CREATED        SIZE
@@ -87,7 +88,6 @@ $ podman inspect myartifact-image
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 ---
@@ -122,15 +122,17 @@ $ podman push <myartifact_image> quay.io/<organization_name>/<repository>/<image
 +
 [source,terminal]
 ----
-$ oras push --annotation "quay.expires-after=2d" \ <1>
---annotation "expiration = 2d" \ <2>
+$ oras push --annotation "quay.expires-after=2d" \
+--annotation "expiration = 2d" \
 quay.io/<organization_name>/<repository>/<image_name>:<tag>
 ----
-<1> Set the expiration time for 2 days, indicated by `2d`.
-<2> Adds the expiration label.
++
+where:
+
+`--annotation "quay.expires-after=2d"`:: Specifies that the expiration time is set for 2 days, indicated by `2d`.
+`--annotation "expiration = 2d"`:: Specifies that the expiration label is added.
 +
 .Example output
-+
 [source,terminal]
 ----
 ✓ Exists    application/vnd.oci.empty.v1+json                                                                                   2/2  B 100.00%     0s
@@ -159,7 +161,6 @@ $ oras manifest fetch quay.io/<organization_name>/<repository>/<image_name>:<tag
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 {"schemaVersion":2,"mediaType":"application/vnd.oci.image.manifest.v1+json","artifactType":"application/vnd.unknown.artifact.v1","config":{"mediaType":"application/vnd.oci.empty.v1+json","digest":"sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a","size":2,"data":"e30="},"layers":[{"mediaType":"application/vnd.oci.empty.v1+json","digest":"sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a","size":2,"data":"e30="}],"annotations":{"org.opencontainers.image.created":"2024-07-11T15:22:42Z","version ":" 8.11"}}
