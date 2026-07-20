@@ -99,3 +99,24 @@ The {productname} Operator supports referencing an external `kubernetes.io/tls` 
 The `QuayRegistry` status includes a `ComponentTLSReady` condition that reports whether TLS from the external Secret is valid and applied.
 
 For configuration steps, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#operator-external-tls-secret-reference[Referencing an external TLS Secret for {productname-ocp}]. For a cert-manager example, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/securing_red_hat_quay/index#example-certificate-manager[Example: Using cert-manager with an external TLS Secret].
+[id="operator-managed-postgres-tls-rn"]
+== TLS encryption for Operator-managed PostgreSQL
+
+With this release, you can enable TLS encryption for Operator-managed PostgreSQL databases used by {productname} and Clair. Set `overrides.tls.enabled: true` on the `postgres` and/or `clairpostgres` components in the `QuayRegistry` custom resource.
+
+When TLS is enabled, the Operator configures PostgreSQL to accept encrypted connections and mounts the required TLS certificates. TLS is opt-in; existing deployments are unaffected until you enable it. After enablement, verify that PostgreSQL reports `ssl = on`. Optionally confirm client TLS sessions or an `sslmode` setting such as `verify-full` in the registry database configuration.
+
+Certificate options include the following:
+
+* On {ocp}, the Operator uses the cluster Service CA when no custom Secret is provided.
+* On other Kubernetes platforms, the Operator generates ECDSA P-256 self-signed certificates.
+* You can supply your own certificates by referencing a Secret with `overrides.tls.secretRef.name`. This format is compatible with cert-manager.
+
+You can enable TLS independently for the `postgres` and `clairpostgres` components. This feature addresses encryption-in-transit requirements for Operator-managed databases without provisioning external PostgreSQL infrastructure.
+
+[IMPORTANT]
+====
+This feature configures transport encryption for Operator-managed PostgreSQL. It is distinct from the managed `tls` component, which handles {productname}'s external HTTPS endpoint.
+====
+
+For configuration examples, certificate options, and verification steps, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_operator_features/index#operator-managed-postgres-tls[TLS encryption for Operator-managed PostgreSQL].

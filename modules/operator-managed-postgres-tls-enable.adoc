@@ -1,0 +1,67 @@
+:_mod-docs-content-type: PROCEDURE
+[id="operator-managed-postgres-tls-enable"]
+= Enabling TLS for Operator-managed PostgreSQL
+
+[role="_abstract"]
+To encrypt database traffic for Operator-managed PostgreSQL used by {productname} and Clair, you can set `overrides.tls.enabled: true` on the `postgres` and `clairpostgres` components in the `QuayRegistry` custom resource. After you save the change, the Operator configures PostgreSQL to use TLS.
+
+.Prerequisites
+
+* The `postgres` and/or `clairpostgres` components that you want to protect are set to `managed: true`.
+* You have access to edit the `QuayRegistry` custom resource in your registry namespace.
+
+.Procedure
+
+. Edit your `QuayRegistry` custom resource. For example:
++
+[source,terminal]
+----
+$ oc edit quayregistry <registry_name> -n <namespace>
+----
+
+. Under `spec.components`, add `overrides.tls.enabled: true` to the managed PostgreSQL components. For example:
++
+[source,yaml]
+----
+spec:
+  components:
+    - kind: postgres
+      managed: true
+      overrides:
+        tls:
+          enabled: true
+    - kind: clairpostgres
+      managed: true
+      overrides:
+        tls:
+          enabled: true
+----
+
+. Save the changes and wait for the Operator to reconcile the registry.
++
+[NOTE]
+====
+On {ocp}, the Operator might briefly report `RolloutBlocked` while it waits for the Service CA to create the serving certificate Secret. Reconciliation retries until the Secret is available.
+====
+
+. Verify that PostgreSQL has SSL enabled:
++
+[source,terminal]
+----
+$ oc exec -n <namespace> deploy/<registry_name>-quay-database -c postgres -- \
+  bash -lc 'psql -U "$POSTGRESQL_USER" -d "$POSTGRESQL_DATABASE" -tAc "SHOW ssl;"'
+----
++
+The command should return `on`. For Clair, run the same check against the Clair PostgreSQL deployment when that component is managed.
+
+. Verify that the `QuayRegistry` status shows a healthy deployment and that `RolloutBlocked` is not stuck in an error state.
++
+.Optional. Confirm client TLS sessions
++
+[source,terminal]
+----
+$ oc exec -n <namespace> deploy/<registry_name>-quay-database -c postgres -- \
+  bash -lc 'psql -U "$POSTGRESQL_USER" -d "$POSTGRESQL_DATABASE" -tAc "SELECT count(*) FROM pg_stat_ssl s JOIN pg_stat_activity a ON s.pid = a.pid WHERE s.ssl = true AND a.client_addr IS NOT NULL;"'
+----
++
+A count greater than `0` indicates active TLS client connections. If the count remains `0`, PostgreSQL still has TLS enabled on the server, but clients might not yet be connecting with SSL. Check the registry database URI or connection arguments for an `sslmode` value such as `verify-full`, and review Operator Events for certificate or CA errors.

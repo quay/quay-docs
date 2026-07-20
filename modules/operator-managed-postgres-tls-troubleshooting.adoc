@@ -1,0 +1,19 @@
+:_mod-docs-content-type: REFERENCE
+[id="operator-managed-postgres-tls-troubleshooting"]
+= Troubleshooting Operator-managed PostgreSQL TLS configurations
+
+[role="_abstract"]
+If TLS configuration is invalid, the Operator sets a `RolloutBlocked` condition on the `QuayRegistry` and emits Kubernetes Events with details.
+
+Common causes include:
+
+* A referenced TLS Secret does not exist
+* The Secret is missing `ca.crt`, `tls.crt`, or `tls.key`
+* The certificate and private key do not match
+* The certificate has expired
+
+On {ocp}, if the Service CA serving certificate Secret has not yet been created, the Operator emits Events such as a PostgreSQL service CA error and retries until the Secret is available. A brief `RolloutBlocked` condition during that wait is expected.
+
+If `SHOW ssl;` returns `on` but `pg_stat_ssl` shows no TLS client sessions, PostgreSQL is accepting encrypted connections, but {productname} or Clair might still be connecting without SSL. Check the registry configuration for an `sslmode` value on the database URI or connection arguments, and review Operator Events for certificate or CA problems.
+
+For external PostgreSQL databases, continue to configure TLS through `DB_URI` and related configuration fields in the config bundle. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-db[Database configuration fields].
