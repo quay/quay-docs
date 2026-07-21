@@ -44,8 +44,41 @@ jobs:
       uses: actions/github-script@v8
       with:
         script: |
+          const fs = require('fs');
+          const path = require('path');
           const deploymentUrl = '${{ steps.deploy.outputs.url }}';
           const prNumber = ${{ steps.pr.outputs.number }};
+
+          const { data: files } = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: prNumber,
+            per_page: 100,
+          });
+
+          // Map changed top-level book dirs to preview paths (flat + directory).
+          const previewPaths = new Set();
+          for (const file of files) {
+            if (file.filename === 'welcome.adoc') {
+              previewPaths.add('/');
+              continue;
+            }
+            const top = file.filename.split('/')[0];
+            let book = top === 'api' ? 'api_quay' : top;
+            if (fs.existsSync(path.join('dist', `${book}.html`))) {
+              previewPaths.add(`/${book}.html`);
+              previewPaths.add(`/${book}/`);
+            }
+          }
+
+          let bookLinks = '';
+          if (previewPaths.size > 0) {
+            const links = [...previewPaths]
+              .sort()
+              .map((p) => `- ${deploymentUrl}${p}`)
+              .join('\n');
+            bookLinks = `\n**Changed book previews:**\n${links}\n`;
+          }
 
           const { data: comments } = await github.rest.issues.listComments({
             owner: context.repo.owner,
@@ -60,13 +93,13 @@ jobs:
 
           const commentBody = `## Surge Preview Deployment
 
-          ✅ **Preview deployed successfully!**
+✅ **Preview deployed successfully!**
 
-          🔗 **Preview URL:** ${deploymentUrl}
+🔗 **Preview URL:** ${deploymentUrl}
+${bookLinks}
+Built from commit ${{ github.event.workflow_run.head_sha }}
 
-          Built from commit ${{ github.event.workflow_run.head_sha }}
-
-          _This preview will be updated on every push to this PR._`;
+_This preview will be updated on every push to this PR._`;
 
           if (botComment) {
             await github.rest.issues.updateComment({
