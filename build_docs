@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
+set -euo pipefail
 rm -rf dist
+mkdir -p dist
 
 PRODUCT_ATTR=(-a productname="Project Quay")
 BOOK_ATTR=(-a productname="Project Quay" -a toc="left" -d book)
@@ -10,10 +12,17 @@ cp dist/welcome.html dist/index.html
 for master in */master.adoc; do
   dir=$(dirname "$master")
   case "$dir" in
-    api) out=api_quay.html ;;
-    *) out="${dir}.html" ;;
+    api) out=api_quay ;;
+    *) out="$dir" ;;
   esac
-  asciidoctor "${BOOK_ATTR[@]}" "$master" -D dist -o "$out"
+
+  # Directory form: /deploy_red_hat_quay_operator/ (RH docs-style URL)
+  mkdir -p "dist/${out}"
+  asciidoctor "${BOOK_ATTR[@]}" -a imagesdir=../images "$master" -D "dist/${out}" -o index.html
+
+  # Flat file: /deploy_red_hat_quay_operator.html (existing PR preview links)
+  sed 's|src="../images/|src="images/|g; s|href="../images/|href="images/|g' \
+    "dist/${out}/index.html" > "dist/${out}.html"
 done
 
 cp -a images dist/images
