@@ -7,24 +7,28 @@
 = Managing organization contact email with the API
 
 [role="_abstract"]
-Use the `contact_email` field to configure where automated system alerts are sent for an organization. This field is decoupled from user account identities, allowing multiple organizations to share the same email address without authentication conflicts.
+Use the `contact_email` request field (or the legacy `email` field) to set where automated system alerts are sent for an organization. Multiple organizations can share the same address, which is useful for team distribution lists.
 
-The `contact_email` field has the following properties:
+The organization contact email has the following properties:
 
 * Receives automated notifications including quota warnings, security alerts, and build failures
-* Can be shared across multiple organizations (useful for team distribution lists)
-* An optional field so if not set, notifications default to organization owners
-* Does not enforce global uniqueness constraints
+* Can be shared across multiple organizations
+* Is optional on create when mailing is not required; if not set, notifications default to organization owners
+* Is accepted on create and update as `contact_email` or `email`; {productname} stores and returns the value in the `email` response field
 
 [NOTE]
 ====
-Before the `contact_email` field, organizations were forced to use unique dummy email addresses to avoid account collision errors. This resulted in undelivered notifications. Always use a real, monitored email address for the `contact_email` field.
+By default, an organization cannot use an email address that is already assigned to a user account. To allow organizations to share an email address with a user account, set `FEATURE_ORG_SHARED_EMAIL: true` in your {productname} configuration. Organization-to-organization sharing works without that flag.
+====
+
+[NOTE]
+====
+Always use a real, monitored email address for organization notifications. Dummy addresses cause undelivered alerts.
 ====
 
 .Prerequisites
 
-* You have link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/inde
-x#creating-oauth-access-token[Created an OAuth access token].
+* You have link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token[Created an OAuth access token].
 * You have organization administrator permissions.
 
 .Procedure
@@ -44,13 +48,12 @@ $ curl -X GET \
 {
 "name": "engineering",
 "email": "team-notifications@example.com",
-"contact_email": "team-notifications@example.com",
 "is_admin": true,
 ...
 }
 ----
 +
-When `contact_email` is not set, the response returns `null` and `email` returns an empty string.
+When no contact email is set, `email` returns an empty string. The GET response does not include a separate `contact_email` field.
 
 * To set the contact email when creating an organization, use the following `POST /api/v1/organization/` endpoint:
 +
@@ -62,6 +65,8 @@ $ curl -X POST \
 -d '{"name": "engineering", "contact_email": "team-alerts@example.com"}' \
 "https://<quay-server.example.com>/api/v1/organization/"
 ----
++
+You can also send `"email": "team-alerts@example.com"`. If both fields are present, `contact_email` takes priority.
 
 * To change the contact email for an existing organization, use the following `PUT /api/v1/organization/{orgname}` endpoint:
 +
@@ -85,7 +90,7 @@ $ curl -X PUT \
 "https://<quay-server.example.com>/api/v1/organization/engineering"
 ----
 
-* If you want multiple organizations to use the same `contact_email` address, use team distribution lists. These lists can send all alerts for multiple namespaces to a single shared inbox.
+* If you want multiple organizations to use the same contact email address, use a team distribution list:
 +
 [source,terminal]
 ----
@@ -101,5 +106,4 @@ $ curl -X PUT -H "Authorization: Bearer <token>" -H "Content-Type: application/j
 "https://<quay-server.example.com>/api/v1/organization/qa-team"
 ----
 +
-The command examples show that both `engineering` and `qa-team` receive notifications at `devops-team@example.com`.
-
+Both `engineering` and `qa-team` can use `devops-team@example.com` as their organization email.
