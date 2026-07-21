@@ -3,20 +3,20 @@
 = Repository mirroring recommendations
 
 [role="_abstract"]
-Best practices for {productname} repository mirroring include running mirroring pods on any node and scaling workers by the number of repositories you mirror in parallel. You can size mirror workers based on total repositories, image count, and sync frequency.
+For {productname} repository mirroring, you can run mirroring pods on any node and size the number of workers to how many repositories you want to sync in parallel.
 
 Best practices for repository mirroring include the following:
 
 * Repository mirroring pods can run on any node. This means that you can run mirroring on nodes where {productname} is already running.
 
-* Repository mirroring is scheduled in the database and runs in batches. As a result, repository workers check each repository mirror configuration file and reads when the next sync needs to be. More mirror workers means more repositories can be mirrored at the same time. For example, running 10 mirror workers means that a user can run 10 mirroring operators in parallel. If a user only has 2 workers with 10 mirror configurations, only 2 operators can be performed.
+* Repository mirroring is scheduled in the database and runs in batches. As a result, repository workers check each repository mirror configuration and read when the next sync needs to run. More mirror workers means more repositories can be mirrored at the same time. For example, running 10 mirror workers means that a user can run 10 mirroring operations in parallel. If a user only has 2 workers with 10 mirror configurations, only 2 operations can run at once.
 
 * The optimal number of mirroring pods depends on the following conditions:
-
++
 ** The total number of repositories to be mirrored
 ** The number of images and tags in the repositories and the frequency of changes
 ** Parallel batching
 +
-For example, if a user is mirroring a repository that has 100 tags, the mirror will be completed by one worker. Users must consider how many repositories one wants to mirror in parallel, and base the number of workers around that.
+For example, if a user is mirroring a repository that has 100 tags, one worker completes the mirror. Users must consider how many repositories they want to mirror in parallel, and base the number of workers around that.
 +
 Multiple tags in the same repository cannot be mirrored in parallel.

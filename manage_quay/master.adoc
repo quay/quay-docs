@@ -3,63 +3,69 @@ include::_attributes/attributes.adoc[]
 [id="manage-quay"]
 = Manage {productname}
 
-Once you have deployed a {productname} registry, there are many ways you can
-further configure and manage that deployment. Topics covered here include:
+[role="_abstract"]
+After you deploy a {productname} registry, you can configure advanced settings, secure logs, mirror images, authenticate users, and manage geo-replication and quotas.
+
+The following topics are covered in this section:
 
 * Advanced {productname} configuration
-* Setting notifications to alert you of a new {productname} release
+* Setting notifications to alert you of a new {productname} 
+release
 * Securing connections with SSL/TLS certificates
 * Directing action logs storage to Elasticsearch
 * Configuring image security scanning with Clair
 * Scan pod images with the Container Security Operator
-* Integrate {productname} into {ocp} with the Quay Bridge Operator
+* Integrate {productname} into {ocp} with the Quay Bridge 
+Operator
 * Mirroring images with repository mirroring
-* Authenticating users with LDAP and OIDC, including Microsoft Entra ID v2 tokens
+* Authenticating users with LDAP and OIDC, including Microsoft 
+Entra ID v2 tokens
 * Enabling Quay for Prometheus and Grafana metrics
 * Setting up geo-replication
 * Troubleshooting {productname}
 
-For a complete list of {productname} configuration fields, see the link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.15/html-single/configure_red_hat_quay/index[Configure {productname}] page.
-
 include::modules/proc_manage-advanced-config.adoc[leveloffset=+1]
 
+//include::modules/editing-config-file-to-modify-quay.adoc[leveloffset=+2]
 
-include::modules/config-api-intro.adoc[leveloffset=+1]
-include::modules/config-api-default.adoc[leveloffset=+2]
-include::modules/config-api-retrieve.adoc[leveloffset=+2]
-include::modules/config-api-validate.adoc[leveloffset=+2]
-include::modules/config-api-required.adoc[leveloffset=+2]
+include::modules/obtaining-configuration-information-quay.adoc[leveloffset=+2]
+
+include::modules/obtaining-configuration-information-quay-standalone.adoc[leveloffset=+2]
 
 include::modules/proc_manage-release-notifications.adoc[leveloffset=+1]
 
-
-[[using-ssl-to-protect-quay]]
-== Using SSL to protect connections to {productname}
-//include::modules/proc_manage-quay-ssl.adoc[leveloffset=+1]
-include::modules/ssl-intro.adoc[leveloffset=+2]
-////
-include::modules/ssl-create-certs.adoc[leveloffset=+2]
-include::modules/ssl-config-cli.adoc[leveloffset=+2]
-include::modules/ssl-config-ui.adoc[leveloffset=+2]
-include::modules/ssl-testing-cli.adoc[leveloffset=+2]
-include::modules/ssl-testing-ui.adoc[leveloffset=+2]
-include::modules/ssl-trust-ca-podman.adoc[leveloffset=+2]
-include::modules/ssl-trust-ca-system.adoc[leveloffset=+2]
-
-include::modules/config-custom-ssl-certs-manual.adoc[leveloffset=+1]
-include::modules/config-custom-ssl-certs-kubernetes.adoc[leveloffset=+2]
-////
-
 include::modules/proc_manage-log-storage.adoc[leveloffset=+1]
+
 include::modules/proc_manage-log-storage-elasticsearch.adoc[leveloffset=+2]
+
 include::modules/proc_manage-log-storage-splunk.adoc[leveloffset=+2]
+
 include::modules/proc_installing-creating-username-splunk.adoc[leveloffset=+3]
+
 include::modules/proc_generating-splunk-token.adoc[leveloffset=+3]
+
+include::modules/proc_generating-splunk-token-ui.adoc[leveloffset=+4]
+
+include::modules/proc_generating-splunk-token-cli.adoc[leveloffset=+4]
+
 include::modules/proc_splunk-hec-obtaining-bearer-token.adoc[leveloffset=+4]
+
 include::modules/proc_splunk-config.adoc[leveloffset=+3]
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.splunk.com/Documentation/SplunkCloud/latest/Config/ManageHECtokens[Manage HEC tokens]
+
 include::modules/proc_splunk-action-log.adoc[leveloffset=+3]
+
 include::modules/proc_splunk-audit-log-ui-display.adoc[leveloffset=+3]
+
 include::modules/understanding-action-logs.adoc[leveloffset=+2]
+
+include::modules/viewing-database-logs.adoc[leveloffset=+3]
+
+include::modules/log-entry-kind-ids.adoc[leveloffset=+3]
 
 :context: security-scanning
 
@@ -69,7 +75,6 @@ include::modules/about-clair.adoc[leveloffset=+1]
 :context: manage_quay
 
 
-//include::modules/proc_manage-repomirror.adoc[leveloffset=+1]
 include::modules/mirroring-intro.adoc[leveloffset=+1]
 include::modules/mirroring-versus-georepl.adoc[leveloffset=+2]
 include::modules/mirroring-using.adoc[leveloffset=+2]
@@ -80,17 +85,13 @@ include::modules/mirroring-worker.adoc[leveloffset=+2]
 include::modules/enabling-organization-mirroring-quay.adoc[leveloffset=+2]
 include::modules/config-ui-mirroring-organization.adoc[leveloffset=+2]
 include::modules/config-api-mirroring-organization.adoc[leveloffset=+2]
-//include::modules/config-fields-mirroring-organization.adoc[leveloffset=+2]
 
 //repository
-//include::modules/config-ui-mirroring-repository.adoc[leveloffset=+2]
-//include::modules/config-fields-mirroring-repository.adoc[leveloffset=+2]
 include::modules/enabling-mirroring-quay.adoc[leveloffset=+2]
 include::modules/mirroring-creating-repository.adoc[leveloffset=+2]
 include::modules/mirroring-starting-sync.adoc[leveloffset=+2]
 
 include::modules/mirroring-events.adoc[leveloffset=+2]
-include::modules/mirroring-tag-patterns.adoc[leveloffset=+2]
 include::modules/mirroring-working-with.adoc[leveloffset=+2]
 include::modules/mirroring-recommend.adoc[leveloffset=+2]
 
@@ -98,36 +99,84 @@ include::modules/mirroring-recommend.adoc[leveloffset=+2]
 
 include::modules/proc_manage-ipv6-dual-stack.adoc[leveloffset=+1]
 
+include::modules/proc-manage-enabling-ipv6.adoc[leveloffset=+2]
+
+include::modules/proc-manage-enabling-dual-stack.adoc[leveloffset=+2]
+
+include::modules/proc_manage-ipv6-limitations-38.adoc[leveloffset=+2]
+
+[role="_additional-resources"]
+.Additional resources
+* link:https://issues.redhat.com/browse/PROJQUAY-4433[PROJQUAY-4433]
+* link:https://issues.redhat.com/browse/PROJQUAY-4470[PROJQUAY-4470]
+
 :context: manage_quay
 
 include::modules/proc_manage-ldap-setup.adoc[leveloffset=+1]
 
+include::modules/ldap-considerations.adoc[leveloffset=+2]
+
+include::modules/setup-ldap-configuration.adoc[leveloffset=+2]
+
+include::modules/ldap-restricted-users-enabling.adoc[leveloffset=+2]
+
+include::modules/ldap-super-users-enabling.adoc[leveloffset=+2]
+
+include::modules/common-ldap-configuration-issues.adoc[leveloffset=+2]
+
+include::modules/ldap-configuration-fields-link.adoc[leveloffset=+2]
+
 //oidc and SSO
 include::modules/configuring-oidc-authentication.adoc[leveloffset=+1]
+
 include::modules/configuring-entra-oidc.adoc[leveloffset=+2]
+
 include::modules/configuring-entra-v2-multi-issuer-oidc.adoc[leveloffset=+2]
+
 include::modules/migrating-entra-v1-to-v2-oidc.adoc[leveloffset=+2]
+
 include::modules/configuring-entra-obo-oidc.adoc[leveloffset=+2]
+
+[role="_additional-resources"]
+.Additional resources
+* link:https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow[Microsoft identity platform and OAuth 2.0 On-Behalf-Of flow]
+
 include::modules/entra-oidc-troubleshooting.adoc[leveloffset=+2]
+
+[role="_additional-resources"]
+.Additional resources
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#oidc-config-fields[OIDC configuration fields]
 
 
 include::modules/configuring-red-hat-sso.adoc[leveloffset=+2]
+
+include::modules/configuring-red-hat-sso-using-config-tool.adoc[leveloffset=+3]
+
+include::modules/configuring-quay-operator-use-redhat-sso.adoc[leveloffset=+3]
+
 include::modules/enabling-team-sync-oidc.adoc[leveloffset=+2]
+
+include::modules/enabling-oidc-team-sync.adoc[leveloffset=+3]
+
+include::modules/setting-up-quay-team-sync.adoc[leveloffset=+3]
 
 //keyless auth
 
 include::modules/keyless-authentication-robot-accounts.adoc[leveloffset=+1]
+
 include::modules/generating-oauth2-token-using-keycloak.adoc[leveloffset=+2]
+
 include::modules/setting-robot-federation.adoc[leveloffset=+2]
-[role="_additional-resources"]
-.Additional resources
-* xref:configuring-federation-audiences[Configuring federation audiences]
+
 include::modules/configuring-federation-audiences.adoc[leveloffset=+2]
+
 [role="_additional-resources"]
 .Additional resources
-* xref:exchanging-oauth2-robot-account-token[Exchanging an OAuth2 access token for a {productname} robot account token]
+
 * link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createorgrobotfederation[createOrgRobotFederation]
+
 include::modules/exchanging-oauth2-robot-account-token.adoc[leveloffset=+2]
+
 include::modules/pushing-pulling-images-robot-account.adoc[leveloffset=+2]
 
 //aws sts
@@ -136,18 +185,32 @@ include::modules/configuring-quay-standalone-aws-sts.adoc[leveloffset=+2]
 
 
 include::modules/proc_manage-quay-prometheus.adoc[leveloffset=+1]
+
+include::modules/exposing-prometheus-standalone.adoc[leveloffset=+2]
+
+include::modules/exposing-prometheus-operator.adoc[leveloffset=+2]
+
+include::modules/setting-up-prometheus-to-consume-metrics.adoc[leveloffset=+2]
+
+include::modules/dns-configuration-under-kubernetes.adoc[leveloffset=+3]
+
+include::modules/dns-configuration-for-a-manual-cluster.adoc[leveloffset=+3]
+
 include::modules/metrics-intro.adoc[leveloffset=+2]
+
 include::modules/metrics-general-registry-stats.adoc[leveloffset=+3]
+
 include::modules/metrics-queue-items.adoc[leveloffset=+3]
+
 include::modules/metrics-garbage-collection.adoc[leveloffset=+3]
+
 include::modules/metrics-multipart-uploads.adoc[leveloffset=+3]
+
 include::modules/metrics-image-push-pull.adoc[leveloffset=+3]
+
 include::modules/metrics-authentication.adoc[leveloffset=+3]
 
-//include::modules/proc_manage-quay-geo-replication.adoc[leveloffset=+1]
-
 include::modules/quota-management-and-enforcement.adoc[leveloffset=+1]
-//include::modules/quota-management-arch.adoc[leveloffset=+2]
 include::modules/quota-management-limitations.adoc[leveloffset=+2]
 include::modules/setting-default-quota.adoc[leveloffset=+2]
 include::modules/quota-establishment-ui.adoc[leveloffset=+2]
@@ -158,47 +221,101 @@ include::modules/setting-reject-warning-limits.adoc[leveloffset=+3]
 include::modules/viewing-reject-warning-limits.adoc[leveloffset=+3]
 include::modules/quota-management-query-39.adoc[leveloffset=+2]
 include::modules/deleting-tag-permanently.adoc[leveloffset=+2]
+include::modules/permanently-deleting-image-tag-v2-ui.adoc[leveloffset=+3]
 
 //namespace auto-pruning
 
 include::modules/red-hat-quay-namespace-auto-pruning-overview.adoc[leveloffset=+1]
+include::modules/prerequisites-limitations-namespace-autopruning.adoc[leveloffset=+2]
+include::modules/autopruning-regular-expressions.adoc[leveloffset=+2]
 include::modules/managing-namespace-auto-pruning-policies.adoc[leveloffset=+2]
+include::modules/enabling-image-pull-activity-tracking.adoc[leveloffset=+3]
+include::modules/configuring-namespace-auto-prune-feature.adoc[leveloffset=+3]
+include::modules/creating-registry-wide-auto-pruning-policy.adoc[leveloffset=+3]
+include::modules/creating-policy-v2-ui.adoc[leveloffset=+3]
+include::modules/creating-policy-api.adoc[leveloffset=+3]
+include::modules/creating-policy-api-current-user.adoc[leveloffset=+3]
+include::modules/creating-policy-repository-v2-ui.adoc[leveloffset=+3]
+include::modules/creating-repository-policy-api.adoc[leveloffset=+3]
+include::modules/creating-policy-api-other-user.adoc[leveloffset=+3]
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createorganizationautoprunepolicy[`POST /api/v1/organization/{orgname}/autoprunepolicy/`]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#updateorganizationautoprunepolicy[`PUT /api/v1/organization/{orgname}/autoprunepolicy/{policy_uuid}`]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#updaterepositoryautoprunepolicy[`PUT /api/v1/repository/{repository}/autoprunepolicy/{policy_uuid}`]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createuserautoprunepolicy[`POST /api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/`]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#updateuserautoprunepolicy[`PUT /api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/<policy_uuid>`]
+
 
 include::modules/georepl-intro.adoc[leveloffset=+1]
 include::modules/arch-georpl-features.adoc[leveloffset=+2]
 include::modules/georepl-prereqs.adoc[leveloffset=+2]
-//include::modules/georepl-arch-standalone.adoc[leveloffset=+2]
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/vulnerability_reporting_with_clair_on_red_hat_quay/index#advanced-clair-configuration[Advanced Clair configuration]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/vulnerability_reporting_with_clair_on_red_hat_quay/index#clair-openshift-config[Retrieving and decoding the Clair configuration secret for Clair deployments on {ocp}]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/proof_of_concept_-_deploying_red_hat_quay/advanced-quay-poc-deployment[Proof of concept deployment using SSL/TLS certificates]
+
 include::modules/config-ui-storage-georepl.adoc[leveloffset=+3]
 include::modules/georepl-deploy-standalone.adoc[leveloffset=+3]
 include::modules/standalone-georepl-site-removal.adoc[leveloffset=+3]
-//include::modules/georepl-arch-operator.adoc[leveloffset=+2]
 include::modules/georepl-deploy-operator.adoc[leveloffset=+3]
 include::modules/operator-georepl-site-removal.adoc[leveloffset=+3]
 include::modules/georepl-mixed-storage.adoc[leveloffset=+2]
 
-////
-include::modules/backing-up-and-restoring-intro.adoc[leveloffset=+1]
-include::modules/backing-up-red-hat-quay-operator.adoc[leveloffset=+2]
-include::modules/restoring-red-hat-quay.adoc[leveloffset=+2]
-////
-
 include::modules/standalone-deployment-backup-restore.adoc[leveloffset=+1]
 include::modules/optional-enabling-read-only-mode-backup-restore-standalone.adoc[leveloffset=+2]
+include::modules/creating-service-keys.adoc[leveloffset=+3]
+include::modules/adding-keys-postgresql-database.adoc[leveloffset=+3]
+include::modules/quay-standalone-readonly.adoc[leveloffset=+3]
+include::modules/updating-read-only-expiration-time.adoc[leveloffset=+3]
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index#config-fields-misc[Miscellaneous configuration fields]
+
 include::modules/backing-up-red-hat-quay-standalone.adoc[leveloffset=+2]
 include::modules/restoring-red-hat-quay-standalone.adoc[leveloffset=+2]
 
 include::modules/standalone-to-operator-backup-restore.adoc[leveloffset=+1]
+include::modules/backing-up-standalone-deployment.adoc[leveloffset=+2]
 
-//include::modules/configuring-oci-media-types.adoc[leveloffset=+1]
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://docs.aws.amazon.com/cli/v1/userguide/install-linux.html#install-linux-bundled-sudo[Installing or updating the latest version of the AWS CLI]
+
+include::modules/using-standalone-content-migrate-ocp.adoc[leveloffset=+2]
 
 include::modules/garbage-collection.adoc[leveloffset=+1]
+include::modules/garbage-collection-practice.adoc[leveloffset=+2]
+include::modules/garbage-collection-configuration-fields.adoc[leveloffset=+2]
+include::modules/disabling-garbage-collection.adoc[leveloffset=+2]
+include::modules/garbage-collection-quota-management.adoc[leveloffset=+2]
+include::modules/garbage-collection-procedure.adoc[leveloffset=+2]
+include::modules/garbage-collection-metrics.adoc[leveloffset=+2]
 
 include::modules/health-check-quay.adoc[leveloffset=+1]
 
-
 include::modules/branding-quay-deployment.adoc[leveloffset=+1]
 
-//large artifacts
 include::modules/preparing-registry-large-artifacts.adoc[leveloffset=+1]
 
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://access.redhat.com/support[Red{nbsp}Hat Support]
+
 include::modules/con_schema.adoc[leveloffset=+1]
+
+[id="additional-resources_manage_quay"]
+[role="_additional-resources"]
+== Additional resources
+
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/3.15/html-single/configure_red_hat_quay/index[Configure {productname}]

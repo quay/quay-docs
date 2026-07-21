@@ -1,0 +1,38 @@
+:_mod-docs-content-type: PROCEDURE
+[id="exposing-prometheus-operator"]
+= {productname} Operator
+
+[role="_abstract"]
+To access Prometheus metrics for an Operator-managed {productname} deployment, you can use the cluster IP of the `quay-metrics` service.
+
+.Procedure
+
+. Determine the cluster IP for the `quay-metrics` service:
++
+[source,terminal]
+----
+$ oc get services -n quay-enterprise
+NAME                                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                             AGE
+example-registry-clair-app            ClusterIP   172.30.61.161    <none>        80/TCP,8089/TCP                     18h
+example-registry-clair-postgres       ClusterIP   172.30.122.136   <none>        5432/TCP                            18h
+example-registry-quay-app             ClusterIP   172.30.72.79     <none>        443/TCP,80/TCP,8081/TCP,55443/TCP   18h
+example-registry-quay-config-editor   ClusterIP   172.30.185.61    <none>        80/TCP                              18h
+example-registry-quay-database        ClusterIP   172.30.114.192   <none>        5432/TCP                            18h
+example-registry-quay-metrics         ClusterIP   172.30.37.76     <none>        9091/TCP                            18h
+example-registry-quay-redis           ClusterIP   172.30.157.248   <none>        6379/TCP                            18h
+----
+
+. Connect to your cluster and access the metrics using the cluster IP and port for the `quay-metrics` service:
++
+[source,terminal]
+----
+$ oc debug node/master-0
+
+sh-4.4# curl 172.30.37.76:9091/metrics
+
+# HELP go_gc_duration_seconds A summary of the pause duration of garbage collection cycles.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 4.0447e-05
+go_gc_duration_seconds{quantile="0.25"} 6.2203e-05
+...
+----

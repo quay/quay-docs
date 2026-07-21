@@ -1,0 +1,26 @@
+:_mod-docs-content-type: PROCEDURE
+[id="exposing-prometheus-standalone"]
+= Standalone {productname}
+
+[role="_abstract"]
+To expose Prometheus metrics for a standalone {productname} deployment, you can publish port `9091` when you start the `Quay` container.
+
+.Procedure
+
+. When using `podman run` to start the `Quay` container, expose the metrics port `9091`:
++
+[subs="verbatim,attributes"]
+----
+$ sudo podman run -d --rm -p 80:8080 -p 443:8443  -p 9091:9091\
+   --name=quay \
+   -v $QUAY/config:/conf/stack:Z \
+   -v $QUAY/storage:/datastorage:Z \
+   {productrepo}/{quayimage}:{productminv}
+----
+
+. Verify that the metrics are available:
++
+[source,terminal]
+----
+$ curl quay.example.com:9091/metrics
+----

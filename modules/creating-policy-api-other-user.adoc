@@ -1,9 +1,9 @@
-
 :_mod-docs-content-type: PROCEDURE
 [id="creating-policy-api-other-user"]
 = Creating an auto-prune policy on a repository for a user with the API
 
-You can use {productname} API endpoints to manage auto-pruning policies on a repository for user accounts that are not your own, so long as you have `admin` privileges on the repository. 
+[role="_abstract"]
+To manage auto-prune policies on another user repository in {productname}, you can use the repository autoprunepolicy API endpoints when you have admin privileges.
 
 .Prerequisites
 
@@ -11,17 +11,16 @@ You can use {productname} API endpoints to manage auto-pruning policies on a rep
 * You have logged into {productname}.
 * You have `admin` privileges on the repository that you are creating the policy for. 
 
-.Procedure 
+.Procedure
 
-. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createuserautoprunepolicy[`POST /api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/`] command create a new policy that limits the number of tags for the user:
+. Enter the following `POST /api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/` command to create a new policy that limits the number of tags for the user:
 +
 [source,terminal]
 ----
 $ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags","value": 2}' https://<quay-server.example.com>/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"uuid": "7726f79c-cbc7-490e-98dd-becdc6fefce7"}
@@ -43,14 +42,13 @@ $ curl -X POST \
   "http://<quay-server.example.com>/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/"
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"uuid": "b3797bcd-de72-4b71-9b1e-726dabc971be"}
 ----
 
-. You can update your policy for the current user by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#updateuserautoprunepolicy[`PUT /api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/<policy_uuid>`] command. For example:
+. You can update your policy for the current user by using the `PUT /api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/<policy_uuid>` command. For example:
 +
 [source,terminal]
 ----
@@ -78,8 +76,7 @@ Alternatively, you can include the UUID:
 $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/7726f79c-cbc7-490e-98dd-becdc6fefce7
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"uuid": "81ee77ec-496a-4a0a-9241-eca49437d15b", "method": "creation_date", "value": "7d", "tagPattern": "^v*", "tagPatternMatches": true}
@@ -92,8 +89,7 @@ $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.exam
 $ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<user_account>/<user_repository>/autoprunepolicy/<policy_uuid>
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"uuid": "7726f79c-cbc7-490e-98dd-becdc6fefce7"}

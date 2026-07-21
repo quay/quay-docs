@@ -1,0 +1,34 @@
+:_mod-docs-content-type: CONCEPT
+[id="garbage-collection-practice"]
+= {productname} garbage collection in practice
+
+[role="_abstract"]
+{productname} runs garbage collection continuously in the background. Namespace and repository workers process queues under a global lock, while tagged-image workers search for inactive or expired tags.
+
+Currently, all garbage collection happens discreetly, and {productname} does not provide commands to manually run garbage collection. {productname} provides metrics that track the status of the different garbage collection workers.
+
+For namespace and repository garbage collection, the progress is tracked based on the size of their respective queues. Namespace and repository garbage collection workers require a global lock to work. As a result, and for performance reasons, only one worker runs at a time.
+
+[NOTE]
+====
+{productname} shares blobs between namespaces and repositories in order to conserve disk space. For example, if the same image is pushed 10 times, only one copy of that image is stored.
+====
+
+Tags can share their layers with different images already stored somewhere in {productname}. In that case, blobs stay in storage, because deleting shared blobs would make other images unusable.
+
+Blob expiration is independent of the time machine. If you push a tag to {productname} and the time machine is set to 0 seconds, and then you delete a tag immediately, garbage collection deletes the tag and everything related to that tag, but does not delete the blob storage until the blob expiration time is reached.
+
+Garbage collecting tagged images works differently than garbage collection on namespaces or repositories. Rather than having a queue of items to work with, the garbage collection workers for tagged images actively search for a repository with inactive or expired tags to clean up. Each instance of garbage collection workers grabs a repository lock, which results in one worker per repository.
+
+* In {productname}, inactive or expired tags are manifests without tags because the last tag was deleted or it expired. The manifest stores information about how the image is composed and stored in the database for each individual tag. When a tag is deleted and the allotted time from *Time Machine* has been met, {productname} garbage collects the blobs that are not connected to any other manifests in the registry. If a particular blob is connected to a manifest, {productname} preserves that blob in storage and removes only its connection to the manifest that is being deleted.
+* Expired images disappear after the allotted time, but are still stored in {productname}. The time in which an image is completely deleted, or collected, depends on the *Time Machine* setting of your organization. The default time for garbage collection is 14 days unless otherwise specified. Until that time, tags can be pointed to an expired or deleted image.
+* For each type of garbage collection, {productname} provides metrics for the number of rows per table deleted by each garbage collection worker. The following image shows an example of how {productname} monitors garbage collection with the same metrics:
+
+image:garbage-collection-metrics.png[Garbage collection metrics]
+
+{productname} does not have a way to track how much space is freed up by garbage collection. Currently, the best indicator of this is by checking how many blobs have been deleted in the provided metrics.
+
+[NOTE]
+====
+The `UploadedBlob` table in the {productname} metrics tracks the various blobs that belong to a repository. When a blob is uploaded, garbage collection does not remove it before the time designated by the `PUSH_TEMP_TAG_EXPIRATION_SEC` parameter. This delay avoids prematurely deleting blobs that are part of an ongoing push. For example, if garbage collection is set to run often, and a tag is deleted in the span of less than one hour, then the associated blobs might not get cleaned up immediately. Instead, and assuming that the time designated by the `PUSH_TEMP_TAG_EXPIRATION_SEC` parameter has passed, the associated blobs are removed the next time garbage collection runs because of another expired tag on the same repository.
+====

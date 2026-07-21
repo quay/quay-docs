@@ -1,0 +1,48 @@
+:_mod-docs-content-type: PROCEDURE
+[id="enabling-oidc-team-sync"]
+= Enabling synchronization for {productname} OIDC deployments
+
+[role="_abstract"]
+To enable team synchronization when your {productname} deployment uses an OIDC authenticator, you can set the team syncing fields in your `config.yaml` file and restart the registry.
+
+[IMPORTANT]
+====
+The following procedure does not use a specific OIDC provider. Instead, it provides a general outline of how best to approach team synchronization between an OIDC provider and {productname}. Any OIDC provider can be used to enable team synchronization, however, setup might vary depending on your provider.
+====
+
+.Procedure
+
+. Update your `config.yaml` file with the following information:
++
+[source,yaml]
+----
+AUTHENTICATION_TYPE: OIDC
+# ...
+OIDC_LOGIN_CONFIG:
+  CLIENT_ID:
+  CLIENT_SECRET:
+  OIDC_SERVER:
+  SERVICE_NAME:
+  PREFERRED_GROUP_CLAIM_NAME:
+  LOGIN_SCOPES: [ 'openid', '<example_scope>' ]
+  OIDC_DISABLE_USER_ENDPOINT: false
+# ...
+FEATURE_TEAM_SYNCING: true
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true
+FEATURE_UI_V2: true
+# ...
+----
++
+where:
+
+`CLIENT_ID`:: Specifies the registered OIDC client ID for this {productname} instance. This field is required.
+`CLIENT_SECRET`:: Specifies the registered OIDC client secret for this {productname} instance. This field is required.
+`OIDC_SERVER`:: Specifies the address of the OIDC server that is being used for authentication. This URL should be such that a `GET` request to `<OIDC_SERVER>/.well-known/openid-configuration` returns the provider's configuration information. This field is required.
+`SERVICE_NAME`:: Specifies the name of the service that is being authenticated. This field is required.
+`PREFERRED_GROUP_CLAIM_NAME`:: Specifies the key name within the OIDC token payload that holds information about the user's group memberships. This field allows the authentication system to extract group membership information from the OIDC token so that it can be used with {productname}. This field is required.
+`LOGIN_SCOPES`:: Specifies the scopes {productname} requests during login. Must include `'openid'`. Each scope must also be listed in the identity provider's `scopes_supported` from `/.well-known/openid-configuration`. This field is required.
+`OIDC_DISABLE_USER_ENDPOINT`:: Specifies whether to allow or disable the `/userinfo` endpoint. If using Azure Entra ID, set this field to `true`. Defaults to `false`.
+`FEATURE_TEAM_SYNCING`:: Specifies whether to allow team membership to be synced from a backing group in the authentication engine. This field is required.
+`FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP`:: Optional. If enabled, non-superusers can configure team synchronization.
+
+. Restart your {productname} registry.

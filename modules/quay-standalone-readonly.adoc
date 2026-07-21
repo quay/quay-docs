@@ -1,0 +1,96 @@
+:_mod-docs-content-type: PROCEDURE
+[id="quay-standalone-readonly"]
+= Configuring read-only mode for standalone {productname}
+
+[role="_abstract"]
+To put a standalone {productname} deployment into read-only mode, you can add the service key files and `REGISTRY_STATE` settings to your configuration bundle and restart Quay.
+
+After the service keys have been created and added to your PostgreSQL database, you must restart the `Quay` container on your standalone deployment.
+
+.Prerequisites
+
+* You have created the service keys and added them to your PostgreSQL database.
+
+.Procedure
+
+. Shut down all {productname} instances on all virtual machines. For example:
++
+[source,terminal]
+----
+$ podman stop <quay_container_name_on_virtual_machine_a>
+----
++
+[source,terminal]
+----
+$ podman stop <quay_container_name_on_virtual_machine_b>
+----
+
+. Enter the following command to copy the contents of the `quay-readonly.kid` file and the `quay-readonly.pem` file to the directory that holds your {productname} configuration bundle:
++
+[source,terminal]
+----
+$ cp quay-readonly.kid quay-readonly.pem $Quay/config
+----
+
+. Enter the following command to set file permissions on all files in your configuration bundle folder:
++
+[source,terminal]
+----
+$ setfacl -m user:1001:rw $Quay/config/*
+----
+
+. Modify your {productname} `config.yaml` file and add the following information:
++
+[source,yaml]
+----
+# ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...
+----
+
+. Distribute the new configuration bundle to all {productname} instances. 
+
+. Start {productname} by entering the following command:
++
+[source,terminal]
+----
+$ podman run -d --rm -p 80:8080 -p 443:8443  \
+   --name=quay-main-app \
+   -v $QUAY/config:/conf/stack:Z \
+   -v $QUAY/storage:/datastorage:Z \
+   {productrepo}/{quayimage}:{productminv}
+----
+
+. After starting {productname}, a banner inside your instance informs users that {productname} is running in read-only mode. Pushes should be rejected and a 405 error should be logged. You can test this by running the following command:
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/quayadmin/busybox:test
+----
++
+.Example output:
+[source,terminal]
+----
+613be09ab3c0: Preparing 
+denied: System is currently read-only. Pulls will succeed but all write operations are currently suspended.
+----
++
+With your {productname} deployment on read-only mode, you can safely manage your registry's operations and perform such actions as backup and restore.
+
+. Optional. After you finish with read-only mode, you can return to normal operations by removing the following information from your `config.yaml` file. Then, restart your {productname} deployment:
++
+[source,yaml]
+----
+# ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...
+----
++
+[source,terminal]
+----
+$ podman restart <container_id>
+----

@@ -3,7 +3,7 @@
 = Exchanging an OAuth2 access token for a {productname} robot account token
 
 [role="_abstract"]
-To authenticate a federated robot account in {productname}, you can exchange an OAuth2 access token for a robot token. The robot token expires after one hour.
+To authenticate with a federated robot account in {productname}, you can exchange an OAuth2 access token for a short-lived robot token by using a Python script.
 
 [NOTE]
 ====
@@ -16,7 +16,7 @@ The following example uses a Python script to exchange the OAuth2 access token f
 
 .Procedure
 
-. Save the following Python script in a `.py` file, for example, `robot_fed_token_auth.py`
+. Save the following Python script in a `.py` file, for example, `robot_fed_token_auth.py`:
 +
 [source,python]
 ----
@@ -38,13 +38,13 @@ if __name__ == "__main__":
 +
 where:
 
-`response = requests.get(URL, auth=(robot_user,fed_token))`:: If your {productname} deployment is using custom SSL/TLS certificates, the response must be `response = requests.get(URL,auth=(robot_user,fed_token),verify=False)`, which includes the `verify=False` flag.
+`response = requests.get(URL, auth=(robot_user,fed_token))`:: Specifies the request that retrieves the robot token. If your {productname} deployment is using custom SSL/TLS certificates, the response must be `response = requests.get(URL,auth=(robot_user,fed_token),verify=False)`, which includes the `verify=False` flag.
 
 . Export the OAuth2 access token as `TOKEN`. For example:
 +
 [source,terminal]
 ----
-$ export TOKEN = eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJTVmExVHZ6eDd2cHVmc1dkZmc1SHdua1ZDcVlOM01DN1N5T016R0QwVGhVIn0...
+$ export TOKEN=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJTVmExVHZ6eDd2cHVmc1dkZmc1SHdua1ZDcVlOM01DN1N5T016R0QwVGhVIn0...
 ----
 
 . Run the `robot_fed_token_auth.py` script by entering the following command:
@@ -63,7 +63,7 @@ $ python3 robot_fed_token_auth.py
 +
 [IMPORTANT]
 ====
-This token expires after one hour. After one hour, a new token must be generated.
+This token expires after one hour. After one hour, you must generate a new token.
 ====
 
 . Export the robot account access token as `QUAY_TOKEN`. For example:

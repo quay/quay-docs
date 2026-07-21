@@ -1,9 +1,19 @@
-:_mod-docs-content-type: REFERENCE
-
+:_mod-docs-content-type: PROCEDURE
+[id="config-api-default"]
 = Retrieving the default configuration
 
-If you are running the configuration tool for the first time, and do not have an existing configuration, you can retrieve the default configuration. Start the container in config mode:
+[role="_abstract"]
+To retrieve the default {productname} configuration when you do not have an existing config bundle, you can start the container in config mode and call the configuration API.
 
+.Prerequisites
+
+* You have installed either `podman` or `docker`.
+* You can reach the host and port where you run the configuration tool.
+
+.Procedure
+
+. Start the {productname} container in configuration mode. For example:
++
 [subs="verbatim,attributes"]
 ----
 $ sudo podman run --rm -it --name quay_config \
@@ -11,31 +21,31 @@ $ sudo podman run --rm -it --name quay_config \
   {productrepo}/{quayimage}:{productminv} config secret
 ----
 
-Use the `config` endpoint of the configuration API to get the default:
-
-....
-$ curl -X GET -u quayconfig:secret http://quay-server:8080/api/v1/config  | jq
-....
-
-The value returned is the default configuration in JSON format:
-
-[source, json]
+. Retrieve the default configuration by using the `config` endpoint of the configuration API:
++
+[source,terminal]
+----
+$ curl -X GET -u quayconfig:secret http://quay-server:8080/api/v1/config | jq
+----
++
+Example output
++
+[source,json]
 ----
 {
-  "config.yaml": {
-    "AUTHENTICATION_TYPE": "Database",
-    "AVATAR_KIND": "local",
-    "DB_CONNECTION_ARGS": {
-      "autorollback": true,
-      "threadlocals": true
-    },
-    "DEFAULT_TAG_EXPIRATION": "2w",
-    "EXTERNAL_TLS_TERMINATION": false,
-    "FEATURE_ACTION_LOG_ROTATION": false,
-    "FEATURE_ANONYMOUS_ACCESS": true,
-    "FEATURE_APP_SPECIFIC_TOKENS": true,
+  "config.yaml": {
+    "AUTHENTICATION_TYPE": "Database",
+    "AVATAR_KIND": "local",
+    "DB_CONNECTION_ARGS": {
+      "autorollback": true,
+      "threadlocals": true
+    },
+    "DEFAULT_TAG_EXPIRATION": "2w",
+    "EXTERNAL_TLS_TERMINATION": false,
+    "FEATURE_ACTION_LOG_ROTATION": false,
+    "FEATURE_ANONYMOUS_ACCESS": true,
+    "FEATURE_APP_SPECIFIC_TOKENS": true
     ....
   }
-
 }
 ----

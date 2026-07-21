@@ -1,0 +1,53 @@
+:_mod-docs-content-type: PROCEDURE
+[id="enabling-image-pull-activity-tracking"]
+= Enabling image pull activity tracking
+
+[role="_abstract"]
+To enable image pull activity tracking in {productname}, you can set `FEATURE_IMAGE_PULL_STATS` in your `config.yaml` file and configure Redis for pull metrics.
+
+.Procedure
+
+. In your {productname} `config.yaml` file, set `FEATURE_IMAGE_PULL_STATS: true`. For example:
++
+[source,yaml]
+----
+# ...
+FEATURE_IMAGE_PULL_STATS: true
+REDIS_FLUSH_INTERVAL_SECONDS: 30
+PULL_METRICS_REDIS:
+    host: <redis_host>
+    password: <redis_password>
+    port: 6379
+    db: 1
+# ...
+----
++
+where:
+
+`FEATURE_IMAGE_PULL_STATS`:: Specifies whether image pull tracking activity is enabled.
+`REDIS_FLUSH_INTERVAL_SECONDS`:: Specifies the time, in seconds, at which the Redis flush worker clears old data. Shorter intervals keep data fresher and help prevent Redis from bloating, while longer intervals reduce flush frequency.
+`PULL_METRICS_REDIS`:: Specifies the connection settings for the Redis database used to store image pull metrics.
+
+. Restart your {productname} deployment.
+
+.Verification
+
+. Push an image to your registry by entering the following command. Following this step, you can use your browser to see the tagged image in your repository. 
++ 
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<organization>/<image>:<tag>
+----
+
+. Pull the image from your {productname} registry by entering the following command:
++ 
+[source,terminal]
+----
+$ podman pull <quay-server.example.com>/<organization>/<image>:<tag>
+----
+
+. On the {productname} UI, navigate to *Repositories*, and then click the name of your repository.
+
+. Click *Tags*. The *Last Pulled* and *Pull Count* categories show you information about when the image was last pulled, and how many times it has been pulled, respectively. For example:
++
+image:image-pull-stats.png[Image pull statistics]

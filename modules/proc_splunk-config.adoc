@@ -2,7 +2,8 @@
 [id="proc_splunk-config"]
 = Configuring {productname} to use Splunk
 
-Use the following procedure to configure {productname} to use Splunk or the Splunk HTTP Event Collector (HEC). 
+[role="_abstract"]
+To send {productname} action logs to Splunk or the Splunk HTTP Event Collector (HEC), you can add the Splunk settings to your `config.yaml` file and restart the registry.
 
 .Prerequisites
 
@@ -22,28 +23,31 @@ LOGS_MODEL: splunk
 LOGS_MODEL_CONFIG:
     producer: splunk
     splunk_config:
-        host: http://<user_name>.remote.csb <1>
-        port: 8089 <2>
-        bearer_token: <bearer_token> <3>
-        url_scheme: <http/https> <4>
-        verify_ssl: False <5>
-        index_prefix: <splunk_log_index_name> <6>
-        ssl_ca_path: <location_to_ssl-ca-cert.pem> <7>
-        search_timeout: 60 <8>
-        max_results: 10000 <9>
-        export_batch_size: 5000 <10>
+        host: http://<user_name>.remote.csb
+        port: 8089
+        bearer_token: <bearer_token>
+        url_scheme: <http/https>
+        verify_ssl: False
+        index_prefix: <splunk_log_index_name>
+        ssl_ca_path: <location_to_ssl-ca-cert.pem>
+        search_timeout: 60
+        max_results: 10000
+        export_batch_size: 5000
 # ...
 ----
-<1> String. The Splunk cluster endpoint.
-<2> Integer. The Splunk management cluster endpoint port. Differs from the Splunk GUI hosted port. Can be found on the Splunk UI under *Settings* -> *Server Settings* -> *General Settings*.
-<3> String. The generated bearer token for Splunk.
-<4> String. The URL scheme for access the Splunk service. If Splunk is configured to use TLS/SSL, this must be `https`.
-<5> Boolean. Whether to enable TLS/SSL. Defaults to `True`.
-<6> String. The Splunk index prefix. Can be a new, or used, index. Can be created from the Splunk UI.
-<7> String. The relative container path to a single `.pem` file containing a certificate authority (CA) for TLS/SSL validation.
-<8> Integer. The timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.
-<9> Integer. The maximum number of results to return per search query. Larger values require more memory.
-<10> Integer. The batch size for log export operations.
++
+where:
+
+`LOGS_MODEL_CONFIG.splunk_config.host`:: Specifies the Splunk cluster endpoint.
+`LOGS_MODEL_CONFIG.splunk_config.port`:: Specifies the Splunk management cluster endpoint port. Differs from the Splunk GUI hosted port. Can be found on the Splunk UI under *Settings* -> *Server Settings* -> *General Settings*.
+`LOGS_MODEL_CONFIG.splunk_config.bearer_token`:: Specifies the generated bearer token for Splunk.
+`LOGS_MODEL_CONFIG.splunk_config.url_scheme`:: Specifies the URL scheme for access the Splunk service. If Splunk is configured to use TLS/SSL, this must be `https`.
+`LOGS_MODEL_CONFIG.splunk_config.verify_ssl`:: Specifies whether to enable TLS/SSL. Defaults to `True`.
+`LOGS_MODEL_CONFIG.splunk_config.index_prefix`:: Specifies the Splunk index prefix. Can be a new, or used, index. Can be created from the Splunk UI.
+`LOGS_MODEL_CONFIG.splunk_config.ssl_ca_path`:: Specifies the relative container path to a single `.pem` file containing a certificate authority (CA) for TLS/SSL validation.
+`LOGS_MODEL_CONFIG.splunk_config.search_timeout`:: Specifies the timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.
+`LOGS_MODEL_CONFIG.splunk_config.max_results`:: Specifies the maximum number of results to return per search query. Larger values require more memory.
+`LOGS_MODEL_CONFIG.splunk_config.export_batch_size`:: Specifies the batch size for log export operations.
 
 .. If opting to use Splunk HEC, open your {productname} `config.yaml` file and add the following configuration fields:
 +
@@ -52,46 +56,49 @@ LOGS_MODEL_CONFIG:
 # ...
 LOGS_MODEL: splunk
 LOGS_MODEL_CONFIG:
-  producer: splunk_hec <1>
-  splunk_hec_config: <2>
-    host: prd-p-aaaaaq.splunkcloud.com <3>
-    port: 8088 <4>
-    hec_token: 12345678-1234-1234-1234-1234567890ab <5>
-    url_scheme: https <6>
-    verify_ssl: False <7>
-    index: quay <8>
-    splunk_host: quay-dev <9>
-    splunk_sourcetype: quay_logs <10>
-    timeout: 10 <11>
-    search_token: <bearer_token> <12>
-    search_host: <splunk.example.com> <13>
-    search_port: 8089 <14>
-    search_timeout: 60 <15>
-    max_results: 10000 <16>
-    export_batch_size: 5000 <17>
+  producer: splunk_hec
+  splunk_hec_config:
+    host: prd-p-aaaaaq.splunkcloud.com
+    port: 8088
+    hec_token: 12345678-1234-1234-1234-1234567890ab
+    url_scheme: https
+    verify_ssl: False
+    index: quay
+    splunk_host: quay-dev
+    splunk_sourcetype: quay_logs
+    timeout: 10
+    search_token: <bearer_token>
+    search_host: <splunk.example.com>
+    search_port: 8089
+    search_timeout: 60
+    max_results: 10000
+    export_batch_size: 5000
 # ...
 ----
-<1> Specify `splunk_hec` when configuring Splunk HEC.
-<2> Logs model configuration for Splunk HTTP event collector action logs configuration.
-<3> The Splunk cluster endpoint.
-<4> Splunk management cluster endpoint port.
-<5> HEC token for Splunk.
-<6> The URL scheme for access the Splunk service. If Splunk is behind SSL/TLS, must be `https`.
-<7> Boolean. Enable (true) or disable (false) SSL/TLS verification for HTTPS connections.
-<8> The Splunk index to use.
-<9> The host name to log this event.
-<10> The name of the Splunk `sourcetype` to use.
-<11> Timeout in seconds for HTTP requests to Splunk HEC endpoint. Prevents requests from hanging indefinitely when Splunk is unresponsive.
-<12> String. Optional. Bearer token for Splunk search API. Required because HEC tokens are ingest-only and cannot search. For more information, see link:https://docs.splunk.com/Documentation/SplunkCloud/latest/Config/ManageHECtokens[Manage HEC tokens].
-<13> String. Splunk management host for search API. Defaults to HEC host if not specified.
-<14> Integer. Splunk management port for search API. Defaults to 8089 if not specified.
-<15> Integer. The timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.
-<16> Integer. The maximum number of results to return per search query. Larger values require more memory.
-<17> Integer. The batch size for log export operations.
++
+where:
 
-. If you are configuring `ssl_ca_path`, you must configure the SSL/TLS certificate so that {productname} will trust it. 
+`LOGS_MODEL_CONFIG.producer`:: Specifies `splunk_hec` when configuring Splunk HEC.
+`LOGS_MODEL_CONFIG.splunk_hec_config`:: Specifies the logs model configuration for Splunk HTTP Event Collector action logs configuration.
+`LOGS_MODEL_CONFIG.splunk_hec_config.host`:: Specifies the Splunk cluster endpoint.
+`LOGS_MODEL_CONFIG.splunk_hec_config.port`:: Specifies the Splunk management cluster endpoint port.
+`LOGS_MODEL_CONFIG.splunk_hec_config.hec_token`:: Specifies the HEC token for Splunk.
+`LOGS_MODEL_CONFIG.splunk_hec_config.url_scheme`:: Specifies the URL scheme for access the Splunk service. If Splunk is behind SSL/TLS, must be `https`.
+`LOGS_MODEL_CONFIG.splunk_hec_config.verify_ssl`:: Specifies whether to enable (`true`) or disable (`false`) SSL/TLS verification for HTTPS connections.
+`LOGS_MODEL_CONFIG.splunk_hec_config.index`:: Specifies the Splunk index to use.
+`LOGS_MODEL_CONFIG.splunk_hec_config.splunk_host`:: Specifies the host name to log this event.
+`LOGS_MODEL_CONFIG.splunk_hec_config.splunk_sourcetype`:: Specifies the name of the Splunk `sourcetype` to use.
+`LOGS_MODEL_CONFIG.splunk_hec_config.timeout`:: Specifies the timeout in seconds for HTTP requests to the Splunk HEC endpoint. Prevents requests from hanging indefinitely when Splunk is unresponsive.
+`LOGS_MODEL_CONFIG.splunk_hec_config.search_token`:: Specifies an optional bearer token for the Splunk search API. Required because HEC tokens are ingest-only and cannot search.
+`LOGS_MODEL_CONFIG.splunk_hec_config.search_host`:: Specifies the Splunk management host for the search API. Defaults to the HEC host if not specified.
+`LOGS_MODEL_CONFIG.splunk_hec_config.search_port`:: Specifies the Splunk management port for the search API. Defaults to `8089` if not specified.
+`LOGS_MODEL_CONFIG.splunk_hec_config.search_timeout`:: Specifies the timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.
+`LOGS_MODEL_CONFIG.splunk_hec_config.max_results`:: Specifies the maximum number of results to return per search query. Larger values require more memory.
+`LOGS_MODEL_CONFIG.splunk_hec_config.export_batch_size`:: Specifies the batch size for log export operations.
 
-.. If you are using a standalone deployment of {productname}, SSL/TLS certificates can be provided by placing the certificate file inside of the `extra_ca_certs` directory, or inside of the relative container path and specified by `ssl_ca_path`. 
+. If you are configuring `ssl_ca_path`, you must configure the SSL/TLS certificate so that {productname} trusts it.
+
+.. If you are using a standalone deployment of {productname}, SSL/TLS certificates can be provided by placing the certificate file inside of the `extra_ca_certs` directory, or inside of the relative container path and specified by `ssl_ca_path`.
 
 .. If you are using the {productname} Operator, create a config bundle secret, including the certificate authority (CA) of the Splunk server. For example:
 +

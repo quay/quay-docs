@@ -3,13 +3,13 @@
 = Configuring federation audiences
 
 [role="_abstract"]
-To configure federation audiences for robot accounts in {productname}, you can use the robot federation API. Audience validation depends on stored federation configuration.
+To manage robot federation entries in {productname}, you can use the robot federation API to set the issuer and subject that map an OIDC identity to a robot account.
 
 Each robot federation entry maps an external OIDC identity (`issuer` and `subject`) to a {productname} robot account. Starting in {productname} {producty}, robot federation supports an optional `audiences` array on each entry for token audience validation during federated robot token exchange (`GET /oauth2/federation/robot/token`).
 
 [IMPORTANT]
 ====
-In {productname} 3.18, create and update requests persist `issuer` and `subject` only. The optional `audiences` field is not stored from API requests, and the {productname} v2 UI federation modal does not provide an `audiences` field. Until API support is available, federated robot token exchange skips audience validation and logs a deprecation warning when `audiences` is not stored for the matching federation entry. A future release will require `audiences` for federated robot authentication.
+In {productname} 3.18, create and update requests persist `issuer` and `subject` only. The optional `audiences` field is not stored from API requests, and the {productname} v2 UI federation modal does not provide an `audiences` field. Until API support is available, federated robot token exchange skips audience validation and logs a deprecation warning when `audiences` is not stored for the matching federation entry. A later release requires `audiences` for federated robot authentication.
 ====
 
 When `audiences` is present in stored federation configuration, configure it to match the `aud` claim values your OIDC provider issues—for example, a custom API audience such as `api://quay-api` for Microsoft Entra ID v2.0 tokens, or your OIDC client ID for standard flows. For Microsoft Entra ID v2.0, use an application-specific audience rather than the Microsoft Graph audience.

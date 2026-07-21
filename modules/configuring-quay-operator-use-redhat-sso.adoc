@@ -1,0 +1,51 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-quay-operator-use-redhat-sso"]
+= Configuring the {productname} Operator to use Red Hat Single Sign-On
+
+[role="_abstract"]
+To enable Red Hat Single Sign-On authentication for an Operator-based {productname} deployment, you can add an `RHSSO_LOGIN_CONFIG` block to your config bundle and restart the registry.
+
+.Prerequisites
+
+* You have configured the Red Hat Single Sign-On Operator.
+* You have configured SSL/TLS for your {productname-ocp} deployment _and_ for Red Hat Single Sign-On.
+* You have generated a single Certificate Authority (CA) and uploaded it to your Red Hat Single Sign-On Operator _and_ to your {productname} configuration.
+
+.Procedure
+
+. Edit your {productname} `config.yaml` file by navigating to *Operators* -> *Installed Operators* -> *Red Hat Quay* -> *Quay Registry* -> *Config Bundle Secret*. Then, click *Actions* -> *Edit Secret*. Alternatively, you can update the `config.yaml` file locally.
+
+. Add the following information to your {productname-ocp} `config.yaml` file:
++
+[source,yaml]
+----
+# ...
+RHSSO_LOGIN_CONFIG:
+  CLIENT_ID: <client_id>
+  CLIENT_SECRET: <client_secret>
+  OIDC_SERVER: <oidc_server_url>
+  SERVICE_NAME: <service_name>
+  SERVICE_ICON: <service_icon>
+  VERIFIED_EMAIL_CLAIM_NAME: <example_email_address>
+  PREFERRED_USERNAME_CLAIM_NAME: <preferred_username>
+  LOGIN_SCOPES: [ 'openid', 'roles' ]
+  USE_PKCE: true
+  PKCE_METHOD: "S256"
+# ...
+----
++
+where:
+
+`RHSSO_LOGIN_CONFIG`:: Specifies the parent key that holds the OIDC configuration settings. In this example, the parent key used is `RHSSO_LOGIN_CONFIG`. The string can be replaced with any arbitrary string based on your specific needs, for example `ABC123`. However, the strings `GOOGLE` and `GITHUB` are not accepted. These strings are reserved for their respective identity platforms and require a specific `config.yaml` entry contingent upon which platform you are using.
+`CLIENT_ID`:: Specifies the client ID of the application that is being registered with the identity provider. For example, `quay`.
+`CLIENT_SECRET`:: Specifies the client secret.
+`OIDC_SERVER`:: Specifies the fully qualified domain name (FQDN) of the Red Hat Single Sign-On instance, appended with `/auth/realms/` and the Realm name. You must include the forward slash at the end, for example, `\https://sso-redhat.example.com/auth/realms/<your_realm_name>/`.
+`SERVICE_NAME`:: Specifies the name that is displayed on the {productname} login page, for example, `Red Hat Single Sign-On`.
+`SERVICE_ICON`:: Specifies the icon on the login screen. For example, `/static/img/RedHat.svg`.
+`VERIFIED_EMAIL_CLAIM_NAME`:: Specifies the name of the claim that is used to verify the email address of the user.
+`PREFERRED_USERNAME_CLAIM_NAME`:: Specifies the name of the claim that is used for the preferred username of the user.
+`LOGIN_SCOPES`:: Specifies the scopes to send to the OIDC provider when performing the login flow, for example, `openid`.
+`USE_PKCE`:: Specifies whether to enable Proof Key for Code Exchange (PKCE). Defaults to `false`.
+`PKCE_METHOD`:: Specifies the code challenge method used to generate the `code_challenge` sent in the initial authorization request. Defaults to `S256`.
+
+. Restart your {productname-ocp} deployment with Red Hat Single Sign-On enabled.

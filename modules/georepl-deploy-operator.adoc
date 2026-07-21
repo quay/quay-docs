@@ -3,26 +3,27 @@
 = Preparing your {ocp} environment for geo-replication
 
 [role="_abstract"]
-To prepare your {ocp} environment for geo-replication, you must deploy shared PostgreSQL and Redis instances, create object storage backends for each cluster, and configure a load balancer. This sets up the infrastructure needed for multiple {productname} deployments to work as a single registry. 
+To prepare your {ocp} environment for {productname} geo-replication, you can deploy shared PostgreSQL and Redis instances, create object storage backends, and configure a load balancer.
 
 .Procedure
 
 . Deploy a PostgreSQL instance for {productname}.
 
-. Login to the database by entering the following command:
+. Log in to the database by entering the following command:
 +
 [source,terminal]
 ----
 psql -U <username> -h <hostname> -p <port> -d <database_name>
 ----
 
-. Create a database for {productname} named `quay`. For example: 
+. Create a database for {productname} named `quay`. For example:
 +
 [source,terminal]
 ----
 CREATE DATABASE quay;
 ----
-. Enable pg_trm extension inside the database
+
+. Enable the `pg_trgm` extension inside the database:
 +
 [source,terminal]
 ----
@@ -37,11 +38,11 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 * Deploying a Redis instance might be unnecessary if your cloud provider has its own service.
 * Deploying a Redis instance is required if you are leveraging Builders.
 ====
-
-.. Deploy a VM for Redis
-.. Verify that it is accessible from the clusters where {productname} is running
-.. Port 6379/TCP must be open
-.. Run Redis inside the instance
++
+.. Deploy a VM for Redis.
+.. Verify that the Redis instance is accessible from the clusters where {productname} is running.
+.. Port 6379/TCP must be open.
+.. Run Redis inside the instance:
 +
 [source,terminal]
 ----
@@ -49,7 +50,7 @@ sudo dnf install -y podman
 podman run -d --name redis -p 6379:6379 redis
 ----
 
-. Create two object storage backends, one for each cluster. Ideally, one object storage bucket will be close to the first, or primary, cluster, and the other will run closer to the second, or secondary, cluster.
+. Create two object storage backends, one for each cluster. Ideally, one object storage bucket is close to the first, or primary, cluster, and the other runs closer to the second, or secondary, cluster.
 
 . Deploy the clusters with the same config bundle, using environment variable overrides to select the appropriate storage backend for an individual cluster.
 
