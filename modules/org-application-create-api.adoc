@@ -1,12 +1,19 @@
 // module included in the following assemblies:
 
+// * api/master.adoc
 // * use_quay/master.adoc
 
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 [id="org-application-create-api"]
-= Creating an organization application by using the {productname} API
+= Managing an organization application by using the {productname} API
 
-Organization applications can be created by using the {productname} UI or API. Starting in {productname} {producty}, you can also create, list, and revoke OAuth API tokens for organization applications by using the API.
+[role="_abstract"]
+To create, list, update, or delete organization applications in {productname}, you can call the organization applications API endpoints with an OAuth access token.
+
+[NOTE]
+====
+After you create an organization application in the UI, create and manage OAuth 2 access tokens from the application's *API Access Tokens* page.
+====
 
 .Procedure
 
@@ -26,8 +33,7 @@ $ curl -X POST "https://<quay-server.example.com>/api/v1/organization/<orgname>/
       }'
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"name": "new-application", "description": "", "application_uri": "", "client_id": "E6GJSHOZMFBVNHTHNB53", "client_secret": "SANSWCWSGLVAUQ60L4Q4CEO3C1QAYGEXZK2VKJNI", "redirect_uri": "", "avatar_email": null}
@@ -41,8 +47,7 @@ $ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<orgname>/a
   -H "Authorization: Bearer <access_token>"
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"applications": [{"name": "test", "description": "", "application_uri": "", "client_id": "MCJ61D8KQBFS2DXM56S2", "client_secret": "J5G7CCX5QCA8Q5XZLWGI7USJPSM4M5MQHJED46CF", "redirect_uri": "", "avatar_email": null}, {"name": "new-token", "description": "", "application_uri": "", "client_id": "IG58PX2REEY9O08IZFZE", "client_secret": "2LWTWO89KH26P2CO4TWFM7PGCX4V4SUZES2CIZMR", "redirect_uri": "", "avatar_email": null}, {"name": "second-token", "description": "", "application_uri": "", "client_id": "6XBK7QY7ACSCN5XBM3GS", "client_secret": "AVKBOUXTFO3MXBBK5UJD5QCQRN2FWL3O0XPZZT78", "redirect_uri": "", "avatar_email": null}, {"name": "new-application", "description": "", "application_uri": "", "client_id": "E6GJSHOZMFBVNHTHNB53", "client_secret": "SANSWCWSGLVAUQ60L4Q4CEO3C1QAYGEXZK2VKJNI", "redirect_uri": "", "avatar_email": null}]}
@@ -56,8 +61,7 @@ $ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<orgname>/a
   -H "Authorization: Bearer <access_token>"
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"name": "test", "description": "", "application_uri": "", "client_id": "MCJ61D8KQBFS2DXM56S2", "client_secret": "J5G7CCX5QCA8Q5XZLWGI7USJPSM4M5MQHJED46CF", "redirect_uri": "", "avatar_email": null}
@@ -87,8 +91,7 @@ $ curl -X GET "https://<quay-server.example.com>/api/v1/app/<client_id>" \
   -H "Authorization: Bearer <access_token>"
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"name": "new-application3", "description": "", "uri": "", "avatar": {"name": "new-application3", "hash": "a15d479002b20f211568fd4419e76686d2b88a4980a5b4c4bc10420776c5f6fe", "color": "#aec7e8", "kind": "app"}, "organization": {"name": "test", "email": "new-contact@test-org.com", "avatar": {"name": "test", "hash": "a15d479002b20f211568fd4419e76686d2b88a4980a5b4c4bc10420776c5f6fe", "color": "#aec7e8", "kind": "user"}, "is_admin": true, "is_member": true, "teams": {}, "ordered_teams": [], "invoice_email": true, "invoice_email_address": "billing@test-org.com", "tag_expiration_s": 1209600, "is_free_account": true, "quotas": [{"id": 2, "limit_bytes": 10737418240, "limits": [{"id": 1, "type": "Reject", "limit_percent": 90}]}], "quota_report": {"quota_bytes": 0, "configured_quota": 10737418240, "running_backfill": "complete", "backfill_status": "complete"}}}
