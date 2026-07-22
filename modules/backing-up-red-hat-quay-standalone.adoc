@@ -1,10 +1,9 @@
 :_mod-docs-content-type: PROCEDURE
-[[backing-up-red-hat-quay-standalone]]
+[id="backing-up-red-hat-quay-standalone"]
 = Backing up {productname} on standalone deployments
 
-This procedure describes how to create a backup of {productname} on standalone deployments.
-
-.Prerequisites
+[role="_abstract"]
+To back up a standalone {productname} deployment, you can archive configuration files, dump the PostgreSQL database, and sync object storage blobs.
 
 .Procedure
 
@@ -39,8 +38,7 @@ $ cd /opt/quay-install
 $ tar cvf /tmp/quay-backup/quay-backup.tar.gz *
 ----
 +
-Example output:
-+
+.Example output:
 [source,terminal]
 ----
 config.yaml
@@ -77,13 +75,12 @@ $ podman exec -it quay cat /conf/stack/config.yaml > /tmp/quay-backup/quay-confi
 $ grep DB_URI /tmp/quay-backup/quay-config.yaml
 ----
 +
-Example output:
-+
+.Example output:
 ----
 $ postgresql://<username>:test123@172.24.10.50/quay
 ----
 
-. Extract the PostgreSQL contents to your temporary backup directory in a backup .sql file by entering the following command:
+. Extract the PostgreSQL contents to your temporary backup directory in a backup `.sql` file by entering the following command:
 +
 [source,terminal]
 ----
@@ -126,13 +123,13 @@ $ export AWS_SECRET_ACCESS_KEY=<secret_key>
 $ aws s3 sync s3://<bucket_name>  /tmp/quay-backup/blob-backup/ --source-region us-east-2
 ----
 +
-Example output:
-+
+.Example output:
 ----
 download: s3://<user_name>/registry/sha256/9c/9c3181779a868e09698b567a3c42f3744584ddb1398efe2c4ba569a99b823f7a to registry/sha256/9c/9c3181779a868e09698b567a3c42f3744584ddb1398efe2c4ba569a99b823f7a
 download: s3://<user_name>/registry/sha256/e9/e9c5463f15f0fd62df3898b36ace8d15386a6813ffb470f332698ecb34af5b0d to registry/sha256/e9/e9c5463f15f0fd62df3898b36ace8d15386a6813ffb470f332698ecb34af5b0d
 ----
++
 [NOTE]
 ====
-It is recommended that you delete the `quay-config.yaml` file after syncing the `quay` bucket because it contains sensitive information. The `quay-config.yaml` file will not be lost because it is backed up in the `quay-backup.tar.gz` file.
+Delete the `quay-config.yaml` file after syncing the `quay` bucket because that file contains sensitive information. The `quay-config.yaml` file remains available in the `quay-backup.tar.gz` archive.
 ====

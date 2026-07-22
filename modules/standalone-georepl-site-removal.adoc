@@ -2,12 +2,13 @@
 [id="standalone-georepl-site-removal"]
 = Removing a geo-replicated site from your standalone {productname} deployment
 
-By using the following procedure, {productname} administrators can remove sites in a geo-replicated setup. 
+[role="_abstract"]
+To remove a geo-replicated site from a standalone {productname} deployment, you can sync blobs between sites, update `config.yaml`, and run the `removelocation` utility.
 
-.Prerequisites 
+.Prerequisites
 
-* You have configured {productname} geo-replication with at least two sites, for example, `usstorage` and `eustorage`. 
-* Each site has its own Organization, Repository, and image tags. 
+* You have configured {productname} geo-replication with at least two sites, for example, `usstorage` and `eustorage`.
+* Each site has its own Organization, Repository, and image tags.
 
 .Procedure
 
@@ -20,10 +21,10 @@ $ python -m util.backfillreplication
 +
 [WARNING]
 ====
-Prior to removing storage engines from your {productname} `config.yaml` file, you *must* ensure that all blobs are synced between all defined sites. Complete this step before proceeding. 
+Prior to removing storage engines from your {productname} `config.yaml` file, you *must* ensure that all blobs are synced between all defined sites. Complete this step before proceeding.
 ====
 
-. In your {productname} `config.yaml` file for site `usstorage`, remove the `DISTRIBUTED_STORAGE_CONFIG` entry for the `eustorage` site. 
+. In your {productname} `config.yaml` file for site `usstorage`, remove the `DISTRIBUTED_STORAGE_CONFIG` entry for the `eustorage` site.
 
 . Enter the following command to obtain a list of running containers:
 +
@@ -32,8 +33,7 @@ Prior to removing storage engines from your {productname} `config.yaml` file, yo
 $ podman ps
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 CONTAINER ID  IMAGE                                                                     COMMAND         CREATED         STATUS             PORTS                                        NAMES
@@ -63,8 +63,7 @@ bash-4.4$ psql
 quay=# select * from imagestoragelocation;
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
  id |       name
@@ -92,8 +91,7 @@ The following action cannot be undone. Use with caution.
 bash-4.4$ python -m util.removelocation eustorage
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 WARNING: This is a destructive operation. Are you sure you want to remove eustorage from your storage locations? [y/n] y

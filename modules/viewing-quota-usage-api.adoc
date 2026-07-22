@@ -3,20 +3,19 @@
 = Viewing quota usage by using the API
 
 [role="_abstract"]
-To view quota usage for an organization, you can use the {productname} API.
+To view organization and repository storage consumption in {productname}, you can query the repository list and organization API endpoints.
 
 .Procedure
 
-* To view the storage consumed, `GET` data from the */api/v1/repository* endpoint:
-+
-Enter the following command:
+* To view storage consumed by repositories in an organization, send a `GET` request to the `/api/v1/repository` endpoint:
 +
 [source,terminal]
 ----
-$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/repository?last_modified=true&namespace=testorg&popularity=true&public=true'  | jq
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://<quay-server.example.com>/api/v1/repository?last_modified=true&namespace=<organization_name>&popularity=true&public=true'  | jq
 ----
 +
-.Example output
+Example output:
++
 [source,json]
 ----
 {
@@ -40,16 +39,15 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 }
 ----
 
-* To view the quota report for the repositories in the organization, use the */api/v1/repository* endpoint:
-+
-Enter the following command:
+* To view the quota report for multiple repositories in the organization, send a `GET` request to the `/api/v1/repository` endpoint:
 +
 [source,terminal]
 ----
-$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/repository?last_modified=true&namespace=testorg&popularity=true&public=true'
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://<quay-server.example.com>/api/v1/repository?last_modified=true&namespace=<organization_name>&popularity=true&public=true'
 ----
 +
-.Example output
+Example output:
++
 [source,json]
 ----
 {
@@ -88,16 +86,15 @@ $ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: applicatio
 }
 ----
 
-* To view the quota information in the organization details, use the */api/v1/organization/{orgname}* endpoint:
-+
-Enter the following command:
+* To view quota information in the organization details, send a `GET` request to the `/api/v1/organization/<organization_name>` endpoint:
 +
 [source,terminal]
 ----
-$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://example-registry-quay-quay-enterprise.apps.docs.gcp.quaydev.org/api/v1/organization/testorg' | jq
+$ curl -k -X GET -H "Authorization: Bearer <token>" -H 'Content-Type: application/json' 'https://<quay-server.example.com>/api/v1/organization/<organization_name>' | jq
 ----
 +
-.Example output
+Example output:
++
 [source,json]
 ----
 {

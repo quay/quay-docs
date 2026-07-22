@@ -3,15 +3,15 @@
 = Removing a geo-replicated site from your {productname-ocp} deployment
 
 [role="_abstract"]
-To remove a geo-replicated site from your {productname-ocp} deployment, you must sync all blobs between sites, remove the storage configuration entry, and use the `removelocation` utility to permanently delete the site. This action cannot be undone, so ensure that all data is synchronized before proceeding. 
+To remove a geo-replicated site from a {productname-ocp} deployment, you can sync blobs between sites, update storage configuration, and run the `removelocation` utility.
 
-.Prerequisites 
+.Prerequisites
 
 * You are logged into {ocp}.
-* You have configured {productname} geo-replication with at least two sites, for example, `usstorage` and `eustorage`. 
+* You have configured {productname} geo-replication with at least two sites, for example, `usstorage` and `eustorage`.
 * Each site has its own Organization, Repository, and image tags.
 
-.Procedure 
+.Procedure
 
 . Sync the blobs between all of your defined sites by running the following command:
 +
@@ -22,16 +22,16 @@ $ python -m util.backfillreplication
 +
 [WARNING]
 ====
-Prior to removing storage engines from your {productname} `config.yaml` file, you *must* ensure that all blobs are synced between all defined sites. 
+Prior to removing storage engines from your {productname} `config.yaml` file, you *must* ensure that all blobs are synced between all defined sites.
 
-When running this command, replication jobs are created which are picked up by the replication worker. If there are blobs that need replicated, the script returns UUIDs of blobs that will be replicated. If you run this command multiple times, and the output from the return script is empty, it does not mean that the replication process is done; it means that there are no more blobs to be queued for replication. Customers should use appropriate judgement before proceeding, as the allotted time replication takes depends on the number of blobs detected. 
+When running this command, replication jobs are created which are picked up by the replication worker. If blobs need to be replicated, the script returns UUIDs of blobs that are replicated. If you run this command multiple times, and the output from the return script is empty, it does not mean that the replication process is done; it means that no more blobs remain to be queued for replication. Customers should use appropriate judgement before proceeding, as the allotted time replication takes depends on the number of blobs detected.
 
 Alternatively, you could use a third party cloud tool, such as Microsoft Azure, to check the synchronization status.
 
 This step must be completed before proceeding.
 ====
 
-. In your {productname} `config.yaml` file for site `usstorage`, remove the `DISTRIBUTED_STORAGE_CONFIG` entry for the `eustorage` site. 
+. In your {productname} `config.yaml` file for site `usstorage`, remove the `DISTRIBUTED_STORAGE_CONFIG` entry for the `eustorage` site.
 
 . Identify your {productname} application pods by entering the following command:
 +
@@ -40,7 +40,7 @@ This step must be completed before proceeding.
 $ oc get pod -n <quay_namespace>
 ----
 +
-.Example output
+.Example output:
 [source,terminal]
 ----
 quay390usstorage-quay-app-5779ddc886-2drh2
@@ -66,7 +66,7 @@ The following action cannot be undone. Use with caution.
 sh-4.4$ python -m util.removelocation eustorage
 ----
 +
-.Example output
+.Example output:
 [source,terminal]
 ----
 WARNING: This is a destructive operation. Are you sure you want to remove eustorage from your storage locations? [y/n] y

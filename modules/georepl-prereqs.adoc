@@ -1,55 +1,32 @@
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: REFERENCE
 [id="arch-georepl-prereqs"]
 = Geo-replication requirements and constraints
 
 [role="_abstract"]
-{productname} geo-replication synchronizes images across regions that must share storage, database, and network infrastructure. These requirements define what you must configure outside {productname} because geo-replication does not provide automatic failover, database replication, or storage health awareness.
+{productname} geo-replication requires shared storage, database, Redis, network access between regions, and a global load balancer. Review these constraints before you deploy.
 
 The following are the requirements and constraints for geo-replication:
 
 * In geo-replicated setups, {productname} requires that all regions are able to read and write to all other regions' object storage. Object storage must be geographically accessible by all other regions.
-
 * In case of an object storage system failure of one geo-replicating site, that site's {productname} deployment must be shut down so that clients are redirected to the remaining site with intact storage systems by a global load balancer. Otherwise, clients experience pull and push failures.
-
 * {productname} has no internal awareness of the health or availability of the connected object storage system. Users must configure a global load balancer (LB) to monitor the health of your distributed system and to route traffic to different sites based on their storage status.
-
 * To check the status of your geo-replication deployment, you must use the `/health/endtoend` checkpoint, which is used for global health monitoring. You must configure the redirect manually using the `/health/endtoend` endpoint. The `/health/instance` endpoint only checks local instance health.
-
 * If the object storage system of one site becomes unavailable, geo-replication does not automatically redirect to the remaining storage system, or systems, of the remaining site, or sites.
-
-* Geo-replication is asynchronous. The permanent loss of a site incurs the loss of the data that has been saved in that sites' object storage system but has not yet been replicated to the remaining sites at the time of failure.
-
+* Geo-replication is asynchronous. The permanent loss of a site incurs the loss of the data that has been saved in that site's object storage system but has not yet been replicated to the remaining sites at the time of failure.
 * A single database, and therefore all metadata and {productname} configuration, is shared across all regions.
 +
 Geo-replication does not replicate the database. In the event of an outage, {productname} with geo-replication enabled does not fail over to another database.
-
 * A single Redis cache is shared across the entire {productname} setup and needs to be accessible by all {productname} pods.
-
 * The exact same configuration should be used across all regions, with exception of the storage backend, which can be configured explicitly using the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environment variable.
-
 * Geo-replication requires object storage in each region. It does not work with local storage.
-
 * Each region must be able to access every storage engine in each region, which requires a network path.
-
 * Alternatively, the storage proxy option can be used.
-
 * The entire storage backend, for example, all blobs, is replicated. Repository mirroring, by contrast, can be limited to a repository, or an image.
-
 * All {productname} instances must share the same entrypoint, typically through a load balancer.
-
 * All {productname} instances must have the same set of superusers, as they are defined inside the common configuration file.
-
 * In geo-replication environments, your Clair configuration can be set to `unmanaged`. An unmanaged Clair database allows the {productname} Operator to work in a geo-replicated environment where multiple instances of the Operator must communicate with the same database.
 +
 If you keep your Clair configuration `managed`, you must retrieve the configuration file for the deployed Clair instance that the Operator deploys.
-
 * Geo-replication requires SSL/TLS certificates and keys.
 
 If the above requirements cannot be met, you should instead use two or more distinct {productname} deployments and take advantage of repository mirroring functions.
-
-[role="_additional-resources"]
-.Additional resources
-
-* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/vulnerability_reporting_with_clair_on_red_hat_quay/index#advanced-clair-configuration[Advanced Clair configuration]
-* link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/vulnerability_reporting_with_clair_on_red_hat_quay/index#clair-openshift-config[Retrieving and decoding the Clair configuration secret for Clair deployments on {ocp}]
-* link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/proof_of_concept_-_deploying_red_hat_quay/advanced-quay-poc-deployment[Proof of concept deployment using SSL/TLS certificates]

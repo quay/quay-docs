@@ -1,0 +1,36 @@
+:_mod-docs-content-type: PROCEDURE
+[id="garbage-collection-procedure"]
+= Checking garbage collection in practice
+
+[role="_abstract"]
+To verify that {productname} garbage collection is running, you can review registry logs after you delete an image tag.
+
+.Procedure
+
+. Enter the following command to ensure that garbage collection is properly working:
++
+[source,terminal]
+----
+$ sudo podman logs <container_id>
+----
++
+.Example output:
+[source,terminal]
+----
+gcworker stdout | 2022-11-14 18:46:52,458 [63] [INFO] [apscheduler.executors.default] Job "GarbageCollectionWorker._garbage_collection_repos (trigger: interval[0:00:30], next run at: 2022-11-14 18:47:22 UTC)" executed successfully
+----
+
+. Delete an image tag.
+
+. Enter the following command to ensure that the tag was deleted:
++
+[source,terminal]
+----
+$ podman logs quay-app
+----
++
+.Example output:
+[source,terminal]
+----
+gunicorn-web stdout | 2022-11-14 19:23:44,574 [233] [INFO] [gunicorn.access] 192.168.0.38 - - [14/Nov/2022:19:23:44 +0000] "DELETE /api/v1/repository/quayadmin/busybox/tag/test HTTP/1.0" 204 0 "http://quay-server.example.com/repository/quayadmin/busybox?tab=tags" "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0"
+----

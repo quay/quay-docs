@@ -1,27 +1,24 @@
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: REFERENCE
 [id="health-check-quay"]
-= Performing health checks on {productname} deployments 
+= Performing health checks on {productname} deployments
 
 [role="_abstract"]
-To monitor the health of your {productname} deployment and identify issues before they become critical, you can perform health checks. Health checks assess system functionality and provide information about the current state for troubleshooting.
+Use {productname} health check endpoints to monitor instance, end-to-end, and warning status before issues become critical.
 
-Health checks help ensure that everything is working correctly, and can be used to identify potential issues before they become critical problems. By monitoring the health of a system, {productname} administrators can address abnormalities or potential failures for things like geo-replication deployments, Operator deployments, standalone {productname} deployments, object storage issues, and so on. Performing health checks can also help reduce the likelihood of encountering troubleshooting scenarios. Health check mechanisms can play a role in diagnosing issues by providing valuable information about the system's current state. By comparing health check results with expected benchmarks or predefined thresholds, deviations or anomalies can be identified quicker.
+Health checks help ensure that everything is working correctly, and can be used to identify potential issues before they become critical problems. By monitoring the health of a system, {productname} administrators can address abnormalities or potential failures for things like geo-replication deployments, Operator deployments, standalone {productname} deployments, object storage issues, and so on. Performing health checks can also help reduce the likelihood of encountering troubleshooting scenarios.
 
 [IMPORTANT]
 ====
 Links contained herein to any external website(s) are provided for convenience only. Red Hat has not reviewed the links and is not responsible for the content or its availability. The inclusion of any link to an external website does not imply endorsement by Red Hat of the website or its entities, products, or services. You agree that Red Hat is not responsible or liable for any loss or expenses that may result due to your use of (or reliance on) the external site or content.
 ====
 
-{productname} has several health check endpoints. The following table shows you the health check, a description, an endpoint, and an example output. 
+{productname} has several health check endpoints. The following table shows you the health check, a description, an endpoint, and an example output.
 
 .Health check endpoints
 [cols="1a,3a,2a,2a",options="header"]
 |===
-|Health check |Description |Endpoint |Example output 
-|`instance` | The `instance` endpoint acquires the entire status of the specific {productname} instance. Returns a `dict` with key-value pairs for the following: `auth`, `database`, `disk_space`, `registry_gunicorn`, `service_key`, and `web_gunicorn.` Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment. |`/health/instance` or `/health` on your {productname} instance | `{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}` 
-
-|`endtoend` |The `endtoend` endpoint conducts checks on all services of your {productname} instance. Returns a `dict` with key-value pairs for the following: `auth`, `database`, `redis`, `storage`. Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment. |`/health/endtoend` on your {productname} instance | `{"data":{"services":{"auth":true,"database":true,"redis":true,"storage":true}},"status_code":200}` 
-
-|`warning` |The `warning` endpoint conducts a check on the warnings. Returns a `dict` with key-value pairs for the following: `disk_space_warning`. Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment.
-|`/health/warning` on your {productname} instance | `{"data":{"services":{"disk_space_warning":true}},"status_code":503}` 
+|Health check |Description |Endpoint |Example output
+|`instance` | The `instance` endpoint acquires the entire status of the specific {productname} instance. Returns a `dict` with key-value pairs for the following: `auth`, `database`, `disk_space`, `registry_gunicorn`, `service_key`, and `web_gunicorn.` Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment. |`/health/instance` or `/health` on your {productname} instance | `{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}`
+|`endtoend` |The `endtoend` endpoint conducts checks on all services of your {productname} instance. Returns a `dict` with key-value pairs for the following: `auth`, `database`, `redis`, `storage`. Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment. |`/health/endtoend` on your {productname} instance | `{"data":{"services":{"auth":true,"database":true,"redis":true,"storage":true}},"status_code":200}`
+|`warning` |The `warning` endpoint conducts a check on the warnings. Returns a `dict` with key-value pairs for the following: `disk_space_warning`. Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment. |`/health/warning` on your {productname} instance | `{"data":{"services":{"disk_space_warning":true}},"status_code":503}`
 |===

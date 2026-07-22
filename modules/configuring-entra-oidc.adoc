@@ -2,19 +2,20 @@
 [id="configuring-entra-oidc"]
 = Configuring Microsoft Entra ID OIDC on a standalone deployment of {productname}
 
+[role="_abstract"]
+To configure Microsoft Entra ID OIDC on a standalone {productname} deployment, you can add an `AZURE_LOGIN_CONFIG` block to your `config.yaml` file and restart the registry.
+
 By integrating Microsoft Entra ID authentication with {productname}, your organization can take advantage of the centralized user management and security features offered by Microsoft Entra ID. Some features include the ability to manage user access to {productname} repositories based on their Microsoft Entra ID roles and permissions, and the ability to enable multi-factor authentication and other security features provided by Microsoft Entra ID.
 
-Azure Active Directory (Microsoft Entra ID) authentication for {productname} allows users to authenticate and access {productname} using their Microsoft Entra ID credentials.
-
-Use the following procedure to configure Microsoft Entra ID by updating the {productname} `config.yaml` file directly.
-
-.Procedure
+Azure Active Directory (Microsoft Entra ID) authentication for {productname} allows users to authenticate and access {productname} by using their Microsoft Entra ID credentials.
 
 [NOTE]
 ====
-* Using the following procedure, you can add any OIDC provider to {productname}, regardless of which identity provider is being added.
-* If your system has a firewall in use, or proxy enabled, you must whitelist all Azure API endpoints for each OAuth application that is created. Otherwise, the following error is returned: `x509: certificate signed by unknown authority`.
+* By using the following procedure, you can add any OIDC provider to {productname}, regardless of which identity provider is being added.
+* If your system has a firewall in use, or a proxy enabled, you must allowlist all Azure API endpoints for each OAuth application that is created. Otherwise, the following error is returned: `x509: certificate signed by unknown authority`.
 ====
+
+.Procedure
 
 . Use the following reference and update your `config.yaml` file with your desired OIDC provider's credentials:
 +
@@ -22,28 +23,31 @@ Use the following procedure to configure Microsoft Entra ID by updating the {pro
 ----
 AUTHENTICATION_TYPE: OIDC
 # ...
-AZURE_LOGIN_CONFIG: <1>
-    CLIENT_ID: <client_id> <2>
-    CLIENT_SECRET: <client_secret> <3>
-    OIDC_SERVER: https://login.microsoftonline.com/<tenant-id>/v2.0/ <4>
-    SERVICE_NAME: Microsoft Entra ID <5>
-    OIDC_DISABLE_USER_ENDPOINT: true <6>
-    VERIFIED_EMAIL_CLAIM_NAME: <verified_email> <7>
-    USE_PKCE: True <8>
-    PKCE_METHOD: "S256" <9>
-    PUBLIC_CLIENT: True <10>
+AZURE_LOGIN_CONFIG:
+    CLIENT_ID: <client_id>
+    CLIENT_SECRET: <client_secret>
+    OIDC_SERVER: https://login.microsoftonline.com/<tenant-id>/v2.0/
+    SERVICE_NAME: Microsoft Entra ID
+    OIDC_DISABLE_USER_ENDPOINT: true
+    VERIFIED_EMAIL_CLAIM_NAME: <verified_email>
+    USE_PKCE: True
+    PKCE_METHOD: "S256"
+    PUBLIC_CLIENT: True
 # ...
 ----
-<1> The parent key that holds the OIDC configuration settings. In this example, the parent key used is `AZURE_LOGIN_CONFIG`, however, the string `AZURE` can be replaced with any arbitrary string based on your specific needs, for example `ABC123`. However, the following strings are not accepted: `GOOGLE`, `GITHUB`. These strings are reserved for their respective identity platforms and require a specific `config.yaml` entry contingent upon which platform you are using.
-<2> The client ID of the application that is being registered with the identity provider.
-<3> The client secret of the application that is being registered with the identity provider.
-<4> The OIDC discovery base URL. The URL must end with a trailing `/` because {productname} uses path joining for OIDC discovery. For new deployments, use the Entra ID v2.0 endpoint. To accept both v1.0 and v2.0 tokens during migration, see link:#configuring-entra-v2-multi-issuer-oidc[Configuring Microsoft Entra ID v2 and multi-issuer OIDC].
-<5> The name of the service that is being authenticated.
-<6> Set to `true` for Microsoft Entra ID because Azure obtains user information from the token instead of calling the `/userinfo` endpoint.
-<7> The name of the claim that is used to verify the email address of the user.
-<8> Specifies whether to enable Proof Key for Code Exchange (PKCE) for OIDC authentication. Defaults to `False`.
-<9> Specifies the code challenge method used to generate the `code_challenge` sent in the initial authorization request. Defaults to `S256`.
-<10> Specifies whether to omit `client_secret` during token request when the client is public. Defaults to `False`.
++
+where:
+
+`AZURE_LOGIN_CONFIG`:: Specifies the parent key that holds the OIDC configuration settings. In this example, the parent key used is `AZURE_LOGIN_CONFIG`. However, the string `AZURE` can be replaced with any arbitrary string based on your specific needs, for example `ABC123`. The following strings are not accepted: `GOOGLE`, `GITHUB`. These strings are reserved for their respective identity platforms and require a specific `config.yaml` entry contingent upon which platform you are using.
+`CLIENT_ID`:: Specifies the client ID of the application that is being registered with the identity provider.
+`CLIENT_SECRET`:: Specifies the client secret of the application that is being registered with the identity provider.
+`OIDC_SERVER`:: Specifies the OIDC discovery base URL. The URL must end with a trailing `/` because {productname} uses path joining for OIDC discovery. For new deployments, use the Entra ID v2.0 endpoint. To accept both v1.0 and v2.0 tokens during migration, configure multi-issuer OIDC.
+`SERVICE_NAME`:: Specifies the name of the service that is being authenticated.
+`OIDC_DISABLE_USER_ENDPOINT`:: Specifies whether to disable the `/userinfo` endpoint. Set to `true` for Microsoft Entra ID because Azure obtains user information from the token instead of calling the `/userinfo` endpoint.
+`VERIFIED_EMAIL_CLAIM_NAME`:: Specifies the name of the claim that is used to verify the email address of the user.
+`USE_PKCE`:: Specifies whether to enable Proof Key for Code Exchange (PKCE) for OIDC authentication. Defaults to `false`.
+`PKCE_METHOD`:: Specifies the code challenge method used to generate the `code_challenge` sent in the initial authorization request. Defaults to `S256`.
+`PUBLIC_CLIENT`:: Specifies whether to omit `client_secret` during the token request when the client is public. Defaults to `false`.
 
 . Proper configuration of Microsoft Entra ID results in three redirects with the following format:
 +

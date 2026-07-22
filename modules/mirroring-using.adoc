@@ -3,24 +3,24 @@
 = Using mirroring
 
 [role="_abstract"]
-{productname} mirroring synchronizes container images between repositories or organizations in different environments. You can review supported features and limitations to plan registry synchronization for your deployment.
+Repository mirroring in {productname} syncs images for a repository or organization from an external registry. Filters, robot accounts, and sync intervals control what is copied and when.
 
-The following list shows features and limitations of {productname} mirroring for a repository or organization. 
+The following list shows features and limitations of {productname} mirroring for a repository or organization.
 
 [NOTE]
 ====
 The word _entity_ is used in the mirroring documentation to refer to either a repository or organization.
 ====
 
-* With mirroring, you can mirror an entire entity or selectively limit which images are synced. Filters can be based on a comma-separated list of tags, a range of tags, or other means of identifying tags through Unix shell-style wildcards. For more information, see the documentation for link:https://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm[wildcards].
+* With mirroring, you can mirror an entire entity or selectively limit which images are synced. Filters can be based on a comma-separated list of tags, a range of tags, or other means of identifying tags through Unix shell-style wildcards.
 
 * After you set mirroring for an entity, you cannot manually add other images to that entity.
 
-* Because the mirrored entity is based on the entity and the tags that you set, the entity holds only the content represented by the entity and tag pair. For example if you change the tag so that some images in the entity no longer match, those images will be deleted.
+* Because the mirrored entity is based on the entity and the tags that you set, the entity holds only the content represented by the entity and tag pair. For example, if you change the tag so that some images in the entity no longer match, those images are deleted.
 
 * Only the designated robot can push images to a mirrored entity, superseding any role-based access control permissions set on the entity.
 
-* Mirroring can be configured to rollback on failure, _or_ to run on a best-effort basis.
+* Mirroring can be configured to roll back on failure, _or_ to run on a best-effort basis.
 
 * With a mirrored entity, a user with _read_ permissions can pull images from the entity but cannot push images to the entity.
 
@@ -28,21 +28,26 @@ The word _entity_ is used in the mirroring documentation to refer to either a re
 
 * Images are synced at set intervals, but can also be synced on demand.
 
-* In the current implementation of Organization-level repository mirroring, {productname} does not replicate deletions from the source registry. If any of the following entities are removed or absent in the upstream source, they persist in the local Quay mirror:
+* In the current implementation of organization-level repository mirroring, {productname} does not replicate deletions from the source registry. If any of the following entities are removed or absent in the upstream source, they persist in the local {productname} mirror:
 +
-** *Source namespaces or organizations and their repositories*. If the entire upstream source namespace (for example, a Harbor project or Quay organization) is removed, all previously mirrored repositories and their content remain in the local mirror.
+** *Source namespaces or organizations and their repositories*. If the entire upstream source namespace (for example, a Harbor project or {productname} organization) is removed, all previously mirrored repositories and their content remain in the local mirror.
 +
 ** *Individual repositories*. Repositories previously discovered and synced continue to be tracked and served even if removed from the upstream source.
 +
 ** *Image tags*. Tags that existed at the time of the last sync persist in the mirror even if deleted upstream.
 +
-** *Referrers*. OCI Referrers API artifacts, such as Cosign signatures and SBOMs are not currently mirrored. When present locally, they are not cleaned up automatically
+** *Referrers*. OCI Referrers API artifacts, such as Cosign signatures and SBOMs, are not currently mirrored. When present locally, they are not cleaned up automatically.
 
 * The downstream mirror acts as a cumulative archive. If an upstream namespace is emptied or its repositories and tags are removed, the mirror continues to serve the last successfully synchronized versions of those objects. This might lead to higher storage consumption in the mirror than in the source.
 +
 [NOTE]
 ====
-Note: This behavior differs from repository-level mirroring, which automatically removes local tags that are no longer present in the source registry. 
+This behavior differs from repository-level mirroring, which automatically removes local tags that are no longer present in the source registry.
 
-Manual deletion via the {productname} UI or API is required to remove these entities from the mirror. A future release will introduce a configurable option to automatically delete absent items, including organizations, repositories, tags, referrers, and manifest list children from the local mirror.
+Manual deletion by using the {productname} UI or API is required to remove these entities from the mirror. A future release can introduce a configurable option to automatically delete absent items, including organizations, repositories, tags, referrers, and manifest list children from the local mirror.
 ====
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm[Unix shell-style wildcards]

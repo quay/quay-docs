@@ -1,0 +1,91 @@
+:_mod-docs-content-type: PROCEDURE
+[id="creating-registry-wide-auto-pruning-policy"]
+= Creating a registry-wide auto-pruning policy
+
+[role="_abstract"]
+To apply an auto-prune policy to all organizations in a {productname} registry, you can configure `DEFAULT_NAMESPACE_AUTOPRUNE_POLICY` in your `config.yaml` file.
+
+Registry-wide auto-pruning policies can apply to new and existing organizations. {productname} administrators enable this feature by adding the `DEFAULT_NAMESPACE_AUTOPRUNE_POLICY` configuration field with either the `number_of_tags` or `creation_date` method. Currently, you cannot enable this feature by using the v2 UI or the API.
+
+.Prerequisites
+
+* You have enabled the `FEATURE_AUTO_PRUNE` feature.
+
+.Procedure
+
+. Update your `config.yaml` file to add the `DEFAULT_NAMESPACE_AUTOPRUNE_POLICY` configuration field:
+
+.. To set the policy method to remove the oldest tags by their creation date until the number of tags provided is left, use the `number_of_tags` method:
++
+[source,yaml]
+----
+# ...
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: number_of_tags
+  value: 2
+# ...
+----
++
+where:
+`value`:: Specifies the number of tags to keep. In this example, two tags remain.
+
+.. To set the policy method to remove tags with a creation date older than the provided time span, for example, `5d`, use the `creation_date` method:
++
+[source,yaml]
+----
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: creation_date
+  value: 5d
+----
+
+. Restart your {productname} deployment.
+
+. Optional. If you need to tag and push images to test this feature:
+
+.. Tag four sample images that you push to a {productname} registry. For example:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test2
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test3
+----
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<quayadmin>/busybox:test4
+----
+
+.. Push the four sample images to the registry with auto-pruning enabled by entering the following commands:
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/quayadmin/busybox:test
+----
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<quayadmin>/busybox:test2
+----
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<quayadmin>/busybox:test3
+----
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<quayadmin>/busybox:test4
+----
+
+. Check that the registry that you pushed the images to shows four tags. 
+
+. By default, the auto-pruner worker at the registry level runs every 24 hours. After 24 hours, the two oldest image tags are removed, leaving the `test3` and `test4` tags if you followed these instructions. Check your {productname} organization to ensure that the two oldest tags were removed.

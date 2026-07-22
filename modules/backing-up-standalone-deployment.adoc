@@ -1,0 +1,103 @@
+:_mod-docs-content-type: PROCEDURE
+[id="backing-up-standalone-deployment"]
+= Backing up a standalone deployment of {productname}
+
+[role="_abstract"]
+To back up a standalone {productname} deployment before Operator migration, you can copy `config.yaml`, dump the database, and sync object storage blobs.
+
+.Procedure
+
+. Back up the `config.yaml` of your standalone {productname} deployment:
++
+[source,terminal]
+----
+$ mkdir /tmp/quay-backup
+$ cp /path/to/Quay/config/directory/config.yaml /tmp/quay-backup
+----
+
+. Create a backup of the database that your standalone {productname} deployment is using:
++
+[source,terminal]
+----
+$ pg_dump -h DB_HOST -p 5432 -d QUAY_DATABASE_NAME -U QUAY_DATABASE_USER -W -O > /tmp/quay-backup/quay-database-backup.sql
+----
+
+. Install the AWS CLI if you do not have it already.
+
+. Create an `~/.aws/` directory:
++
+[source,terminal]
+----
+$ mkdir ~/.aws/
+----
+
+. Obtain the `access_key` and `secret_key` from the `config.yaml` of your standalone deployment:
++
+[source,terminal]
+----
+$ grep -i DISTRIBUTED_STORAGE_CONFIG -A10 /tmp/quay-backup/config.yaml
+----
++
+.Example output:
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+    minio-1:
+        - RadosGWStorage
+        - access_key: ##########
+          bucket_name: quay
+          hostname: 172.24.10.50
+          is_secure: false
+          port: "9000"
+          secret_key: ##########
+          storage_path: /datastorage/registry
+----
+
+. Store the `access_key` and `secret_key` from the `config.yaml` file in your `~/.aws` directory:
++
+[source,terminal]
+----
+$ touch ~/.aws/credentials
+----
+
+. Optional: Check that your `access_key` and `secret_key` are stored:
++
+[source,terminal]
+----
+$ cat > ~/.aws/credentials << EOF
+[default]
+aws_access_key_id = ACCESS_KEY_FROM_QUAY_CONFIG
+aws_secret_access_key = SECRET_KEY_FROM_QUAY_CONFIG
+EOF
+----
++
+.Example output:
+[source,terminal]
+----
+aws_access_key_id = ACCESS_KEY_FROM_QUAY_CONFIG
+aws_secret_access_key = SECRET_KEY_FROM_QUAY_CONFIG
+----
++
+[NOTE]
+====
+If the AWS CLI does not automatically collect the `access_key` and `secret_key` from the `~/.aws/credentials` file, you can configure these by running `aws configure` and manually entering the credentials.
+====
+
+. In your `quay-backup` directory, create a `bucket_backup` directory:
++
+[source,terminal]
+----
+$ mkdir /tmp/quay-backup/bucket-backup
+----
+
+. Back up all blobs from the S3 storage:
++
+[source,terminal]
+----
+$ aws s3 sync --no-verify-ssl --endpoint-url https://PUBLIC_S3_ENDPOINT:PORT s3://QUAY_BUCKET/ /tmp/quay-backup/bucket-backup/
+----
++
+[NOTE]
+====
+The `PUBLIC_S3_ENDPOINT` can be read from the {productname} `config.yaml` file under `hostname` in the `DISTRIBUTED_STORAGE_CONFIG`. If the endpoint is insecure, use `http` instead of `https` in the endpoint URL.
+====

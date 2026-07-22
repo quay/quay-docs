@@ -1,0 +1,44 @@
+:_mod-docs-content-type: PROCEDURE
+[id="creating-policy-repository-v2-ui"]
+= Creating an auto-prune policy for a repository using the {productname} v2 UI
+
+[role="_abstract"]
+To create a repository auto-prune policy in {productname}, you can configure Repository Auto-Prune Policies on the repository Settings page in the v2 UI.
+
+.Prerequisites
+
+* You have enabled the `FEATURE_AUTO_PRUNE` feature.
+* You have pushed image tags to your repository.
+
+.Procedure
+
+. On the {productname} v2 UI, click *Repository* in the navigation pane.
+
+. Select the name of a repository to which you apply the auto-pruning feature, for example, `<organization_name>/<repository_name>`. 
+
+. Click *Settings*. 
+
+. Click *Repository Auto-Prune Policies*.
+
+. Click the drop-down menu and select the desired policy, for example, *By age of tags*. 
+
+. Set a time, for example, `5` and an interval, for example `minutes` to delete tags older than the specified time frame. For this example, tags older than 5 minutes are marked for deletion. 
+
+. Optional. With the introduction of _regular expressions_, you are provided the following options to fine-tune your auto-pruning policy:
++
+* *Match*: When selecting this option, the auto-pruner prunes all tags that match the given _regex_ pattern.
+* *Does not match*: When selecting this option, the auto-pruner prunes all tags that _do not_ match the _regex_ pattern.
++
+If you do not select an option, the auto-pruner defaults to pruning all image tags.
++
+For this example, click the *Tag pattern* box and select *Does not match*. In the _regex_ box, enter a pattern to match tags against. For example, to automatically prune all tags that _do not_ match the `test` tag, enter `^test.*`.
+
+. Optional. You can create a second auto-prune policy by clicking *Add Policy* and entering the required information. 
+
+. Click *Save*. A notification that your auto-prune policy has been updated appears.
+
+.Verification
+
+* Navigate to the *Tags* page of your Organization's repository. With this example, Tags that are older than 5 minutes that _do not_ match the `^test.*` _regex_ tag are automatically pruned when the pruner runs. 
++
+After tags are automatically pruned, they go into the {productname} time machine, or the amount of time after a tag is deleted that the tag is accessible before being garbage collected. The expiration time of an image tag depends on your organization's settings.

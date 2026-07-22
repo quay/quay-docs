@@ -2,7 +2,8 @@
 [id="creating-repository-policy-api"]
 = Creating an auto-prune policy for a repository using the {productname} API
 
-You can use {productname} API endpoints to manage auto-pruning policies for an repository. 
+[role="_abstract"]
+To create, update, view, or delete a repository auto-prune policy in {productname}, you can use the repository autoprunepolicy API endpoints.
 
 .Prerequisites
 
@@ -11,22 +12,21 @@ You can use {productname} API endpoints to manage auto-pruning policies for an r
 
 .Procedure
 
-. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#updateorganizationautoprunepolicy[`POST /api/v1/repository/{repository}/autoprunepolicy/`] command create a new policy that limits the number of tags allowed in an organization:
+. Enter the following `POST /api/v1/repository/<repository>/autoprunepolicy/` command to create a new policy that limits the number of tags allowed in an organization:
 +
 [source,terminal]
 ----
 $ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags","value": 2}' http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/
 ----
 +
-Alternatively, you can can set tags to expire for a specified time after their creation date:
+Alternatively, you can set tags to expire for a specified time after their creation date:
 +
 [source,terminal]
 ----
 $ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "creation_date", "value": "7d"}' http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7"}
@@ -43,20 +43,21 @@ $ curl -X POST \
     "method": "<creation_date>",
     "value": "<7d>",
     "tagPattern": "<^test.>*",
-    "tagPatternMatches": <false> <1>
+    "tagPatternMatches": <false>
   }' \
   "https://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/"
 ----
-<1> Setting `tagPatternMatches` to `False` makes it so that tags that all tags that _do not_ match the given regex pattern are pruned. In this example, all tags _but_ `^test.` are pruned.
 +
-.Example output
+where:
+`tagPatternMatches`:: Specifies whether tags that match the regex pattern are pruned. Set to `false` to prune tags that do not match. In this example, all tags except those that match `^test.` are pruned.
 +
+.Example output:
 [source,terminal]
 ----
 {"uuid": "b53d8d3f-2e73-40e7-96ff-736d372cd5ef"}
 ----
 
-. You can update your policy for the repository by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#updaterepositoryautoprunepolicy[`PUT /api/v1/repository/{repository}/autoprunepolicy/{policy_uuid}`] command and passing in the UUID. For example:
+. You can update your policy for the repository by using the `PUT /api/v1/repository/<repository>/autoprunepolicy/<policy_uuid>` command and passing in the UUID. For example:
 +
 [source,terminal]
 ----
@@ -88,8 +89,7 @@ Alternatively, you can include the UUID:
 $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"policies": [{"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7", "method": "number_of_tags", "value": 10}]}
@@ -102,8 +102,7 @@ $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.exam
 $ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7
 ----
 +
-.Example output
-+
+.Example output:
 [source,terminal]
 ----
 {"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7"}

@@ -2,42 +2,21 @@
 [id="red-hat-quay-namespace-auto-pruning-overview"]
 = {productname} auto-pruning overview
 
-{productname} administrators can set up multiple auto-pruning policies on organizations and repositories; administrators can also set up auto-pruning policies at the registry level so that they apply to all organizations, including all newly created organizations. This feature allows for image tags to be automatically deleted within an organization or a repository based on specified criteria, which allows {productname} organization owners to stay below the storage quota by automatically pruning content.
- 
-Currently, two policies have been added:
+[role="_abstract"]
+{productname} auto-pruning deletes image tags in organizations and repositories by tag count or age so that owners can stay under storage quotas. You can configure policies at the organization, repository, or registry level.
 
-* **Prune images by the number of tags**. For this policy, when the actual number of tags exceeds the desired number of tags, the oldest tags are deleted by their creation date until the desired number of tags is achieved.
+{productname} administrators can configure multiple auto-pruning policies on organizations and repositories. Administrators can also configure auto-pruning policies at the registry level so that they apply to all organizations, including newly created organizations.
 
+Currently, two policies are available:
+
+* **Prune images by the number of tags**. For this policy, when the actual number of tags exceeds the desired number of tags, the auto-pruner deletes the oldest tags by creation date until the desired number of tags is achieved.
 * **Prune image tags by creation date**. For this policy, any tags with a creation date older than the given time span, for example, 10 days, are deleted.
 
-After tags are automatically pruned, they go into the {productname} time machine, or the  amount of time, after a tag is deleted, that the tag is accessible before being garbage collected. The expiration time of an image tag is dependent on your organization's settings. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]. 
+After tags are automatically pruned, they go into the {productname} time machine, or the amount of time after a tag is deleted that the tag is accessible before being garbage collected. The expiration time of an image tag depends on your organization's settings.
 
-Users can configure multiple policies per namespace or repository; this can be done through the {productname} v2 UI. Policies can also be set by using the API endpoints through the command-line interface (CLI).
+Users can configure multiple policies per namespace or repository through the {productname} v2 UI. Policies can also be set by using the API endpoints through the command-line interface (CLI).
 
-[id="prerequisites-limitations-namespace-autopruning"]
-== Prerequisites and limitations for auto-pruning and multiple policies
+[role="_additional-resources"]
+.Additional resources
 
-The following prerequisites and limitations apply to the auto-pruning feature:
-
-* Auto-pruning is not available when using the {productname} legacy UI. You must use the v2 UI to create, view, or modify auto-pruning policies. 
-
-* Auto-pruning is only supported in databases that support the `FOR UPDATE SKIP LOCKED` SQL command.
-
-* Auto-pruning is unavailable on mirrored repositories and read-only repositories.
-
-* If you are configuring multiple auto-prune policies, rules are processed without particular order, and individual result sets are processed immediately before moving on to the next rule. 
-** For example, if an image is already subject for garbage collection by one rule, it cannot be excluded from pruning by another rule.
-
-* If you have both an auto-pruning policy for an organization and a repository, the auto-pruning policies set at the organization level are executed first.
-
-[id="autopruning-regular-expressions"]
-== Regular expressions with auto-pruning
-
-{productname} administrators can leverage _regular expressions_, or _regex_, to match a subset of tags for both organization- and repository-level auto-pruning policies. This provides more granular auto-pruning policies to target only certain image tags for removal. Consider the following when using _regular expressions_ with the auto-pruning feature:
-
-* _Regular expressions_ are optional. 
-* If a _regular expression_ is not provided, the auto-pruner defaults to pruning all image tags in the organization or the repository. These are user-supplied and must be protected against ReDOS attacks. 
-* Registry-wide policies do not currently support _regular expressions_. Only organization- and repository-level auto-pruning policies support _regular expressions_.
-* _Regular expressions_ can be configured to prune images that either do, or _do not_, match the provided _regex_ pattern.
-
-Some of the following procedures provide example auto-pruning policies using _regular expressions_ that you can use as a reference when creating an auto-prune policy. 
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#garbage-collection[{productname} garbage collection]
