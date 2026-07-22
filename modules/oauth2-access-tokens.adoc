@@ -9,7 +9,7 @@ link:https://oauth.net/2/[OAuth 2] access tokens (considered "API tokens" for {p
 Although OAuth 2 tokens authorize actions on API endpoints based on the scopes defined for the token, access to the resources themselves is governed by {productname}'s role-based access control (RBAC) mechanisms. Actions can be created on a resource, for example, a repository, provided that you have the proper role (*Admin* or *Creator*) to do so for that namespace. This is true even if the API token was granted the `repo:admin` scope.
 ====
 
-OAuth 2 access tokens can only be created by using the {productname} UI; there is no way to create an OAuth 2 access token by using the CLI. When creating an OAuth 2 token, the following options can be selected for a token holder:
+OAuth 2 access tokens can be created by using the {productname} UI or by using the organization application token API. When creating an OAuth 2 token, the following options can be selected for a token holder:
 
 * *Administer Organization*. When selected, allows the user to be able to administer organizations, including creating robots, creating teams, adjusting team membership, and changing billing settings.
 
@@ -33,11 +33,16 @@ OAuth 2 access tokens are passed as a `Bearer` token in the `Authorization` head
 
 The API is available from the `/api/v1` endpoint of your {productname} host. For example, `\https://<quay-server.example.com>/api/v1`. It allows users to connect to endpoints through their browser to `GET`, `POST`, `DELETE`, and `PUT` {productname} settings by enabling the Swagger UI. The API can be accessed by applications that make API calls and use OAuth tokens, and it sends and receives data as JSON. 
 
-With {productname}, there is currently no way to rotate or to set an expiration time on an OAuth 2 access token, and the token lifespan is 10 years. Tokens can be deleted by deleting the applications in which they were created in the event that they are compromised, however, this deletes all tokens that were made within that specific application.
+With {productname}, organization application OAuth API tokens created through the UI do not support custom expiration and default to approximately 10 years. Tokens created by using the organization application token API support custom `expiration` values in seconds. Tokens can be revoked individually by using the API or by deleting the application in which they were created. Deleting an application revokes all tokens created within that application.
 
 [NOTE]
 ====
-In practice, {productname} administrators _could_ create a new OAuth application on the *Applications* page of their organization each time they wanted to create a new OAuth token for a user. This would ensure that a single application is not responsible for all OAuth tokens. As a result, in the event that a user's token is compromised, the administrator would delete the application of the compromised token. This would help avoid disruption for other users whose tokens might be part of the same application. 
+For programmatic token creation, listing, and revocation, see "Programmatic OAuth token provisioning".
+====
+
+[NOTE]
+====
+In practice, {productname} administrators _could_ create a new OAuth application on the *Applications* page of their organization each time they wanted to create a new OAuth token for a user. This would ensure that a single application is not responsible for all OAuth tokens. As a result, in the event that a user's token is compromised, the administrator would delete the application of the compromised token. This would help avoid disruption for other users whose tokens might be part of the same application.
 ====
 
 The following sections shows you how to generate and reassign an OAuth 2 access token.

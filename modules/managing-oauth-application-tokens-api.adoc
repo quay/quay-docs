@@ -1,0 +1,36 @@
+:_mod-docs-content-type: PROCEDURE
+[id="managing-oauth-application-tokens-api"]
+= Managing OAuth application tokens by using the API
+
+[role="_abstract"]
+To manage organization application OAuth tokens without using the UI, you can list, create, and revoke tokens through the {productname} REST API when your token has `org:admin` scope.
+
+The bootstrap token includes `org:admin` by default. Scoped tokens that you create for automation must also include `org:admin` to list, create, or revoke application tokens through these endpoints.
+
+.Procedure
+
+. List existing tokens for an application:
++
+[source,terminal]
+----
+$ curl -H "Authorization: Bearer <access_token>" -X GET \
+  https://<quay-server.example.com>/api/v1/organization/myorg/applications/<client_id>/tokens
+----
+
+. Create a token with a custom expiration and scope:
++
+[source,terminal]
+----
+$ curl -H "Authorization: Bearer <access_token>" -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"name": "short-lived-token", "scope": "repo:read", "expiration": 3600}' \
+  https://<quay-server.example.com>/api/v1/organization/myorg/applications/<client_id>/tokens
+----
+
+. Revoke a token by UUID:
++
+[source,terminal]
+----
+$ curl -H "Authorization: Bearer <access_token>" -X DELETE \
+  https://<quay-server.example.com>/api/v1/organization/myorg/applications/<client_id>/tokens/<token_uuid>
+----

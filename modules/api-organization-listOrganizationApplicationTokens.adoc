@@ -1,0 +1,75 @@
+:_mod-docs-content-type: REFERENCE
+
+= listOrganizationApplicationTokens
+
+List OAuth API tokens for the specified organization application.
+
+[discrete]
+== GET /api/v1/organization/{orgname}/applications/{client_id}/tokens
+
+Return token metadata for the specified application. The bearer token secret is not included in list responses.
+
+**Authorizations:** oauth2_implicit (**org:admin**)
+
+[discrete]
+== Path parameters
+
+[options="header", width=100%, cols=".^2a,.^3a,.^9a,.^4a"]
+|===
+|Type|Name|Description|Schema
+|path|*orgname* +
+_required_|The name of the organization|string
+|path|*client_id* +
+_required_|The OAuth client ID of the organization application|string
+|===
+
+[discrete]
+== Query parameters
+
+[options="header", width=100%, cols=".^3a,.^9a,.^4a"]
+|===
+|Name|Description|Schema
+|*next_page* +
+_optional_|Pagination token from a previous response|string
+|===
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Successful invocation|Object with `tokens` array and optional `next_page`
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|404|Not found|&lt;&lt;_apierror,ApiError&gt;&gt;
+|===
+
+[discrete]
+== Example command
+
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<orgname>/applications/<client_id>/tokens" \
+  -H "Authorization: Bearer <access_token>"
+----
+
+.Example response
+
+[source,json]
+----
+{
+  "tokens": [
+    {
+      "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "ci-job-token",
+      "scope": "repo:read repo:write",
+      "expires_at": "2026-08-14T10:00:00Z",
+      "created": "2026-07-15T10:00:00Z",
+      "created_by": "quayadmin",
+      "last_accessed": null
+    }
+  ],
+  "next_page": null
+}
+----

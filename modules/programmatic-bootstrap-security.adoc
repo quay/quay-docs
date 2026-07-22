@@ -1,0 +1,18 @@
+:_mod-docs-content-type: CONCEPT
+[id="programmatic-bootstrap-security"]
+= Security considerations for programmatic bootstrap
+
+[role="_abstract"]
+Apply these practices when you use the {productname} bootstrap OAuth token so that automation remains limited to provisioning and uses narrower-scoped tokens for day-to-day work.
+
+* Use the bootstrap token only for initial provisioning and token minting. Create narrower-scoped OAuth tokens for CI/CD and day-2 automation.
+
+* Set `BOOTSTRAP_TOKEN_EXPIRATION` according to your security policy. The default is 60 minutes.
+
+* On standalone deployments, the bootstrap token file is written with `0600` permissions. Restrict access to the directory that contains the token file.
+
+* On {kubernetes} and {ocp}, store the bootstrap token in a dedicated Secret with scoped RBAC.
+
+* Schedule bootstrap token renewal by using `POST /api/v1/bootstrap/renew` before expiry.
+
+* Monitor {productname} action logs for bootstrap and OAuth token life cycle events.
