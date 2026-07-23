@@ -7,12 +7,12 @@ To create, update, view, or delete a repository auto-prune policy in {productnam
 
 .Prerequisites
 
-* You have created an OAuth access token. 
-* You have logged into {productname}. 
+* You have created an OAuth access token.
+* You have logged into {productname}.
 
 .Procedure
 
-. Enter the following `POST /api/v1/repository/<repository>/autoprunepolicy/` command to create a new policy that limits the number of tags allowed in an organization:
+. Enter the following `POST /api/v1/repository/<repository>/autoprunepolicy/` command to create a new policy that limits the number of tags allowed in a repository:
 +
 [source,terminal]
 ----
@@ -26,7 +26,7 @@ Alternatively, you can set tags to expire for a specified time after their creat
 $ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "creation_date", "value": "7d"}' http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/
 ----
 +
-.Example output:
+.Example output
 [source,terminal]
 ----
 {"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7"}
@@ -40,18 +40,19 @@ $ curl -X POST \
   -H "Authorization: Bearer <access_token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "method": "<creation_date>",
-    "value": "<7d>",
-    "tagPattern": "<^test.>*",
-    "tagPatternMatches": <false>
+    "method": "creation_date",
+    "value": "7d",
+    "tagPattern": "^test.",
+    "tagPatternMatches": false
   }' \
   "https://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/"
 ----
 +
-where:
-`tagPatternMatches`:: Specifies whether tags that match the regex pattern are pruned. Set to `false` to prune tags that do not match. In this example, all tags except those that match `^test.` are pruned.
+Where:
+
+* `tagPatternMatches` specifies whether tags that match the regex pattern are pruned. Set to `false` to prune tags that do not match. In this example, all tags except those that match `^test.` are pruned.
 +
-.Example output:
+.Example output
 [source,terminal]
 ----
 {"uuid": "b53d8d3f-2e73-40e7-96ff-736d372cd5ef"}
@@ -89,7 +90,7 @@ Alternatively, you can include the UUID:
 $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7
 ----
 +
-.Example output:
+.Example output
 [source,terminal]
 ----
 {"policies": [{"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7", "method": "number_of_tags", "value": 10}]}
@@ -102,7 +103,7 @@ $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.exam
 $ curl -X DELETE -H "Authorization: Bearer <access_token>" http://<quay-server.example.com>/api/v1/repository/<organization_name>/<repository_name>/autoprunepolicy/ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7
 ----
 +
-.Example output:
+.Example output
 [source,terminal]
 ----
 {"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7"}

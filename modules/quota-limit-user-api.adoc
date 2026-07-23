@@ -3,11 +3,14 @@
 [id="quota-limit-user-api"]
 = Obtaining quota limits for the user with the {productname} API
 
-You can specify quota and limitations for users so that, when exceeded, a warning is returned, or the pushed image is denied altogether.  Quota limits for users must be set on the {productname} UI. The following APIs can be used to view the quota limits for the user that is logged in. 
+[role="_abstract"]
+To view storage quota and limit policies for the logged-in user in {productname}, you can call the user quota API endpoints.
+
+Quota limits for users must be set on the {productname} UI. The following APIs return the quota limits for the user that is logged in.
 
 .Procedure
 
-. Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#listuserquota[`GET /api/v1/user/quota`] command to return information about the quota limitations:
+. Use the `GET /api/v1/user/quota` command to return information about the quota limitations:
 +
 [source,terminal]
 ----
@@ -16,13 +19,12 @@ $ curl -X GET "https://<quay-server.example.com>/api/v1/user/quota" \
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 [{"id": 4, "limit_bytes": 2199023255552, "limit": "2.0 TiB", "default_config": false, "limits": [], "default_config_exists": false}]
 ----
 
-. After you have received the quota ID, you can pass it in with the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getuserquota[`GET /api/v1/user/quota/{quota_id}`] endpoint to return information about the limitation:
+. After you have received the quota ID, pass it in with the `GET /api/v1/user/quota/{quota_id}` endpoint to return information about the limitation:
 +
 [source,terminal]
 ----
@@ -31,13 +33,12 @@ $ curl -X GET "https://<quay-server.example.com>/api/v1/user/quota/{quota_id}" \
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 {"id": 4, "limit_bytes": 2199023255552, "limit": "2.0 TiB", "default_config": false, "limits": [], "default_config_exists": false}
 ----
 
-. The limitations can be viewed by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#listuserquotalimit[`GET /api/v1/user/quota/{quota_id}/limit`] endpoint. For example:
+. View the limitations by using the `GET /api/v1/user/quota/{quota_id}/limit` endpoint. For example:
 +
 [source,terminal]
 ----
@@ -46,13 +47,12 @@ $ curl -X GET "https://<quay-server.example.com>/api/v1/user/quota/{quota_id}/li
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 [{"id": 3, "type": "Reject", "limit_percent": 100}]
 ----
 
-. Additional information about the entire policy can be returned using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getuserquotalimit[`GET /api/v1/user/quota/{quota_id}/limit/{limit_id}`] endpoint:
+. Return additional information about the entire policy by using the `GET /api/v1/user/quota/{quota_id}/limit/{limit_id}` endpoint:
 +
 [source,terminal]
 ----
@@ -61,9 +61,7 @@ $ curl -X GET "https://<quay-server.example.com>/api/v1/user/quota/{quota_id}/li
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 {"id": 4, "limit_bytes": 2199023255552, "limit": "2.0 TiB", "default_config": false, "limits": [{"id": 3, "type": "Reject", "limit_percent": 100}], "default_config_exists": false}
-
 ----

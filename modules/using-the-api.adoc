@@ -2,36 +2,42 @@
 [id="using-the-api"]
 = Using the {productname} API
 
+[role="_abstract"]
+To invoke {productname} API endpoints from the CLI, you can pass an OAuth 2 access token in a `curl` request. You can use `GET`, `PUT`, `POST`, or `DELETE` methods against the documented endpoints.
+
 After you have created an application and generated an OAuth 2 access token with the desired settings, you can pass in the access token to `GET`, `PUT`, `POST`, or `DELETE` settings by using the API from the CLI. Generally, a {productname} API command looks similar to the following example:
 
 [source,terminal]
 ----
-$ curl -X GET -H "Authorization: Bearer <your_access_token>" \ <1>
-    https://<quay-server.example.com>/api/v1/<example>/<endpoint>/ <2>
+$ curl -X GET -H "Authorization: Bearer <your_access_token>" \
+    https://<quay-server.example.com>/api/v1/<example>/<endpoint>/
 ----
-<1> The OAuth 2 access token that was generated through the {productname} UI.
-<2> The URL of your {productname} deployment and the desired API endpoint.
 
-All {productname} APIs are documented in the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#red_hat_quay_application_programming_interface_api[Application Programming Interface (API)] chapter. Understanding how they are documented is crucial to successful invocation. Take, for example, the following entry for the `createAppToken` API endpoint:
+Where:
+
+* `<your_access_token>` is the OAuth 2 access token that was generated through the {productname} UI.
+* The URL is your {productname} deployment and the desired API endpoint.
+
+All {productname} APIs are documented in the Application Programming Interface (API) chapter. Understanding how they are documented is crucial to successful invocation. Take, for example, the following entry for the `createAppToken` API endpoint:
 
 [source,text]
 ----
-*createAppToken* <1>
-Create a new app specific token for user. <2>
+*createAppToken*
+Create a new app specific token for user.
 
-*POST /api/v1/user/apptoken* <3>
+*POST /api/v1/user/apptoken*
 
-**Authorizations: **oauth2_implicit (**user:admin**) <4>
+**Authorizations: **oauth2_implicit (**user:admin**)
 
  Request body schema (application/json)
 
-*Path parameters* <5>
+*Path parameters*
 
 Name: **title**
 Description: Friendly name to help identify the token.
 Schema: string
 
-*Responses* <6>
+*Responses*
 
 |HTTP Code|Description             |Schema
 |201      |Successful creation     |
@@ -41,14 +47,17 @@ Schema: string
 |404      |Not found               |&lt;&lt;_apierror,ApiError&gt;&gt;
 |===
 ----
-<1> The name of the API endpoint.
-<2> A brief description of the API endpoint.
-<3> The API endpoint used for invocation.
-<4> The authorizations required to use the API endpoint.
-<5> The available paths to be used with the API endpoint. In this example, `title` is the only path to be used with the `POST /api/v1/user/apptoken` endpoint.
-<6> The API responses for this endpoint.
 
-In order to use an API endpoint, you pass in your access token and then include the appropriate fields depending on your needs. The following procedure shows you how to use the `POST /api/v1/user/apptoken` endpoint.
+Where:
+
+* `createAppToken` is the name of the API endpoint.
+* The second line is a brief description of the API endpoint.
+* `POST /api/v1/user/apptoken` is the API endpoint used for invocation.
+* The authorizations line lists the authorizations required to use the API endpoint.
+* The path parameters list the available paths to be used with the API endpoint. In this example, `title` is the only path to be used with the `POST /api/v1/user/apptoken` endpoint.
+* The responses list the API responses for this endpoint.
+
+To use an API endpoint, you pass in your access token and then include the appropriate fields depending on your needs. The following procedure shows you how to use the `POST /api/v1/user/apptoken` endpoint.
 
 .Prerequisites
 
@@ -56,24 +65,26 @@ In order to use an API endpoint, you pass in your access token and then include 
 
 .Procedure
 
-* Create a user application by entering the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#appspecifictokens[`POST /api/v1/user/apptoken`] API call:
+* Create a user application by entering the `POST /api/v1/user/apptoken` API call:
 +
 [source,terminal]
 ----
 $ curl -X POST \
-  -H "Authorization: Bearer <access_token>" <1>
+  -H "Authorization: Bearer <access_token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "MyAppToken" <2>
+    "title": "MyAppToken"
   }' \
-  "http://quay-server.example.com/api/v1/user/apptoken" <3>
+  "http://quay-server.example.com/api/v1/user/apptoken"
 ----
-<1> The Oauth access token.
-<2> The name of your application token.
-<3> The URL of your {productname} deployment appended with the `/api/v1/user/apptoken` endpoint.
++
+Where:
+
+* `<access_token>` is the OAuth access token.
+* `"MyAppToken"` is the name of your application token.
+* The URL is your {productname} deployment appended with the `/api/v1/user/apptoken` endpoint.
 +
 .Example output
-+
 [source,terminal]
 ----
 {"token": {"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null, "token_code": "string"}}

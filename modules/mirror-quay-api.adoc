@@ -1,8 +1,9 @@
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 [id="quay-mirror-api"]
 = Using the API to mirror a repository
 
-{productname} administrators can mirror external repositories by using the API.
+[role="_abstract"]
+To mirror an external repository into {productname}, you can create and manage a repository mirror configuration through the API. You can also sync, cancel, or update the configuration.
 
 .Prerequisites
 
@@ -10,7 +11,7 @@
 
 .Procedure
 
-* Create a new repository mirror configuration by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createrepomirrorconfig[`POST /api/v1/repository/{repository}/mirror`] endpoint:
+* Create a new repository mirror configuration by using the `POST /api/v1/repository/{repository}/mirror` endpoint:
 +
 [source,terminal]
 ----
@@ -33,7 +34,7 @@ $ curl -X POST "https://<quay-server.example.com>/api/v1/repository/<namespace>/
     }'
 ----
 
-* You can return information about the mirror configuration by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getrepomirrorconfig[`GET /api/v1/repository/{repository}/mirror`] endpoint:
+* Return information about the mirror configuration by using the `GET /api/v1/repository/{repository}/mirror` endpoint:
 +
 [source,terminal]
 ----
@@ -42,13 +43,12 @@ $ curl -X GET "https://<quay-server.example.com>/api/v1/repository/<namespace>/<
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 {"is_enabled": true, "mirror_type": "PULL", "external_reference": "https://quay.io/repository/argoproj/argocd", "external_registry_username": null, "external_registry_config": {}, "sync_interval": 86400, "sync_start_date": "2025-01-15T12:00:00Z", "sync_expiration_date": null, "sync_retries_remaining": 3, "sync_status": "NEVER_RUN", "root_rule": {"rule_kind": "tag_glob_csv", "rule_value": ["*.latest*"]}, "robot_username": "quayadmin+mirror_robot"}
 ----
 
-* You can use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#syncnow[`POST /api/v1/repository/{repository}/mirror/sync-now`] endpoint to sync the repositories. For example:
+* Sync the repositories by using the `POST /api/v1/repository/{repository}/mirror/sync-now` endpoint. For example:
 +
 [source,terminal]
 ----
@@ -58,16 +58,17 @@ $ curl -X POST "https://<quay-server.example.com>/api/v1/repository/<namespace>/
 +
 This command does not return output in the CLI.
 
-* Alternatively, you can cancel the sync with the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#synccancel[`POST /api/v1/repository/{repository}/mirror/sync-cancel`] endpoint.For example:
+* Cancel the sync with the `POST /api/v1/repository/{repository}/mirror/sync-cancel` endpoint. For example:
 +
 [source,terminal]
 ----
 $ curl -X POST "https://<quay-server.example.com>/api/v1/repository/<namespace>/<repo>/mirror/sync-cancel" \
+     -H "Authorization: Bearer <access_token>"
 ----
 +
 This command does not return output in the CLI.
 
-* After creating a mirror configuration, you can make changes with the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#changerepomirrorconfig[`PUT /api/v1/repository/{repository}/mirror`] command. For example, you might choose to disable automatic synchronizations:
+* After creating a mirror configuration, make changes with the `PUT /api/v1/repository/{repository}/mirror` command. For example, you might choose to disable automatic synchronizations:
 +
 [source,terminal]
 ----
@@ -75,7 +76,7 @@ $ curl -X PUT "https://<quay-server.example.com>/api/v1/repository/<namespace>/<
     -H "Authorization: Bearer <access_token>" \
     -H "Content-Type: application/json" \
     -d '{
-        "is_enabled": <false>, <1>
+        "is_enabled": <false>,
         "external_reference": "<external_reference>",
         "external_registry_username": "<external_registry_username>",
         "external_registry_password": "<external_registry_password>",
@@ -89,4 +90,7 @@ $ curl -X PUT "https://<quay-server.example.com>/api/v1/repository/<namespace>/<
         }
     }'
 ----
-<1> Disables automatic synchronization.
++
+Where:
++
+* `"is_enabled": <false>`: Disables automatic synchronization.
