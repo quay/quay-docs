@@ -2,49 +2,53 @@
 [id="automating-quay-using-the-api"]
 = Automating {productname} processes by using the API
 
-With the API, {productname} administrators and users with access to the API can automate repetitive tasks such as repository management or image pruning. 
+[role="_abstract"]
+To automate repetitive {productname} tasks such as repository management or image pruning, you can call the API from scripts and schedule them with cron.
+
+With the API, {productname} administrators and users with access to the API can automate repetitive tasks such as repository management or image pruning.
 
 The following example shows you how you might use a Python script and a cron job to automate the deletion of OAuth 2 applications _except_ the administrator's token. This might be useful if you want to ensure an application associated with an OAuth 2 access token is cycled after a certain period of time.
 
 .Prerequisites
 
 * You have access to the {productname} API, which entails having already created an OAuth 2 access token.
-* You have installed the Python `requests` library using.
+* You have installed the Python `requests` library.
 * You have enabled cron jobs on your machine.
-* You have created several organization applications, including one that will not be deleted.
+* You have created several organization applications, including one that you do not want to delete.
 
 .Procedure
 
-. Create a Python script that executes an API command. The following example is used to delete organization applications using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#deleteorganizationapplication[`DELETE /api/v1/organization/{orgname}/applications/{client_id}`] API endpoint.
+. Create a Python script that executes an API command. The following example deletes organization applications by using the `DELETE /api/v1/organization/{orgname}/applications/{client_id}` API endpoint.
 +
-.example.py file
+Create the following `example.py` file:
++
 [source,python]
 ----
-import requests <1>
+import requests
 
 # Hard-coded values
-API_BASE_URL = "http://<quay-server.example.com>/api/v1" <2>
-ACCESS_TOKEN = "<access_token>" <3>
-ORG_NAME = "<organization_name>" <4>
+API_BASE_URL = "http://<quay-server.example.com>/api/v1"
+ACCESS_TOKEN = "<access_token>"
+ORG_NAME = "<organization_name>"
 
 def get_all_organization_applications():
     url = f"{API_BASE_URL}/organization/{ORG_NAME}/applications"
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}"
     }
-    
+
     response = requests.get(url, headers=headers)
-    
+
     if response.status_code == 200:
         try:
             applications = response.json()
             # Print the raw response for debugging
             print("Raw response:", applications)
-            
+
             # Adjust parsing logic based on the response structure
             if isinstance(applications, dict) and 'applications' in applications:
                 applications = applications['applications']
-            
+
             if isinstance(applications, list):
                 print("Organization applications retrieved successfully:")
                 for app in applications:
@@ -66,9 +70,9 @@ def delete_organization_application(client_id):
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}"
     }
-    
+
     response = requests.delete(url, headers=headers)
-    
+
     if response.status_code == 204:
         print(f"Application {client_id} deleted successfully.")
     else:
@@ -77,7 +81,7 @@ def delete_organization_application(client_id):
 def main():
     applications = get_all_organization_applications()
     for app in applications:
-        if app['name'] != "<admin_token_app>": <5>  # Skip the "admin-token-app" 
+        if app['name'] != "<admin_token_app>":  # Skip the "admin-token-app"
             delete_organization_application(app['client_id'])
         else:
             print(f"Skipping deletion of application: {app['name']}")
@@ -85,27 +89,29 @@ def main():
 # Execute the main function
 main()
 ----
-<1> Includes the `import` library in your Python code.
-<2> The URL of your registry appended with `/api/v1`.
-<3> Your OAuth 2 access token.
-<4> The organization that holds the application.
-<5> The name of the application token to remain.
++
+Where:
++
+* `import requests` includes the `requests` library in your Python code.
+* `API_BASE_URL` is the URL of your registry appended with `/api/v1`.
+* `ACCESS_TOKEN` is your OAuth 2 access token.
+* `ORG_NAME` is the organization that holds the application.
+* `"<admin_token_app>"` is the name of the application token to remain.
 
 . Save the script as `prune_applications.py`.
 
 . Create a cron job that automatically runs the script:
-
++
 .. Open the crontab editor by running the following command:
 +
 [source,terminal]
 ----
 $ crontab -e
 ----
-
++
 .. In the editor, add the cron job for running the script. The following example runs the script once per month:
 +
 [source,text]
 ----
 0 0 1 * * sudo python /path/to/prune_images.py >> /var/log/prune_images.log 2>&1
 ----
-

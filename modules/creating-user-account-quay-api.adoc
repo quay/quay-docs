@@ -9,16 +9,16 @@
 = Creating a user account by using the {productname} API
 
 [role="_abstract"]
-To create a new user account in {productname}, you can use the API as a superuser.
+To create a user account in {productname} as a superuser, you can use the {productname} API.
 
 .Prerequisites
 
 * You are logged into your {productname} deployment as a superuser.
-* You have link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#creating-oauth-access-token[Created an OAuth access token].
+* You have created an OAuth access token.
 
 .Procedure
 
-. Enter the following command to create a new user using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createinstalluser[`POST /api/v1/superuser/users/`] endpoint:
+. Enter the following command to create a new user by using the `POST /api/v1/superuser/users/` endpoint:
 +
 [source,terminal]
 ----
@@ -28,14 +28,13 @@ $ curl -X POST -H "Authorization: Bearer <bearer_token>" -H "Content-Type: appli
 }' "https://<quay-server.example.com>/api/v1/superuser/users/"
 ----
 +
-Example output
-+
+.Example output
 [source,terminal]
 ----
 {"username": "newuser", "email": "newuser@example.com", "password": "123456789", "encrypted_password": "<example_encrypted_password>/JKY9pnDcsw="}
 ----
 
-. Navigate to your {productname} registry endpoint, for example, `quay-server.example.com` and login with the username and password generated from the API call. In this scenario, the username is `newuser` and the password is `123456789`. Alternatively, you can log in to the registry with the CLI. For example:
+. Navigate to your {productname} registry endpoint, for example, `quay-server.example.com` and log in with the username and password generated from the API call. In this scenario, the username is `newuser` and the password is `123456789`. Alternatively, you can log in to the registry with the CLI. For example:
 +
 [source,terminal]
 ----
@@ -49,7 +48,7 @@ username: newuser
 password: 123456789
 ----
 
-. Optional. You can obtain a list of all users, including superusers, by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#listallusers[`GET /api/v1/superuser/users/`] endpoint:
+. Optional. You can obtain a list of all users, including superusers, by using the `GET /api/v1/superuser/users/` endpoint:
 +
 [source,terminal]
 ----
@@ -61,8 +60,7 @@ $ curl -X GET -H "Authorization: Bearer <bearer_token>" "https://<quay-server.ex
 The `GET /api/v1/superuser/users/` endpoint only returns users and superusers if `AUTHENTICATION_TYPE: Database` is set in your `config.yaml` file. It does not work for `LDAP` authentication types.
 ====
 +
-Example output
-+
+.Example output
 [source,terminal]
 ----
 {"users": [{"kind": "user", "name": "quayadmin", "username": "quayadmin", "email": "quay@quay.com", "verified": true, "avatar": {"name": "quayadmin", "hash": "b28d563a6dc76b4431fc7b0524bbff6b810387dac86d9303874871839859c7cc", "color": "#17becf", "kind": "user"}, "super_user": true, "enabled": true}, {"kind": "user", "name": "newuser", "username": "newuser", "email": "newuser@example.com", "verified": true, "avatar": {"name": "newuser", "hash": "f338a2c83bfdde84abe2d3348994d70c34185a234cfbf32f9e323e3578e7e771", "color": "#9edae5", "kind": "user"}, "super_user": false, "enabled": true}]}

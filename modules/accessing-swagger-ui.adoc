@@ -2,16 +2,18 @@
 [id="accessing-swagger-ui"]
 = Accessing {productname} Swagger UI
 
-{productname} administrators and users can interacting with the API by using the Swagger UI-an interactive web interface that compiles executable commands. The Swagger UI can be launched as a container that points to your {productname} instance's API discovery endpoint (`/api/v1/discovery`). After deploying the container, you can access the Swagger UI, which loads the OpenAPI specification for {productname} from the specified URL. {productname} administrators and users can explore the available endpoints and their structure.
+[role="_abstract"]
+To explore and test {productname} API endpoints interactively, you can run the Swagger UI container against your registry API discovery endpoint.
 
-Use the following procedure to access the {productname} Swagger UI.
+{productname} administrators and users can interact with the API by using the Swagger UI, an interactive web interface that compiles executable commands. The Swagger UI can be launched as a container that points to your {productname} instance's API discovery endpoint (`/api/v1/discovery`). After deploying the container, you can access the Swagger UI, which loads the OpenAPI specification for {productname} from the specified URL. {productname} administrators and users can explore the available endpoints and their structure.
 
 .Prerequisites
+
 * You have set `BROWSER_API_CALLS_XHR_ONLY: false` in your `config.yaml` file.
 
 .Procedure
 
-. Enter the following command to deploy the Swagger UI container, pointing the URL to your {productname}'s API discovery endpoint. For example:
+. Enter the following command to deploy the Swagger UI container, pointing the URL to your {productname} API discovery endpoint. For example:
 +
 [source,terminal]
 ----
@@ -19,7 +21,6 @@ $ podman run -p 8080:8080 -e SWAGGER_JSON_URL=<quay-server.example.com> docker.s
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 ---
@@ -31,11 +32,11 @@ $ podman run -p 8080:8080 -e SWAGGER_JSON_URL=<quay-server.example.com> docker.s
 ---
 ----
 
-. Navigate to the `localhost` URL. In this example, it is *http://localhost:8080/*. 
+. Navigate to the `localhost` URL. In this example, the URL is *http://localhost:8080/*.
 
 . Use the Swagger UI to test various API endpoints. For example, to create a new token for a user, you can click the *POST /api/v1/user/apptoken* endpoint -> *Try it out* -> *Execute* to generate an example `curl` command.
 +
 [NOTE]
 ====
-Currently, server responses cannot be generated. This is because the Swagger UI is not set up to accept bearer tokens. As a result, the following error is returned for each command: `{"error": "CSRF token was invalid or missing."}`. As a workaround, you can copy this command into your terminal and manually add your bearer token, for example, `-H 'Authorization: Bearer <bearer_token>'`
+Currently, server responses cannot be generated. This is because the Swagger UI is not configured to accept bearer tokens. As a result, the following error is returned for each command: `{"error": "CSRF token was invalid or missing."}`. As a workaround, you can copy this command into your terminal and manually add your bearer token, for example, `-H 'Authorization: Bearer <bearer_token>'`.
 ====

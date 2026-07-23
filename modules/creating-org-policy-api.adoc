@@ -2,23 +2,24 @@
 [id="creating-org-policy-api"]
 = Creating an auto-prune policy for a namespace by using the {productname} API
 
-You can use {productname} API endpoints to manage auto-pruning policies for an namespace. 
+[role="_abstract"]
+To create, update, view, or delete an organization auto-prune policy in {productname}, you can use the organization autoprunepolicy API endpoints with an OAuth access token.
 
 .Prerequisites
 
-* You have created an OAuth access token. 
-* You have logged into {productname}. 
+* You have created an OAuth access token.
+* You have logged into {productname}.
 
-.Procedure 
+.Procedure
 
-. Enter the following link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createorganizationautoprunepolicy[`POST /api/v1/organization/{orgname}/autoprunepolicy/`] command create a new policy that limits the number of tags allowed in an organization:
+. Enter the following `POST /api/v1/organization/{orgname}/autoprunepolicy/` command to create a new policy that limits the number of tags allowed in an organization:
 +
 [source,terminal]
 ----
 $ curl -X POST -H "Authorization: Bearer <access_token>" -H "Content-Type: application/json" -d '{"method": "number_of_tags", "value": 10}' http://<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/
 ----
 +
-Alternatively, you can can set tags to expire for a specified time after their creation date:
+Alternatively, you can set tags to expire for a specified time after their creation date:
 +
 [source,terminal]
 ----
@@ -43,20 +44,22 @@ $ curl -X POST \
     "method": "creation_date",
     "value": "7d",
     "tagPattern": "^v*",
-    "tagPatternMatches": <true> <1>
+    "tagPatternMatches": true
   }' \
   "https://<quay-server.example.com>/api/v1/organization/<organization_name>/autoprunepolicy/"
 ----
-<1> Setting `tagPatternMatches` to `True` makes it so that tags that match the given regex pattern will be pruned. In this example, tags that match `^v*` are pruned.
++
+Where:
+
+* `tagPatternMatches` set to `true` prunes tags that match the given regex pattern. In this example, tags that match `^v*` are pruned.
 +
 .Example output
-+
 [source,terminal]
 ----
 {"uuid": "ebf7448b-93c3-4f14-bf2f-25aa6857c7b0"}
 ----
 
-. You can update your organization's auto-prune policy by using the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#updateorganizationautoprunepolicy[`PUT /api/v1/organization/{orgname}/autoprunepolicy/{policy_uuid}`] command. For example:
+. You can update your organization's auto-prune policy by using the `PUT /api/v1/organization/{orgname}/autoprunepolicy/{policy_uuid}` command. For example:
 +
 [source,terminal]
 ----
@@ -78,7 +81,6 @@ $ curl -X GET -H "Authorization: Bearer <access_token>" http://<quay-server.exam
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 {"policies": [{"uuid": "ebf7448b-93c3-4f14-bf2f-25aa6857c7b0", "method": "creation_date", "value": "4d", "tagPattern": "^v*", "tagPatternMatches": true}, {"uuid": "da4d0ad7-3c2d-4be8-af63-9c51f9a501bc", "method": "number_of_tags", "value": 10, "tagPattern": null, "tagPatternMatches": true}, {"uuid": "17b9fd96-1537-4462-a830-7f53b43f94c2", "method": "creation_date", "value": "7d", "tagPattern": "^v*", "tagPatternMatches": true}]}
