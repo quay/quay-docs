@@ -1,0 +1,208 @@
+:_mod-docs-content-type: REFERENCE
+[id="full-rhel-coverage"]
+= Selecting updater sets for full {rhel} coverage
+
+[role="_abstract"]
+You can select Clair updater sets to cover vulnerabilities in {rhel}. Use the `rhel`, `rhcc`, `clair.cvss`, and `osv` updater sets for full coverage.
+
+For full coverage of vulnerabilities in {rhel}, you must use the following updater sets:
+
+* `rhel`. This updater ensures that you have the latest information on the vulnerabilities that affect {rhel-short}.
+* `rhcc`. This updater keeps track of vulnerabilities related to Red Hat's container images.
+* `clair.cvss`. This updater offers a comprehensive view of the severity and risk assessment of vulnerabilities by providing Common Vulnerabilities and Exposures (CVE) scores.
+* `osv`. This updater focuses on tracking vulnerabilities in open-source software components. This updater is recommended due to how common the use of Java and Go are in {rhel-short} products.
+
+.{rhel-short} updaters example
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - rhel
+    - rhcc
+    - clair.cvss
+    - osv
+#...
+----
+[id="configuring-specific-updaters"]
+== Advanced updater configuration
+
+In some cases, users might want to configure updaters for specific behavior, for example, if you want to allowlist specific ecosystems for the Open Source Vulnerabilities (OSV) updaters.
+
+Advanced updater configuration might be useful for proxy deployments or air-gapped deployments. Configuration for specific updaters in these scenarios can be passed by putting a key underneath the `config` environment variable of the `updaters` object. Users should examine their Clair logs to double-check names.
+
+The following YAML snippets detail the various settings available to some Clair updaters.
+
+[IMPORTANT]
+====
+For most users, advanced updater configuration is unnecessary.
+====
+
+[id="configuring-clair-alpine"]
+== Configuring the alpine updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - alpine
+  config:
+    alpine:
+      url: https://secdb.alpinelinux.org/
+#...
+----
+
+[id="configuring-clair-debian"]
+== Configuring the debian updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - debian
+  config:
+    debian:
+      mirror_url: https://deb.debian.org/
+      json_url: https://security-tracker.debian.org/tracker/data/json
+#...
+----
+
+[id="configuring-clair-clair-cvss"]
+== Configuring the clair.cvss updater
+
+[source,yaml]
+----
+#...
+updaters:
+  config:
+    clair.cvss:
+      url: https://nvd.nist.gov/feeds/json/cve/1.1/
+#...
+----
+
+[id="configuring-clair-oracle"]
+== Configuring the oracle updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - oracle
+  config:
+    oracle-2023-updater:
+      url:
+        - https://linux.oracle.com/security/oval/com.oracle.elsa-2023.xml.bz2
+    oracle-2022-updater:
+      url:
+        - https://linux.oracle.com/security/oval/com.oracle.elsa-2022.xml.bz2
+#...
+----
+
+[id="configuring-clair-photon"]
+== Configuring the photon updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - photon
+  config:
+    photon:
+      url: https://packages.vmware.com/photon/photon_oval_definitions/
+#...
+----
+
+[id="configuring-clair-rhel"]
+== Configuring the rhel updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - rhel
+  config:
+    rhel:
+      url: https://access.redhat.com/security/data/oval/v2/PULP_MANIFEST
+      ignore_unpatched: true
+#...
+----
+
+`ignore_unpatched` is a Boolean that indicates whether to include information about vulnerabilities that do not have corresponding patches or updates available.
+
+[id="configuring-clair-rhcc"]
+== Configuring the rhcc updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - rhcc
+  config:
+    rhcc:
+      url: https://access.redhat.com/security/data/metrics/cvemap.xml
+#...
+----
+
+[id="configuring-clair-suse"]
+== Configuring the suse updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - suse
+  config:
+    suse:
+      url: https://support.novell.com/security/oval/
+#...
+----
+
+[id="configuring-clair-ubuntu"]
+== Configuring the ubuntu updater
+
+[source,yaml]
+----
+#...
+updaters:
+  config:
+    ubuntu:
+      url: https://api.launchpad.net/1.0/
+      name: ubuntu
+      force:
+        - name: focal
+          version: 20.04
+#...
+----
+
+where:
+
+`updaters.config.ubuntu.force`:: Specifies the inclusion of specific distribution and version details in the resulting UpdaterSet, regardless of their status in the API response. Useful when you want to ensure that particular distributions and versions are consistently included in your updater configuration.
+`updaters.config.ubuntu.force.name`:: Specifies the distribution name that you want to force to be included in the UpdaterSet.
+`updaters.config.ubuntu.force.version`:: Specifies the version of the distribution you want to force into the UpdaterSet.
+
+[id="configuring-clair-osv"]
+== Configuring the osv updater
+
+[source,yaml]
+----
+#...
+updaters:
+  sets:
+    - osv
+  config:
+    osv:
+      url: https://osv-vulnerabilities.storage.googleapis.com/
+      allowlist:
+        - npm
+        - pypi
+#...
+----
+
+`allowlist` is the list of ecosystems to allow. When left unset, all ecosystems are allowed. Must be lowercase.
