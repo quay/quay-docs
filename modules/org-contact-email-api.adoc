@@ -1,0 +1,117 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="org-contact-email-api-change"]
+= Managing organization contact email with the API
+
+[role="_abstract"]
+Use the organization contact email setting to configure where automated system alerts are sent for an organization. The `contact_email` field allows multiple organizations to share the same notification address without requiring separate user accounts for each team.
+
+[NOTE]
+====
+In the {productname} web UI, the `contact_email` field is labeled as **Organization creation: "Email (Optional)"** and **Organization Settings page: "Email"**.
+====
+
+The organization `contact_email` field has the following properties:
+
+* Receives namespace-level notifications (such as quota warnings and quota errors), billing and payment alerts (invoices, payment failures), and organization account recovery emails.
+* Can be shared across multiple organizations (useful for team distribution lists).
+* An optional setting; if left empty, notifications default to organization owners.
+
+[NOTE]
+====
+By default, an organization contact email cannot match any existing user account email in the system during organization creation. This restriction is enforced by the backend when `FEATURE_ORG_SHARED_EMAIL` is set to `false` (the default setting). When disabled, an organization email cannot match any existing user account email in the system during organization creation. 
+
+Enabling `FEATURE_ORG_SHARED_EMAIL: true` in your `config.yaml` removes this restriction, allowing organization emails to share an address with user accounts.
+====
+
+[NOTE]
+====
+For `POST` and `PUT` requests, the API accepts both `email` and `contact_email` fields. When both are provided, `contact_email` takes precedence. The `email` field is retained for backward compatibility, but new integrations should use `contact_email`.
+====
+
+.Prerequisites
+
+* You have link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token[Created an OAuth access token].
+* You have organization administrator permissions.
+
+.Procedure
+
+* To retrieve the current email configured for an organization, use the following `GET /api/v1/organization/{orgname}` endpoint:
++
+[source,terminal]
+----
+$ curl -X GET \
+-H "Authorization: Bearer <bearer_token>" \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----
++
+.Example response
+[source,json]
+----
+{
+  "name": "engineering",
+  "email": "team-notifications@example.com",
+  "is_admin": true
+}
+----
++
+When an email address is not configured, the API response returns `"email": ""`.
+
+* To set the contact email when creating an organization, pass the `contact_email` field by using the `POST /api/v1/organization/` endpoint:
++
+[source,terminal]
+----
+$ curl -X POST \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+-d '{"name": "engineering", "contact_email": "team-alerts@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/"
+----
+
+* To update the contact email for an existing organization, use the `PUT /api/v1/organization/{orgname}` endpoint:
++
+[source,terminal]
+----
+$ curl -X PUT \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+-d '{"contact_email": "new-team-alerts@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+* To remove the contact email, set `contact_email` to `null` or `""` (empty string). System notifications default to organization owners:
++
+[source,terminal]
+----
+$ curl -X PUT \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+-d '{"contact_email": ""}' \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----
+
+* Multiple organizations can share the same notification address (for example, a team distribution list):
++
+[source,terminal]
+----
+$ curl -X PUT -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+-d '{"email": "devops-team@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/engineering"
+----
++
+[source,terminal]
+----
+$ curl -X PUT -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+-d '{"email": "devops-team@example.com"}' \
+"https://<quay-server.example.com>/api/v1/organization/qa-team"
+----
++
+[NOTE]
+====
+Sharing an email address across multiple **organizations** is permitted by default. However, attempting to set an organization email to an address already registered to an existing **user account** returns `Email has already been used: <email_name>@example.com`. 
+
+To allow organizations to share email addresses with user accounts, set `FEATURE_ORG_SHARED_EMAIL: true` in your `config.yaml`.
+====
