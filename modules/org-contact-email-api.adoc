@@ -22,9 +22,9 @@ The organization `contact_email` field has the following properties:
 
 [NOTE]
 ====
-By default, an organization contact email cannot match any existing user account email in the system during organization creation. This restriction is enforced by the backend when `FEATURE_ORG_SHARED_EMAIL` is set to `false` (the default setting). When disabled, an organization email cannot match any existing user account email in the system during organization creation. 
+When `FEATURE_ORG_SHARED_EMAIL: false`, {productname} enforces email uniqueness by default so that the same address cannot be used by more than one user or organization entity. This is a backend restriction and not a UI-only rule. It applies during organization creation only, not when you later update an organization contact email. At creation time, the organization contact email cannot match any existing user account email in the system.
 
-Enabling `FEATURE_ORG_SHARED_EMAIL: true` in your `config.yaml` removes this restriction, allowing organization emails to share an address with user accounts.
+When you set `FEATURE_ORG_SHARED_EMAIL: true` in your `config.yaml` file, the same email address can be shared across multiple organizations and with at most one user account.
 ====
 
 [NOTE]
@@ -111,7 +111,7 @@ $ curl -X PUT -H "Authorization: Bearer <token>" -H "Content-Type: application/j
 +
 [NOTE]
 ====
-Sharing an email address across multiple **organizations** is permitted by default. However, attempting to set an organization email to an address already registered to an existing **user account** returns `Email has already been used: <email_name>@example.com`. 
+With the default setting (`FEATURE_ORG_SHARED_EMAIL: false`), attempting to set an organization email to an address already registered to a user account returns `Email has already been used: <email>`.
 
-To allow organizations to share email addresses with user accounts, set `FEATURE_ORG_SHARED_EMAIL: true` in your `config.yaml`.
+To allow the same email address to be shared across multiple organizations and with at most one user account, set `FEATURE_ORG_SHARED_EMAIL: true` in your `config.yaml` file.
 ====
