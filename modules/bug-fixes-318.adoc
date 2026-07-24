@@ -5,6 +5,141 @@
 [role="_abstract"]
 You can review bug fixes included in {productname} 3.18.
 
-{productname} 3.18 fixes the following issues:
+The following issues were fixed with {productname} 3.18.
 
-* link:https://issues.redhat.com/browse/PROJQUAY-[*PROJQUAY-*]. Previously,
+[NOTE]
+====
+Not all bug fixes included in the link:https://access.redhat.com/errata/[RHSA-TBD] advisory are documented here. Many of the bugs included in the advisory were found and resolved when testing new features included as part of this release.
+====
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10504[*PROJQUAY-10504*]. Previously, deleting a manifest by digest could silently skip immutable tags and remove the underlying manifest, bypassing tag immutability protections that correctly blocked deletion by tag name.
++
+With this release, digest-based manifest deletion respects immutable tags and blocks the operation when immutability applies.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11952[*PROJQUAY-11952*]. Previously, session timeout and related settings such as `SESSION_TIMEOUT`, `FEATURE_PERMANENT_SESSIONS`, and `FRESH_LOGIN_TIMEOUT` were not applied correctly, so sessions could remain active longer than configured.
++
+With this release, {productname} honors the configured session timeout values.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-8440[*PROJQUAY-8440*]. Previously, pulling an image that was already present in the organization proxy cache still required the upstream registry to be reachable. If the upstream registry was unavailable, cached pulls could fail.
++
+With this release, cached images can be served from the proxy cache without requiring upstream registry availability.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11119[*PROJQUAY-11119*]. Previously, organization proxy cache configuration failed when `FEATURE_IMMUTABLE_TAGS` was not enabled, even though the default value of that feature is `false`.
++
+With this release, organization proxy cache works when `FEATURE_IMMUTABLE_TAGS` is disabled.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10575[*PROJQUAY-10575*]. Previously, canceling repository mirroring produced incomplete or null log messages.
++
+With this release, canceling a repository mirror logs a clear result.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10798[*PROJQUAY-10798*]. Previously, canceling an organization mirror sync could generate an endless stream of `Organization mirror sync failed - Sync cancelled` log messages.
++
+With this release, canceling an organization mirror no longer floods logs with repeated cancellation messages.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11382[*PROJQUAY-11382*]. Previously, deleting an organization mirror configuration left mirrored repositories stuck in the `ORG_MIRROR` state, which blocked pushes to those repositories.
++
+With this release, deleting the organization mirror configuration restores repositories so that users can push again.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11891[*PROJQUAY-11891*]. Previously, you could not delete an organization that was configured for organization mirroring because of a database error.
++
+With this release, you can remove organizations that have organization mirror configurations.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11027[*PROJQUAY-11027*]. Previously, using *Cancel Sync* for an organization mirror cleared the *Next Sync Date* value and prevented updating the mirror configuration to sync again.
++
+With this release, canceling a sync preserves the schedule so that you can update the configuration and resume mirroring.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11347[*PROJQUAY-11347*]. Previously, changing a repository mirror tag pattern required re-entering credentials for private upstream repositories. Saving without re-entering credentials could clear stored credentials and cause the next sync to fail with an authorization error.
++
+With this release, updating the tag pattern retains existing credentials unless you explicitly change them.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11478[*PROJQUAY-11478*]. Previously, the new UI blocked creating a proxy cache configuration even when organization mirroring was not enabled in `config.yaml`.
++
+With this release, you can create proxy cache configurations when organization mirroring is disabled.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11515[*PROJQUAY-11515*]. Previously, the API allowed creating a proxy cache configuration on an organization that was already managed by organization mirroring, even though the UI hid that option.
++
+With this release, the API rejects proxy cache creation for organizations that are in the organization mirror state.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11077[*PROJQUAY-11077*]. Previously, OIDC login redirects failed when {productname} was exposed on a non-standard HTTP or HTTPS port because nginx forwarded only the hostname without the port.
++
+With this release, OIDC redirects include the configured port and complete successfully.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11319[*PROJQUAY-11319*]. Previously, OCI images with no history entries in the image config caused an `AttributeError` in layer processing, so the manifest API returned `404` and tag sizes were missing in the UI.
++
+With this release, OCI images without history are handled correctly.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11637[*PROJQUAY-11637*]. Previously, lazy loading of OCI indexes failed when the index included Docker v2 schema 2 images, which the OCI specification allows.
++
+With this release, OCI indexes that contain Docker v2 schema 2 manifests load successfully.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-10934[*PROJQUAY-10934*]. Previously, repository cache entries were not invalidated when a repository was deleted, which could leave stale cache data.
++
+With this release, deleting a repository invalidates the related cache entries.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11288[*PROJQUAY-11288*]. Previously, nginx returned HTTP `404` instead of `502` when the backend was unavailable because a custom `502` error page was missing.
++
+With this release, unavailable backends return the expected `502` response.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11331[*PROJQUAY-11331*]. Previously, a malformed struct tag on `DistributedStorageArgs.Signature` in the config tool broke storage configuration serialization.
++
+With this release, storage configuration that uses signature settings serializes correctly.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11486[*PROJQUAY-11486*]. Previously, the configuration validator did not properly validate S3 URLs.
++
+With this release, invalid S3 URLs are rejected during configuration validation.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11524[*PROJQUAY-11524*]. Previously, a race condition during initial database setup could cause intermittent startup failures.
++
+With this release, initial database setup completes reliably.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11851[*PROJQUAY-11851*]. Previously, an RBAC denial on `apiservers.config.openshift.io` could block the entire {productname} Operator deployment on {ocp}.
++
+With this release, the Operator no longer requires that permission to complete deployment.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11852[*PROJQUAY-11852*]. Previously, the Operator could panic when processing an invalid configuration.
++
+With this release, invalid configurations are handled without panicking.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11501[*PROJQUAY-11501*]. Previously, the Operator rejected `PULL_METRICS_REDIS` in the config bundle secret when Redis was Operator-managed after the config-tool migration.
++
+With this release, `PULL_METRICS_REDIS` is accepted in that configuration.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11549[*PROJQUAY-11549*]. Previously, external TLS `secretRef` configuration did not validate that the certificate matched `SERVER_HOSTNAME`.
++
+With this release, the Operator validates that the external TLS certificate covers `SERVER_HOSTNAME`.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12322[*PROJQUAY-12322*]. Previously, the Modern TLS profile could pass TLS 1.3 cipher suites to the nginx `ssl_ciphers` directive, which caused nginx to crash.
++
+With this release, TLS 1.3 ciphers are not passed to `ssl_ciphers`, and nginx starts successfully with the Modern TLS profile.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-9157[*PROJQUAY-9157*]. Previously, pods could fail with `MountVolume.SetUp failed for volume "config"` in some configuration mount scenarios.
++
+With this release, the config volume mounts correctly.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12230[*PROJQUAY-12230*]. Previously, quota warning and error notifications failed with `TypeError: Decimal is not JSON serializable`, so quota notifications were silently dropped.
++
+With this release, quota notification payloads serialize correctly and notifications are delivered.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12233[*PROJQUAY-12233*]. Previously, global readonly superusers were blocked from reading organization namespace notification GET endpoints when `FEATURE_SUPERUSERS_FULL_ACCESS` was enabled.
++
+With this release, global readonly superusers can read namespace notifications.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11678[*PROJQUAY-11678*]. Previously, the Superuser Build Logs page in the new UI returned HTTP `500` because of a logic error in `BuildTrigger.to_dict()`.
++
+With this release, looking up build logs by UUID succeeds without a server error.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11930[*PROJQUAY-11930*]. Previously, the Superuser Build Logs page in the new UI showed *No logs available* for archived builds that still had valid logs in object storage.
++
+With this release, archived build logs display correctly in the new UI.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11158[*PROJQUAY-11158*]. Previously, the *Auto-Prune Policies* tab was missing for user namespace organizations in the UI.
++
+With this release, the *Auto-Prune Policies* tab is available for user organizations again.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-9695[*PROJQUAY-9695*]. Previously, the log rotate worker stopped working after upgrading to {productname} 3.15.
++
+With this release, the log rotate worker runs correctly after upgrade.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12197[*PROJQUAY-12197*]. Previously, Clair could fail to pull the upstream vulnerability database, which prevented vulnerability reports for scanned images.
++
+With this release, Clair can update its vulnerability database from upstream sources.
