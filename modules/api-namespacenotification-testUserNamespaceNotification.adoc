@@ -1,14 +1,14 @@
 :_mod-docs-content-type: REFERENCE
 
-= getOrgNotification
+= testUserNamespaceNotification
 
 
 [discrete]
-== GET /api/v1/organization/{orgname}/notifications/{uuid} 
+== POST /api/v1/user/namespacenotifications/{uuid}/test
 
 
 
-**Authorizations: **oauth2_implicit (**org:admin** or global read-only **superuser**)
+**Authorizations: **oauth2_implicit (**user:admin**)
 
 
 [discrete]
@@ -17,10 +17,8 @@
 [options="header", width=100%, cols=".^2a,.^3a,.^9a,.^4a"]
 |===
 |Type|Name|Description|Schema
-|path|**orgname** +
-_required_|The name of the organization|string
 |path|**uuid** +
-_required_|The UUID of the notification|string
+_required_|The uuid of the notification|string
 |===
 
 
@@ -42,10 +40,9 @@ _required_|The UUID of the notification|string
 
 [source,terminal]
 ----
-$ curl -X GET \
+$ curl -X POST \
 -H "Authorization: Bearer <bearer_token>" \
--H "Accept: application/json" \
-https://<quay-server.example.com>/api/v1/organization/<orgname>/notifications/<uuid>
+https://<quay-server.example.com>/api/v1/user/namespacenotifications/<uuid>/test
 ----
 
 [discrete]
@@ -53,17 +50,10 @@ https://<quay-server.example.com>/api/v1/organization/<orgname>/notifications/<u
 
 [source,json]
 ----
-{
-"notifications": [
-    {
-    "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "title": "Quota Warning Alert",
-    "event": "quota_warning",
-    "method": "email",
-    "config": {},
-    "event_config": {},
-    "number_of_failures": 0
-    }
-]
-}
+{}
 ----
+
+[NOTE]
+====
+For *email* notifications, the test notification is routed to the user account email address. For other methods such as Slack or webhook, routing follows the notification `config`.
+====
