@@ -1,0 +1,62 @@
+:_mod-docs-content-type: REFERENCE
+
+
+= getSuperUserRepositoryMirrorHealth
+Return a global repository mirror health summary for superusers.
+
+[discrete]
+== GET /api/v1/superuser/mirror/health
+
+**Authorizations:** oauth2_implicit (**super:user**)
+
+Returns HTTP `200` when mirroring is healthy and HTTP `503` when unhealthy.
+
+This endpoint requires a fresh login. A validated OAuth or SSO token satisfies the check. A password-based browser session must be within `FRESH_LOGIN_TIMEOUT` (default: `10m`).
+
+The response is a cluster-wide summary without repository-identifying issue samples. For namespace-scoped details, use `GET /api/v1/repository/mirror/health?namespace=<orgname>&detailed=true`. See link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getrepositorymirrorhealth[getRepositoryMirrorHealth].
+
+[discrete]
+== Responses
+
+[options="header", width=100%, cols=".^2a,.^14a,.^4a"]
+|===
+|HTTP Code|Description|Schema
+|200|Mirroring is healthy|object
+|401|Session required|&lt;&lt;_apierror,ApiError&gt;&gt;
+|403|Unauthorized access|&lt;&lt;_apierror,ApiError&gt;&gt;
+|503|Mirroring is unhealthy|object
+|===
+
+[discrete]
+== Example command
+
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/superuser/mirror/health" \
+     -H "Authorization: Bearer <access_token>"
+----
+
+Substitute an OAuth access token that includes the `super:user` scope, or use a fresh superuser login session.
+
+.Example output
+[source,json]
+----
+{
+  "healthy": true,
+  "workers": {
+    "active": 1,
+    "configured": 1,
+    "status": "healthy"
+  },
+  "repositories": {
+    "total": 0,
+    "syncing": 0,
+    "completed": 0,
+    "failed": 0,
+    "never_run": 0
+  },
+  "tags_pending": 0,
+  "last_check": "2026-07-16T20:11:17.064697Z",
+  "issues": []
+}
+----

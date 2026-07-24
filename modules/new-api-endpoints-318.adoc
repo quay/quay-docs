@@ -37,3 +37,18 @@ For API schemas and examples, see link:https://docs.redhat.com/en/documentation/
 When `FEATURE_PROGRAMMATIC_BOOTSTRAP` is enabled, `POST /api/v1/bootstrap/renew` rotates the bootstrap OAuth token. The new token is written to the configured filesystem path or {kubernetes} Secret, and the previous token is invalidated immediately. The response is `{"status": "rotated"}`.
 
 For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#renewbootstraptoken[renewBootstrapToken] and link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/manage_red_hat_quay/index#renewing-bootstrap-token[Renewing the bootstrap token].
+The following API endpoints were added in {productname} 3.18.
+
+[id="repository-mirror-health-api"]
+== Repository mirror health API endpoints
+
+New health endpoints report the status of repository mirroring operations, including worker availability, repository sync counts, and detected issues. Both require a fresh login. Global queries without a namespace require superuser access; namespace-scoped queries require organization membership or user-admin permission for that namespace.
+
+|===
+| Name | Description | Schema
+
+| *getRepositoryMirrorHealth* | Return health status for repository mirroring operations. Optional `namespace` and `detailed` query parameters. Returns HTTP `200` when healthy and HTTP `503` when unhealthy. | object
+| *getSuperUserRepositoryMirrorHealth* | Return a global mirror health summary for superusers without repository-identifying samples. Returns HTTP `200` when healthy and HTTP `503` when unhealthy. | object
+|===
+
+See link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getrepositorymirrorhealth[getRepositoryMirrorHealth] and link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getsuperuserrepositorymirrorhealth[getSuperUserRepositoryMirrorHealth] for more information, including example commands.
