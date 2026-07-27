@@ -1,0 +1,42 @@
+:_mod-docs-content-type: PROCEDURE
+[id="using-api-endpoint"]
+= Using a {productname} API endpoint
+
+To use an API endpoint, you pass in your access token and then include the appropriate fields depending on your needs. The following procedure shows you how to use the `POST /api/v1/user/apptoken` endpoint.
+
+.Prerequisites
+
+* You have access to the {productname} API, which entails having already created an OAuth 2 access token.
+
+.Procedure
+
+* Create a user application by entering the `POST /api/v1/user/apptoken` API call:
++
+[source,terminal]
+----
+$ curl -X POST \
+  -H "Authorization: Bearer <access_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "MyAppToken"
+  }' \
+  "http://quay-server.example.com/api/v1/user/apptoken"
+----
++
+where:
+
+`<access_token>`:: Specifies the OAuth access token.
+`"MyAppToken"`:: Specifies the name of your application token.
+`http://quay-server.example.com/api/v1/user/apptoken`:: Specifies your {productname} deployment appended with the `/api/v1/user/apptoken` endpoint.
++
+.Example output
+[source,terminal]
+----
+{"token": {"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null, "token_code": "string"}}
+----
+
+.Verification
+
+* On the {productname} UI, click your username in the navigation pane -> *Account Settings*. The name of your application appears under the *Docker CLI and other Application Tokens* heading. For example:
++
+image::application-token.png[Application token]

@@ -16,7 +16,9 @@ The following procedure assumes that you are running the {productname} registry 
 
 .Procedure
 
-. On System B and System C, scale down your {productname} registry. This is done by disabling auto scaling and overriding the replica county for {productname}, mirror workers, and Clair if it is managed. Use the following `quayregistry.yaml` file as a reference:
+. On System B and System C, scale down your {productname} registry. This is done by disabling auto scaling and overriding the replica county for {productname}, mirror workers, and Clair if it is managed. Note that you must keep the {productname} registry running on System A. Do not update the `quayregistry.yaml` file on System A.
++ 
+Use the following `quayregistry.yaml` file as a reference:
 +
 [source,yaml]
 ----
@@ -45,17 +47,11 @@ spec:
     …
 ----
 +
---
 where:
 
-`managed: false::` Disables auto scaling of `Quay`, `Clair` and `Mirroring` workers
-`overrides::` Sets the replica count to 0 for components accessing the database and objectstorage
---
-+
-[NOTE]
-====
-You must keep the {productname} registry running on System A. Do not update the `quayregistry.yaml` file on System A.
-====
+`managed: false`:: Disables auto scaling of `Quay`, `Clair` and `Mirroring` workers
+
+`overrides`:: Sets the replica count to 0 for components accessing the database and objectstorage
 
 . Wait for the `registry-quay-app`, `registry-quay-mirror`, and `registry-clair-app` pods to disappear. Enter the following command to check their status:
 +
