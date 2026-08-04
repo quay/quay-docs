@@ -1,0 +1,36 @@
+// Module included in the following assemblies:
+//
+// * quay_jtbd/plan/plan-a-high-availability-quay-deployment.adoc
+
+:_mod-docs-content-type: CONCEPT
+[id="quay-ha-plan-requirements"]
+= High availability infrastructure requirements
+
+[role="_abstract"]
+High availability {productname} deployments need a shared database, highly available object storage, a load balancer, and multiple registry hosts. You can use these requirements to design a resilient topology before you install.
+
+[IMPORTANT]
+====
+The {productname} configuration tool is unsupported for standalone high availability deployments. Create and maintain the `config.yaml` file manually. For configuration fields, see the Configure {productname} documentation.
+====
+
+Plan for the following supporting infrastructure:
+
+Database::
+Use PostgreSQL for production HA deployments when you need Clair vulnerability scanning. You can use an existing HA database that meets the {productname} support policy, or a supported PostgreSQL Operator offering from a vendor such as Crunchy Data when you have a support relationship with that vendor. MySQL can run the registry database but does not provide the Clair features that PostgreSQL does.
+
+Object storage::
+Provide highly available object storage for image blobs. Local storage is not suitable for HA or geo-replication. Supported options include Ceph Object Gateway (RADOS Gateway), Amazon S3, Azure Blob Storage, Google Cloud Storage, OpenStack Swift, CloudFront with S3, and NooBaa S3 storage.
+
+Load balancer::
+Place a load balancer in front of the {productname} application nodes. HAProxy is a common example; you can use any proxy that fits your environment.
+
+Registry and Redis hosts::
+Run {productname} and Redis on multiple systems so that you can lose a node without losing the registry service. A typical planning model uses three or more hosts for Quay and Redis, separate capacity for the database and load balancer tier, and a dedicated HA storage cluster or cloud object storage.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html-single/configure_red_hat_quay/index[Configure {productname}]
+* link:https://access.redhat.com/support/policy/updates/rhquay/policies[{productname} Support Policy]
+* link:https://access.redhat.com/solutions/3680151[S3 IAM Bucket Policy]

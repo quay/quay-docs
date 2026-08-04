@@ -1,0 +1,60 @@
+// Module included in the following assemblies:
+//
+// * quay_jtbd/get_started/push-and-pull-your-first-image.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="pushing-pulling-first-image"]
+= Pushing and pulling your first image
+
+[role="_abstract"]
+To push and pull your first container image in {productname}, you can log in with Podman, tag a sample image, and push it to a repository that you own.
+
+.Prerequisites
+
+* You can log in to your {productname} or {quayio} registry as a user.
+* You have a repository where you can push images, or you can create one by pushing to a new repository path.
+
+.Procedure
+
+. Log in to your registry:
++
+[source,terminal]
+----
+$ podman login <quay-server.example.com>
+----
++
+Replace `<quay-server.example.com>` with your registry hostname, for example, `quay.io` or your Operator registry endpoint.
++
+For standalone proof-of-concept registries that use self-signed certificates, you might need `--tls-verify=false`.
+
+. Pull a sample image from an external registry:
++
+[source,terminal]
+----
+$ podman pull busybox
+----
+
+. Tag the image for your registry namespace and repository:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay-server.example.com>/<namespace>/<repository>:test
+----
++
+Replace `<namespace>` with your user or organization name and `<repository>` with the repository name.
+
+. Push the image to your registry:
++
+[source,terminal]
+----
+$ podman push <quay-server.example.com>/<namespace>/<repository>:test
+----
++
+For standalone proof-of-concept registries that use self-signed certificates, you might need `--tls-verify=false`.
+
+. Pull the image from your registry to confirm that the push succeeded:
++
+[source,terminal]
+----
+$ podman pull <quay-server.example.com>/<namespace>/<repository>:test
+----

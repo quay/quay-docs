@@ -8,25 +8,18 @@
 The following are the requirements and constraints for geo-replication:
 
 * In geo-replicated setups, {productname} requires that all regions are able to read and write to all other regions' object storage. Object storage must be geographically accessible by all other regions.
-* In case of an object storage system failure of one geo-replicating site, that site's {productname} deployment must be shut down so that clients are redirected to the remaining site with intact storage systems by a global load balancer. Otherwise, clients experience pull and push failures.
-* {productname} has no internal awareness of the health or availability of the connected object storage system. Users must configure a global load balancer (LB) to monitor the health of your distributed system and to route traffic to different sites based on their storage status.
-* To check the status of your geo-replication deployment, you must use the `/health/endtoend` checkpoint, which is used for global health monitoring. You must configure the redirect manually using the `/health/endtoend` endpoint. The `/health/instance` endpoint only checks local instance health.
-* If the object storage system of one site becomes unavailable, geo-replication does not automatically redirect to the remaining storage system, or systems, of the remaining site, or sites.
-* Geo-replication is asynchronous. The permanent loss of a site incurs the loss of the data that has been saved in that site's object storage system but has not yet been replicated to the remaining sites at the time of failure.
-* A single database, and therefore all metadata and {productname} configuration, is shared across all regions.
-+
-Geo-replication does not replicate the database. In the event of an outage, {productname} with geo-replication enabled does not fail over to another database.
-* A single Redis cache is shared across the entire {productname} setup and needs to be accessible by all {productname} pods.
-* The exact same configuration should be used across all regions, with exception of the storage backend, which can be configured explicitly using the `QUAY_DISTRIBUTED_STORAGE_PREFERENCE` environment variable.
+* {productname} has no internal awareness of object storage health. Plan a global load balancer that monitors site and storage health and redirects clients when a site must be taken offline.
+* Geo-replication does not automatically fail over object storage. If one site's storage is unavailable, you must shut down that site's {productname} deployment so the load balancer can send clients to healthy sites. Otherwise, clients experience pull and push failures.
+* Geo-replication is asynchronous. Permanent loss of a site can lose blobs that were stored there but not yet replicated.
+* A single database, and therefore all metadata and {productname} configuration, is shared across all regions. Geo-replication does not replicate the database and does not fail over to another database.
+* A single Redis cache is shared across the entire {productname} setup and must be accessible by all {productname} pods.
+* Use the same configuration across regions, except for the preferred storage backend per region.
 * Geo-replication requires object storage in each region. It does not work with local storage.
-* Each region must be able to access every storage engine in each region, which requires a network path.
-* Alternatively, the storage proxy option can be used.
-* The entire storage backend, for example, all blobs, is replicated. Repository mirroring, by contrast, can be limited to a repository, or an image.
+* Each region must be able to access every storage engine in each region, which requires a network path. A storage proxy is an alternative when direct paths are not practical.
+* The entire storage backend, for example, all blobs, is replicated. Repository mirroring, by contrast, can be limited to a repository or an image.
 * All {productname} instances must share the same entrypoint, typically through a load balancer.
 * All {productname} instances must have the same set of superusers, as they are defined inside the common configuration file.
-* In geo-replication environments, your Clair configuration can be set to `unmanaged`. An unmanaged Clair database allows the {productname} Operator to work in a geo-replicated environment where multiple instances of the Operator must communicate with the same database.
-+
-If you keep your Clair configuration `managed`, you must retrieve the configuration file for the deployed Clair instance that the Operator deploys.
+* For Operator-based geo-replication, plan a shared Clair database (typically an unmanaged Clair database) so every region uses the same vulnerability data store.
 * Geo-replication requires SSL/TLS certificates and keys.
 
 If the above requirements cannot be met, you should instead use two or more distinct {productname} deployments and take advantage of repository mirroring functions.

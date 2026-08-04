@@ -5,11 +5,11 @@
 [role="_abstract"]
 The {productname} database backend stores registry metadata such as users, organizations, images, and tags. PostgreSQL is the preferred database for {productname} and Clair.
 
-{productname} stores all of its configuration information in the `config.yaml` file. Logs can be pushed to ElasticSearch and Splunk if required.
-
 Support for MySQL and MariaDB as the database backend is deprecated since the {productname} 3.6 release and is planned for removal. Until then, MySQL remains supported according to the support matrix, but does not receive additional features or explicit testing coverage. The {productname} Operator supports only PostgreSQL deployments when the database is managed. If you want to use MySQL, you must deploy it manually and set the database component to `managed: false`.
 
-Deploying {productname} in a highly available (HA) configuration requires that your database services are provisioned for high availability. If {productname} is running on public cloud infrastructure, use the PostgreSQL services that your cloud provider offers; MySQL is also supported.
+Deploying {productname} in a highly available (HA) configuration requires that your database services are provisioned for high availability. If {productname} is running on public cloud infrastructure, use the PostgreSQL services that your cloud provider offers; MySQL is also supported. PostgreSQL includes the features needed to support Clair security scanning; MySQL can run the registry database but does not provide the Clair features that PostgreSQL does.
+
+When you use Clair vulnerability scanning, plan a separate PostgreSQL database for Clair. Do not use the same PostgreSQL database for both {productname} and Clair. The Operator can manage a Clair database (`clairpostgres`), or you can provision Clair's database yourself.
 
 Geo-replication requires a single, shared database that is accessible from all regions.
 
