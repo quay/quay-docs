@@ -9,20 +9,38 @@ BOOK_ATTR=(-a productname="Project Quay" -a toc="left" -d book)
 asciidoctor "${PRODUCT_ATTR[@]}" -d book welcome.adoc -D dist -o welcome.html
 cp dist/welcome.html dist/index.html
 
+build_master() {
+  local master="$1"
+  local out_dir="$2"
+  local flat_name="$3"
+  local imagesdir="$4"
+
+  mkdir -p "dist/${out_dir}"
+  asciidoctor "${BOOK_ATTR[@]}" -a "imagesdir=${imagesdir}" "$master" -D "dist/${out_dir}" -o index.html
+
+  # Flat HTML at dist root for welcome.adoc xref:* and PR preview links
+  sed 's|src="../../images/|src="images/|g; s|href="../../images/|href="images/|g; s|src="../images/|src="images/|g; s|href="../images/|href="images/|g' \
+    "dist/${out_dir}/index.html" > "dist/${flat_name}.html"
+}
+
+# Legacy top-level books
 for master in */master.adoc; do
   dir=$(dirname "$master")
   case "$dir" in
     api) out=api_quay ;;
+    quay_jtbd) continue ;;
     *) out="$dir" ;;
   esac
-
-  # Directory form: /deploy_red_hat_quay_operator/ (RH docs-style URL)
-  mkdir -p "dist/${out}"
-  asciidoctor "${BOOK_ATTR[@]}" -a imagesdir=../images "$master" -D "dist/${out}" -o index.html
-
-  # Flat file: /deploy_red_hat_quay_operator.html (existing PR preview links)
-  sed 's|src="../images/|src="images/|g; s|href="../images/|href="images/|g' \
-    "dist/${out}/index.html" > "dist/${out}.html"
+  build_master "$master" "$out" "$out" "../images"
 done
+
+# JTBD category books
+if [[ -d quay_jtbd ]]; then
+  for master in quay_jtbd/*/master.adoc; do
+    [[ -f "$master" ]] || continue
+    dir=$(basename "$(dirname "$master")")
+    build_master "$master" "quay_jtbd/${dir}" "quay_jtbd-${dir}" "../../images"
+  done
+fi
 
 cp -a images dist/images

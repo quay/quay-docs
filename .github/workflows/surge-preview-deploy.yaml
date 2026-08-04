@@ -56,18 +56,32 @@ jobs:
             per_page: 100,
           });
 
-          // Map changed top-level book dirs to preview paths (flat + directory).
+          // Map changed book dirs to preview paths (flat + directory).
+          // Supports legacy top-level books and JTBD books under quay_jtbd/<category>/.
           const previewPaths = new Set();
           for (const file of files) {
-            if (file.filename === 'welcome.adoc') {
+            if (file.filename === 'welcome.adoc' || file.filename === 'build_docs') {
               previewPaths.add('/');
               continue;
             }
-            const top = file.filename.split('/')[0];
-            let book = top === 'api' ? 'api_quay' : top;
-            if (fs.existsSync(path.join('dist', `${book}.html`))) {
-              previewPaths.add(`/${book}.html`);
-              previewPaths.add(`/${book}/`);
+            const parts = file.filename.split('/');
+            const top = parts[0];
+            let flat;
+            let dirPath;
+            if (top === 'quay_jtbd' && parts.length >= 2) {
+              const cat = parts[1];
+              flat = `quay_jtbd-${cat}`;
+              dirPath = `quay_jtbd/${cat}`;
+            } else {
+              const book = top === 'api' ? 'api_quay' : top;
+              flat = book;
+              dirPath = book;
+            }
+            if (fs.existsSync(path.join('dist', `${flat}.html`))) {
+              previewPaths.add(`/${flat}.html`);
+            }
+            if (fs.existsSync(path.join('dist', dirPath, 'index.html'))) {
+              previewPaths.add(`/${dirPath}/`);
             }
           }
 
