@@ -9,11 +9,15 @@ jobs:
   deploy:
     name: Deploy to Surge
     runs-on: ubuntu-22.04
-    if: github.event.workflow_run.event == 'pull_request'
+    # Only deploy successful PR builds. workflow_run always uses this file from the default branch.
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
 
     permissions:
-      pull-requests: write
+      actions: read
       contents: read
+      pull-requests: write
 
     steps:
     - name: Download build artifact
@@ -35,7 +39,7 @@ jobs:
       run: |
         DEPLOY_DOMAIN="quay-docs-pr-${{ steps.pr.outputs.number }}.surge.sh"
         cd dist
-        npx surge . $DEPLOY_DOMAIN --token ${{ secrets.SURGE_TOKEN }}
+        npx surge . "$DEPLOY_DOMAIN" --token "${{ secrets.SURGE_TOKEN }}"
         echo "url=https://$DEPLOY_DOMAIN" >> $GITHUB_OUTPUT
       env:
         SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
@@ -48,6 +52,7 @@ jobs:
           const path = require('path');
           const deploymentUrl = '${{ steps.deploy.outputs.url }}';
           const prNumber = ${{ steps.pr.outputs.number }};
+          const headSha = '${{ github.event.workflow_run.head_sha }}';
 
           const { data: files } = await github.rest.pulls.listFiles({
             owner: context.repo.owner,
@@ -105,15 +110,18 @@ jobs:
             comment.body.includes('Surge Preview Deployment')
           );
 
-          const commentBody = `## Surge Preview Deployment
-
-✅ **Preview deployed successfully!**
-
-🔗 **Preview URL:** ${deploymentUrl}
-${bookLinks}
-Built from commit ${{ github.event.workflow_run.head_sha }}
-
-_This preview will be updated on every push to this PR._`;
+          // Keep every line of this template indented so the YAML `|` block stays valid.
+          const commentBody = [
+            '## Surge Preview Deployment',
+            '',
+            '✅ **Preview deployed successfully!**',
+            '',
+            `🔗 **Preview URL:** ${deploymentUrl}`,
+            bookLinks,
+            `Built from commit ${headSha}`,
+            '',
+            '_This preview will be updated on every push to this PR._',
+          ].join('\n');
 
           if (botComment) {
             await github.rest.issues.updateComment({
