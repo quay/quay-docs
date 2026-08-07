@@ -52,22 +52,29 @@ Auto-prune worker execution:: The auto-pruning worker is an asynchronous job tha
 
 The auto-pruning worker is an asynchronous job that executes configured policies. Its workflow is based on values in the `autoprunetask` table. When a task begins, the following occurs: 
 
-* The auto-prune worker starts on a set interval, which defaults at 30 seconds. 
-* The auto-prune worker selects a row from `autoprunetask` with the least, or null, `last_ran_ms` and `FOR UPDATE SKIP LOCKED`. 
-** A null `last_ran_ms` indicates that the task was never ran. 
+. The auto-prune worker starts on a set interval, which defaults at 30 seconds. 
+. The auto-prune worker selects a row from `autoprunetask` with the least, or null, `last_ran_ms` and `FOR UPDATE SKIP LOCKED`.
++
+** A null `last_ran_ms` indicates that the task was never ran.
++
 ** A task that has not run for the longest amount of time, or has never been run at all, is prioritized. 
 
-* The auto-prune worker obtains the policy configuration from the `namespaceautoprunepolicy` table.
+. The auto-prune worker obtains the policy configuration from the `namespaceautoprunepolicy` table.
++
 ** If no policy configuration exists, the entry from `autoprunetask` is deleted for this namespace and the procedure stops immediately. 
 
-* The auto-prune worker begins a paginated loop of all repositories under the organization. 
+. The auto-prune worker begins a paginated loop of all repositories under the organization.
++
 ** The auto-prune worker determines much pruning method to use based on `policy.method`. 
-* The auto-prune worker executes the pruning method with the policy configuration retrieved earlier. 
+
+. The auto-prune worker executes the pruning method with the policy configuration retrieved earlier. 
++
 ** For pruning by the number of tags: the auto-pruner worker gets the number of currently active tags sorted by creation date, and deletes the older tags to the configured number.
++
 ** For pruning by date: the auto-pruner worker gets the active tags older than the specified time span and any tags returned are deleted. 
 
-* The auto-prune worker adds audit logs of the tags deleted.
+. The auto-prune worker adds audit logs of the tags deleted.
 
-* The `last_ran_ms` gets updated after a row from `autoprunetask` is selected. 
+. The `last_ran_ms` gets updated after a row from `autoprunetask` is selected. 
 
-* The auto-prune worker ends. 
+. The auto-prune worker ends. 
