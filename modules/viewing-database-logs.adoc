@@ -1,0 +1,109 @@
+:_mod-docs-content-type: PROCEDURE
+[id="viewing-database-logs"]
+= Viewing database logs
+
+[role="_abstract"]
+To view repository usage logs stored in the {productname} PostgreSQL database, you can query the logentry tables with the psql CLI tool.
+
+.Prerequisites
+
+* You have administrative privileges.
+* You have installed the `psql` CLI tool.
+
+.Procedure
+
+. Enter the following command to log in to your {productname} PostgreSQL database:
++
+[source,terminal]
+----
+$ psql -h <quay-server.example.com> -p 5432 -U <user_name> -d <database_name>
+----
++
+.Example output
+[source,terminal]
+----
+psql (16.1, server 13.7)
+Type "help" for help.
+----
+
+. Optional. Enter the following command to display the tables list of your PostgreSQL database:
++
+[source,terminal]
+----
+quay=> \dt
+----
++
+.Example output
+[source,terminal]
+----
+                   List of relations
+ Schema |            Name            | Type  |  Owner   
+--------+----------------------------+-------+----------
+ public | logentry                   | table | quayuser
+ public | logentry2                  | table | quayuser
+ public | logentry3                  | table | quayuser
+ public | logentrykind               | table | quayuser
+...
+----
+
+. Enter the following command to return a list of `repository_ids` that are required to return log information:
++
+[source,terminal]
+----
+quay=> SELECT id, name FROM repository;
+----
++
+.Example output
+[source,terminal]
+----
+ id |        name         
+----+---------------------
+  3 | new_repository_name
+  6 | api-repo
+  7 | busybox
+...
+----
+
+. Enter the following command to use the `logentry3` relation to show log information about one of your repositories:
++
+[source,terminal]
+----
+SELECT * FROM logentry3 WHERE repository_id = <repository_id>;
+----
++
+.Example output
+[source,terminal]
+----
+ id | kind_id | account_id | performer_id | repository_id | datetime | ip |    metadata_json
+                 
+ 59 | 14 | 2 | 1 | 6 | 2024-05-13 15:51:01.897189 | 192.168.1.130 | {"repo": "api-repo", "namespace": "test-org"}
+----
++
+In this example, the following information is returned:
++
+[source,terminal]
+----
+{
+  "log_data": {
+    "id": 59
+    "kind_id": "14",
+    "account_id": "2",
+    "performer_id": "1",
+    "repository_id": "6",
+    "ip": "192.168.1.100",
+    "metadata_json": {"repo": "api-repo", "namespace": "test-org"}
+    "datetime": "2024-05-13 15:51:01.897189"
+  }
+}
+----
++
+where:
+
+`id`:: Specifies the unique identifier for the log entry.
+`kind_id`:: Specifies the action that was performed. In this example, `14` maps to creating a repository (`create_repo`).
+`account_id`:: Specifies the account that performed the action.
+`performer_id`:: Specifies the performer of the action.
+`repository_id`:: Specifies the repository that the action was performed on. In this example, `6` correlates to the `api-repo` repository from the previous step.
+`ip`:: Specifies the IP address where the action was performed.
+`metadata_json`:: Specifies metadata information, including the name of the repository and its namespace.
+`datetime`:: Specifies the time when the action was performed.

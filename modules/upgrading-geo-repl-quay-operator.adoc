@@ -1,6 +1,6 @@
 :_mod-docs-content-type: PROCEDURE
 [id="upgrading-geo-repl-quay-operator"]
-= Upgrading a geo-replication deployment of {productname-ocp}
+= Upgrading Operator geo-replication
 
 [role="_abstract"]
 To upgrade your geo-replicated {productname-ocp} deployment, you must stop operations, scale down secondary systems, upgrade the primary system, then upgrade secondary systems. This ensures a safe upgrade process with minimal downtime across your geo-replicated registry.
@@ -16,7 +16,9 @@ The following procedure assumes that you are running the {productname} registry 
 
 .Procedure
 
-. On System B and System C, scale down your {productname} registry. This is done by disabling auto scaling and overriding the replica county for {productname}, mirror workers, and Clair if it is managed. Use the following `quayregistry.yaml` file as a reference:
+. On System B and System C, scale down your {productname} registry. This is done by disabling auto scaling and overriding the replica county for {productname}, mirror workers, and Clair if it is managed. Note that you must keep the {productname} registry running on System A. Do not update the `quayregistry.yaml` file on System A.
++ 
+Use the following `quayregistry.yaml` file as a reference:
 +
 [source,yaml]
 ----
@@ -45,17 +47,11 @@ spec:
     …
 ----
 +
---
 where:
 
-`managed: false::` Disables auto scaling of `Quay`, `Clair` and `Mirroring` workers
-`overrides::` Sets the replica count to 0 for components accessing the database and objectstorage
---
-+
-[NOTE]
-====
-You must keep the {productname} registry running on System A. Do not update the `quayregistry.yaml` file on System A.
-====
+`managed: false`:: Disables auto scaling of `Quay`, `Clair` and `Mirroring` workers
+
+`overrides`:: Sets the replica count to 0 for components accessing the database and objectstorage
 
 . Wait for the `registry-quay-app`, `registry-quay-mirror`, and `registry-clair-app` pods to disappear. Enter the following command to check their status:
 +
@@ -73,7 +69,7 @@ quayregistry-quay-app-upgrade-xq2v6                0/1     Completed   0        
 quayregistry-quay-redis-84f888776f-hhgms           1/1     Running     0             12m
 ----
 
-. On System A, initiate a {productname} upgrade to the latest y-stream version. This is a manual process. For more information about upgrading installed Operators, see link:https://docs.openshift.com/container-platform/{ocp-y}/operators/admin/olm-upgrading-operators.html[Upgrading installed Operators]. For more information about {productname} upgrade paths, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/upgrade_red_hat_quay/operator-upgrade[Upgrading the {productname} Operator].
+. On System A, initiate a {productname} upgrade to the latest y-stream version. This is a manual process. For more information about upgrading installed Operators, see link:https://docs.openshift.com/container-platform/4.22/operators/admin/olm-upgrading-operators.html[Upgrading installed Operators]. For more information about {productname} upgrade paths, see xref:quay_jtbd-upgrade.adoc#operator-upgrade[Upgrading the {productname} Operator].
 
 . After the new {productname} registry is installed, the necessary upgrades on the cluster are automatically completed. Afterwards, new {productname} pods are started with the latest y-stream version. Additionally, new `Quay` pods are scheduled and started.
 

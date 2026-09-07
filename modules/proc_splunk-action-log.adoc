@@ -2,7 +2,8 @@
 [id="proc_splunk-action-log"]
 = Creating an action log
 
-Use the following procedure to create a user account that can forward action logs to Splunk.
+[role="_abstract"]
+To verify that {productname} is forwarding action logs to Splunk, you can create a robot account in an organization and search the Splunk index for the forwarded JSON log entries.
 
 .Prerequisites
 
@@ -14,11 +15,11 @@ Use the following procedure to create a user account that can forward action log
 
 . Log in to your {productname} deployment.
 
-. Click on the name of the organization that you will use to create an action log for Splunk.
+. Click on the name of the organization that you use to create an action log for Splunk.
 
 . In the navigation pane, click *Robot Accounts* -> *Create Robot Account*.
 
-. When prompted, enter a name for the robot account, for example `spunkrobotaccount`, then click *Create robot account*.
+. When prompted, enter a name for the robot account, for example `splunkrobotaccount`, then click *Create robot account*.
 
 . On your browser, open the Splunk UI.
 
@@ -26,27 +27,29 @@ Use the following procedure to create a user account that can forward action log
 
 . In the search bar, enter the name of your index, for example, `<splunk_log_index_name>` and press *Enter*.
 +
-The search results populate on the Splunk UI. Logs are forwarded in JSON format. A response might look similar to the following: 
+The search results populate on the Splunk UI. Logs are forwarded in JSON format. A response might look similar to the following:
 +
 [source,json]
 ----
 {
   "log_data": {
-    "kind": "authentication", <1>
-    "account": "quayuser123", <2>
-    "performer": "John Doe", <3>
-    "repository": "projectQuay", <4>
-    "ip": "192.168.1.100", <5>
-    "metadata_json": {...}, <6>
-    "datetime": "2024-02-06T12:30:45Z" <7>
+    "kind": "authentication",
+    "account": "quayuser123",
+    "performer": "John Doe",
+    "repository": "projectQuay",
+    "ip": "192.168.1.100",
+    "metadata_json": {...},
+    "datetime": "2024-02-06T12:30:45Z"
   }
 }
-
 ----
-<1> Specifies the type of log event. In this example, `authentication` indicates that the log entry relates to an authentication event.
-<2> The user account involved in the event.
-<3> The individual who performed the action.
-<4> The repository associated with the event.
-<5> The IP address from which the action was performed.
-<6> Might contain additional metadata related to the event.
-<7> The timestamp of when the event occurred.
++
+where:
+
+`kind`:: Specifies the type of log event. In this example, `authentication` indicates that the log entry relates to an authentication event.
+`account`:: Specifies the user account involved in the event.
+`performer`:: Specifies the individual who performed the action.
+`repository`:: Specifies the repository associated with the event.
+`ip`:: Specifies the IP address from which the action was performed.
+`metadata_json`:: Specifies additional metadata related to the event, when present.
+`datetime`:: Specifies the timestamp of when the event occurred.

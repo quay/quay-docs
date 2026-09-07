@@ -1,0 +1,86 @@
+:_mod-docs-content-type: PROCEDURE
+[id="example-certificate-manager"]
+= Using cert-manager with an external TLS Secret
+
+[role="_abstract"]
+You can install cert-manager on your cluster, issue a certificate into a `kubernetes.io/tls` Secret, and reference that Secret from the `tls` component of your `QuayRegistry` CR. When cert-manager renews the certificate, the {productname} Operator detects the updated Secret and rolls out updated pods.
+
+.Prerequisites
+
+* You have installed cert-manager on the cluster. For more information, see the link:https://cert-manager.io/docs/installation/[cert-manager documentation].
+* You have a `ClusterIssuer` or `Issuer` that can issue certificates for your registry hostname.
+* You know the hostname clients use to reach the registry. After deployment, this hostname is often available in `status.registryEndpoint` on the `QuayRegistry` CR.
+
+.Procedure
+
+. Create a `ClusterIssuer` CR, for example a self-signed issuer for testing:
++
+[source,yaml]
+----
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+----
+
+. Create a `Certificate` CR that writes to the Secret referenced by your `QuayRegistry` `secretRef`. Set `dnsNames` to the registry route hostname, for example the host in `status.registryEndpoint`:
++
+[source,yaml]
+----
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: quay-tls
+  namespace: <namespace>
+spec:
+  secretName: quay-tls
+  duration: 2160h
+  renewBefore: 360h
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+  dnsNames:
+  - <quay_route_hostname>
+----
+
+. Configure the `QuayRegistry` CR to reference the Secret. For example:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: <registry_name>
+  namespace: <namespace>
+spec:
+  components:
+  - kind: tls
+    managed: false
+    secretRef:
+      name: quay-tls
+----
+
+. Wait for cert-manager to populate the TLS Secret. Then, confirm that the Operator has reconciled the registry by running the following command:
++
+[source,terminal]
+----
+$ oc wait quayregistry <registry_name> -n <namespace> --for=condition=ComponentTLSReady=True --timeout=300s
+----
+
+. Optional. Force certificate renewal to verify that rotation triggers a rollout. This requires the cert-manager command-line plugin:
++
+[source,terminal]
+----
+$ oc cert-manager renew quay-tls -n <namespace>
+----
++
+After renewal, wait again for `ComponentTLSReady=True` and confirm that {productname} pods were replaced.
+
+. Optional. Delete the TLS Secret by running the following command:
++
+[source,terminal]
+----
+$ oc delete secret quay-tls -n <namespace>
+----

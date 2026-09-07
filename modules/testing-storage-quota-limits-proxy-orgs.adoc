@@ -1,0 +1,42 @@
+:_mod-docs-content-type: PROCEDURE
+[id="testing-storage-quota-limits-proxy-orgs"]
+= Testing the storage quota limits feature in proxy organizations
+
+[role="_abstract"]
+Confirm that auto-pruning works in a proxy organization with storage quota limits by pulling images until the quota is exceeded and verifying that the least recently used tag is removed.
+
+.Prerequisites
+
+* Your organization is configured to serve as a proxy organization. The following example proxies from quay.io.
+
+* `FEATURE_PROXY_CACHE` is set to `True` in your `config.yaml` file.
+
+* `FEATURE_QUOTA_MANAGEMENT` is set to `True` in your `config.yaml` file.
+
+* Your organization is configured with a quota limit, for example, `150 MB`.
+
+.Procedure
+
+. Pull an image to your repository from your proxy organization, for example:
++
+----
+$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.7.9
+----
+
+. Depending on the space left in your repository, you might need to pull additional images from your proxy organization, for example:
++
+----
+$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.6.2
+----
+
+. In the {productname} registry UI, click the name of your repository.
+
+* Click *Tags* in the navigation pane and ensure that `quay:3.7.9` and `quay:3.6.2` are tagged.
+
+. Pull the last image that will result in your repository exceeding the allotted quota, for example:
++
+----
+$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.5.1
+----
+
+. Refresh the *Tags* page of your {productname} registry. The first image that you pushed, for example, `quay:3.7.9` should have been auto-pruned. The *Tags* page should now show `quay:3.6.2` and `quay:3.5.1`.

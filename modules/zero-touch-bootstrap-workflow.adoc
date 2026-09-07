@@ -1,0 +1,47 @@
+:_mod-docs-content-type: PROCEDURE
+[id="zero-touch-bootstrap-workflow"]
+= Using the bootstrap token for zero-touch deployment
+
+[role="_abstract"]
+To provision {productname} resources without using the UI, you can use the bootstrap OAuth token as Bearer authentication for organization, application, and token API calls.
+
+.Procedure
+
+. Export the bootstrap token. For example:
++
+[source,terminal]
+----
+$ export BOOTSTRAP_TOKEN=<bootstrap_token_value>
+----
+
+. Create an organization:
++
+[source,terminal]
+----
+$ curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"name": "myorg", "email": "admin@example.com"}' \
+  https://<quay-server.example.com>/api/v1/organization/
+----
+
+. Create an OAuth application in the organization:
++
+[source,terminal]
+----
+$ curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ci-automation", "description": "CI/CD token source"}' \
+  https://<quay-server.example.com>/api/v1/organization/myorg/applications
+----
+
+. Create a scoped OAuth API token for the application:
++
+[source,terminal]
+----
+$ curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ci-job-token", "scope": "repo:read repo:write", "expiration": 2592000}' \
+  https://<quay-server.example.com>/api/v1/organization/myorg/applications/<client_id>/tokens
+----
+
+. Store the `token` value from the response for your automation workflow. The token secret is returned only in the create response.

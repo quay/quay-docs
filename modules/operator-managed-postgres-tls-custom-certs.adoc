@@ -1,0 +1,95 @@
+:_mod-docs-content-type: PROCEDURE
+[id="operator-managed-postgres-tls-custom-certs"]
+= Providing custom TLS certificates
+
+[role="_abstract"]
+To use your own certificates instead of Operator-generated or Service CA certificates, create a Secret and reference it from the component override.
+
+.Prerequisites
+
+* TLS is enabled on the target component (`overrides.tls.enabled: true`).
+* You have a Secret containing PEM-encoded `ca.crt`, `tls.crt`, and `tls.key` entries.
+* Your TLS certificate includes Subject Alternative Name (SAN) entries that match the PostgreSQL Service DNS names. For the `postgres` component, include the following names:
++
+[source,text]
+----
+<registry_name>-quay-database
+<registry_name>-quay-database.<namespace>
+<registry_name>-quay-database.<namespace>.svc
+<registry_name>-quay-database.<namespace>.svc.cluster.local
+localhost
+----
++
+For the `clairpostgres` component, include the following names:
++
+[source,text]
+----
+<registry_name>-clair-postgres
+<registry_name>-clair-postgres.<namespace>
+<registry_name>-clair-postgres.<namespace>.svc
+<registry_name>-clair-postgres.<namespace>.svc.cluster.local
+localhost
+----
+
+.Procedure
+
+. Create a Secret in the same namespace as your `QuayRegistry` custom resource. For example:
++
+[source,yaml]
+----
+apiVersion: v1
+kind: Secret
+metadata:
+  name: <postgres_or_clairpostgres_name>-tls
+  namespace: <namespace>
+type: Opaque
+stringData:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    ...
+    -----END CERTIFICATE-----
+  tls.crt: |
+    -----BEGIN CERTIFICATE-----
+    ...
+    -----END CERTIFICATE-----
+  tls.key: |
+    -----BEGIN EC PRIVATE KEY-----
+    ...
+    -----END EC PRIVATE KEY-----
+----
+
+. Reference the Secret from the PostgreSQL component override:
++
+[source,yaml]
+----
+    - kind: postgres
+      managed: true
+      overrides:
+        tls:
+          enabled: true
+          secretRef:
+            name: <postgres_or_clairpostgres_name>-tls
+----
+
+. Save the `QuayRegistry` and wait for reconciliation.
+
+.Verification
+
+. Connect to the {productname} PostgreSQL pod and check that SSL is enabled:
++
+[source,terminal]
+----
+$ oc exec -n <namespace> deploy/<registry>-quay-database -c postgres -- bash -lc 'psql -U "$POSTGRESQL_USER" -d "$POSTGRESQL_DATABASE" -tAc "SHOW ssl;"'
+----
++
+The command should return `on`.
+
+. Optional: Confirm that client connections use SSL:
++
+[source,terminal]
+----
+$ oc exec -n <namespace> deploy/<registry_name>-quay-database -c postgres -- \
+  bash -lc 'psql -U "$POSTGRESQL_USER" -d "$POSTGRESQL_DATABASE" -tAc "SELECT count(*) FROM pg_stat_ssl s JOIN pg_stat_activity a ON s.pid = a.pid WHERE s.ssl = true AND a.client_addr IS NOT NULL;"'
+----
++
+A count greater than `0` indicates active TLS client connections. If the count remains `0`, PostgreSQL still has TLS enabled on the server, but clients might not yet be connecting with SSL. Check the registry database URI or connection arguments for an `sslmode` value such as `verify-full`, and review Operator Events for certificate or CA errors.

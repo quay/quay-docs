@@ -1,0 +1,88 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-email-routing-contact-email"]
+= Configuring email routing with organization contact email
+
+[role="_abstract"]
+To route quota notification emails to a shared organization contact address in {productname}, you can set the organization contact email with the API. You can list and test notifications for organizations and user namespaces.
+
+.Procedure
+
+. Set the organization contact email by entering a command similar to the following example:
++
+[source,terminal]
+----
+$ curl -X PUT \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Content-Type: application/json" \
+--data '{
+    "email": "ops-team@example.com"
+}' \
+https://<quay-server.example.com>/api/v1/organization/<orgname>
+----
++
+[NOTE]
+====
+Setting the organization contact email requires organization administrator permissions (`org:admin` scope). If a contact email is not set, quota notifications default to sending to organization administrator email addresses.
+====
+
+. List all notifications for an organization by entering a command similar to the following example:
++
+[source,terminal]
+----
+$ curl -X GET \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Accept: application/json" \
+https://<quay-server.example.com>/api/v1/organization/<orgname>/notifications
+----
++
+.Example output
+[source,json]
+----
+{
+"notifications": [
+    {
+    "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "title": null,
+    "event": "quota_warning",
+    "method": "email",
+    "config": {},
+    "event_config": {},
+    "number_of_failures": 0
+    }
+]
+}
+----
+
+. List all notifications for your user namespace by entering a command similar to the following example:
++
+[source,terminal]
+----
+$ curl -X GET \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Accept: application/json" \
+https://<quay-server.example.com>/api/v1/user/namespacenotifications
+----
+
+. To test a notification, enter a command similar to the following example:
++
+[source,terminal]
+----
+$ curl -X POST \
+-H "Authorization: Bearer <bearer_token>" \
+https://<quay-server.example.com>/api/v1/organization/<orgname>/notifications/<uuid>/test
+----
++
+.Example output
+[source,terminal]
+----
+{}
+----
++
+[NOTE]
+====
+For *email* notifications, if an organization contact email is set, the test notification is routed to that address. Otherwise, email notifications default to organization administrators. For Slack, webhook, and other methods, routing follows the notification `config`.
+====

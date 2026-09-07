@@ -3,9 +3,10 @@
 = Adding keys to the PostgreSQL database
 
 [role="_abstract"]
-To enable read-only mode configuration in {productname}, you can add service keys to the PostgreSQL database. Use `SQL INSERT` statements to store the keys and their approval information.
+To register read-only service keys with {productname}, you can insert the key and approval records into the PostgreSQL database.
 
 .Prerequisites
+
 
 * You have created the service keys.
 
@@ -15,7 +16,7 @@ To enable read-only mode configuration in {productname}, you can add service key
 +
 [source,terminal]
 ----
-$ oc rsh example-registry-quay-database-76c8f55467-52wjz psql -U <database_username> -d <database_name>
+$ podman exec -it postgresql-quay psql -U postgres -d quay
 ----
 
 . Display the approval types and associated notes of the `servicekeyapproval` by entering the following command:
@@ -25,7 +26,7 @@ $ oc rsh example-registry-quay-database-76c8f55467-52wjz psql -U <database_usern
 quay=# select * from servicekeyapproval;
 ----
 +
-.Example output
+.Example output:
 [source,terminal]
 ----
  id | approver_id |          approval_type           |       approved_date        | notes 
@@ -47,13 +48,13 @@ quay=# INSERT INTO servicekey
   VALUES ('quay-readonly',
            'quay',
            '{}',
-           '{<contents_of_.kid_file>}',
-           '{<contents_of_.jwk_file>}',
-           '{<created_date_of_read-only>}',
-           '{<expiration_date_of_read-only>}');
+           '<contents_of_.kid_file>',
+           '<contents_of_.jwk_file>',
+           '<created_date_of_read-only>',
+           '<expiration_date_of_read-only>');
 ----
 +
-.Example output
+.Example output:
 [source,terminal]
 ----
 INSERT 0 1
@@ -65,10 +66,10 @@ INSERT 0 1
 ----
 quay=# INSERT INTO servicekeyapproval ('approval_type', 'approved_date', 'notes')
   VALUES ("ServiceKeyApprovalType.SUPERUSER", "CURRENT_DATE",
-           {include_notes_here_on_why_this_is_being_added});
+           <include_notes_here_on_why_this_is_being_added>);
 ----
 +
-.Example output
+.Example output:
 [source,terminal]
 ----
 INSERT 0 1
@@ -83,7 +84,6 @@ SET approval_id = (SELECT id FROM servicekeyapproval WHERE approval_type = 'Serv
 WHERE name = 'quay-readonly';
 ----
 +
-.Example output
 [source,terminal]
 ----
 UPDATE 1

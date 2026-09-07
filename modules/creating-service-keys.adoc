@@ -1,0 +1,99 @@
+:_mod-docs-content-type: PROCEDURE
+[id="creating-service-keys"]
+= Creating service keys for standalone {productname}
+
+[role="_abstract"]
+To create service keys for standalone {productname} read-only mode, you can generate a key pair inside the Quay container or in a local Python virtual environment.
+
+{productname} uses service keys to communicate with various components. These keys are used to sign completed requests, such as requesting to scan images, login, storage access, and so on.
+
+.Prerequisites
+
+* If you are using {rhel} 7.x:
+** You have enabled the Red Hat Software Collections List (RHSCL).
+** You have installed Python 3.6.
+** You have downloaded the `virtualenv` package.
+** You have installed the `git` CLI.
+* If you are using {rhel} 8:
+** You have installed Python 3 on your machine.
+** You have downloaded the `python3-virtualenv` package.
+** You have installed the `git` CLI.
+* You have cloned the `quay/quay` repository from GitHub.
+
+.Procedure
+
+. If your {productname} registry is readily available, you can generate service keys inside of the `Quay` registry container.
+
+.. Enter the following command to generate a key pair inside of the `Quay` container:
++
+[source,terminal]
+----
+$ podman exec quay python3 tools/generatekeypair.py quay-readonly
+----
+
+. If your {productname} is not readily available, you must generate your service keys inside of a virtual environment.
+
+.. Change into the directory of your {productname} deployment and create a virtual environment inside of that directory:
++
+[source,terminal]
+----
+$ cd <$QUAY>/quay && virtualenv -v venv
+----
+
+.. Activate the virtual environment by entering the following command:
++
+[source,terminal]
+----
+$ source venv/bin/activate
+----
+
+.. Optional. Install the `pip` CLI tool if you do not have it installed:
++
+[source,terminal]
+----
+$ venv/bin/pip install --upgrade pip
+----
+
+.. In your {productname} directory, create a `requirements-generatekeys.txt` file with the following content:
++
+[source,terminal]
+----
+$ cat << EOF > requirements-generatekeys.txt
+cryptography==3.4.7
+pycparser==2.19
+pycryptodome==3.9.4
+pycryptodomex==3.9.4
+pyjwkest==1.4.2
+PyJWT==1.7.1
+Authlib==1.0.0a2
+EOF
+----
+
+.. Enter the following command to install the Python dependencies defined in the `requirements-generatekeys.txt` file:
++
+[source,terminal]
+----
+$ venv/bin/pip install -r requirements-generatekeys.txt
+----
+
+.. Enter the following command to create the necessary service keys:
++
+[source,terminal]
+----
+$ PYTHONPATH=. venv/bin/python /<path_to_cloned_repo>/tools/generatekeypair.py quay-readonly
+----
++
+.Example output:
+[source,terminal]
+----
+Writing public key to quay-readonly.jwk
+Writing key ID to quay-readonly.kid
+Writing private key to quay-readonly.pem
+----
+
+.. Enter the following command to deactivate the virtual environment:
++
+[source,terminal]
+----
+$ deactivate
+----

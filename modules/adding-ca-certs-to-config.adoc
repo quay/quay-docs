@@ -3,13 +3,14 @@
 [id="adding-ca-certs-to-config"]
 = Adding additional Certificate Authorities to {productname-ocp}
 
-The following example shows you how to add additional Certificate Authorities to your {productname-ocp} deployment by extending the `configBundleSecret`.
+[role="_abstract"]
+To add additional Certificate Authorities to {productname-ocp}, you can extend the `configBundleSecret` with `extra_ca_cert_*` entries for each CA PEM file and update the `QuayRegistry` custom resource to reference the updated secret. Each key name determines the file name under conf/stack/extra_ca_certs/ at runtime.
 
-Additional CAs are not declared as an `extra_ca_certs` field inside `config.yaml`. Each CA is a separate entry in the Secret: the key must start with `extra_ca_cert_`, and the remainder of the key name becomes the file name under `conf/stack/extra_ca_certs/` after the Operator reconciles the registry.
+Additional CAs are not declared as an `extra_ca_certs` field inside the `config.yaml` file. Each CA is a separate entry in the Secret: the key must start with `extra_ca_cert_`, and the remainder of the key name becomes the file name under `conf/stack/extra_ca_certs/` after the Operator reconciles the registry.
 
 .Prerequisites
 
-* You have base64 decoded the original config bundle into a `config.yaml` file. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-config-cli-download[Downloading the existing configuration].
+* You have base64 decoded the original config bundle into a `config.yaml` file. For more information, see xref:quay_jtbd-configure.adoc#operator-config-cli-download[Downloading the existing configuration].
 * You have a Certificate Authority (CA) file or files.
 
 .Procedure
@@ -28,16 +29,19 @@ $ touch extra-ca-certificate-config-bundle-secret.yaml
 [source,terminal]
 ----
 $ oc -n <namespace> create secret generic extra-ca-certificate-config-bundle-secret \
-  --from-file=config.yaml=</path/to/config.yaml> \ <1>
-  --from-file=extra_ca_cert_<name-of-certificate-one>=<path/to/certificate_one> \ <2>
-  --from-file=extra_ca_cert_<name-of-certificate-two>=<path/to/certificate_two> \ <3>
-  --from-file=extra_ca_cert_<name-of-certificate-three>=<path/to/certificate_three> \ <4>
+  --from-file=config.yaml=</path/to/config.yaml> \
+  --from-file=extra_ca_cert_<name-of-certificate-one>=<path/to/certificate_one> \
+  --from-file=extra_ca_cert_<name-of-certificate-two>=<path/to/certificate_two> \
+  --from-file=extra_ca_cert_<name-of-certificate-three>=<path/to/certificate_three> \
   --dry-run=client -o yaml > extra-ca-certificate-config-bundle-secret.yaml
 ----
-<1> Where `<config.yaml>` is your `base64 decoded` `config.yaml` file.
-<2> The extra CA file to be added to the system trust bundle.
-<3> Optional. A second CA file to be added into the system trust bundle.
-<4> Optional. A third CA file to be added into the system trust bundle.
++
+where:
+
+`--from-file=config.yaml=</path/to/config.yaml>`:: Specifies your base64 decoded `config.yaml` file.
+`--from-file=extra_ca_cert_<name-of-certificate-one>=<path/to/certificate_one>`:: Specifies the extra CA file to be added to the system trust bundle.
+`--from-file=extra_ca_cert_<name-of-certificate-two>=<path/to/certificate_two>`:: Specifies a second CA file to be added into the system trust bundle. This parameter is optional.
+`--from-file=extra_ca_cert_<name-of-certificate-three>=<path/to/certificate_three>`:: Specifies a third CA file to be added into the system trust bundle. This parameter is optional.
 
 . Optional. You can check the content of the `extra-ca-certificate-config-bundle-secret.yaml` file by entering the following command:
 +
@@ -47,15 +51,14 @@ $ cat extra-ca-certificate-config-bundle-secret.yaml
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 apiVersion: v1
 data:
-  config.yaml: QUxMT1dfUFVMTFNfV0lUSE9VVF9TVFJJQ1RfTE9HR0lORzogZmFsc2UKQVVUSEVOVElDQVRJT05fVFlQRTogRGF0YWJhc2UKREVGQVVMVF9UQUdfRVhQSVJBVElPTjogMncKUFJFRkVSU...
-  extra_ca_cert_certificate-one: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQyVENDQXNHZ0F3SUJBZ0lVS2xOai90VUJBZHBkNURjYkdRQUo4anRuKzd3d0RRWUpLb1pJaHZjTkFRRUwKQlFBd2ZERUxNQWtHQ...
-  extra_ca_cert_certificate-three: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ0ekNDQXN1Z0F3SUJBZ0lVQmJpTXNUeExjM0s4ODNWby9GTThsWXlOS2lFd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2ZERUxNQWtHQ...
-  extra_ca_cert_certificate-two: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ0ekNDQXN1Z0F3SUJBZ0lVVFVPTXZ2YVdFOFRYV3djYTNoWlBCTnV2QjYwd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2ZERUxNQWtHQ...
+  config.yaml: <example_scren>...
+  extra_ca_cert_certificate-one: <example_secret>...
+  extra_ca_cert_certificate-three: <example_secret>...
+  extra_ca_cert_certificate-two: <example_secret>...
 kind: Secret
 metadata:
   creationTimestamp: null
@@ -71,7 +74,6 @@ $ oc create -n <namespace> -f extra-ca-certificate-config-bundle-secret.yaml
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 secret/extra-ca-certificate-config-bundle-secret created
@@ -85,7 +87,6 @@ $ oc patch quayregistry <registry_name> -n <namespace> --type=merge -p '{"spec":
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 quayregistry.quay.redhat.com/example-registry patched
@@ -99,7 +100,6 @@ $ oc get quayregistry <registry_name> -n <namespace> -o yaml
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 # ...

@@ -2,4 +2,76 @@
 [id="new-quay-config-fields-318"]
 = {productname} configuration fields updates and changes
 
+[role="_abstract"]
+You can review configuration fields that are new or changed in {productname} 3.18, including OIDC multi-issuer settings, QuayRegistry TLS fields, and programmatic bootstrap options.
+
+[id="ssl-protocols-ciphers-operator-inheritance"]
+== SSL_PROTOCOLS and SSL_CIPHERS Operator inheritance on {ocp}
+
+When you deploy {productname-ocp}, the Operator can populate the existing `SSL_PROTOCOLS` and `SSL_CIPHERS` fields from the cluster-wide {ocp} `tlsSecurityProfile` when neither field is set in the `configBundleSecret` resource. To fully override or preserve TLS behavior, set both fields. Setting either field disables cluster-profile inheritance for both fields.
+
+For more information, see xref:quay_jtbd-secure.adoc#operator-ocp-tls-security-profile[{ocp} cluster TLS security profile inheritance] and xref:quay_jtbd-upgrade.adoc#preserving-tls-settings-operator-upgrade_upgrade_red_hat_quay_on_openshift_container_platform[Preserving TLS settings before upgrading {productname-ocp}].
+
+[id="oidc-multi-issuer-config-fields-318"]
+== OIDC multi-issuer and multi-audience fields
+
+The following optional fields were added to `*_LOGIN_CONFIG` blocks in {productname} 3.18:
+
+.OIDC multi-issuer fields
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+| **{nbsp}{nbsp}{nbsp}.OIDC_ISSUERS** | Array of String | Accepted issuer URLs for the provider. When set, {productname} accepts tokens whose `iss` claim matches any entry. If not set, {productname} uses the existing `OIDC_ISSUER` value.
+| **{nbsp}{nbsp}{nbsp}.OIDC_AUDIENCES** | Array of String | Accepted audience values for bearer token and On-Behalf-Of (OBO) flows. When set, {productname} validates the token `aud` claim against this list. `CLIENT_ID` is always implicitly included. If not set, audience validation defaults to `CLIENT_ID`.
+| **{nbsp}{nbsp}{nbsp}.OIDC_ALLOWED_CLIENTS** | Array of String | Optional whitelist of authorized party (`azp`) client IDs. When set, only tokens from these client applications are accepted. If not set, all clients are accepted.
+|===
+
+If both `OIDC_ISSUER` and `OIDC_ISSUERS` are set, `OIDC_ISSUERS` takes precedence and {productname} logs a warning.
+
+For field reference details, see xref:quay_jtbd-configure.adoc#oidc-config-fields[OIDC configuration fields]. For configuration examples, see xref:quay_jtbd-secure.adoc#configuring-entra-v2-multi-issuer-oidc[Configuring Microsoft Entra ID v2 and multi-issuer OIDC].
 The following configuration fields have been added to {productname} 3.18.
+
+[id="quayregistry-tls-secretref"]
+== QuayRegistry TLS component fields
+
+The following fields apply to the `tls` entry in `spec.components` of the `QuayRegistry` CR when deploying {productname-ocp}.
+
+.QuayRegistry TLS component fields
+[cols="2a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+
+|`secretRef` |Object | References an external TLS Secret in the same namespace as the `QuayRegistry` CRD. Valid only when `managed` is `false`. The Secret must be of type `kubernetes.io/tls` and contain `tls.crt` and `tls.key` data keys. The Operator watches the Secret and triggers a rolling restart of {productname} pods when certificate data changes. Do not use with `ssl.cert` and `ssl.key` files in the `configBundleSecret`.
+
+|`secretRef.name` |String | Name of the Kubernetes Secret that stores the TLS certificate and private key.
+|===
+
+.QuayRegistry TLS status condition
+[cols="2a,1a,2a",options="header"]
+|===
+| Condition | Type | Description
+
+|`ComponentTLSReady` |Status | Reports whether TLS from the configured source (external Secret or config bundle) is valid and applied to the registry deployment.
+|===
+
+For procedures and examples, see xref:quay_jtbd-secure.adoc#operator-external-tls-secret-reference[Referencing an external TLS Secret for {productname-ocp}].
+
+[id="programmatic-bootstrap-config-fields-318"]
+== Programmatic bootstrap configuration fields
+
+{productname} 3.18 adds configuration fields for Tech Preview programmatic bootstrap OAuth token provisioning:
+
+[cols="2a,1a,3a",options="header"]
+|===
+|Field |Type |Description
+|`FEATURE_PROGRAMMATIC_BOOTSTRAP` |Boolean |Enables bootstrap token auto-generation on startup. Default: `false`.
+|`BOOTSTRAP_TOKEN_OWNER` |String |Superuser that owns the bootstrap OAuth application and token. Required when the feature flag is enabled.
+|`BOOTSTRAP_TOKEN_PATH` |String |Local filesystem path for the bootstrap token JSON. Default: `/var/lib/quay/quay-machine-token.json`.
+|`BOOTSTRAP_TOKEN_EXPIRATION` |Integer |Bootstrap token lifetime in seconds. Default: `3600`.
+|`BOOTSTRAP_TOKEN_SCOPE` |String |Space-separated OAuth scopes for the bootstrap token.
+|`PROGRAMMATIC_TOKEN_K8S_SECRET` |String |Kubernetes Secret name for bootstrap token storage.
+|`PROGRAMMATIC_TOKEN_K8S_KEY` |String |Secret data key for the bootstrap token JSON. Default: `token.json`.
+|`PROGRAMMATIC_TOKEN_K8S_NAMESPACE` |String |Namespace for the bootstrap token Secret.
+|===
+
+For descriptions and YAML examples, see xref:quay_jtbd-configure.adoc#config-fields-programmatic-bootstrap[Programmatic bootstrap configuration fields].

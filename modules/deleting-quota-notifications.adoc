@@ -1,0 +1,53 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="deleting-quota-notifications"]
+= Deleting quota notifications
+
+[role="_abstract"]
+To stop tracking storage thresholds or remove an inactive alerting endpoint in {productname}, you can delete quota notifications from organization or user namespaces.
+
+[NOTE]
+====
+Deleting a namespace quota also automatically deletes associated `quota_warning` and `quota_error` notification rules for that namespace. After you recreate a quota, you must create new notification rules.
+====
+
+.Procedure
+
+. Delete an organization notification by entering a command similar to the following example:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+-H "Authorization: Bearer <bearer_token>" \
+https://<quay-server.example.com>/api/v1/organization/<orgname>/notifications/<uuid>
+----
+
+. Delete a user notification by entering a command similar to the following example:
++
+[source,terminal]
+----
+$ curl -X DELETE \
+-H "Authorization: Bearer <bearer_token>" \
+https://<quay-server.example.com>/api/v1/user/namespacenotifications/<uuid>
+----
+
+.Verification
+
+. Verify that the notification was deleted. List notifications with the following command:
++
+[source,terminal]
+----
+$ curl -X GET \
+-H "Authorization: Bearer <bearer_token>" \
+-H "Accept: application/json" \
+https://<quay-server.example.com>/api/v1/organization/<orgname>/notifications
+----
++
+.Example output
+[source,terminal]
+----
+{"notifications": []}
+----

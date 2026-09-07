@@ -1,0 +1,28 @@
+:_mod-docs-content-type: PROCEDURE
+[id="proc_generating-splunk-token-cli"]
+= Generating a Splunk bearer token using the CLI
+
+[role="_abstract"]
+To create a Splunk bearer token for {productname} from the CLI, you can enable token authentication and request a token with curl.
+
+.Prerequisites
+
+* You have installed Splunk and created a username.
+
+.Procedure
+
+. In your CLI, enter the following `CURL` command to enable token authentication, passing in your Splunk username and password:
++
+[source,terminal]
+----
+$ curl -k -u <username>:<password> -X POST <scheme>://<host>:<port>/services/admin/token-auth/tokens_auth -d disabled=false
+----
+
+. Create a token by entering the following `CURL` command, passing in your Splunk username and password.
++
+[source,terminal]
+----
+$ curl -k -u <username>:<password> -X POST <scheme>://<host>:<port>/services/authorization/tokens?output_mode=json --data name=<username> --data audience=Users --data-urlencode expires_on=+30d
+----
+
+. Save the generated bearer token.

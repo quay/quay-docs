@@ -3,18 +3,18 @@
 = Displaying Splunk audit logs in the {productname} UI
 
 [role="_abstract"]
-When you enable Splunk log forwarding in {productname}, you can view and query audit logs in the organization, repository, and superuser admin panels. This read capability matches other log backends so you can review audit logs in the UI instead of using Splunk directly.
+To view Splunk audit logs in the {productname} UI, you can configure Splunk or Splunk HEC credentials in your `config.yaml` file and restart the registry. Then open the Logs panel for an organization, repository, or superuser view.
 
 .Prerequisites
 
-* You have created an `hec_token`. 
+* You have created an `hec_token`.
 +
 [NOTE]
 ====
-For the HEC producer, two tokens are required: `hec_token` for writing logs and `search_token` for reading logs in the UI. The `search_token` is a bearer token (the same type you create in "Generating a Splunk bearer token"). HEC tokens are ingest-only and cannot run searches.
+For the HEC producer, two tokens are required: `hec_token` for writing logs and `search_token` for reading logs in the UI. The `search_token` is a bearer token (the same type you create when generating a Splunk bearer token). HEC tokens are ingest-only and cannot run searches.
 ====
 
-* You have configured Quay to forward action logs to Splunk
+* You have configured {productname} to forward action logs to Splunk.
 
 .Procedure
 
@@ -40,14 +40,12 @@ LOGS_MODEL_CONFIG:
 ----
 +
 where:
-+
---
-`<splunk.example.com>`:: Specifies the host name of your Splunk instance.
-`<your_bearer_token>`:: Specifies the bearer token you generated in the "Generating a Splunk bearer token" guide.
-`index_prefix`:: Specifies the Splunk index prefix.
---
 
-. To display Splunk HEC logs on the {productname} UI, include the generated `search_token` and `hec_token`. For example:
+`LOGS_MODEL_CONFIG.splunk_config.host`:: Specifies the host name of your Splunk instance.
+`LOGS_MODEL_CONFIG.splunk_config.bearer_token`:: Specifies the bearer token you generated for Splunk.
+`LOGS_MODEL_CONFIG.splunk_config.index_prefix`:: Specifies the Splunk index prefix.
+
+.. To display Splunk HEC logs on the {productname} UI, include the generated `search_token` and `hec_token`. For example:
 +
 [source,yaml]
 ----
@@ -74,14 +72,12 @@ LOGS_MODEL_CONFIG:
 ----
 +
 where:
-+
---
-`<splunk.example.com>`:: Specifies the host name of your Splunk instance (used for both the HEC endpoint and the search API).
-`8088`:: Specifies the port number for the Splunk HEC endpoint.
-`<your_hec_token>`:: Specifies the HEC token you generated in the "Generating a Splunk HEC token" guide.
-`<your_bearer_token>`:: Optional. Specifies the bearer token you generated in the "Generating a Splunk bearer token" guide.
-`<quay-server.example.com>`:: Specifies the host name of your {productname} instance.
---
+
+`LOGS_MODEL_CONFIG.splunk_hec_config.host`:: Specifies the host name of your Splunk instance (used for both the HEC endpoint and the search API).
+`LOGS_MODEL_CONFIG.splunk_hec_config.port`:: Specifies the port number for the Splunk HEC endpoint.
+`LOGS_MODEL_CONFIG.splunk_hec_config.hec_token`:: Specifies the HEC token you generated for Splunk.
+`LOGS_MODEL_CONFIG.splunk_hec_config.search_token`:: Specifies the bearer token you generated for Splunk search. This field is optional.
+`LOGS_MODEL_CONFIG.splunk_hec_config.splunk_host`:: Specifies the host name of your {productname} instance.
 
 . Restart your {productname} instance to apply the changes.
 
@@ -95,8 +91,8 @@ $ podman push <quay-server.example.com>/<organization_name>/busybox:test
 . On the {productname} UI, open the Logs view in one of these places:
 +
 ** *Organizations* -> *<organization_name>* -> *Logs*
-** *Repositories* -> *<organization_name>* / *<repository_name>* -> *Logs* 
-** *Superuser* -> *Usage Logs* 
+** *Repositories* -> *<organization_name>* / *<repository_name>* -> *Logs*
+** *Superuser* -> *Usage Logs*
 
 .Results
 

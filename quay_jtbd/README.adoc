@@ -1,0 +1,60 @@
+= Quay JTBD documentation preview
+
+This directory is a Jobs-to-be-Done (JTBD) reorganization of {productname} documentation for Surge PR previews.
+
+== Layout
+
+Each product documentation category is a book:
+
+* `master.adoc` — category MAP that includes every job assembly (or single-module reference job)
+* `*-job-slug*.adoc` — one assembly per JTBD job (title, job statement abstract, module includes)
+* `_attributes/attributes.adoc` — symlink to the repo-wide attributes file
+* `modules/` — symlink to `../../modules`
+* `images/` — symlink to `../../images`
+
+Category order and module placement come from `JTBD draft 11.pre-gapfill.xlsx`.
+
+== Product navigation MAP
+
+The AEM migration root ditamap is `quay-3-18-navigation.adoc` at the repository root. It includes all 17 category MAPs (`quay_jtbd/*/master.adoc`) at `leveloffset=+1` in the same order as `welcome.adoc`.
+
+After `build_docs` or `build_docs_preview` runs, the unified navigation preview is:
+
+* `/quay-3-18-navigation.html` (flat HTML)
+* `/quay_jtbd-navigation/` (directory index)
+
+Individual category books remain available for focused review and for cross-book xrefs in Surge previews.
+
+== Job assemblies and navigation
+
+* Category `master.adoc` files use `:_mod-docs-content-type: MAP` and include job assemblies at `leveloffset=+1`.
+* Job files use `:_mod-docs-content-type: ASSEMBLY`, `:chunk-to-content:`, a JTBD job title, and a job-statement abstract.
+* Include modules with `leveloffset=+1` when the module title should appear in left-hand navigation (LHS).
+* Nest detail modules at `leveloffset=+2` (or deeper) with `toc="no"` so they appear in right-hand navigation (RHS) only.
+* Single-module reference jobs (for example, SSL/TLS configuration fields) still use a job assembly. Include the reference module at `leveloffset=+2,toc="no"` when the module title matches the job title, so LHS shows the job title once and the module content appears on the same page.
+* OAuth token procedures live under Develop (`manage-oauth-access-tokens-for-the-red-hat-quay-api.adoc`); do not duplicate them as xref-only jobs in other categories.
+
+== Preview URLs
+
+After `build_docs` runs, each category is available as:
+
+* `/quay_jtbd-<category>/` (directory index)
+* `/quay_jtbd-<category>.html` (flat HTML for `welcome.adoc` xrefs)
+
+Legacy books remain at their existing paths for comparison.
+
+== Cross-references
+
+Link to another *job assembly* or category book, not to `modules/`. Place xref links in assemblies (for example, under `[role="_additional-resources"]`), not in modules.
+
+* Same category book: `xref:<anchor-id>_{context}[Label]` when both topics are in one built book
+* Cross-category (Surge preview): `xref:quay_jtbd-<category>.adoc#anchor-id[Label]` — matches flat HTML output (`quay_jtbd-install.html`, and so on)
+* Category landing (`welcome.adoc`): `xref:quay_jtbd-<category>.adoc[Label]`
+
+Do not use `xref:modules/...` in JTBD assemblies; that pattern is for legacy books only.
+
+=== Why Surge and AEM xrefs differ
+
+Surge builds each JTBD category as a single HTML file (`quay_jtbd-install.html`), not one file per job assembly. A Lightspeed-style path such as `xref:../install/install-clair-for-red-hat-quay.adoc#anchor` becomes `install-clair-for-red-hat-quay.html` in HTML, but that file is never generated—only `quay_jtbd-install.html` exists. Use the flat book xref form above for Surge previews.
+
+For AEM, confirm with your migration pipeline whether book-level xrefs (`quay_jtbd-install.adoc#anchor`) or assembly-relative paths are required before publish.

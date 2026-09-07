@@ -4,15 +4,15 @@
 // * config_quay/master.adoc
 
 :_mod-docs-content-type: REFERENCE
-
 [id="understanding-configuration-file"]
 = Understanding the {productname} configuration file
 
-Whether deployed on premise or by the {productname-ocp} Operator, the registry's behavior is defined by the `config.yaml` file. The `config.yaml` file must include all required configuration fields for the registry to start. {productname} administrators can also define optional parameters that customize their registry, such as authentication parameters, storage parameters, proxy cache parameters, and so on.
+[role="_abstract"]
+The {productname} `config.yaml` file defines registry behavior. The `config.yaml` file must include all required configuration fields for the registry to start. {productname} administrators can also define optional parameters that customize their registry, such as authentication parameters, storage parameters, proxy cache parameters, and so on.
 
-The `config.yaml` file must be written using valid YAML ("YAML Ain't Markup Language") syntax, and {productname} cannot start if the file itself contains any formatting errors or missing required fields. Regardless of deployment type, whether that is on premise or {productname-ocp} that is configured by the Operator, the YAML principles stay the same, even if the required configuration fields are slightly different.
+The `config.yaml` file must be written using valid YAML ("YAML Ain't Markup Language") syntax, and {productname} cannot start if the file itself contains any formatting errors or missing required fields. Regardless of deployment type, whether on-premises or {productname-ocp} with the Operator, the YAML principles stay the same, even if the required configuration fields are slightly different.
 
-The following section outlines basic YAML syntax relevant to creating and editing the {productname} `config.yaml` file. For a more complete overview of YAML, see link:https://www.redhat.com/en/topics/automation/what-is-yaml[What is YAML]. 
+The following section outlines basic YAML syntax relevant to creating and editing the {productname} `config.yaml` file. For a more complete overview of YAML, see "What is YAML?". 
 
 [id="key-value-pairs"]
 == Key-value pairs
@@ -21,20 +21,22 @@ Configuration fields within a `config.yaml` file are written as key-value pairs 
 
 [source,yaml]
 ----
-# ... <1>
+# ...
 EXAMPLE_FIELD_NAME: <value>
-# ... <1>
+# ...
 ----
-<1> Denotes that there are fields before and after this specific field. Note that by supplying the `#`, or hash symbol, comments can be provided within the YAML file.
+
+The `# ...` comment denotes fields before and after this specific field. Note that by supplying the `#`, or hash symbol, comments can be provided within the YAML file.
 
 Each line within a `config.yaml` file contains a field name, followed by a colon, a space, and then an appropriate value that matches with the key. The following example shows you how the `AUTHENTICATION_TYPE` configuration field must be formatted in your `config.yaml` file.
 
 [source,yaml]
 ----
-AUTHENTICATION_TYPE: Database <1>
+AUTHENTICATION_TYPE: Database
 # ...
 ----
-<1> The authentication engine to use for credential authentication.
+
+`AUTHENTICATION_TYPE`:: Specifies the authentication engine to use for credential authentication.
 
 In the previous example, the `AUTHENTICATION_TYPE` is set to `Database`, however, different deployment types require a different value. The following example shows you how your `config.yaml` file might look if `LDAP`, or Lightweight Directory Access Protocol, was used for authentication:
 
@@ -62,7 +64,7 @@ BUILDLOGS_REDIS:
 [id="lists"]
 == Lists
 
-In some cases, the {productname} configuration field relies on lists to define certain values. Lists are formatted by using a hyphen (`-`) followed by a space. The following example shows you how the `SUPER_USERS` configuration field uses a list to define superusers:
+In some cases, the {productname} configuration field relies on lists to define certain values. You format lists by using a hyphen (`-`) followed by a space. The following example shows you how the `SUPER_USERS` configuration field uses a list to define superusers:
 
 [source,yaml]
 ----
@@ -89,7 +91,7 @@ FOOTER_LINKS:
 [id="comments"]
 == Comments
 
-The hash symbol, or `#`, can be placed at the beginning of a line to add comments or to temporarily disable a configuration field. They are ignored by the configuration parser and will not affect the behavior of the registry. For example:
+The hash symbol, or `#`, can be placed at the beginning of a line to add comments or to temporarily disable a configuration field. The configuration parser ignores them, so they do not affect registry behavior. For example:
 
 [source,yaml]
 ----
@@ -98,4 +100,4 @@ The hash symbol, or `#`, can be placed at the beginning of a line to add comment
 # ...
 ----
 
-In this example, the `FEATURE_UI_V2` configuration is ignored by the parser, meaning that the option to use the v2 UI is disabled. Using the `#` symbol on a required configuration field results in failure for the registry to start.
+In this example, the configuration parser ignores the `FEATURE_UI_V2` configuration, meaning that the option to use the v2 UI is disabled. Using the `#` symbol on a required configuration field results in failure for the registry to start.

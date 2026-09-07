@@ -1,0 +1,14 @@
+:_mod-docs-content-type: CONCEPT
+[id="ldap-considerations"]
+= Considerations when enabling LDAP
+
+[role="_abstract"]
+Before you enable LDAP for {productname}, review how existing local usernames interact with directory accounts and how `FEATURE_USER_CREATION` affects first login.
+
+*Existing {productname} deployments*
+
+Conflicts between usernames can arise when you enable LDAP for an existing {productname} deployment that already has users configured. For example, one user, `alice`, was manually created in {productname} prior to enabling LDAP. If the username `alice` also exists in the LDAP directory, {productname} automatically creates a new user, `alice-1`, when `alice` logs in for the first time using LDAP. {productname} then automatically maps the LDAP credentials to the `alice` account. For consistency reasons, this might be erroneous for your {productname} deployment. Remove any potentially conflicting local account names from {productname} prior to enabling LDAP.
+
+*Manual user creation and LDAP authentication*
+
+When {productname} is configured for LDAP, LDAP-authenticated users are automatically created in the {productname} database on first log in, if the configuration option `FEATURE_USER_CREATION` is set to `true`. If this option is set to `false`, the automatic user creation for LDAP users fails, and the user is not allowed to log in. In this scenario, the superuser needs to create the desired user account first. Conversely, if `FEATURE_USER_CREATION` is set to `true`, a user can still create an account from the {productname} login screen, even if an equivalent user exists in LDAP.

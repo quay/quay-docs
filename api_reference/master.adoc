@@ -1,9 +1,11 @@
 :_mod-docs-content-type: ASSEMBLY
-include::_attributes/attributes.adoc[][id="api-reference"]
+include::_attributes/attributes.adoc[]
+[id="api-reference"]
 = {productname} API reference
 :context: use-api
 
-The {productname} application programming interface (API) provides a comprehensive, RESTful interface for managing and automating tasks within {productname}. Designed around the link:https://oauth.net/2/[_OAuth 2.0 protocol_], this API enables secure, fine-grained access to {productname} resources, and allows administrators and users to perform such actions as creating repositories, managing images, setting permissions, and more. 
+[role="_abstract"]
+You can use the {productname} REST API, which is based on the OAuth 2.0 protocol, to manage repositories, images, permissions, and other registry resources. This reference documents endpoints, request and response schemas, authentication requirements, and error codes.
 
 {productname} follows Semantic Versioning (SemVer) principles, ensuring predictable API stability across releases, such as:
 
@@ -11,7 +13,7 @@ The {productname} application programming interface (API) provides a comprehensi
 
 * *Minor releases*: Add new functionality in a backward-compatible manner. For example, a _3.y_ release adds functionality to the version _3._ release.
 
-* *Patch releases*: Deliver bug fixes and improvements while preserving backward compatibility with minor releases, such as _3.y.z_. 
+* *Patch releases*: Deliver bug fixes and improvements while preserving backward compatibility with minor releases, such as _3.y.z_.
 
 The following guide describes the {productname} API in more detail, and provides details on the following topics:
 
@@ -20,8 +22,6 @@ The following guide describes the {productname} API in more detail, and provides
 * Required and optional parameters
 * Authentication and authorization requirements
 * Common error codes and troubleshooting information
-
-For a more guided approach, including token overview, management strategies, understanding API endpoints, and more, refer to the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html/red_hat_quay_api_guide/index[{productname} API guide].
 
 include::modules/api-authorization.adoc[leveloffset=+1]
 
@@ -43,6 +43,8 @@ include::modules/api-build-getRepoBuilds.adoc[leveloffset=+2]
 //example procedures provided
 include::modules/api-discovery.adoc[leveloffset=+1]
 include::modules/api-discovery-discovery.adoc[leveloffset=+2]
+
+include::modules/api-bootstrap-renewBootstrapToken.adoc[leveloffset=+1]
 
 //example procedures provided
 include::modules/api-error.adoc[leveloffset=+1]
@@ -81,6 +83,7 @@ include::modules/api-mirror-syncNow.adoc[leveloffset=+2]
 include::modules/api-mirror-getRepoMirrorConfig.adoc[leveloffset=+2]
 include::modules/api-mirror-changeRepoMirrorConfig.adoc[leveloffset=+2]
 include::modules/api-mirror-createRepoMirrorConfig.adoc[leveloffset=+2]
+include::modules/api-mirror-getRepositoryMirrorHealth.adoc[leveloffset=+2]
 
 //organization mirroring 
 include::modules/api-org_mirror.adoc[leveloffset=+1]
@@ -113,6 +116,21 @@ include::modules/api-namespacequota-createOrganizationQuota.adoc[leveloffset=+2]
 include::modules/api-namespacequota-listOrganizationQuota.adoc[leveloffset=+2]
 include::modules/api-namespacequota-getUserQuota.adoc[leveloffset=+2]
 
+//commands provided
+include::modules/api-namespacenotification.adoc[leveloffset=+1]
+include::modules/api-namespacenotification-createOrgNotification.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-listOrgNotifications.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-getOrgNotification.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-deleteOrgNotification.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-testOrgNotification.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-resetOrgNotificationFailures.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-createUserNotification.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-listUserNotifications.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-getUserNamespaceNotification.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-deleteUserNotification.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-testUserNamespaceNotification.adoc[leveloffset=+2]
+include::modules/api-namespacenotification-resetUserNamespaceNotificationFailures.adoc[leveloffset=+2]
+
 //done
 include::modules/api-organization.adoc[leveloffset=+1]
 include::modules/api-organization-createOrganization.adoc[leveloffset=+2]
@@ -122,6 +140,9 @@ include::modules/api-organization-getOrganizationApplication.adoc[leveloffset=+2
 include::modules/api-organization-updateOrganizationApplication.adoc[leveloffset=+2]
 include::modules/api-organization-deleteOrganizationApplication.adoc[leveloffset=+2]
 include::modules/api-organization-createOrganizationApplication.adoc[leveloffset=+2]
+include::modules/api-organization-createOrganizationApplicationToken.adoc[leveloffset=+2]
+include::modules/api-organization-listOrganizationApplicationTokens.adoc[leveloffset=+2]
+include::modules/api-organization-deleteOrganizationApplicationToken.adoc[leveloffset=+2]
 include::modules/api-organization-getOrganizationApplications.adoc[leveloffset=+2]
 include::modules/api-organization-getProxyCacheConfig.adoc[leveloffset=+2]
 include::modules/api-organization-deleteProxyCacheConfig.adoc[leveloffset=+2]
@@ -249,6 +270,7 @@ include::modules/api-superuser-getRepoBuildSuperUser.adoc[leveloffset=+2]
 include::modules/api-superuser-getRepoBuildLogsSuperUser.adoc[leveloffset=+2]
 include::modules/api-superuser-getRegistrySize.adoc[leveloffset=+2]
 include::modules/api-superuser-postRegistrySize.adoc[leveloffset=+2]
+include::modules/api-superuser-getSuperUserRepositoryMirrorHealth.adoc[leveloffset=+2]
 
 //done
 include::modules/api-tag.adoc[leveloffset=+1]
@@ -303,11 +325,9 @@ include::modules/api-user-getUserInformation.adoc[leveloffset=+2]
 
 include::modules/api-definitions.adoc[leveloffset=+1]
 
-////
-// do not remove 
-[id="api-config-examples"]
-== API configuration examples
+[id="additional-resources_use-api"]
+[role="_additional-resources"]
+== Additional resources
 
-include::modules/external-registry-config-api-example.adoc[leveloffset=+2]
-include::modules/root-rule-config-api-example.adoc[leveloffset=+2]
-////
+* link:https://oauth.net/2/[OAuth 2.0 protocol]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html/red_hat_quay_api_guide/index[{productname} API guide]

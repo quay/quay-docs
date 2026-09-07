@@ -1,0 +1,55 @@
+:_mod-docs-content-type: PROCEDURE
+[id="setup-ldap-configuration"]
+= Configuring LDAP for {productname}
+
+[role="_abstract"]
+To configure LDAP authentication for {productname}, you can update your `config.yaml` file with the required LDAP fields and restart the registry.
+
+.Procedure
+
+. Update your `config.yaml` file directly to include the following relevant information:
++
+[source,yaml]
+----
+# ...
+AUTHENTICATION_TYPE: LDAP
+# ...
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
+LDAP_ADMIN_PASSWD: ABC123
+LDAP_ALLOW_INSECURE_FALLBACK: false
+LDAP_BASE_DN:
+  - dc=example
+  - dc=com
+LDAP_EMAIL_ATTR: mail
+LDAP_UID_ATTR: uid
+LDAP_URI: ldap://<example_url>.com
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=<domain_name>,dc=com)
+LDAP_USER_RDN:
+  - ou=people
+LDAP_SECONDARY_USER_RDNS:
+    - ou=<example_organization_unit_one>
+    - ou=<example_organization_unit_two>
+    - ou=<example_organization_unit_three>
+    - ou=<example_organization_unit_four>
+FEATURE_LDAP_CACHING: true
+LDAP_CACHE_TTL: 10
+# ...
+----
++
+where:
+
+`AUTHENTICATION_TYPE`:: Specifies the authentication type. This field is required and must be set to `LDAP`.
+`LDAP_ADMIN_DN`:: Specifies the admin DN for LDAP authentication. This field is required.
+`LDAP_ADMIN_PASSWD`:: Specifies the admin password for LDAP authentication. This field is required.
+`LDAP_ALLOW_INSECURE_FALLBACK`:: Specifies whether to allow SSL/TLS insecure fallback for LDAP authentication. This field is required.
+`LDAP_BASE_DN`:: Specifies the base DN for LDAP authentication. This field is required.
+`LDAP_EMAIL_ATTR`:: Specifies the email attribute for LDAP authentication. This field is required.
+`LDAP_UID_ATTR`:: Specifies the UID attribute for LDAP authentication. This field is required.
+`LDAP_URI`:: Specifies the LDAP URI. This field is required.
+`LDAP_USER_FILTER`:: Specifies the user filter for LDAP authentication. This field is required.
+`LDAP_USER_RDN`:: Specifies the user RDN for LDAP authentication. This field is required.
+`LDAP_SECONDARY_USER_RDNS`:: Optional. Specifies secondary user relative DNs when user objects are located in multiple organizational units.
+`FEATURE_LDAP_CACHING`:: Optional. Specifies whether to enable in-memory caching for LDAP permission check results (superuser, restricted user). Caching reduces LDAP server load. Defaults to `false`.
+`LDAP_CACHE_TTL`:: Specifies the time-to-live, in seconds, for cached LDAP permission results. Defaults to `60`.
+
+. After you have added all required LDAP fields, save the changes and restart your {productname} deployment.

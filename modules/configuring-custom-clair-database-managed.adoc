@@ -7,7 +7,7 @@
 = Configuring a custom Clair database with a managed Clair configuration
 
 [role="_abstract"]
-To configure a custom Clair database while keeping the Clair configuration managed by the Operator, you can create a Quay configuration bundle secret that includes the `clair-config.yaml` file. This lets you use your own external database while the Operator continues to manage Clair settings.
+To supply a custom `clair-config.yaml` while the Operator manages Clair on {productname}, you can create a Quay configuration bundle secret that includes your Clair configuration file.
 
 .Procedure
 
@@ -39,8 +39,7 @@ notifier:
 +
 [NOTE]
 ====
-* The database certificate is mounted under `/run/certs/rds-ca-2019-root.pem` on the Clair application pod in the `clair-config.yaml`. It must be specified when configuring your `clair-config.yaml`.
-* An example `clair-config.yaml` can be found at link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/quay_operator_features#clair-openshift-config[Clair on OpenShift config].
+The database certificate is mounted under `/run/certs/rds-ca-2019-root.pem` on the Clair application pod in the `clair-config.yaml`. It must be specified when configuring your `clair-config.yaml`.
 ====
 
 . Add the `clair-config.yaml` file to your bundle secret, for example:
@@ -59,16 +58,18 @@ data:
 +
 [NOTE]
 ====
-* When updated, the provided `clair-config.yaml` file is mounted into the Clair pod. Any fields not provided are automatically populated with defaults using the Clair configuration module.
+When updated, the provided `clair-config.yaml` file is mounted into the Clair pod. Any fields not provided are automatically populated with defaults using the Clair configuration module.
 ====
 
 . You can check the status of your Clair pod by clicking the commit in the *Build History* page, or by running `oc get pods -n <namespace>`. For example:
 +
+[source,terminal]
 ----
 $ oc get pods -n <namespace>
 ----
 +
 .Example output
+[source,terminal]
 ----
 NAME                                               READY   STATUS    RESTARTS   AGE
 f192fe4a-c802-4275-bcce-d2031e635126-9l2b5-25lg2   1/1     Running   0          7s

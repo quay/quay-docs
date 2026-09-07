@@ -1,15 +1,14 @@
 :_mod-docs-content-type: PROCEDURE
 [id="integrating-external-redis-db"]
-= Integrating an external Redis database 
+= Configuring an external Redis connection
 
 [role="_abstract"]
-To integrate an existing Redis database with your {productname} registry, you can set the redis component to unmanaged and configure `BUILDLOGS_REDIS` and `USER_EVENTS_REDIS` in the `configBundleSecret`. This lets you use your own Redis infrastructure for build logs and user event processing.
+Using an external Redis database with {productname} lets you manage your own Redis infrastructure instead of using the Operator-managed Redis. To integrate an existing Redis database with your {productname} registry, you can set the redis component to unmanaged and configure `BUILDLOGS_REDIS` and `USER_EVENTS_REDIS` in the `configBundleSecret` resource.
 
-[NOTE]
+[IMPORTANT]
 ====
-The following procedure uses the {ocp} web console to configure {productname} to use an external Redis database. For most users, using the web console is simpler.
-
-You can also complete this procedure by using the `oc` CLI. For more information, see "Modifying the QuayRegistry CR by using the CLI" and "Modifying the configuration file by using the CLI".
+Do not share the same Redis instance between {productname} and Clair deployments. Each service must use its own dedicated Redis instance.  
+Sharing Redis with other workloads is not supported, because connection-intensive components such as {productname} and Clair can quickly exhaust available Redis connections and degrade performance.
 ====
 
 .Procedure
@@ -59,6 +58,6 @@ If both the `BUILDLOGS_REDIS` and `USER_EVENTS_REDIS` fields reference the same 
 For large or high-throughput registries, use separate Redis databases or clusters for these components.
 ====
 
-. Optional: Add additional database configuration fields, such as `DB_CONNECTION_ARGS` or SSL/TLS connection arguments. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/3/html-single/configure_red_hat_quay/index#config-fields-redis[Redis configuration fields].
+. Optional: Add additional database configuration fields, such as `DB_CONNECTION_ARGS` or SSL/TLS connection arguments. For more information, see xref:quay_jtbd-configure.adoc#config-fields-redis[Redis configuration fields].
 
 . Click *Save*.

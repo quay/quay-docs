@@ -1,0 +1,18 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-entra-obo-oidc"]
+= Configuring On-Behalf-Of (OBO) flows
+
+[role="_abstract"]
+To allow an upstream service to call {productname} APIs on behalf of authenticated users, you can configure On-Behalf-Of (OBO) audiences and allowed clients in your Entra ID OIDC settings.
+
+.Procedure
+
+. In the Azure Portal, expose an API on the {productname} app registration and add a scope, for example `registry.access` under `api://quay-api`.
+
+. Create a second app registration for the upstream service and grant it permission to the {productname} API scope.
+
+. Add the exposed API identifier to `OIDC_AUDIENCES` in your {productname} configuration, for example `api://quay-api`.
+
+. Add the upstream application's client ID to `OIDC_ALLOWED_CLIENTS`.
++
+OBO tokens have `aud: api://quay-api` and `azp: <upstream_client_id>`. {productname} validates both claims.

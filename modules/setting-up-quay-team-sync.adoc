@@ -1,0 +1,78 @@
+:_mod-docs-content-type: PROCEDURE
+[id="setting-up-quay-team-sync"]
+= Setting up your {productname} deployment for team synchronization
+
+[role="_abstract"]
+To sync a {productname} team with an OIDC group, you can create an organization and team in the UI, enable directory sync, and verify membership changes from the identity provider.
+
+.Prerequisites
+
+* You have enabled team synchronization for your OIDC-authenticated {productname} deployment.
+
+.Procedure
+
+. Log in to your {productname} registry by using your OIDC provider.
+
+. On the {productname} v2 UI dashboard, click *Create Organization*.
+
+. Enter an organization name, for example, `test-org`.
+
+. Click the name of the organization.
+
+. In the navigation pane, click *Teams and membership*.
+
+. Click *Create new team* and enter a name, for example, `testteam`.
+
+. On the *Create team* pop-up:
+
+.. Optional. Add this team to a repository.
+.. Add a team member, for example, `user1`, by typing in the user's account name.
+.. Add a robot account to this team. This page provides the option to create a robot account.
+
+. Click *Next*.
+
+. On the *Review and Finish* page, review the information that you have provided and click *Review and Finish*.
+
+. To enable team synchronization for your {productname} OIDC deployment, click *Enable Directory Sync* on the *Teams and membership* page.
+
+. You are prompted to enter the group Object ID if your OIDC authenticator is Azure Entra ID, or the group name if using a different provider.
++
+[WARNING]
+====
+After you enable team syncing, membership of users who are already part of the team is revoked. The OIDC group is the single source of truth. This action is not reversible. Team user membership from within {productname} is read-only.
+====
+
+. Click *Enable Sync*.
+
+. You are returned to the *Teams and membership* page. Note that users of this team are removed and are re-added upon logging back in. At this stage, only the robot account is still part of the team.
++
+A banner at the top of the page confirms that the team is synced:
++
+[source,text]
+----
+This team is synchronized with a group in OIDC and its user membership is therefore read-only.
+----
++
+By clicking the *Directory Synchronization Config* accordion, the OIDC group that your deployment syncs with appears.
+
+. Log out of your {productname} registry.
+
+.Verification
+
+. Log back in to your {productname} registry.
+
+. Click *Organizations* -> *test-org* -> *test-team* -> *Teams and memberships*. `user1` now appears as a team member for this team.
+
+. Navigate to your OIDC provider's administration console.
+
+. Navigate to the *Users* page of your OIDC provider. The name of this page varies depending on your provider.
+
+. Click the name of the user associated with {productname}, for example, `user1`.
+
+. Remove the user from the group in the configured identity provider.
+
+. Remove, or unassign, the access permissions from the user.
+
+. Log in to your {productname} registry.
+
+. Click *Organizations* -> *test-org* -> *test-team* -> *Teams and memberships*. `user1` has been removed from this team.

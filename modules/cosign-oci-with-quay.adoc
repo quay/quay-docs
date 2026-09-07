@@ -1,8 +1,9 @@
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 [id="cosign-oci-with-quay"]
 = Installing and using Cosign
 
-Use the following procedure to directly install Cosign. 
+[role="_abstract"]
+To install Cosign and sign images in {productname}, you can generate a key pair, sign a tag, and verify the signature. You authenticate to the registry with your existing credentials.
 
 .Prerequisites 
 
@@ -19,7 +20,6 @@ $ go install github.com/sigstore/cosign/cmd/cosign@v1.0.0
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 go: downloading github.com/sigstore/cosign v1.0.0
@@ -34,7 +34,6 @@ $ cosign generate-key-pair
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 Enter password for private key:
@@ -45,44 +44,26 @@ Public key written to cosign.pub
 
 . Sign the key-value pair by entering the following command:
 +
-ifeval::["{context}" == "quay-io"]
 [source,terminal]
 ----
-$ cosign sign -key cosign.key quay.io/user1/busybox:test
+$ cosign sign -key cosign.key <quay-server.example.com>/user1/busybox:test
 ----
-endif::[]
-ifeval::["{context}" == "use-quay"]
-[source,terminal]
-----
-$ cosign sign -key cosign.key quay-server.example.com/user1/busybox:test
-----
-endif::[]
 +
 .Example output
-+
 [source,terminal]
 ----
 Enter password for private key:
 Pushing signature to: quay-server.example.com/user1/busybox:sha256-ff13b8f6f289b92ec2913fa57c5dd0a874c3a7f8f149aabee50e3d01546473e3.sig
 ----
 +
-If you experience the `error: signing quay-server.example.com/user1/busybox:test: getting remote image: GET https://quay-server.example.com/v2/user1/busybox/manifests/test: UNAUTHORIZED: access to the requested resource is not authorized; map[]` error, which occurs because Cosign relies on `~./docker/config.json` for authorization, you might need to execute the following command:
+If you experience an `UNAUTHORIZED: access to the requested resource is not authorized` error when signing, which occurs because Cosign relies on `~./docker/config.json` for authorization, you might need to execute the following command:
 +
-ifeval::["{context}" == "quay-io"]
 [source,terminal]
 ----
-$ podman login --authfile ~/.docker/config.json quay.io
+$ podman login --authfile ~/.docker/config.json <quay-server.example.com>
 ----
-endif::[]
-ifeval::["{context}" == "use-quay"]
-[source,terminal]
-----
-$ podman login --authfile ~/.docker/config.json quay-server.example.com
-----
-endif::[]
 +
 .Example output
-+
 [source,terminal]
 ----
 Username:

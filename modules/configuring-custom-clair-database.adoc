@@ -7,11 +7,11 @@
 = Configuring a custom Clair database with an unmanaged Clair database
 
 [role="_abstract"]
-To configure a custom Clair database with SSL/TLS certificates for your {productname} deployment, you can create a Quay configuration bundle secret that includes the `clair-config.yaml` file. This lets you use your own external database with secure connections for Clair vulnerability scanning.
+To configure a custom Clair database with SSL/TLS certificates on {productname}, you can create a Quay configuration bundle secret that includes the `clair-config.yaml` file.
 
 [NOTE]
 ====
-The following procedure sets up Clair with SSL/TLS certifications. To view a similar procedure that does not set up Clair with SSL/TLS certifications, see "Configuring a custom Clair database with a managed Clair configuration".
+The following procedure configures Clair with SSL/TLS certificates.
 ====
 
 .Procedure
@@ -45,7 +45,6 @@ notifier:
 [NOTE]
 ====
 * The database certificate is mounted under `/run/certs/rds-ca-2019-root.pem` on the Clair application pod in the `clair-config.yaml`. It must be specified when configuring your `clair-config.yaml`.
-* An example `clair-config.yaml` can be found at link:https://access.redhat.com/documentation/en-us/red_hat_quay/{producty}/html/deploy_red_hat_quay_on_openshift_with_the_quay_operator/quay_operator_features#clair-openshift-config[Clair on OpenShift config].
 ====
 
 . Add the `clair-config.yaml` file to your bundle secret, for example:
@@ -72,11 +71,13 @@ When updated, the provided `clair-config.yaml` file is mounted into the Clair po
 
 . You can check the status of your Clair pod by clicking the commit in the *Build History* page, or by running `oc get pods -n <namespace>`. For example:
 +
+[source,terminal]
 ----
 $ oc get pods -n <namespace>
 ----
 +
 .Example output
+[source,terminal]
 ----
 NAME                                               READY   STATUS    RESTARTS   AGE
 f192fe4a-c802-4275-bcce-d2031e635126-9l2b5-25lg2   1/1     Running   0          7s

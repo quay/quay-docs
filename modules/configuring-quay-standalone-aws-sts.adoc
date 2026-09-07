@@ -1,9 +1,9 @@
 :_mod-docs-content-type: PROCEDURE
-
 [id="configuring-quay-standalone-aws-sts"]
 = Configuring {productname} to use AWS STS
 
-Use the following procedure to edit your {productname} `config.yaml` file to use AWS STS.
+[role="_abstract"]
+To configure {productname} to use AWS STS for Amazon S3 storage, you can update the `DISTRIBUTED_STORAGE_CONFIG` block in your `config.yaml` file and restart the registry.
 
 .Procedure
 
@@ -15,26 +15,29 @@ Use the following procedure to edit your {productname} `config.yaml` file to use
 DISTRIBUTED_STORAGE_CONFIG:
    default:
     - STSS3Storage
-    - sts_role_arn: <role_arn> <1>
-      s3_bucket: <s3_bucket_name> <2>
-      storage_path: <storage_path> <3> 
-      s3_region: <region> <4>
-      sts_user_access_key: <s3_user_access_key> <5>
-      sts_user_secret_key: <s3_user_secret_key> <6>
+    - sts_role_arn: <role_arn>
+      s3_bucket: <s3_bucket_name>
+      storage_path: <storage_path>
+      s3_region: <region>
+      sts_user_access_key: <s3_user_access_key>
+      sts_user_secret_key: <s3_user_secret_key>
 # ...
 ----
-<1> The unique Amazon Resource Name (ARN) required when configuring AWS STS
-<2> The name of your s3 bucket.
-<3> The storage path for data. Usually `/datastorage`.
-<4> The Amazon Web Services region. Defaults to `us-east-1`.
-<5> The generated AWS S3 user access key required when configuring AWS STS.
-<6> The generated AWS S3 user secret key required when configuring AWS STS.
++
+where:
 
-. Restart your {productname} deployment. 
+`sts_role_arn`:: Specifies the unique Amazon Resource Name (ARN) required when configuring AWS STS.
+`s3_bucket`:: Specifies the name of your S3 bucket.
+`storage_path`:: Specifies the storage path for data. Usually `/datastorage`.
+`s3_region`:: Specifies the Amazon Web Services region. Defaults to `us-east-1`.
+`sts_user_access_key`:: Specifies the generated AWS S3 user access key required when configuring AWS STS.
+`sts_user_secret_key`:: Specifies the generated AWS S3 user secret key required when configuring AWS STS.
+
+. Restart your {productname} deployment.
 
 .Verification
 
-. Tag a sample image, for example, `busybox`, that will be pushed to the repository. For example:
+. Tag a sample image, for example, `busybox`, that you push to the repository. For example:
 +
 [source,terminal]
 ----
@@ -48,17 +51,17 @@ $ podman tag docker.io/library/busybox <quay-server.example.com>/<organization_n
 $ podman push <quay-server.example.com>/<organization_name>/busybox:test
 ----
 
-. Verify that the push was successful by navigating to the Organization that you pushed the image to in your {productname} registry -> *Tags*. 
+. Verify that the push was successful by navigating to the Organization that you pushed the image to in your {productname} registry -> *Tags*.
 
-. Navigate to the Amazon Web Services (AWS) console and locate your s3 bucket. 
+. Navigate to the Amazon Web Services (AWS) console and locate your S3 bucket.
 
-. Click the name of your s3 bucket.
+. Click the name of your S3 bucket.
 
 . On the *Objects* page, click *datastorage/*.
 
-. On the *datastorage/* page, the following resources should seen:
+. On the *datastorage/* page, the following resources should appear:
 +
 * *sha256/*
-* *uploads/* 
+* *uploads/*
 +
 These resources indicate that the push was successful, and that AWS STS is properly configured.

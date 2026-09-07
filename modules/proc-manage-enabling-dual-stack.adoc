@@ -1,0 +1,57 @@
+:_mod-docs-content-type: PROCEDURE
+[id="proc-manage-enabling-dual-stack"]
+= Enabling the dual-stack protocol family
+
+[role="_abstract"]
+To enable dual-stack (IPv4 and IPv6) support on your standalone {productname} deployment, you can set `FEATURE_LISTEN_IP_VERSION` to `dual-stack` in your `config.yaml` file and restart the registry.
+
+.Prerequisites
+
+* Your host and container software platform (Docker, Podman) must be configured to support IPv6.
+
+.Procedure
+
+. In your deployment's `config.yaml` file, add the `FEATURE_LISTEN_IP_VERSION` parameter and set it to `dual-stack`, for example:
++
+[source,yaml]
+----
+FEATURE_GOOGLE_LOGIN: false
+FEATURE_INVITE_ONLY_USER_CREATION: false
+FEATURE_LISTEN_IP_VERSION: dual-stack
+FEATURE_MAILING: false
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: false
+----
+
+. Start, or restart, your {productname} deployment.
+
+. Check that your deployment is listening on both channels by entering the following commands:
+
+.. For IPv4, enter the following command:
++
+[source,terminal]
+----
+$ curl --ipv4 <quay_endpoint>
+----
++
+.Example output
+[source,terminal]
+----
+{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
+----
+
+.. For IPv6, enter the following command:
++
+[source,terminal]
+----
+$ curl --ipv6 <quay_endpoint>
+----
++
+.Example output
+[source,terminal]
+----
+{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}
+----
+
+.Results
+
+* After you enable dual-stack in your deployment's `config.yaml` file, you can use all {productname} features as usual when your environment is configured for dual-stack.

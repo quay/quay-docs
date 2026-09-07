@@ -1,0 +1,74 @@
+:_mod-docs-content-type: PROCEDURE
+[id="exchanging-oauth2-robot-account-token"]
+= Exchanging an OAuth2 access token for a {productname} robot account token
+
+[role="_abstract"]
+To authenticate with a federated robot account in {productname}, you can exchange an OAuth2 access token for a short-lived robot token by using a Python script.
+
+[NOTE]
+====
+The following example uses a Python script to exchange the OAuth2 access token for a {productname} robot account token.
+====
+
+.Prerequisites
+
+* You have the `python3` CLI tool installed.
+
+.Procedure
+
+. Save the following Python script in a `.py` file, for example, `robot_fed_token_auth.py`:
++
+[source,python]
+----
+import requests
+import os
+
+TOKEN=os.environ.get('TOKEN')
+robot_user = "fed-test+robot1"
+
+def get_quay_robot_token(fed_token):
+    URL = "https://<quay-server.example.com>/oauth2/federation/robot/token"
+    response = requests.get(URL, auth=(robot_user,fed_token))
+    print(response)
+    print(response.text)
+
+if __name__ == "__main__":
+    get_quay_robot_token(TOKEN)
+----
++
+where:
+
+`response = requests.get(URL, auth=(robot_user,fed_token))`:: Specifies the request that retrieves the robot token. If your {productname} deployment is using custom SSL/TLS certificates, the response must be `response = requests.get(URL,auth=(robot_user,fed_token),verify=False)`, which includes the `verify=False` flag.
+
+. Export the OAuth2 access token as `TOKEN`. For example:
++
+[source,terminal]
+----
+$ export TOKEN=<export_token>...
+----
+
+. Run the `robot_fed_token_auth.py` script by entering the following command:
++
+[source,terminal]
+----
+$ python3 robot_fed_token_auth.py
+----
++
+.Example output
+[source,terminal]
+----
+<Response [200]>
+{"token": "string..."}
+----
++
+[IMPORTANT]
+====
+This token expires after one hour. After one hour, you must generate a new token.
+====
+
+. Export the robot account access token as `QUAY_TOKEN`. For example:
++
+[source,terminal]
+----
+$ export QUAY_TOKEN=<quay_token>
+----

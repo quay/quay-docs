@@ -1,0 +1,150 @@
+#!/usr/bin/env bash
+# Build Surge preview with redhat-docs-template styling (asciidoctor + left-nav theme).
+# Supports legacy top-level books, JTBD category books, and the product navigation MAP.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$REPO_ROOT"
+
+book_out() {
+  case "$1" in
+    api) echo api_quay ;;
+    *) echo "$1" ;;
+  esac
+}
+
+fix_asset_paths() {
+  local file="$1"
+  local depth="${2:-0}" # extra ../ segments for nested book dirs (e.g. quay_jtbd/configure)
+  local prefix=""
+  if (( depth > 0 )); then
+    prefix=$(printf '../%.0s' $(seq 1 "$depth"))
+  fi
+  sed -i \
+    -e "s|href=\"${prefix}assets/|href=\"/assets/|g" \
+    -e "s|src=\"${prefix}assets/|src=\"/assets/|g" \
+    -e "s|href=\"assets/|href=\"/assets/|g" \
+    -e "s|src=\"assets/|src=\"/assets/|g" \
+    -e "s|href=\"${prefix}images/|href=\"/images/|g" \
+    -e "s|src=\"${prefix}images/|src=\"/images/|g" \
+    -e 's|href="../images/|href="/images/|g' \
+    -e 's|src="../images/|src="/images/|g' \
+    -e 's|href="../../images/|href="/images/|g' \
+    -e 's|src="../../images/|src="/images/|g' \
+    "$file"
+}
+
+inject_preview_chrome() {
+  python3 - "$1" <<'PY'
+import html
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text()
+if "surge-preview-banner" in text:
+    sys.exit(0)
+
+title_match = re.search(r"<h1>(.*?)</h1>", text)
+title = html.escape(title_match.group(1)) if title_match else path.parent.name
+
+head_extra = (
+    '<link rel="stylesheet" href="/assets/css/surge-preview.css">\n'
+    '<script src="/assets/js/jquery.min.js"></script>\n'
+    '<script src="/assets/js/toc-collapse.js" defer></script>\n'
+)
+text = text.replace("</head>", head_extra + "</head>", 1)
+
+body_match = re.search(r"<body([^>]*)>", text)
+if body_match:
+    insert = (
+        f'<body{body_match.group(1)}>\n'
+        '<div class="surge-preview-banner" role="status">Surge preview — not docs.redhat.com</div>\n'
+        f'<div class="paragraph navbar"><p><a href="/"><span class="image">'
+        f'<img src="/assets/img/logo.svg" alt="Home" width="30"></span> | {title}</a></p></div>'
+    )
+    text = text.replace(body_match.group(0), insert, 1)
+
+footer = pathlib.Path("preview/assets/docinfo-footer.html").read_text()
+if footer not in text:
+    text = text.replace("</body>", footer + "\n</body>", 1)
+
+path.write_text(text)
+PY
+}
+
+build_book() {
+  local master="$1"
+  local out_dir="$2"
+  local flat_name="$3"
+  local imagesdir="$4"
+  local stylesdir="$5"
+  local asset_depth="${6:-1}"
+
+  echo "--- ${master} -> ${out_dir} ---"
+  mkdir -p "dist/${out_dir}"
+  asciidoctor "${BOOK_ATTR[@]}" -a "imagesdir=${imagesdir}" -a "stylesdir=${stylesdir}" "$master" \
+    -D "dist/${out_dir}" -o index.html
+  fix_asset_paths "dist/${out_dir}/index.html" "$asset_depth"
+  inject_preview_chrome "dist/${out_dir}/index.html"
+  cp "dist/${out_dir}/index.html" "dist/${flat_name}.html"
+}
+
+BOOK_ATTR=(
+  -a productname="Red Hat Quay"
+  -a toc=left
+  -a toclevels=4
+  -d book
+  -a linkcss
+  -a stylesheet=redhat.css
+  -a icons=font
+)
+
+WELCOME_ATTR=(
+  -a productname="Red Hat Quay"
+  -a linkcss
+  -a stylesheet=redhat.css
+  -a stylesdir=assets/css
+  -d book
+)
+
+rm -rf dist
+mkdir -p dist/assets
+cp -a preview/assets/. dist/assets/
+cp preview/surge-preview.css dist/assets/css/
+
+echo "=== Building welcome page ==="
+asciidoctor "${WELCOME_ATTR[@]}" welcome.adoc -D dist -o welcome.html
+fix_asset_paths dist/welcome.html
+inject_preview_chrome dist/welcome.html
+cp dist/welcome.html dist/index.html
+
+echo "=== Building legacy books ==="
+for master in */master.adoc; do
+  dir=$(dirname "$master")
+  case "$dir" in
+    api) out=api_quay ;;
+    quay_jtbd) continue ;;
+    *) out="$dir" ;;
+  esac
+  build_book "$master" "$out" "$out" "../images" "../assets/css" 1
+done
+
+echo "=== Building JTBD category books ==="
+if [[ -d quay_jtbd ]]; then
+  for master in quay_jtbd/*/master.adoc; do
+    [[ -f "$master" ]] || continue
+    dir=$(basename "$(dirname "$master")")
+    build_book "$master" "quay_jtbd/${dir}" "quay_jtbd-${dir}" "../../images" "../../assets/css" 2
+  done
+fi
+
+echo "=== Building JTBD product navigation MAP ==="
+if [[ -f quay-3-18-navigation.adoc ]]; then
+  build_book "quay-3-18-navigation.adoc" "quay_jtbd-navigation" "quay-3-18-navigation" "images" "assets/css" 1
+fi
+
+cp -a images dist/images
+
+echo "=== Preview build complete: dist/ ==="

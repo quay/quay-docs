@@ -1,0 +1,46 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-red-hat-sso-using-config-tool"]
+= Configuring the Red Hat Single Sign-On Operator for use with the {productname} Operator
+
+[role="_abstract"]
+To prepare Red Hat Single Sign-On for {productname} on {ocp}, you can create a confidential OIDC client in the RH-SSO Admin Console and copy the client secret.
+
+.Prerequisites
+
+* You have configured the Red Hat Single Sign-On Operator.
+* You have configured SSL/TLS for your {productname-ocp} deployment _and_ for Red Hat Single Sign-On.
+* You have generated a single Certificate Authority (CA) and uploaded it to your Red Hat Single Sign-On Operator _and_ to your {productname} configuration.
+
+.Procedure
+
+. Navigate to the Red Hat Single Sign-On *Admin Console*.
+
+.. On the {ocp} *Web Console*, navigate to *Network* -> *Route*.
+
+.. Select the *Red Hat Single Sign-On* project from the drop-down list.
+
+.. Find the Red Hat Single Sign-On *Admin Console* in the *Routes* table.
+
+. Select the Realm that you use to configure {productname}.
+
+. Click *Clients* under the *Configure* section of the navigation panel, and then click *Create* to add a new OIDC client for {productname}.
+
+. Enter the following information:
++
+* *Client ID:* `quay-enterprise`
+* *Client Protocol:* `openid-connect`
+* *Root URL:* `\https://<quay_endpoint>/`
+
+. Click *Save*. This results in a redirect to the *Clients* setting panel.
+
+. Navigate to *Access Type* and select *Confidential*.
+
+. Navigate to *Valid Redirect URIs*. You must provide three redirect URIs. The value should be the fully qualified domain name of the {productname} registry appended with `/oauth2/redhatsso/callback`. For example:
++
+* `\https://<quay_endpoint>/oauth2/redhatsso/callback`
+* `\https://<quay_endpoint>/oauth2/redhatsso/callback/attach`
+* `\https://<quay_endpoint>/oauth2/redhatsso/callback/cli`
+
+. Click *Save* and navigate to the new *Credentials* setting.
+
+. Copy the value of the Secret.

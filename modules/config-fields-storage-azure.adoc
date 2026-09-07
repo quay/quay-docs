@@ -1,10 +1,9 @@
-:_mod-docs-content-type: REFERENCE
+:_mod-docs-content-type: CONCEPT
 [id="config-fields-storage-azure"]
 = Microsoft Azure Blob Storage
 
-{productname} supports using link:https://azure.microsoft.com/en-us/products/storage/blobs[Microsoft Azure Blob Storage] as an object storage backend. Azure Blob Storage can be used to persist container images, metadata, and other artifacts in a secure and cloud-native manner.
-
-The following YAML shows a sample configuration using Azure Storage.
+[role="_abstract"]
+You can configure {productname} to use Microsoft Azure Blob Storage as an object storage backend. Use this example to set account credentials, container details, and optional government cloud endpoints.
 
 .Microsoft Azure Blob Storage example
 [source,yaml]
@@ -17,11 +16,17 @@ DISTRIBUTED_STORAGE_CONFIG:
       storage_path: /datastorage/registry
       azure_account_key: <azure_account_key>
       sas_token: some/path/
-      endpoint_url: https://[account-name].blob.core.usgovcloudapi.net <1>
+      endpoint_url: https://[account-name].blob.core.usgovcloudapi.net
 DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
 DISTRIBUTED_STORAGE_PREFERENCE:
     - azureStorage
 ----
-<1> The `endpoint_url` parameter for Azure storage is optional and can be used with Microsoft Azure Government (MAG) endpoints. If left blank, the `endpoint_url` will connect to the normal Azure region.
-+
-As of {productname} 3.7, you must use the Primary endpoint of your MAG Blob service. Using the Secondary endpoint of your MAG Blob service will result in the following error: `AuthenticationErrorDetail:Cannot find the claimed account when trying to GetProperties for the account whusc8-secondary`.
+
+`DISTRIBUTED_STORAGE_CONFIG.azureStorage.endpoint_url`:: Specifies the endpoint URL for Azure storage. This parameter is optional and can be used with Microsoft Azure Government (MAG) endpoints. If left blank, the `endpoint_url` connects to the normal Azure region.
+
+You must use the Primary endpoint of your MAG Blob service. Using the Secondary endpoint of your MAG Blob service results in the following error: `AuthenticationErrorDetail:Cannot find the claimed account when trying to GetProperties for the account whusc8-secondary`.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://azure.microsoft.com/en-us/products/storage/blobs[Microsoft Azure Blob Storage]

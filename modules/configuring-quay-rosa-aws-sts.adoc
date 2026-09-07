@@ -45,12 +45,12 @@ oidc.op1.openshiftapps.com/123456
         	"Sid": "Statement1",
         	"Effect": "Allow",
         	"Principal": {
-            	"Federated": "arn:aws:iam::123456:oidc-provider/oidc.op1.openshiftapps.com/123456" <1>
+            	"Federated": "arn:aws:iam::123456:oidc-provider/oidc.op1.openshiftapps.com/123456"
         	},
-        	"Action": "sts:AssumeRoleWithWebIdentity", <2>
+        	"Action": "sts:AssumeRoleWithWebIdentity",
         	"Condition": {
             	"StringEquals": {
-                	"oidc.op1.openshiftapps.com/123456:sub": "system:serviceaccount:quay:registry-quay-app" <3>
+                	"oidc.op1.openshiftapps.com/123456:sub": "system:serviceaccount:quay:registry-quay-app"
             	}
         	}
     	}
@@ -58,18 +58,13 @@ oidc.op1.openshiftapps.com/123456
 }
 ----
 +
---
 where:
 
-`Federated::` Updates the `Principal` parameter of the JSON policy to `Federated:<your_user_ARN>:<serviceAccountIssuer_domain_path>`
+`Statement.Principal.Federated`:: Specifies that the `Principal` parameter of the JSON policy is updated to `Federated:<your_user_ARN>:<serviceAccountIssuer_domain_path>`.
+`Statement.Action`:: Specifies that the `Action` parameter of the JSON policy is updated to `sts:AssumeRoleWithWebIdentity`.
+`Statement.Condition`:: Specifies that the `Condition` parameter of the JSON policy is updated to `StringEquals”: “<serviceAccountIssuer>:sub”: “system:serviceAccount:<quay_namespace>:<quay_registry_using_serviceAccount>`.
 
-`Action::` Updates the `Action` parameter of the JSON policy to `sts:AssumeRoleWithWebIdentity`.
-
-`Condition::` Updates the `Condition` parameter of the JSON policy to `StringEquals”: “<serviceAccountIssuer>:sub”: “system:serviceAccount:<quay_namespace>:<quay_registry_using_serviceAccount>`
-
---
-
-.. Verify that your User ARN is configured correct, then click *Next*. 
+.. Verify that your User ARN is configured correct, then click *Next*.
 
 .. On the *Add permissions* page, select *AmazonS3FullAccess*, then click *Next*. 
 
@@ -102,19 +97,17 @@ arn:aws:iam::123456:role/test_s3_access
 DISTRIBUTED_STORAGE_CONFIG:
    default:
     - STSS3Storage
-      s3_bucket: <s3_bucket_name> <1>
-      storage_path: <storage_path> <2> 
-      s3_region: <region> <3>
+      s3_bucket: <s3_bucket_name>
+      storage_path: <storage_path>
+      s3_region: <region>
 # ...
 ----
 +
---
 where:
 
-`s3_bucket::` The name of your s3 bucket.
-`storage_path::` The storage path for data. Usually `/datastorage`.
-`s3_region::` The Amazon Web Services region. Defaults to `us-east-1`.
---
+`DISTRIBUTED_STORAGE_CONFIG.default.s3_bucket`:: Specifies the name of your s3 bucket.
+`DISTRIBUTED_STORAGE_CONFIG.default.storage_path`:: Specifies the storage path for data. Usually `/datastorage`.
+`DISTRIBUTED_STORAGE_CONFIG.default.s3_region`:: Specifies the Amazon Web Services region. Defaults to `us-east-1`.
 
 . Click *Save*. Your `QuayRegistry` custom resource (CR) automatically restarts.
 

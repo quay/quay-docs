@@ -1,0 +1,57 @@
+:_mod-docs-content-type: PROCEDURE
+[id="ldap-restricted-users-enabling"]
+= Enabling the LDAP_RESTRICTED_USER_FILTER configuration field
+
+[role="_abstract"]
+To mark selected LDAP users as restricted in {productname}, you can set `FEATURE_RESTRICTED_USERS` and `LDAP_RESTRICTED_USER_FILTER` in your `config.yaml` file and restart the registry.
+
+The `LDAP_RESTRICTED_USER_FILTER` configuration field is a subset of the `LDAP_USER_FILTER` configuration field. When configured, this option allows {productname} administrators to configure LDAP users as restricted users when {productname} uses LDAP as its authentication provider.
+
+.Prerequisites
+
+* Your {productname} deployment uses LDAP as its authentication provider.
+* You have configured the `LDAP_USER_FILTER` field in your `config.yaml` file.
+
+.Procedure
+
+. In your deployment's `config.yaml` file, add the `LDAP_RESTRICTED_USER_FILTER` parameter and specify the group of restricted users, for example, `members`:
++
+[source,yaml]
+----
+# ...
+AUTHENTICATION_TYPE: LDAP
+# ...
+FEATURE_RESTRICTED_USERS: true
+# ...
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
+LDAP_ADMIN_PASSWD: ABC123
+LDAP_ALLOW_INSECURE_FALLBACK: false
+LDAP_BASE_DN:
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
+LDAP_EMAIL_ATTR: mail
+LDAP_UID_ATTR: uid
+LDAP_URI: ldap://<example_url>.com
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
+LDAP_RESTRICTED_USER_FILTER: (<filterField>=<value>)
+LDAP_USER_RDN:
+    - ou=<example_organization_unit>
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
+FEATURE_LDAP_CACHING: true
+LDAP_CACHE_TTL: 10
+# ...
+----
++
+where:
+
+`FEATURE_RESTRICTED_USERS`:: Specifies whether restricted users are enabled. Must be set to `true` when configuring an LDAP restricted user.
+`LDAP_RESTRICTED_USER_FILTER`:: Specifies the filter that configures selected users as restricted users.
+
+. Start, or restart, your {productname} deployment.
+
+.Results
+
+* After enabling the `LDAP_RESTRICTED_USER_FILTER` feature, your LDAP {productname} users are restricted from reading and writing content, and creating organizations.

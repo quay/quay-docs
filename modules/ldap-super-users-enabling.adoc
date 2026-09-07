@@ -1,0 +1,59 @@
+:_mod-docs-content-type: PROCEDURE
+[id="ldap-super-users-enabling"]
+= Enabling the LDAP_SUPERUSER_FILTER configuration field
+
+[role="_abstract"]
+To grant selected LDAP users superuser privileges in {productname}, you can set `LDAP_SUPERUSER_FILTER` in your `config.yaml` file and restart the registry.
+
+.Prerequisites
+
+* Your {productname} deployment uses LDAP as its authentication provider.
+* You have configured the `LDAP_USER_FILTER` field in your `config.yaml` file.
+
+.Procedure
+
+. In your deployment's `config.yaml` file, add the `LDAP_SUPERUSER_FILTER` parameter and add the group of users you want configured as superusers, for example, `root`:
++
+[source,yaml]
+----
+# ...
+AUTHENTICATION_TYPE: LDAP
+# ...
+LDAP_ADMIN_DN: uid=<name>,ou=Users,o=<organization_id>,dc=<example_domain_component>,dc=com
+LDAP_ADMIN_PASSWD: ABC123
+LDAP_ALLOW_INSECURE_FALLBACK: false
+LDAP_BASE_DN:
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
+LDAP_EMAIL_ATTR: mail
+LDAP_UID_ATTR: uid
+LDAP_URI: ldap://<example_url>.com
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=<example_organization_unit>,dc=<example_domain_component>,dc=com)
+LDAP_SUPERUSER_FILTER: (<filterField>=<value>)
+LDAP_USER_RDN:
+    - ou=<example_organization_unit>
+    - o=<organization_id>
+    - dc=<example_domain_component>
+    - dc=com
+FEATURE_LDAP_CACHING: true
+LDAP_CACHE_TTL: 10
+# ...
+----
++
+where:
+
+`LDAP_SUPERUSER_FILTER`:: Specifies the filter that configures selected users as superusers.
+
+. Start, or restart, your {productname} deployment.
+
+.Results
+
+* After enabling the `LDAP_SUPERUSER_FILTER` feature, your LDAP {productname} users have superuser privileges. The following options are available to superusers:
++
+** Manage users
+** Manage organizations
+** Manage service keys
+** View the change log
+** Query the usage logs
+** Create globally visible user messages

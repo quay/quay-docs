@@ -1,14 +1,15 @@
-:_mod-docs-content-type: CONCEPT
+:_mod-docs-content-type: PROCEDURE
 [id="use-quay-poc"]
 = Using {productname}
 
-The following steps show you how to use the interface to create new organizations and repositories, and to search and browse existing repositories. Following step 3, you can use the command line interface to interact with the registry and to push and pull images. 
+[role="_abstract"]
+To use your proof of concept {productname} deployment, you can create a user account in the web UI, log in from the CLI, and push and pull container images. You can also access the superuser admin panel if you configured a superuser in `config.yaml`.
 
 .Procedure
 
-. Use your browser to access the user interface for the {productname} registry at `\http://quay-server.example.com`, assuming you have configured `quay-server.example.com` as your hostname in your `/etc/hosts` file and in your `config.yaml` file. 
+. Use your browser to access the user interface for the {productname} registry at `\http://quay-server.example.com`, assuming you have configured `quay-server.example.com` as your hostname in your `/etc/hosts` file and in your `config.yaml` file.
 
-. Click `Create Account` and add a user, for example, `quayadmin` with a password `password`. 
+. Click `Create Account` and add a user, for example, `quayadmin` with a password `password`.
 
 . From the command line, log in to the registry:
 +
@@ -18,7 +19,7 @@ $ sudo podman login --tls-verify=false quay-server.example.com
 ----
 +
 .Example output
-+
+
 [source,terminal]
 ----
 Username: quayadmin
@@ -27,12 +28,6 @@ Login Succeeded!
 ----
 
 [id="pushing-pulling-images-poc"]
-== Pushing and pulling images on {productname}
-
-Use the following procedure to push and pull images to your {productname} registry.
-
-.Procedure
-
 . To test pushing and pulling images from the {productname} registry, first pull a sample image from an external registry:
 +
 [source,terminal]
@@ -41,7 +36,7 @@ $ sudo podman pull busybox
 ----
 +
 .Example output
-+
+
 [source,terminal]
 ----
 Trying to pull docker.io/library/busybox...
@@ -61,7 +56,7 @@ $ sudo podman images
 ----
 +
 .Example output
-+
+
 [source,terminal]
 ----
 REPOSITORY                          TAG      IMAGE ID       CREATED         SIZE
@@ -69,21 +64,21 @@ docker.io/library/busybox           latest   22667f53682a   14 hours ago    1.45
 ----
 
 . Enter the following command to tag this image, which prepares the image for pushing it to the registry:
-+ 
++
 [source,terminal]
 ----
 $ sudo podman tag docker.io/library/busybox quay-server.example.com/quayadmin/busybox:test
 ----
 
-. Push the image to your registry by entering the following command. Following this step, you can use your browser to see the tagged image in your repository. 
-+ 
+. Push the image to your registry by entering the following command. Following this step, you can use your browser to see the tagged image in your repository.
++
 [source,terminal]
 ----
 $ sudo podman push --tls-verify=false quay-server.example.com/quayadmin/busybox:test
 ----
 +
 .Example output
-+
+
 [source,terminal]
 ----
 Getting image source signatures
@@ -94,28 +89,27 @@ Storing signatures
 ----
 
 . To test access to the image from the command line, first delete the local copy of the image:
-+ 
++
 [source,terminal]
 ----
 $ sudo podman rmi quay-server.example.com/quayadmin/busybox:test
 ----
 +
-Example output
-+
+.Example output
 [source,terminal]
 ----
 Untagged: quay-server.example.com/quayadmin/busybox:test
 ----
 
 . Pull the image from your {productname} registry by entering the following command:
-+ 
++
 [source,terminal]
 ----
 $ sudo podman pull --tls-verify=false quay-server.example.com/quayadmin/busybox:test
 ----
 +
 .Example output
-+
+
 [source,terminal]
 ----
 Trying to pull quay-server.example.com/quayadmin/busybox:test...
@@ -127,18 +121,7 @@ Storing signatures
 22667f53682a2920948d19c7133ab1c9c3f745805c14125859d20cede07f11f9
 ----
 
-[id="accessing-superuser-admin-panel"]
-== Accessing the superuser admin panel
-
-If you added a superuser to your `config.yaml` file, you can access the *Superuser Admin Panel* on the {productname} UI by using the following procedure.
-
-.Prerequisites
-
-* You have configured a superuser.
-
-.Procedure
-
-. Access the *Superuser Admin Panel* on the {productname} UI by clicking on the current user's name or avatar in the navigation pane of the UI. Then, click *Superuser Admin Panel*.
+. If you added a superuser to your `config.yaml` file, access the *Superuser Admin Panel* on the {productname} UI by clicking on the current user's name or avatar in the navigation pane of the UI. Then, click *Superuser Admin Panel*.
 +
 image:super-user-admin-panel.png[Super User Admin Panel]
 +

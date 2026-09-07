@@ -12,14 +12,14 @@ Managed components are {productname} registry components that the Operator autom
 
 |`quay` |Boolean | Holds overrides for deployment of {productname-ocp}, such as environment variables and number of replicas. This component cannot be set to unmanaged (`managed: false`).
 |`postgres` |Boolean | Used for storing registry metadata. Currently, PostgreSQL version 13 is used.
-|`clair` |Boolean | Provides image vulnerability scanning. 
-|`redis` |Boolean | Storage live builder logs and the locking mechanism that is required for garbage collection.
+|`clair` |Boolean | Provides image vulnerability scanning. You can override ephemeral scratch storage for image layer extraction by using `overrides.volumeSize` and `overrides.storageClassName`.
+|`redis` |Boolean | Stores live builder logs and the locking mechanism that is required for garbage collection. You can override CPU and memory resources for this component when it is managed.
 |`horizontalpodautoscaler` |Boolean | Adjusts the number of `quay` pods depending on your memory and CPU consumption.
 |`objectstorage` |Boolean | Stores image layer blobs. When set to `managed: true`, utilizes the `ObjectBucketClaim` Kubernetes API which is provided by NooBaa or {odf}. Setting this field to `managed: false` requires you to provide your own object storage.
 |`route` |Boolean | Provides an external entrypoint to the {productname} registry from outside of {ocp}.
 |`mirror` |Boolean | Configures repository mirror workers to support optional repository mirroring.
 |`monitoring` |Boolean | Features include a Grafana dashboard, access to individual metrics, and notifications for frequently restarting `quay` pods.
-|`tls` |Boolean | Configures whether SSL/TLS is automatically handled.
+|`tls` |Boolean | Configures whether SSL/TLS is automatically handled. When `managed` is `false`, you can optionally set `secretRef` to reference an external `kubernetes.io/tls` Secret instead of embedding `ssl.cert` and `ssl.key` in the `configBundleSecret`.
 |`clairpostgres` |Boolean | Configures a managed Clair database. This is a separate database than the PostgreSQL database that is used to deploy {productname}. 
 
 |===

@@ -1,13 +1,18 @@
 :_mod-docs-content-type: PROCEDURE
-
 [id="service-key-manage-api"]
 = Managing service keys as a superuser with the {productname} API
 
-Superusers have the ability to create, list, change, and delete service keys by using the {productname} API. 
+[role="_abstract"]
+To create, list, approve, update, or delete service keys as a {productname} superuser, you can use the superuser keys API endpoints.
+
+.Prerequisites
+
+* You have created an OAuth access token.
+* You have superuser privileges.
 
 .Procedure
 
-* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#createservicekey[`POST /api/v1/superuser/keys`] endpoint to create a service key:
+* Enter the following command to create a service key by using the `POST /api/v1/superuser/keys` endpoint:
 +
 [source,terminal]
 ----
@@ -22,13 +27,12 @@ $ curl -X POST \
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 {"message":""}
 ----
 
-* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#approveservicekey[`POST /api/v1/superuser/approvedkeys/{kid}`] endpoint to approved a service key:
+* Enter the following command to approve a service key by using the `POST /api/v1/superuser/approvedkeys/{kid}` endpoint:
 +
 [source,terminal]
 ----
@@ -43,7 +47,7 @@ $ curl -X POST \
 +
 This command does not return output in the CLI.
 
-* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#listservicekeys[`GET /api/v1/superuser/keys`] endpoint to list service keys:
+* Enter the following command to list service keys by using the `GET /api/v1/superuser/keys` endpoint:
 +
 [source,terminal]
 ----
@@ -53,18 +57,17 @@ $ curl -X GET \
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 {"keys":[{"approval":{"approval_type":"ServiceKeyApprovalType.AUTOMATIC","approved_date":"Mon, 20 Jan 2025 14:46:01 GMT","approver":null,"notes":""},"created_date":"Mon, 20 Jan 2025 14:46:01 GMT","expiration_date":"Wed, 05 Feb 2025 22:03:37 GMT","jwk":{"e":"AQAB","kid":"<example>","kty":"RSA","n":"<example>"},"kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","metadata":{"created_by":"CLI tool"},"name":"http://quay-server.example.com:80","rotation_duration":null,"service":"quay"}]}
 ----
 
-* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/3.16/html-single/red_hat_quay_api_reference/index#listAllAppTokens[`GET /api/v1/superuser/apptokens`] endpoint to return a list of service account keys:
+* Enter the following command to return a list of service account keys by using the `GET /api/v1/superuser/apptokens` endpoint:
 +
 [source,terminal]
 ----
 $ curl -X GET \
-  "https://quay-server.example.com/api/v1/superuser/apptokens?expiring=true" \
+  "https://quay-server.example.com/api/v1/superuser/apptokens" \
   -H "Authorization: Bearer <superuser_access_token>" \
   -H "Accept: application/json"
 ----
@@ -79,7 +82,7 @@ $ curl -X GET \
   -H "Accept: application/json"
 ----
 
-* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#getservicekey[`GET /api/v1/superuser/keys/{kid}`] endpoint to retrieve information about a service account by its kid:
+* Enter the following command to retrieve information about a service account by its kid by using the `GET /api/v1/superuser/keys/{kid}` endpoint:
 +
 [source,terminal]
 ----
@@ -89,13 +92,12 @@ $ curl -X GET \
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 {"approval":{"approval_type":"ServiceKeyApprovalType.AUTOMATIC","approved_date":"Mon, 20 Jan 2025 14:46:01 GMT","approver":null,"notes":""},"created_date":"Mon, 20 Jan 2025 14:46:01 GMT","expiration_date":"Wed, 05 Feb 2025 22:03:37 GMT","jwk":{"e":"AQAB","kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","kty":"RSA","n":"5iMX7RQ_4F_zdb1qonMsuWUDauCOqEyRpD8L_EhgnwDxrgMHuOlJ4_7sEOrOa3Jkx3QhwIW6LJCP69PR5X0wvz6vmC1DoWEaWv41bAq23Knzj7gUU9-N_fkZPZN9NQwZ-D-Zqg9L1c_cJF93Dy93py8_JswWFDj1FxMaThJmrX68wBwjhF-JLYqgCAGFyezzJ3oTpO-esV9v6R7skfkaqtx_cjLZk_0cKB4VKTtxiy2A8D_5nANTOSSbZLXNh2Vatgh3yrOmnTTNLIs0YO3vFIuylEkczHlln-40UMAzRB3HNspUySyzImO_2yGdrA762LATQrOzJN8E1YKCADx5CQ"},"kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","metadata":{"created_by":"CLI tool"},"name":"http://quay-server.example.com:80","rotation_duration":null,"service":"quay"}
 ----
 
-* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#updateservicekey[`PUT /api/v1/superuser/keys/{kid}`] endpoint to update your service key, such as the metadata:
+* Enter the following command to update your service key, such as the metadata, by using the `PUT /api/v1/superuser/keys/{kid}` endpoint:
 +
 [source,terminal]
 ----
@@ -111,13 +113,12 @@ $ curl -X PUT \
 ----
 +
 .Example output
-+
 [source,terminal]
 ----
 {"approval":{"approval_type":"ServiceKeyApprovalType.AUTOMATIC","approved_date":"Mon, 20 Jan 2025 14:46:01 GMT","approver":null,"notes":""},"created_date":"Mon, 20 Jan 2025 14:46:01 GMT","expiration_date":"Mon, 03 Mar 2025 10:40:00 GMT","jwk":{"e":"AQAB","kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","kty":"RSA","n":"5iMX7RQ_4F_zdb1qonMsuWUDauCOqEyRpD8L_EhgnwDxrgMHuOlJ4_7sEOrOa3Jkx3QhwIW6LJCP69PR5X0wvz6vmC1DoWEaWv41bAq23Knzj7gUU9-N_fkZPZN9NQwZ-D-Zqg9L1c_cJF93Dy93py8_JswWFDj1FxMaThJmrX68wBwjhF-JLYqgCAGFyezzJ3oTpO-esV9v6R7skfkaqtx_cjLZk_0cKB4VKTtxiy2A8D_5nANTOSSbZLXNh2Vatgh3yrOmnTTNLIs0YO3vFIuylEkczHlln-40UMAzRB3HNspUySyzImO_2yGdrA762LATQrOzJN8E1YKCADx5CQ"},"kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","metadata":{"created_by":"CLI tool","environment":"production"},"name":"quay-service-key-updated","rotation_duration":null,"service":"quay"}
 ----
 
-* Use the link:https://docs.redhat.com/en/documentation/red_hat_quay/{producty}/html-single/red_hat_quay_api_reference/index#deleteservicekey[`DELETE /api/v1/superuser/keys/{kid}`] endpoint to delete a service key:
+* Enter the following command to delete a service key by using the `DELETE /api/v1/superuser/keys/{kid}` endpoint:
 +
 [source,terminal]
 ----

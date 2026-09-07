@@ -6,7 +6,8 @@
 [id="clair-standalone-configure"]
 = Setting up Clair on standalone {productname} deployments
 
-For standalone {productname} deployments, you can set up Clair manually.
+[role="_abstract"]
+To configure Clair on a standalone {productname} deployment, you can deploy a Clair PostgreSQL database, enable security scanning in the configuration tool, and start the Clair container.
 
 .Procedure
 
@@ -53,12 +54,12 @@ CREATE EXTENSION
 +
 [NOTE]
 ====
-Clair requires the `uuid-ossp` extension to be added to its PostgreSQL database. For users with proper privileges, creating the extension will automatically be added by Clair. If users do not have the proper privileges, the extension must be added before start Clair.
+Clair requires the `uuid-ossp` extension to be added to its PostgreSQL database. For users with proper privileges, Clair automatically adds the extension. If users do not have the proper privileges, the extension must be added before you start Clair.
 
-If the extension is not present, the following error will be displayed when Clair attempts to start: `ERROR: Please load the "uuid-ossp" extension. (SQLSTATE 42501)`.
+If the extension is not present, the following error is displayed when Clair attempts to start: `ERROR: Please load the "uuid-ossp" extension. (SQLSTATE 42501)`.
 ====
 
-. Stop the `Quay` container if it is running and restart it in configuration mode, loading the existing configuration as a volume:
+. Stop the `Quay` container if the container is running and restart it in configuration mode, loading the existing configuration as a volume:
 +
 [subs="verbatim,attributes"]
 ----
@@ -74,7 +75,8 @@ $ sudo podman run --rm -it --name quay_config \
 
 . Create a pre-shared key (PSK) using the *Generate PSK* button.
 +
-.Security Scanner UI
+The following image shows the Security Scanner UI:
++
 image:poc-quay-scanner-config.png[Security Scanner]
 
 . Validate and download the `config.yaml` file for {productname}, and then stop the `Quay` container that is running the configuration editor.
@@ -137,8 +139,6 @@ trace:
 metrics:
   name: "prometheus"
 ----
-+
-For more information about Clair's configuration format, see link:https://quay.github.io/clair/reference/config.html[Clair configuration reference].
 
 . Start Clair by using the container image, mounting in the configuration from the file you created:
 +
