@@ -41,9 +41,7 @@ Preferred storage unavailable:
 
 |`endtoend` |The `endtoend` endpoint conducts checks on all services of your {productname} instance. Returns a `dict` with key-value pairs for the following: `auth`, `database`, `redis`, `storage`. Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment.
 
-By default, only the preferred storage engine is validated. When `DISTRIBUTED_STORAGE_VALIDATE_ENDTOEND` is set to `true`, all configured storage engines are checked. With `DISTRIBUTED_STORAGE_REQUIRES_ALL_AVAILABLE: false` (default), `503` is returned only when all storage engines fail simultaneously; a partial failure returns `200`. With `DISTRIBUTED_STORAGE_REQUIRES_ALL_AVAILABLE: true`, `503` is returned if any single storage engine is unavailable.
-
-Superusers and sessions with `health_debug` enabled receive an expanded `services_expanded` field in the response body that includes per-service failure details.
+By default, only the preferred storage engine is validated. When `DISTRIBUTED_STORAGE_VALIDATE_ENDTOEND` is set to `true`, all configured storage engines are checked. With `DISTRIBUTED_STORAGE_REQUIRES_ALL_AVAILABLE: false` (default), `503` is returned only when all storage engines fail simultaneously; a partial failure returns `200`. With `DISTRIBUTED_STORAGE_REQUIRES_ALL_AVAILABLE: true`, `503` is returned if any single storage engine is unavailable. The storage check is automatically skipped when the registry is in readonly mode.
 |`https://{quay-ip-endpoint}/health/endtoend`
 a|All services healthy:
 [source,json]
@@ -80,7 +78,8 @@ Storage engine unavailable (superuser view with `DISTRIBUTED_STORAGE_VALIDATE_EN
 |`warning` |The `warning` endpoint conducts a check on the warnings. Returns a `dict` with key-value pairs for the following: `disk_space_warning`. Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment.
 |`https://{quay-ip-endpoint}/health/warning` | `{"data":{"services":{"disk_space_warning":true}},"status_code":503}`
 |===
-|`instance` | The `instance` endpoint acquires the entire status of the specific {productname} instance. Returns a `dict` with key-value pairs for the following: `auth`, `database`, `disk_space`, `registry_gunicorn`, `service_key`, and `web_gunicorn.` Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment. |`/health/instance` or `/health` on your {productname} instance | `{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}`
-|`endtoend` |The `endtoend` endpoint conducts checks on all services of your {productname} instance. Returns a `dict` with key-value pairs for the following: `auth`, `database`, `redis`, `storage`. Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment. |`/health/endtoend` on your {productname} instance | `{"data":{"services":{"auth":true,"database":true,"redis":true,"storage":true}},"status_code":200}`
-|`warning` |The `warning` endpoint conducts a check on the warnings. Returns a `dict` with key-value pairs for the following: `disk_space_warning`. Returns a number indicating the health check response of either `200`, which indicates that the instance is healthy, or `503`, which indicates an issue with your deployment. |`/health/warning` on your {productname} instance | `{"data":{"services":{"disk_space_warning":true}},"status_code":503}`
-|===
+
+[NOTE]
+====
+Superusers and sessions with `health_debug` enabled receive a `services_expanded` field in health check responses that includes per-service failure details.
+====
