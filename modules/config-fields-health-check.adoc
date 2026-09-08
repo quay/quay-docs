@@ -1,0 +1,39 @@
+:_mod-docs-content-type: REFERENCE
+[id="config-fields-health-check"]
+= Storage health check configuration fields
+
+The following configuration fields control how {productname} validates storage engine availability during health checks. These fields allow you to tune the `GET /health/instance` and `GET /health/endtoend` endpoints for geo-replicated deployments and Kubernetes liveness probes.
+
+.Storage health check configuration fields
+[cols="3a,1a,2a",options="header"]
+|===
+| Field | Type | Description
+| **HEALTH_CHECKER_INSTANCE_CHECK_PREFERRED_STORAGE** +
+(Optional) | Boolean | When set to `true`, the `/health/instance` endpoint includes a `preferred_storage` check that validates the first preferred storage engine. The endpoint returns `503` if the preferred storage is unavailable, which causes Kubernetes to remove the pod from load balancing. Automatically skipped when the registry is in readonly mode. +
+ +
+**Default:** `False`
+| **DISTRIBUTED_STORAGE_VALIDATE_ENDTOEND** +
+(Optional) | Boolean | When set to `true`, the `/health/endtoend` endpoint validates *all* configured storage engines instead of only the preferred engine. Recommended for geo-replicated environments to detect partial storage failures across sites. See also `DISTRIBUTED_STORAGE_REQUIRES_ALL_AVAILABLE`. +
+ +
+**Default:** `False`
+| **DISTRIBUTED_STORAGE_REQUIRES_ALL_AVAILABLE** +
+(Optional) | Boolean | When set to `true`, the `/health/endtoend` health check returns `503` if any single storage engine is unavailable. When `false`, `503` is returned only if all storage engines fail simultaneously, allowing the registry to remain operational during partial outages. Only takes effect when `DISTRIBUTED_STORAGE_VALIDATE_ENDTOEND` is `true`. +
+ +
+**Default:** `False`
+|===
+
+.Storage health check configuration example YAML
+[source,yaml]
+----
+# ...
+# Add preferred_storage check to /health/instance (recommended for Kubernetes liveness probes)
+HEALTH_CHECKER_INSTANCE_CHECK_PREFERRED_STORAGE: true
+
+# Validate all storage engines on /health/endtoend (recommended for geo-replication)
+DISTRIBUTED_STORAGE_VALIDATE_ENDTOEND: true
+
+# false = return 503 only when ALL engines fail (tolerate partial outages)
+# true  = return 503 if ANY single engine is unavailable
+DISTRIBUTED_STORAGE_REQUIRES_ALL_AVAILABLE: false
+# ...
+----
