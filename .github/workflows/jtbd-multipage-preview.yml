@@ -13,8 +13,11 @@ on:
       - 'Gemfile'
       - 'Gemfile.lock'
       - '.github/workflows/jtbd-multipage-preview.yml'
-  # pull_request_target runs in the base repo with write access so fork PRs
-  # can publish previews to gh-pages (pull_request gives a read-only token).
+  pull_request:
+    branches: [master]
+    paths: *jtbd-paths
+  # Runs in the base repo with write access so fork PRs can publish to gh-pages.
+  # Requires this workflow file to exist on master (not only in the PR branch).
   pull_request_target:
     types: [opened, synchronize, reopened]
     branches: [master]
@@ -30,7 +33,34 @@ permissions:
   pull-requests: write
 
 jobs:
+  build:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install gems
+        run: bundle install
+
+      - name: Build multipage JTBD preview
+        run: |
+          mkdir -p build/jtbd
+          bundle exec asciidoctor -r asciidoctor-multipage -b multipage_html5 \
+            quay-3-18-navigation.adoc \
+            -D build/jtbd \
+            -a toc=left \
+            -a doctype=book \
+            -a toclevels=4 \
+            -a docinfo=shared-footer \
+            -a multipage-level=4
+
   publish:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
