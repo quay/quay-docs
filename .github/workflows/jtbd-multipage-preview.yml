@@ -13,7 +13,10 @@ on:
       - 'Gemfile'
       - 'Gemfile.lock'
       - '.github/workflows/jtbd-multipage-preview.yml'
-  pull_request:
+  # pull_request_target runs in the base repo with write access so fork PRs
+  # can publish previews to gh-pages (pull_request gives a read-only token).
+  pull_request_target:
+    types: [opened, synchronize, reopened]
     branches: [master]
     paths: *jtbd-paths
   workflow_dispatch:
@@ -32,11 +35,13 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
       - name: Set preview path
         id: preview
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
+          if [ "${{ github.event_name }}" = "pull_request_target" ]; then
             PREVIEW_DIR="pr-${{ github.event.pull_request.number }}"
           elif [ "${{ github.ref_name }}" = "master" ]; then
             PREVIEW_DIR="master"
@@ -73,6 +78,7 @@ jobs:
         with:
           ref: gh-pages
           path: pages
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to gh-pages
         id: publish
@@ -98,7 +104,6 @@ jobs:
           </html>
           EOF
 
-          # Root index listing all preview branches/PRs.
           {
             echo '<!DOCTYPE html>'
             echo '<html lang="en"><head><meta charset="utf-8"><title>Quay docs JTBD previews</title>'
@@ -106,6 +111,9 @@ jobs:
             echo '</head><body><h1>Quay docs JTBD previews</h1><ul>'
             for dir in pages/*/; do
               name=$(basename "$dir")
+              [ "$name" = "assets" ] && continue
+              [ "$name" = "api-v2" ] && continue
+              [ "$name" = "search" ] && continue
               echo "    <li><a href=\"${name}/jtbd/quay-3-18-navigation.html\">${name}</a></li>"
             done
             echo '  </ul></body></html>'
@@ -125,7 +133,7 @@ jobs:
           fi
 
       - name: Comment PR with preview URL
-        if: github.event_name == 'pull_request' && steps.publish.outputs.changed == 'true'
+        if: github.event_name == 'pull_request_target' && steps.publish.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
