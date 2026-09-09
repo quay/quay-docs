@@ -1,0 +1,142 @@
+name: JTBD multipage preview
+
+on:
+  push:
+    branches: [master]
+    paths: &jtbd-paths
+      - 'quay-3-18-navigation.adoc'
+      - 'quay_jtbd/**'
+      - '_attributes/**'
+      - 'modules/**'
+      - 'images/**'
+      - 'docinfo-footer.html'
+      - 'Gemfile'
+      - 'Gemfile.lock'
+      - '.github/workflows/jtbd-multipage-preview.yml'
+  pull_request:
+    branches: [master]
+    paths: *jtbd-paths
+  workflow_dispatch:
+
+concurrency:
+  group: gh-pages-${{ github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set preview path
+        id: preview
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            PREVIEW_DIR="pr-${{ github.event.pull_request.number }}"
+          elif [ "${{ github.ref_name }}" = "master" ]; then
+            PREVIEW_DIR="master"
+          else
+            PREVIEW_DIR="${{ github.ref_name }}"
+          fi
+          PREVIEW_DIR="${PREVIEW_DIR//\//-}"
+          echo "dir=${PREVIEW_DIR}" >> "$GITHUB_OUTPUT"
+          echo "Publishing JTBD preview to gh-pages/${PREVIEW_DIR}/jtbd/"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Build multipage JTBD preview
+        run: |
+          mkdir -p build/jtbd
+          asciidoctor -r asciidoctor-multipage -b multipage_html5 \
+            quay-3-18-navigation.adoc \
+            -D build/jtbd \
+            -a toc=left \
+            -a doctype=book \
+            -a toclevels=4 \
+            -a docinfo=shared-footer \
+            -a multipage-level=4
+
+      - name: Check out gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: pages
+
+      - name: Publish to gh-pages
+        id: publish
+        run: |
+          PREVIEW_DIR="${{ steps.preview.outputs.dir }}"
+          rm -rf "pages/${PREVIEW_DIR}/jtbd" "pages/${PREVIEW_DIR}/images"
+          mkdir -p "pages/${PREVIEW_DIR}/jtbd" "pages/${PREVIEW_DIR}/images"
+          cp -a build/jtbd/. "pages/${PREVIEW_DIR}/jtbd/"
+          cp -a images/. "pages/${PREVIEW_DIR}/images/"
+          touch pages/.nojekyll
+
+          cat > "pages/${PREVIEW_DIR}/jtbd/index.html" <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=quay-3-18-navigation.html">
+            <title>Red Hat Quay JTBD preview</title>
+          </head>
+          <body>
+            <p><a href="quay-3-18-navigation.html">Red Hat Quay JTBD navigation preview</a></p>
+          </body>
+          </html>
+          EOF
+
+          # Root index listing all preview branches/PRs.
+          {
+            echo '<!DOCTYPE html>'
+            echo '<html lang="en"><head><meta charset="utf-8"><title>Quay docs JTBD previews</title>'
+            echo '<style>body{font-family:sans-serif;max-width:720px;margin:40px auto;padding:0 20px} li{line-height:2}</style>'
+            echo '</head><body><h1>Quay docs JTBD previews</h1><ul>'
+            for dir in pages/*/; do
+              name=$(basename "$dir")
+              echo "    <li><a href=\"${name}/jtbd/quay-3-18-navigation.html\">${name}</a></li>"
+            done
+            echo '  </ul></body></html>'
+          } > pages/index.html
+
+          cd pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${PREVIEW_DIR}/jtbd" "${PREVIEW_DIR}/images" index.html .nojekyll
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No JTBD preview changes to publish."
+          else
+            git commit -m "JTBD multipage preview for ${PREVIEW_DIR}"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment PR with preview URL
+        if: github.event_name == 'pull_request' && steps.publish.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PREVIEW_DIR="${{ steps.preview.outputs.dir }}"
+          PREVIEW_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${PREVIEW_DIR}/jtbd/quay-3-18-navigation.html"
+          gh pr comment "${{ github.event.pull_request.number }}" --body "$(cat <<EOF
+          ## JTBD navigation preview
+
+          Multipage HTML preview published to GitHub Pages:
+
+          **${PREVIEW_URL}**
+
+          Home page: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${PREVIEW_DIR}/jtbd/
+
+          Rebuilds automatically when JTBD-related files change on this PR.
+          EOF
+          )"
