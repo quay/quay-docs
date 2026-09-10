@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="testing-ssl-tls-configuration-using-cli">
+  <title>Testing the SSL/TLS configuration using the CLI</title>
+  <shortdesc>To test your SSL/TLS configuration from the CLI, you can use <codeph>podman login</codeph> against your Red Hat Quay registry endpoint and review the certificate error for a self-signed authority. You can then log in with the <codeph>--tls-verify=false</codeph> option before configuring Podman to trust the certificate authority.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Enter the following command to attempt to log in to the Red Hat Quay registry with SSL/TLS enabled:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman login quay-server.example.com</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Error: error authenticating creds for "quay-server.example.com": error pinging docker registry quay-server.example.com: Get "https://quay-server.example.com/v2/": x509: certificate signed by unknown authority</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Because Podman does not trust self-signed certificates, you must use the <codeph>--tls-verify=false</codeph> option:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman login --tls-verify=false quay-server.example.com</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Login Succeeded!</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

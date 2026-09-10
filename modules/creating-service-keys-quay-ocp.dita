@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-service-keys-quay-ocp">
+  <title>Creating service keys for Red Hat Quay on OpenShift Container Platform</title>
+  <shortdesc>To enable Red Hat Quay to communicate with components and sign completed requests such as image scanning and login, you can create service keys. Access the Quay container pod and run the <codeph>keypair</codeph> generation script to create the necessary keys.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Enter the following command to obtain a list of Red Hat Quay pods:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get pods -n &lt;namespace&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">example-registry-clair-app-7dc7ff5844-4skw5           0/1     Error                    0             70d
+example-registry-clair-app-7dc7ff5844-nvn4f           1/1     Running                  0             31d
+example-registry-clair-app-7dc7ff5844-x4smw           0/1     ContainerStatusUnknown   6 (70d ago)   70d
+example-registry-clair-app-7dc7ff5844-xjnvt           1/1     Running                  0             60d
+example-registry-clair-postgres-547d75759-75c49       1/1     Running                  0             70d
+example-registry-quay-app-76c8f55467-52wjz            1/1     Running                  0             70d
+example-registry-quay-app-76c8f55467-hwz4c            1/1     Running                  0             70d
+example-registry-quay-app-upgrade-57ghs               0/1     Completed                1             70d
+example-registry-quay-database-7c55899f89-hmnm6       1/1     Running                  0             70d
+example-registry-quay-mirror-6cccbd76d-btsnb          1/1     Running                  0             70d
+example-registry-quay-mirror-6cccbd76d-x8g42          1/1     Running                  0             70d
+example-registry-quay-redis-85cbdf96bf-4vk5m          1/1     Running                  0             70d</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Open a remote shell session to the <codeph>Quay</codeph> container by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc rsh example-registry-quay-app-76c8f55467-52wjz</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create the necessary service keys by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">sh-4.4$ python3 tools/generatekeypair.py quay-readonly</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Writing public key to quay-readonly.jwk
+Writing key ID to quay-readonly.kid
+Writing private key to quay-readonly.pem</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

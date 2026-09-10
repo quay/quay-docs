@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="listing-logs-superuser-api">
+  <title>Listing logs as a superuser with the Red Hat Quay API</title>
+  <shortdesc>To list usage logs or obtain registry size information in Red Hat Quay, you can use the superuser logs and registry size API endpoints.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li>You are logged into your Red Hat Quay deployment as a superuser.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/superuser/logs</codeph> endpoint to list the usage logs for the current system:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://&lt;quay_server&gt;/api/v1/superuser/logs?starttime=&lt;start_time&gt;&amp;endtime=&lt;end_time&gt;&amp;page=&lt;page_number&gt;&amp;next_page=&lt;next_page_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"start_time": "Mon, 17 Feb 2025 19:29:14 -0000", "end_time": "Wed, 19 Feb 2025 19:29:14 -0000", "logs": [{"kind": "login_success", "metadata": {"type": "quayauth", "useragent": "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0"}, "ip": "192.168.1.131", "datetime": "Tue, 18 Feb 2025 19:28:15 -0000", "namespace": {"kind": "user", "name": "quayadmin", "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}}}], "next_page": "gAAAAABntN-KbPJDI0PpcHmWjRCmQTLiCprE_KXiOSidbGZ7Ireu8pVTgGUIstijNhmiLzlAv_S3HOsCrKWnuBmoQYZ3F53Uxg=="}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/superuser/registrysize/</codeph> endpoint to obtain information about the size of the registry:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://&lt;quay_server&gt;/api/v1/superuser/registrysize/"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"size_bytes": 0, "last_ran": null, "running": false, "queued": false}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/superuser/registrysize/</codeph> endpoint to define registry size information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://quay-server.example.com/api/v1/superuser/registrysize/" \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "namespace": "&lt;namespace&gt;",
+    "last_ran": 1700000000,
+    "queued": true,
+    "running": false
+  }'</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

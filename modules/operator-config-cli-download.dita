@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="operator-config-cli-download">
+  <title>Modifying the configuration file by using the CLI</title>
+  <shortdesc>To modify the <codeph>config.yaml</codeph> file for your Red Hat Quay registry and enable new features, you can download the existing configuration from the <codeph>configBundleSecret</codeph> by using the CLI. After making changes, you can re-upload the <codeph>configBundleSecret</codeph> resource to apply the changes.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You are logged in to the OpenShift Container Platform cluster as a user with admin privileges.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <p>Modifying the <codeph>config.yaml</codeph> file that is stored by the <codeph>configBundleSecret</codeph> resource is a multi-step procedure that requires base64 decoding the existing configuration file and then uploading the changes. For most cases, using the OpenShift Container Platform web console to make changes to the <codeph>config.yaml</codeph> file is simpler.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Describe the <codeph>QuayRegistry</codeph> resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc describe quayregistry -n &lt;quay_namespace&gt;</codeblock>
+          <codeblock outputclass="language-terminal"># ...
+  Config Bundle Secret: example-registry-config-bundle-v123x
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the secret data by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get secret -n &lt;quay_namespace&gt; &lt;example-registry-config-bundle-v123x&gt; -o jsonpath='{.data}'</codeblock>
+          <codeblock outputclass="language-yaml">{
+    "config.yaml": "RkVBVFVSRV9VU0 ... MDAwMAo="
+}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Decode the data into a YAML file into the current directory by passing in the <codeph>&gt;&gt; config.yaml</codeph> flag. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ echo 'RkVBVFVSRV9VU0 ... MDAwMAo=' | base64 --decode &gt;&gt; config.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Make the desired changes to your <codeph>config.yaml</codeph> file, and then save the file as <codeph>config.yaml</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>Create a new <codeph>configBundleSecret</codeph> YAML by entering the following command.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ touch &lt;new_configBundleSecret_name&gt;.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create the new <codeph>configBundleSecret</codeph> resource, passing in the <codeph>config.yaml</codeph> file` by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc -n &lt;namespace&gt; create secret generic &lt;secret_name&gt; \
+  --from-file=config.yaml=&lt;/path/to/config.yaml&gt; \
+  --dry-run=client -o yaml &gt; &lt;new_configBundleSecret_name&gt;.yaml</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>&lt;/path/to/config.yaml&gt;</dt>
+              <dd>Specifies your base64 decoded <codeph>config.yaml</codeph> file.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Create the <codeph>configBundleSecret</codeph> resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create -n &lt;namespace&gt; -f &lt;new_configBundleSecret_name&gt;.yaml</codeblock>
+          <codeblock outputclass="language-terminal">secret/config-bundle created</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update the <codeph>QuayRegistry</codeph> YAML file to reference the new <codeph>configBundleSecret</codeph> object by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc patch quayregistry &lt;registry_name&gt; -n &lt;namespace&gt; --type=merge -p '{"spec":{"configBundleSecret":"&lt;new_configBundleSecret_name&gt;"}}'</codeblock>
+          <codeblock outputclass="language-terminal">quayregistry.quay.redhat.com/example-registry patched</codeblock>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Verify that the <codeph>QuayRegistry</codeph> CR has been updated with the new <codeph>configBundleSecret</codeph>:
+<codeblock outputclass="language-terminal">$ oc describe quayregistry -n &lt;quay_namespace&gt;</codeblock><codeblock outputclass="language-terminal"># ...
+  Config Bundle Secret: &lt;new_configBundleSecret_name&gt;
+# ...</codeblock><p>After patching the registry, the Red Hat Quay Operator automatically reconciles the changes.</p></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

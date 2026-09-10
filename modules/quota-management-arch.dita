@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="quota-management-arch">
+  <title>Quota management architecture</title>
+  <shortdesc>Red Hat Quay quota management sums blob sizes at the repository and namespace level without double-counting shared blobs. You can enforce storage limits and reject pushes when quotas are exceeded.</shortdesc>
+  <conbody>
+    <note type="important">
+      <p>Because manifest list totals are counted toward the repository total, the total quota consumed when upgrading from a previous version of Red Hat Quay might be reportedly differently in Red Hat Quay 3.9. In some cases, the new total might go over a repository’s previously-set limit. Red Hat Quay administrators might have to adjust the allotted quota of a repository to account for these changes.</p>
+    </note>
+    <p>The quota management feature works by calculating the size of existing repositories and namespace with a backfill worker, and then adding or subtracting from the total for every image that is pushed or garbage collected afterwords. Additionally, the subtraction from the total happens when the manifest is garbage collected.</p>
+    <note type="note">
+      <p>Because subtraction occurs from the total when the manifest is garbage collected, there is a delay in the size calculation until it is able to be garbage collected.</p>
+    </note>
+    <p>The following database tables hold the quota repository size, quota namespace size, and quota registry size, in bytes, of a Red Hat Quay repository within an organization:</p>
+    <ul>
+      <li>
+        <codeph>QuotaRepositorySize</codeph>
+      </li>
+      <li>
+        <codeph>QuotaNameSpaceSize</codeph>
+      </li>
+      <li>
+        <codeph>QuotaRegistrySize</codeph>
+      </li>
+    </ul>
+    <p>The organization size is calculated by the backfill worker to ensure that it is not duplicated. When an image push is initialized, the user’s organization storage is validated to check if it is beyond the configured quota limits. If an image push exceeds defined quota limitations, a soft or hard check occurs:</p>
+    <ul>
+      <li>For a soft check, users are notified.</li>
+      <li>For a hard check, the push is stopped.</li>
+    </ul>
+    <p>If storage consumption is within configured quota limits, the push is allowed to proceed.</p>
+    <p>Image manifest deletion follows a similar flow, whereby the links between associated image tags and the manifest are deleted. Additionally, after the image manifest is deleted, the repository size is recalculated and updated in the <codeph>QuotaRepositorySize</codeph>, <codeph>QuotaNameSpaceSize</codeph>, and <codeph>QuotaRegistrySize</codeph> tables.</p>
+  </conbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/manage_red_hat_quay/index#garbage-collection" format="html" scope="external">
+      <linktext>Red Hat Quay garbage collection</linktext>
+    </link>
+  </related-links>
+</concept>

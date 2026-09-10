@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="backing-up-managed-database">
+  <title>Backing up the Red Hat Quay managed database</title>
+  <shortdesc>To back up your Red Hat Quay managed database for disaster recovery, you can identify the PostgreSQL pod and use <codeph>pg_dump</codeph> to create a backup SQL file. This procedure creates a backup that you can use to restore your database.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>If your Red Hat Quay deployment is configured with external, or unmanged, PostgreSQL database(s), refer to your vendor’s documentation on how to create a consistent backup of these databases.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Identify the Red Hat Quay PostgreSQL pod name by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get pod -l quay-component=postgres -n &lt;quay_namespace&gt; -o jsonpath='{.items[0].metadata.name}'</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">quayregistry-quay-database-59f54bb7-58xs7</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Download a backup database by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc -n &lt;quay_namespace&gt; exec quayregistry-quay-database-59f54bb7-58xs7 -- /usr/bin/pg_dump -C quayregistry-quay-database  &gt; backup.sql</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

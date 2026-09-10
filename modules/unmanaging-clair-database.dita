@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="unmanaging-clair-database">
+  <title>Running a custom Clair configuration with an unmanaged Clair database</title>
+  <shortdesc>To use an external Clair database with the Red Hat Quay Operator, you can set the <codeph>clairpostgres</codeph> component to unmanaged in your <codeph>QuayRegistry</codeph> custom resource.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="important">
+        <p>You must not use the same externally managed PostgreSQL database for both Red Hat Quay and Clair deployments. Your PostgreSQL database must also not be shared with other workloads, as it might exhaust the natural connection limit on the PostgreSQL side when connection-intensive workloads, like Red Hat Quay or Clair, contend for resources. Additionally, pgBouncer is not supported with Red Hat Quay or Clair, so pgBouncer is not an option to resolve this issue.</p>
+      </note>
+    </context>
+    <steps-unordered>
+      <step>
+        <cmd>In the Quay Operator, set the <codeph>clairpostgres</codeph> component of the <codeph>QuayRegistry</codeph> custom resource to <codeph>managed: false</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: quay370
+spec:
+  configBundleSecret: config-bundle-secret
+  components:
+    - kind: objectstorage
+      managed: false
+    - kind: route
+      managed: true
+    - kind: tls
+      managed: false
+    - kind: clairpostgres
+      managed: false</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

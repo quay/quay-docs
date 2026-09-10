@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="preparing-for-quay-ha">
+  <title>Preparing hosts for a high availability deployment</title>
+  <shortdesc>To prepare for a high availability Red Hat Quay deployment, you need compatible database, object storage, load balancer, and RHEL systems that meet the sizing requirements in this guide.</shortdesc>
+  <conbody>
+    <note type="important">
+      <p>The Red Hat Quay configuration tool is unsupported for standalone high availability deployments. Create and maintain the <codeph>config.yaml</codeph> file manually, as described in this guide. For a full list of configuration fields, see <i>Additional resources</i>.</p>
+    </note>
+    <note type="note">
+      <p>This procedure presents guidance on how to set up a highly available, production-quality deployment of Red Hat Quay.</p>
+    </note>
+    <section id="prerequisites-quay-ha">
+      <title>Prerequisites</title>
+      <p>Here are a few things you need to know before you begin the Red Hat Quay high availability deployment:</p>
+      <ul>
+        <li>Either Postgres or MySQL can be used to provide the database service. Postgres was chosen here as the database because it includes the features needed to support Clair security scanning. Other options include:
+<ul><li>Crunchy Data PostgreSQL Operator: Although not supported directly by Red Hat,
+the Postgres Operator
+is available from Crunchy Data for use with Red Hat Quay.
+If you take this route, you should have a support contract with Crunchy Data and
+work directly with them for usage guidance or issues relating to the operator and their database.</li><li>If your organization already has a high-availability (HA) database, you can use that database
+with Red Hat Quay. See the
+Red Hat Quay Support Policy
+for details on support for third-party databases and other components.</li></ul></li>
+        <li>Ceph Object Gateway (also called RADOS Gateway) is one example of a product that
+can provide the object storage needed by Red Hat Quay. If you want your
+Red Hat Quay setup to do geo-replication, Ceph Object Gateway or other supported
+object storage is required. For cloud installations, you can use any of the following cloud object storage:
+<ul><li>Amazon S3 (see <i>Additional resources</i> for details on configuring an S3 bucket policy for Quay)</li><li>Azure Blob Storage</li><li>Google Cloud Storage</li><li>Ceph Object Gateway</li><li>OpenStack Swift</li><li>CloudFront + S3</li><li>NooBaa S3 Storage</li></ul></li>
+        <li>The haproxy server is used in this example, although you can use any proxy service that works for
+your environment.</li>
+        <li>Number of systems: This procedure uses seven systems (physical or virtual) that are assigned with the following tasks:
+<ul><li><b>A: db01: Load balancer and database</b>: Runs the haproxy load balancer and a Postgres database. Note that these components are not themselves highly available, but are used to indicate how you might set up your own load balancer or production database.</li><li><b>B: quay01, quay02, quay03: Quay and Redis</b>: Three (or more) systems are assigned to run the Quay and Redis services.</li><li><b>C: ceph01, ceph02, ceph03, ceph04, ceph05: Ceph</b>: Three (or more) systems provide the Ceph service, for storage. If you are deploying to a cloud, you can use the cloud storage features described earlier. This procedure employs an additional system for Ansible (ceph05) and one for a Ceph Object Gateway (ceph04).</li></ul></li>
+      </ul>
+      <p>Each system should have the following attributes:</p>
+      <ul>
+        <li><b>Red Hat Enterprise Linux (RHEL)</b> 8: Obtain the latest Red Hat Enterprise Linux 8 server media from the Downloads page and follow the installation instructions available in the Red Hat Enterprise Linux 9 product documentation.
+<ul><li><b>Valid Red Hat Subscription</b>: Configure a valid Red Hat Enterprise Linux 8 server subscription.</li><li><b>CPUs</b>: Two or more virtual CPUs</li><li><b>RAM</b>: 4GB for each A and B system; 8GB for each C system</li><li><b>Disk space</b>:  About 20GB of disk space for each A and B system (10GB for the operating system and 10GB for docker storage).  At least 30GB of disk space for C systems (or more depending on required container storage).</li></ul></li>
+      </ul>
+    </section>
+    <section id="using-podman-quay-ha">
+      <title>Using podman</title>
+      <p>This document uses podman for creating and deploying containers. If you do not have podman available on your system, you should be able to use the equivalent docker commands. For more information on podman and related technologies, see <i>Additional resources</i>.</p>
+      <note type="note">
+        <p>Production quality deployments of Red Hat Quay generally use Podman. Docker has not been tested with Red Hat Quay 3.18, and will be deprecated in a future release.</p>
+      </note>
+    </section>
+  </conbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index" format="html" scope="external">
+      <linktext>Configure Red Hat Quay</linktext>
+    </link>
+    <link href="https://access.crunchydata.com/documentation/postgres-operator/latest/" format="html" scope="external">
+      <linktext>Postgres Operator</linktext>
+    </link>
+    <link href="https://www.crunchydata.com/" format="html" scope="external">
+      <linktext>Crunchy Data</linktext>
+    </link>
+    <link href="https://access.redhat.com/support/policy/updates/rhquay/policies" format="html" scope="external">
+      <linktext>Red Hat Quay Support Policy</linktext>
+    </link>
+    <link href="https://access.redhat.com/solutions/3680151" format="html" scope="external">
+      <linktext>S3 IAM Bucket Policy</linktext>
+    </link>
+    <link href="https://access.redhat.com/downloads/content/479/ver=/rhel---9/9.0/x86_64/product-software" format="html" scope="external">
+      <linktext>Red Hat Enterprise Linux Downloads</linktext>
+    </link>
+    <link href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/" format="html" scope="external">
+      <linktext>Product Documentation for Red Hat Enterprise Linux 9</linktext>
+    </link>
+    <link href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html-single/building_running_and_managing_containers/index" format="html" scope="external">
+      <linktext>Building, running, and managing Linux containers on Red Hat Enterprise Linux 8</linktext>
+    </link>
+  </related-links>
+</concept>

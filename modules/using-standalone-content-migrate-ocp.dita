@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="using-standalone-content-migrate-ocp">
+  <title>Using backed up standalone content to migrate to OpenShift Container Platform</title>
+  <shortdesc>To migrate backed-up standalone Red Hat Quay content to OpenShift Container Platform, you can restore the database, apply a custom configuration bundle, and sync blobs to Object Bucket storage.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>Your standalone Red Hat Quay data, blobs, database, and <codeph>config.yaml</codeph> have been backed up.</li>
+        <li>Red Hat Quay is deployed on OpenShift Container Platform using the Red Hat Quay Operator.</li>
+        <li>A <codeph>QuayRegistry</codeph> with all components set to <codeph>managed</codeph>.</li>
+      </ul>
+      <note type="note">
+        <p>The procedure in this document uses the following namespace: <codeph>quay-enterprise</codeph>.</p>
+      </note>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Scale down the Red Hat Quay Operator:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc scale --replicas=0 deployment quay-operator.v3.6.2 -n openshift-operators</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Scale down the application and mirror deployments:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc scale --replicas=0 deployment QUAY_MAIN_APP_DEPLOYMENT QUAY_MIRROR_DEPLOYMENT</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Copy the database SQL backup to the <codeph>Quay</codeph> PostgreSQL database instance:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc cp /tmp/user/quay-backup/quay-database-backup.sql quay-enterprise/quayregistry-quay-database-54956cdd54-p7b2w:/var/lib/pgsql/data/userdata</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the database password from the Operator-created <codeph>config.yaml</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get deployment quay-quay-app -o json | jq '.spec.template.spec.volumes[].projected.sources' | grep -i config-secret</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-yaml">      "name": "QUAY_CONFIG_SECRET_NAME"</codeblock>
+          <codeblock outputclass="language-terminal">$ oc get secret quay-quay-config-secret-9t77hb84tb -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d -w0 &gt; /tmp/quay-backup/operator-quay-config-yaml-backup.yaml</codeblock>
+          <codeblock outputclass="language-terminal">$ cat /tmp/quay-backup/operator-quay-config-yaml-backup.yaml | grep -i DB_URI</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>postgresql://QUAY_DATABASE_OWNER:PASSWORD@DATABASE_HOST/QUAY_DATABASE_NAME</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Execute a shell inside of the database pod:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal"># oc exec -it quay-postgresql-database-pod -- /bin/bash</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter psql:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">bash-4.4$ psql</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Drop the database:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">postgres=# DROP DATABASE "example-restore-registry-quay-database";</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>DROP DATABASE</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a new database and set the owner as the same name:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">postgres=# CREATE DATABASE "example-restore-registry-quay-database" OWNER "example-restore-registry-quay-database";</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>CREATE DATABASE</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Connect to the database:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">postgres=# \c "example-restore-registry-quay-database";</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">You are now connected to database "example-restore-registry-quay-database" as user "postgres".</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a <codeph>pg_trgm</codeph> extension of your <codeph>Quay</codeph> database:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">example-restore-registry-quay-database=# CREATE EXTENSION IF NOT EXISTS pg_trgm ;</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">CREATE EXTENSION</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Exit the postgres CLI to re-enter bash-4.4:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">\q</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Set the password for your PostgreSQL deployment:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">bash-4.4$ psql -h localhost -d "QUAY_DATABASE_NAME" -U QUAY_DATABASE_OWNER -W &lt; /var/lib/pgsql/data/userdata/quay-database-backup.sql</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>SET
+SET
+SET
+SET
+SET</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Exit bash mode:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">bash-4.4$ exit</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a new configuration bundle for the Red Hat Quay Operator.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ touch config-bundle.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>In your new <codeph>config-bundle.yaml</codeph>, include all of the information that the registry requires, such as LDAP configuration, keys, and other modifications that your old registry had. Run the following command to move the <codeph>secret_key</codeph> to your <codeph>config-bundle.yaml</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cat /tmp/quay-backup/config.yaml | grep SECRET_KEY &gt; /tmp/quay-backup/config-bundle.yaml</codeblock>
+          <note type="note">
+            <p>You must manually copy all the LDAP, OIDC, and other information and add it to the <codeph>/tmp/quay-backup/config-bundle.yaml</codeph> file.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a configuration bundle secret inside of your OpenShift cluster:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create secret generic new-custom-config-bundle --from-file=config.yaml=/tmp/quay-backup/config-bundle.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Scale up the <codeph>Quay</codeph> pods:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc scale --replicas=1 deployment quayregistry-quay-app</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">deployment.apps/quayregistry-quay-app scaled</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Scale up the mirror pods:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc scale --replicas=1 deployment quayregistry-quay-mirror</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">deployment.apps/quayregistry-quay-mirror scaled</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Patch the <codeph>QuayRegistry</codeph> CRD so that it contains the reference to the new custom configuration bundle:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc patch quayregistry QUAY_REGISTRY_NAME --type=merge -p '{"spec":{"configBundleSecret":"new-custom-config-bundle"}}'</codeblock>
+          <note type="note">
+            <p>If Red Hat Quay returns a <codeph>500</codeph> internal server error, you might have to update the <codeph>location</codeph> of your <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> to <codeph>default</codeph>.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a new AWS <codeph>credentials.yaml</codeph> in your <codeph>/.aws/</codeph> directory and include the <codeph>access_key</codeph> and <codeph>secret_key</codeph> from the Operator-created <codeph>config.yaml</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ touch credentials.yaml</codeblock>
+          <codeblock outputclass="language-terminal">$ grep -i DISTRIBUTED_STORAGE_CONFIG -A10 /tmp/quay-backup/operator-quay-config-yaml-backup.yaml</codeblock>
+          <codeblock outputclass="language-terminal">$ cat &gt; ~/.aws/credentials &lt;&lt; EOF
+[default]
+aws_access_key_id = ACCESS_KEY_FROM_QUAY_CONFIG
+aws_secret_access_key = SECRET_KEY_FROM_QUAY_CONFIG
+EOF</codeblock>
+          <note type="note">
+            <p>If the AWS CLI does not automatically collect the <codeph>access_key</codeph> and <codeph>secret_key</codeph> from the <codeph>~/.aws/credentials</codeph> file, you can configure these by running <codeph>aws configure</codeph> and manually entering the credentials.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Record the NooBaa’s publicly available endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get route s3 -n openshift-storage -o yaml -o jsonpath="{.spec.host}{'\n'}"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Sync the backup data to the NooBaa backend storage:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ aws s3 sync --no-verify-ssl --endpoint-url https://NOOBAA_PUBLIC_S3_ROUTE /tmp/quay-backup/bucket-backup/* s3://QUAY_DATASTORE_BUCKET_NAME</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Scale the Operator back up to 1 pod:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc scale --replicas=1 deployment quay-operator.v3.6.4 -n openshift-operators</codeblock>
+          <p>The Operator uses the custom configuration bundle provided and reconciles all secrets and deployments. Your new Red Hat Quay deployment on OpenShift Container Platform contains all of the information that the old deployment had. You can pull all images.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

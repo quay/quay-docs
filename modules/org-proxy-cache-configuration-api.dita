@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="org-proxy-cache-configuration-api">
+  <title>Configuring a proxy cache for an organization by using the Red Hat Quay API</title>
+  <shortdesc>To create, validate, view, or delete a proxy cache configuration for an organization in Red Hat Quay, you can call the organization proxycache API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/organization/{orgname}/proxycache</codeph> endpoint to create a proxy cache configuration for the organization.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/proxycache" \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "upstream_registry": "&lt;upstream_registry&gt;"
+        "upstream_registry_username": "your_robot_account_username"
+        "upstream_registry_password": "your_robot_account_password"
+      }'</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/organization/{orgname}/validateproxycache</codeph> endpoint to validate the proxy configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/organization/{orgname}/validateproxycache" \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "upstream_registry": "&lt;upstream_registry&gt;"
+        "upstream_registry_username": "your_robot_account_username"
+        "upstream_registry_password": "your_robot_account_password"
+      }'</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/organization/{orgname}/proxycache</codeph> endpoint to obtain information about the proxy cache. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/organization/{orgname}/proxycache" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"upstream_registry": "quay.io", "expiration_s": 86400, "insecure": false}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>DELETE /api/v1/organization/{orgname}/proxycache</codeph> endpoint to delete the proxy cache configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE "https://&lt;quay-server.example.com&gt;/api/v1/organization/{orgname}/proxycache" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">"Deleted"</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,179 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="full-rhel-coverage">
+  <title>Selecting updater sets for full Red Hat Enterprise Linux (RHEL) coverage</title>
+  <shortdesc>You can select Clair updater sets to cover vulnerabilities in Red Hat Enterprise Linux (RHEL). Use the <codeph>rhel</codeph>, <codeph>rhcc</codeph>, <codeph>clair.cvss</codeph>, and <codeph>osv</codeph> updater sets for full coverage.</shortdesc>
+  <refbody>
+    <section>
+      <p>For full coverage of vulnerabilities in Red Hat Enterprise Linux (RHEL), you must use the following updater sets:</p>
+      <ul>
+        <li><codeph>rhel</codeph>. This updater ensures that you have the latest information on the vulnerabilities that affect RHEL.</li>
+        <li><codeph>rhcc</codeph>. This updater keeps track of vulnerabilities related to Red Hat’s container images.</li>
+        <li><codeph>clair.cvss</codeph>. This updater offers a comprehensive view of the severity and risk assessment of vulnerabilities by providing Common Vulnerabilities and Exposures (CVE) scores.</li>
+        <li><codeph>osv</codeph>. This updater focuses on tracking vulnerabilities in open-source software components. This updater is recommended due to how common the use of Java and Go are in RHEL products.</li>
+      </ul>
+      <p outputclass="title">
+        <b>RHEL updaters example</b>
+      </p>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  sets:
+    - rhel
+    - rhcc
+    - clair.cvss
+    - osv
+#...</codeblock>
+    </section>
+    <section id="configuring-specific-updaters">
+      <title>Advanced updater configuration</title>
+      <p>In some cases, users might want to configure updaters for specific behavior, for example, if you want to allowlist specific ecosystems for the Open Source Vulnerabilities (OSV) updaters.</p>
+      <p>Advanced updater configuration might be useful for proxy deployments or air-gapped deployments. Configuration for specific updaters in these scenarios can be passed by putting a key underneath the <codeph>config</codeph> environment variable of the <codeph>updaters</codeph> object. Users should examine their Clair logs to double-check names.</p>
+      <p>The following YAML snippets detail the various settings available to some Clair updaters.</p>
+      <note type="important">
+        <p>For most users, advanced updater configuration is unnecessary.</p>
+      </note>
+    </section>
+    <section id="configuring-clair-alpine">
+      <title>Configuring the alpine updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  sets:
+    - alpine
+  config:
+    alpine:
+      url: https://secdb.alpinelinux.org/
+#...</codeblock>
+    </section>
+    <section id="configuring-clair-debian">
+      <title>Configuring the debian updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  sets:
+    - debian
+  config:
+    debian:
+      mirror_url: https://deb.debian.org/
+      json_url: https://security-tracker.debian.org/tracker/data/json
+#...</codeblock>
+    </section>
+    <section id="configuring-clair-clair-cvss">
+      <title>Configuring the clair.cvss updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  config:
+    clair.cvss:
+      url: https://nvd.nist.gov/feeds/json/cve/1.1/
+#...</codeblock>
+    </section>
+    <section id="configuring-clair-oracle">
+      <title>Configuring the oracle updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  sets:
+    - oracle
+  config:
+    oracle-2023-updater:
+      url:
+        - https://linux.oracle.com/security/oval/com.oracle.elsa-2023.xml.bz2
+    oracle-2022-updater:
+      url:
+        - https://linux.oracle.com/security/oval/com.oracle.elsa-2022.xml.bz2
+#...</codeblock>
+    </section>
+    <section id="configuring-clair-photon">
+      <title>Configuring the photon updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  sets:
+    - photon
+  config:
+    photon:
+      url: https://packages.vmware.com/photon/photon_oval_definitions/
+#...</codeblock>
+    </section>
+    <section id="configuring-clair-rhel">
+      <title>Configuring the rhel updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  sets:
+    - rhel
+  config:
+    rhel:
+      url: https://access.redhat.com/security/data/oval/v2/PULP_MANIFEST
+      ignore_unpatched: true
+#...</codeblock>
+      <p><codeph>ignore_unpatched</codeph> is a Boolean that indicates whether to include information about vulnerabilities that do not have corresponding patches or updates available.</p>
+    </section>
+    <section id="configuring-clair-rhcc">
+      <title>Configuring the rhcc updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  sets:
+    - rhcc
+  config:
+    rhcc:
+      url: https://access.redhat.com/security/data/metrics/cvemap.xml
+#...</codeblock>
+    </section>
+    <section id="configuring-clair-suse">
+      <title>Configuring the suse updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  sets:
+    - suse
+  config:
+    suse:
+      url: https://support.novell.com/security/oval/
+#...</codeblock>
+    </section>
+    <section id="configuring-clair-ubuntu">
+      <title>Configuring the ubuntu updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  config:
+    ubuntu:
+      url: https://api.launchpad.net/1.0/
+      name: ubuntu
+      force:
+        - name: focal
+          version: 20.04
+#...</codeblock>
+      <p>where:</p>
+      <dl>
+        <dlentry>
+          <dt>
+            <codeph>updaters.config.ubuntu.force</codeph>
+          </dt>
+          <dd>Specifies the inclusion of specific distribution and version details in the resulting UpdaterSet, regardless of their status in the API response. Useful when you want to ensure that particular distributions and versions are consistently included in your updater configuration.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>updaters.config.ubuntu.force.name</codeph>
+          </dt>
+          <dd>Specifies the distribution name that you want to force to be included in the UpdaterSet.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>updaters.config.ubuntu.force.version</codeph>
+          </dt>
+          <dd>Specifies the version of the distribution you want to force into the UpdaterSet.</dd>
+        </dlentry>
+      </dl>
+    </section>
+    <section id="configuring-clair-osv">
+      <title>Configuring the osv updater</title>
+      <codeblock outputclass="language-yaml">#...
+updaters:
+  sets:
+    - osv
+  config:
+    osv:
+      url: https://osv-vulnerabilities.storage.googleapis.com/
+      allowlist:
+        - npm
+        - pypi
+#...</codeblock>
+      <p><codeph>allowlist</codeph> is the list of ecosystems to allow. When left unset, all ecosystems are allowed. Must be lowercase.</p>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-quota-notifications-api">
+  <title>Creating quota notifications by using the API</title>
+  <shortdesc>To create quota warning or error notifications for organization and user namespaces in Red Hat Quay, you can use the API. Warning limits trigger <codeph>quota_warning</codeph> events and reject limits trigger <codeph>quota_error</codeph> events.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li><codeph>FEATURE_QUOTA_MANAGEMENT</codeph> is enabled in your Red Hat Quay configuration.</li>
+        <li><codeph>FEATURE_QUOTA_NOTIFICATIONS</codeph> is enabled in your Red Hat Quay configuration.</li>
+        <li>Optional: You have established quota limits for your organization or user namespace. You can create notification rules before setting quota limits. Notifications trigger automatically after quotas are configured and thresholds are crossed.</li>
+        <li>You have administrative privileges for the namespace.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Warning-type quota limits trigger <codeph>quota_warning</codeph> notifications. Reject-type quota limits trigger <codeph>quota_error</codeph> notifications. For organization email notifications, <codeph>"config": {}</codeph> is valid because recipients are resolved server-side (organization contact email, or organization administrators if unset). User email notifications are sent to the user account email address.</p>
+      <p>Red Hat Quay throttles repeated alerts for the same namespace and threshold by using <codeph>QUOTA_NOTIFICATION_COOLDOWN_SECONDS</codeph> (default: 86400 / 24 hours). If usage drops below a threshold and later crosses it again, the notification can re-fire. Deleting a quota also removes associated <codeph>quota_warning</codeph> and <codeph>quota_error</codeph> notification rules for that namespace.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>To create an organization quota notification, enter a command similar to the following example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Content-Type: application/json" \
+--data '{
+    "event": "quota_warning",
+    "method": "email",
+    "config": {},
+    "eventConfig": {}
+}' \
+https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/notifications</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-json">{
+"uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+"title": null,
+"event": "quota_warning",
+"method": "email",
+"config": {},
+"event_config": {},
+"number_of_failures": 0
+}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional: You can create a quota error notification by changing the event type. To complete this task, run a command similar to the following example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Content-Type: application/json" \
+--data '{
+    "event": "quota_error",
+    "method": "slack",
+    "config": {
+    "url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+    },
+    "eventConfig": {}
+}' \
+https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/notifications</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To create a user namespace quota notification, enter a command similar to the following example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Content-Type: application/json" \
+--data '{
+    "event": "quota_warning",
+    "method": "email",
+    "config": {},
+    "eventConfig": {}
+}' \
+https://&lt;quay-server.example.com&gt;/api/v1/user/namespacenotifications</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

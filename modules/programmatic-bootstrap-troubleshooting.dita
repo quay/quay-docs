@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="programmatic-bootstrap-troubleshooting">
+  <title>Troubleshooting programmatic bootstrap</title>
+  <shortdesc>Use these checks when programmatic bootstrap token provisioning fails in Red Hat Quay, including missing token files, authorization errors, and renewal failures.</shortdesc>
+  <conbody>
+    <p>If the token file or Secret is empty after startup:</p>
+    <ul>
+      <li>Verify that <codeph>FEATURE_PROGRAMMATIC_BOOTSTRAP</codeph> is <codeph>true</codeph>.</li>
+      <li>Verify that <codeph>BOOTSTRAP_TOKEN_OWNER</codeph> is set and listed in <codeph>SUPER_USERS</codeph>.</li>
+      <li>Verify that the bootstrap token owner exists in the Red Hat Quay database.</li>
+      <li>Check Red Hat Quay startup logs for bootstrap provisioning errors.</li>
+      <li>If the bootstrap token file or Secret is still missing after the first restart, restart Red Hat Quay again or run <codeph>python3 /quay-registry/boot.py</codeph> inside the Red Hat Quay container after confirming <codeph>BOOTSTRAP_TOKEN_OWNER</codeph> exists in the database.</li>
+      <li>On Red Hat Quay on OpenShift Container Platform, confirm that the Operator created the <codeph>&lt;quayregistry_name&gt;-bootstrap-token</codeph> Secret, Role, and RoleBinding, and that Quay application pods have rolled out with the updated <codeph>configBundleSecret</codeph>. An empty Secret before the pods restart is expected; the Quay process writes <codeph>token.json</codeph> after startup.</li>
+      <li>Confirm that <codeph>BOOTSTRAP_TOKEN_SCOPE</codeph> is a quoted YAML string. Unquoted scope values that contain <codeph>:</codeph> can be misparsed.</li>
+    </ul>
+    <p>If you receive <codeph>403 Forbidden</codeph> when using the bootstrap token:</p>
+    <ul>
+      <li>Confirm that the token has not expired.</li>
+      <li>Confirm that bootstrap provisioning was not disabled and the token revoked.</li>
+      <li>Confirm that the target API endpoint is authorized by the bootstrap token scope.</li>
+    </ul>
+    <p>If renewal returns <codeph>401 Unauthorized</codeph>:</p>
+    <ul>
+      <li>If the token is expired, send the renewal request from localhost or through a port-forwarded local ingress path.</li>
+      <li>Confirm that you are passing the bootstrap token value, not a different OAuth token.</li>
+    </ul>
+    <p>If rate limiting returns <codeph>429 Too Many Requests</codeph>:</p>
+    <ul>
+      <li>Bootstrap and token management endpoints are subject to existing rate limiting when <codeph>FEATURE_RATE_LIMITS</codeph> is enabled. Adjust request frequency or review your rate limit configuration.</li>
+    </ul>
+  </conbody>
+</concept>

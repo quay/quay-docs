@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="config-custom-ssl-cert-kubernetes">
+  <title>Adding custom SSL/TLS certificates when Red Hat Quay is deployed on Kubernetes</title>
+  <shortdesc>To add custom SSL/TLS certificates to your Red Hat Quay deployment on Kubernetes, you can base64 encode the certificate, add it to the config secret, and restart the pods. This procedure works around the limitation where the superuser panel certificate upload function does not work with Kubernetes deployments.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>Red Hat Quay has been deployed.</li>
+        <li>You have a custom <codeph>ca.crt</codeph> file.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Base64 encode the contents of an SSL/TLS certificate by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cat ca.crt | base64 -w 0</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">...c1psWGpqeGlPQmNEWkJPMjJ5d0pDemVnR2QNCnRsbW9JdEF4YnFSdVd3PT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following <codeph>kubectl</codeph> command to edit the <codeph>quay-enterprise-config-secret</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ kubectl --namespace quay-enterprise edit secret/quay-enterprise-config-secret</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Add an entry for the certificate and paste the full <codeph>base64</codeph> encoded stringer under the entry. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">  custom-cert.crt:
+c1psWGpqeGlPQmNEWkJPMjJ5d0pDemVnR2QNCnRsbW9JdEF4YnFSdVd3PT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>kubectl delete</codeph> command to remove all Red Hat Quay pods. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ kubectl delete pod quay-operator.v3.7.1-6f9d859bd-p5ftc quayregistry-clair-postgres-7487f5bd86-xnxpr quayregistry-quay-app-upgrade-xq2v6  quayregistry-quay-database-859d5445ff-cqthr quayregistry-quay-redis-84f888776f-hhgms</codeblock>
+          <p>Afterwards, the Red Hat Quay deployment automatically schedules replace pods with the new certificate data.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

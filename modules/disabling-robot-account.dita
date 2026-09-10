@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="disabling-robot-account">
+  <title>Disabling robot accounts</title>
+  <shortdesc>To prevent users from creating new robot accounts, you can disable robot account creation in your Red Hat Quay configuration file. This setting also blocks robot accounts required for repository mirroring, so review your mirroring setup first.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created multiple robot accounts.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="important">
+        <p>Robot accounts are mandatory for repository mirroring. Setting the <codeph>ROBOTS_DISALLOW</codeph> configuration field to <codeph>True</codeph> breaks mirroring configurations. Users mirroring repositories should not set <codeph>ROBOTS_DISALLOW</codeph> to <codeph>True</codeph> in their <codeph>config.yaml</codeph> file. This is a known issue in Red Hat Quay.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Update your <codeph>config.yaml</codeph> field to add the <codeph>ROBOTS_DISALLOW</codeph> variable, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">ROBOTS_DISALLOW: true</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay deployment.</cmd>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Navigate to your Red Hat Quay repository.</li>
+        <li>Click the name of a repository.</li>
+        <li>In the navigation pane, click <b>Robot Accounts</b>.</li>
+        <li>Click <b>Create Robot Account</b>.</li>
+        <li>Enter a name for the robot account, for example, <codeph>&lt;organization-name/username&gt;+&lt;robot-name&gt;</codeph>.</li>
+        <li>Click <b>Create robot account</b> to confirm creation. The following message appears: <codeph>Cannot create robot account. Robot accounts have been disabled. Please contact your administrator.</codeph></li>
+      </ol>
+      <ol>
+        <li>On the command-line interface (CLI), attempt to log in as one of the robot accounts by entering the following command:
+<codeblock outputclass="language-terminal">$ podman login -u="&lt;organization-name/username&gt;+&lt;robot-name&gt;" -p="KETJ6VN0WT8YLLNXUJJ4454ZI6TZJ98NV41OE02PC2IQXVXRFQ1EJ36V12345678" &lt;quay-server.example.com&gt;</codeblock><p>The following error message is returned:</p><codeblock outputclass="language-terminal">Error: logging into "&lt;quay-server.example.com&gt;": invalid username/password</codeblock></li>
+        <li>You can pass in the <codeph>log-level=debug</codeph> flag to confirm that robot accounts have been deactivated:
+<codeblock outputclass="language-terminal">$ podman login -u="&lt;organization-name/username&gt;+&lt;robot-name&gt;" -p="KETJ6VN0WT8YLLNXUJJ4454ZI6TZJ98NV41OE02PC2IQXVXRFQ1EJ36V12345678" --log-level=debug &lt;quay-server.example.com&gt;</codeblock><codeblock outputclass="language-terminal">...
+DEBU[0000] error logging into "quay-server.example.com": unable to retrieve auth token: invalid username/password: unauthorized: Robot accounts have been disabled. Please contact your administrator.</codeblock></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

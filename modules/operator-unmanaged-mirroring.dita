@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="operator-unmanaged-mirroring">
+  <title>Disabling the mirroring component</title>
+  <shortdesc>Repository mirroring in Red Hat Quay allows you to automatically synchronize container images from remote registries into your local Red Hat Quay instance. The Red Hat Quay Operator deploys a separate <b>mirroring worker</b> component that handles these synchronization tasks.</shortdesc>
+  <refbody>
+    <section>
+      <p>You can disable the managed mirroring component by setting it to <codeph>managed: false</codeph> in the <codeph>QuayRegistry</codeph> custom resource.</p>
+      <note type="note">
+        <p>Disabling managed mirroring means that the Operator does not deploy or reconcile any mirroring pods. You are responsible for creating, scheduling, and maintaining mirroring jobs manually. For most production deployments, leaving mirroring as <codeph>managed: true</codeph> is recommended.</p>
+      </note>
+      <codeblock outputclass="language-yaml">apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+  namespace: quay-enterprise
+spec:
+  components:
+    - kind: mirroring
+      managed: false</codeblock>
+    </section>
+  </refbody>
+</reference>

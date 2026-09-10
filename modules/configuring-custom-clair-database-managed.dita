@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-custom-clair-database-managed">
+  <title>Configuring a custom Clair database with a managed Clair configuration</title>
+  <shortdesc>To supply a custom <codeph>clair-config.yaml</codeph> while the Operator manages Clair on Red Hat Quay, you can create a Quay configuration bundle secret that includes your Clair configuration file.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Create a Quay configuration bundle secret that includes the <codeph>clair-config.yaml</codeph> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create secret generic --from-file config.yaml=./config.yaml --from-file extra_ca_cert_rds-ca-2019-root.pem=./rds-ca-2019-root.pem --from-file clair-config.yaml=./clair-config.yaml config-bundle-secret</codeblock>
+          <p outputclass="title">
+            <b>Example Clair <codeph>config.yaml</codeph> file</b>
+          </p>
+          <codeblock outputclass="language-yaml">indexer:
+    connstring: host=quay-server.example.com port=5432 dbname=quay user=quayrdsdb password=quayrdsdb sslmode=disable
+    layer_scan_concurrency: 6
+    migrations: true
+    scanlock_retry: 11
+log_level: debug
+matcher:
+    connstring: host=quay-server.example.com port=5432 dbname=quay user=quayrdsdb password=quayrdsdb sslmode=disable
+    migrations: true
+metrics:
+    name: prometheus
+notifier:
+    connstring: host=quay-server.example.com port=5432 dbname=quay user=quayrdsdb password=quayrdsdb sslmode=disable
+    migrations: true</codeblock>
+          <note type="note">
+            <p>The database certificate is mounted under <codeph>/run/certs/rds-ca-2019-root.pem</codeph> on the Clair application pod in the <codeph>clair-config.yaml</codeph>. It must be specified when configuring your <codeph>clair-config.yaml</codeph>.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Add the <codeph>clair-config.yaml</codeph> file to your bundle secret, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">apiVersion: v1
+kind: Secret
+metadata:
+  name: config-bundle-secret
+  namespace: quay-enterprise
+data:
+  config.yaml: &lt;base64 encoded Quay config&gt;
+  clair-config.yaml: &lt;base64 encoded Clair config&gt;</codeblock>
+          <note type="note">
+            <p>When updated, the provided <codeph>clair-config.yaml</codeph> file is mounted into the Clair pod. Any fields not provided are automatically populated with defaults using the Clair configuration module.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>You can check the status of your Clair pod by clicking the commit in the <b>Build History</b> page, or by running <codeph>oc get pods -n &lt;namespace&gt;</codeph>. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get pods -n &lt;namespace&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">NAME                                               READY   STATUS    RESTARTS   AGE
+f192fe4a-c802-4275-bcce-d2031e635126-9l2b5-25lg2   1/1     Running   0          7s</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

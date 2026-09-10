@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-entra-v2-multi-issuer-oidc">
+  <title>Configuring Microsoft Entra ID v2 and multi-issuer OIDC</title>
+  <shortdesc>To accept Microsoft Entra ID v2.0 tokens and On-Behalf-Of API flows in Red Hat Quay, you can configure multi-issuer and multi-audience settings in your OIDC <codeph>*_LOGIN_CONFIG</codeph> block. This support enables Microsoft Entra ID v2.0 access tokens, dual v1.0 and v2.0 acceptance during migration, and On-Behalf-Of (OBO) API flows used by integrations such as Red Hat Developer Hub (RHDH).</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have an Entra ID app registration for Red Hat Quay with a client secret and redirect URIs for your Red Hat Quay hostname.</li>
+        <li>You can edit the Red Hat Quay <codeph>config.yaml</codeph> file or Operator <codeph>configBundleSecret</codeph> resource.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>In the Azure Portal, open your Red Hat Quay app registration and set <codeph>requestedAccessTokenVersion</codeph> to <codeph>2</codeph> in the app manifest. The field might appear as <codeph>api.requestedAccessTokenVersion</codeph>.
+</cmd>
+        <info>
+          <p>For OBO flows, expose an API on the Red Hat Quay app registration, for example <codeph>api://quay-api</codeph>, and grant the upstream application permission to that scope.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Update your <codeph>*_LOGIN_CONFIG</codeph> block with the v2.0 discovery endpoint and multi-issuer settings. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">AUTHENTICATION_TYPE: OIDC
+# ...
+AZURE_LOGIN_CONFIG:
+  CLIENT_ID: &lt;quay_app_client_id&gt;
+  CLIENT_SECRET: &lt;quay_app_client_secret&gt;
+  OIDC_SERVER: https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0/
+  SERVICE_NAME: Microsoft Entra ID
+  OIDC_DISABLE_USER_ENDPOINT: true
+  OIDC_ISSUERS:
+    - https://sts.windows.net/&lt;tenant-id&gt;/
+    - https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0
+  OIDC_AUDIENCES:
+    - &lt;quay_app_client_id&gt;
+    - api://quay-api
+  OIDC_ALLOWED_CLIENTS:
+    - &lt;quay_app_client_id&gt;
+    - &lt;upstream_app_client_id&gt;
+  USE_PKCE: true
+  PKCE_METHOD: "S256"
+  PUBLIC_CLIENT: true
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay deployment or reconcile the Operator so the updated configuration is applied.
+</cmd>
+        <info>
+          <note type="note">
+            <ul>
+              <li>Set <codeph>OIDC_SERVER</codeph> to the v2.0 endpoint. The v2.0 JWKS endpoint includes v1.0 signing keys, so one discovery URL supports both token versions.</li>
+              <li>If you set <codeph>OIDC_ALLOWED_CLIENTS</codeph>, include your Red Hat Quay application’s own <codeph>CLIENT_ID</codeph>. Direct user logins set <codeph>azp</codeph> to the application’s client ID. Omit <codeph>OIDC_ALLOWED_CLIENTS</codeph> if you do not need to restrict OBO clients.</li>
+              <li>Do not request Microsoft Graph scopes such as <codeph>openid profile email</codeph> when you need tokens with a custom audience. Use application-specific scopes such as <codeph>api://quay-api/registry.access</codeph> instead.</li>
+            </ul>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

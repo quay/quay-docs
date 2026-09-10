@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="debug-configuration-flag">
+  <title>Debug configuration flag</title>
+  <shortdesc>The DEBUG configuration flag in Red Hat Quay prevents builder instances from shutting down automatically after builds complete or fail. Set this flag to True to debug builder node issues.</shortdesc>
+  <refbody>
+    <section>
+      <codeblock outputclass="language-yaml">  EXECUTORS:
+    - EXECUTOR: ec2
+      DEBUG: true
+      ...
+    - EXECUTOR: kubernetes
+      DEBUG: true
+      ...</codeblock>
+      <p>When set to <codeph>True</codeph>, the debug feature prevents the <i>build nodes</i> from shutting down after the <codeph>quay-builder</codeph> service is done or fails. It also prevents the <i>build manager</i> from cleaning up the instances by terminating EC2 instances or deleting Kubernetes jobs. This allows debugging <i>builder node</i> issues.</p>
+      <p>Debugging should not be set in a production cycle. The lifetime service still exists; for example, the instance still shuts down after approximately two hours. When this happens, EC2 instances are terminated and Kubernetes jobs are completed.</p>
+      <p>Enabling debug also affects the <codeph>ALLOWED_WORKER_COUNT</codeph> because the unterminated instances and jobs still count toward the total number of running workers. As a result, the existing <i>builder workers</i> must be manually deleted if <codeph>ALLOWED_WORKER_COUNT</codeph> is reached to be able to schedule new <i>builds</i>.</p>
+    </section>
+  </refbody>
+</reference>

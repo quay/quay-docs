@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="deleting-user-cli-api">
+  <title>Deleting a user by using the Red Hat Quay API</title>
+  <shortdesc>To delete a user account from Red Hat Quay as a superuser, you can use the Red Hat Quay API.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You are logged into your Red Hat Quay deployment as a superuser.</li>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="important">
+        <p>After deleting the user, any repositories that this user had in their private account become unavailable.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Enter the following <codeph>DELETE /api/v1/superuser/users/{username}</codeph> command to delete a user from the command line:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE -H "Authorization: Bearer &lt;insert token here&gt;" https://&lt;quay-server.example.com&gt;/api/v1/superuser/users/&lt;username&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>The CLI does not return information when deleting a user from the CLI. To confirm deletion, you can check the Red Hat Quay UI by navigating to <b>Superuser Admin Panel</b> → <b>Users</b>, or by entering the following <codeph>GET /api/v1/superuser/users/</codeph> command. You can then check to see if they are present.
+</cmd>
+        <info>
+          <note type="note">
+            <p>The <codeph>GET /api/v1/superuser/users/</codeph> endpoint only returns users and superusers if <codeph>AUTHENTICATION_TYPE: Database</codeph> is set in your <codeph>config.yaml</codeph> file. It does not work for <codeph>LDAP</codeph> authentication types.</p>
+          </note>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;bearer_token&gt;" "https://&lt;quay-server.example.com&gt;/api/v1/superuser/users/"</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

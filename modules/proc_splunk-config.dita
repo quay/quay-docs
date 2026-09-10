@@ -1,0 +1,269 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="proc_splunk-config">
+  <title>Configuring Red Hat Quay to use Splunk</title>
+  <shortdesc>To send Red Hat Quay action logs to Splunk or the Splunk HTTP Event Collector (HEC), you can add the Splunk settings to your <codeph>config.yaml</codeph> file and restart the registry.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have installed Splunk and created a username.</li>
+        <li>You have generated a Splunk bearer token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Configure Red Hat Quay to use Splunk or the Splunk HTTP Event Collector (HEC).
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>If opting to use Splunk, open your Red Hat Quay <codeph>config.yaml</codeph> file and add the following configuration fields:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml"># ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+    producer: splunk
+    splunk_config:
+        host: http://&lt;user_name&gt;.remote.csb
+        port: 8089
+        bearer_token: &lt;bearer_token&gt;
+        url_scheme: &lt;http/https&gt;
+        verify_ssl: False
+        index_prefix: &lt;splunk_log_index_name&gt;
+        ssl_ca_path: &lt;location_to_ssl-ca-cert.pem&gt;
+        search_timeout: 60
+        max_results: 10000
+        export_batch_size: 5000
+# ...</codeblock>
+              <p>where:</p>
+              <dl>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.host</codeph>
+                  </dt>
+                  <dd>Specifies the Splunk cluster endpoint.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.port</codeph>
+                  </dt>
+                  <dd>Specifies the Splunk management cluster endpoint port. Differs from the Splunk GUI hosted port. Can be found on the Splunk UI under <b>Settings</b> → <b>Server Settings</b> → <b>General Settings</b>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.bearer_token</codeph>
+                  </dt>
+                  <dd>Specifies the generated bearer token for Splunk.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.url_scheme</codeph>
+                  </dt>
+                  <dd>Specifies the URL scheme for access the Splunk service. If Splunk is configured to use TLS/SSL, this must be <codeph>https</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.verify_ssl</codeph>
+                  </dt>
+                  <dd>Specifies whether to enable TLS/SSL. Defaults to <codeph>True</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.index_prefix</codeph>
+                  </dt>
+                  <dd>Specifies the Splunk index prefix. Can be a new, or used, index. Can be created from the Splunk UI.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.ssl_ca_path</codeph>
+                  </dt>
+                  <dd>Specifies the relative container path to a single <codeph>.pem</codeph> file containing a certificate authority (CA) for TLS/SSL validation.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.search_timeout</codeph>
+                  </dt>
+                  <dd>Specifies the timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.max_results</codeph>
+                  </dt>
+                  <dd>Specifies the maximum number of results to return per search query. Larger values require more memory.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.export_batch_size</codeph>
+                  </dt>
+                  <dd>Specifies the batch size for log export operations.</dd>
+                </dlentry>
+              </dl>
+            </info>
+          </substep>
+          <substep>
+            <cmd>If opting to use Splunk HEC, open your Red Hat Quay <codeph>config.yaml</codeph> file and add the following configuration fields:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml"># ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  producer: splunk_hec
+  splunk_hec_config:
+    host: prd-p-aaaaaq.splunkcloud.com
+    port: 8088
+    hec_token: 12345678-1234-1234-1234-1234567890ab
+    url_scheme: https
+    verify_ssl: False
+    index: quay
+    splunk_host: quay-dev
+    splunk_sourcetype: quay_logs
+    timeout: 10
+    search_token: &lt;bearer_token&gt;
+    search_host: &lt;splunk.example.com&gt;
+    search_port: 8089
+    search_timeout: 60
+    max_results: 10000
+    export_batch_size: 5000
+# ...</codeblock>
+              <p>where:</p>
+              <dl>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.producer</codeph>
+                  </dt>
+                  <dd>Specifies <codeph>splunk_hec</codeph> when configuring Splunk HEC.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config</codeph>
+                  </dt>
+                  <dd>Specifies the logs model configuration for Splunk HTTP Event Collector action logs configuration.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.host</codeph>
+                  </dt>
+                  <dd>Specifies the Splunk cluster endpoint.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.port</codeph>
+                  </dt>
+                  <dd>Specifies the Splunk management cluster endpoint port.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.hec_token</codeph>
+                  </dt>
+                  <dd>Specifies the HEC token for Splunk.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.url_scheme</codeph>
+                  </dt>
+                  <dd>Specifies the URL scheme for access the Splunk service. If Splunk is behind SSL/TLS, must be <codeph>https</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.verify_ssl</codeph>
+                  </dt>
+                  <dd>Specifies whether to enable (<codeph>true</codeph>) or disable (<codeph>false</codeph>) SSL/TLS verification for HTTPS connections.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.index</codeph>
+                  </dt>
+                  <dd>Specifies the Splunk index to use.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.splunk_host</codeph>
+                  </dt>
+                  <dd>Specifies the host name to log this event.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.splunk_sourcetype</codeph>
+                  </dt>
+                  <dd>Specifies the name of the Splunk <codeph>sourcetype</codeph> to use.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.timeout</codeph>
+                  </dt>
+                  <dd>Specifies the timeout in seconds for HTTP requests to the Splunk HEC endpoint. Prevents requests from hanging indefinitely when Splunk is unresponsive.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.search_token</codeph>
+                  </dt>
+                  <dd>Specifies an optional bearer token for the Splunk search API. Required because HEC tokens are ingest-only and cannot search.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.search_host</codeph>
+                  </dt>
+                  <dd>Specifies the Splunk management host for the search API. Defaults to the HEC host if not specified.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.search_port</codeph>
+                  </dt>
+                  <dd>Specifies the Splunk management port for the search API. Defaults to <codeph>8089</codeph> if not specified.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.search_timeout</codeph>
+                  </dt>
+                  <dd>Specifies the timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.max_results</codeph>
+                  </dt>
+                  <dd>Specifies the maximum number of results to return per search query. Larger values require more memory.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.export_batch_size</codeph>
+                  </dt>
+                  <dd>Specifies the batch size for log export operations.</dd>
+                </dlentry>
+              </dl>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>If you are configuring <codeph>ssl_ca_path</codeph>, you must configure the SSL/TLS certificate so that Red Hat Quay trusts it.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>If you are using a standalone deployment of Red Hat Quay, SSL/TLS certificates can be provided by placing the certificate file inside of the <codeph>extra_ca_certs</codeph> directory, or inside of the relative container path and specified by <codeph>ssl_ca_path</codeph>.</cmd>
+          </substep>
+          <substep>
+            <cmd>If you are using the Red Hat Quay Operator, create a config bundle secret, including the certificate authority (CA) of the Splunk server. For example:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc create secret generic --from-file config.yaml=./config_390.yaml --from-file extra_ca_cert_splunkserver.crt=./splunkserver.crt config-bundle-secret</codeblock>
+              <p>Specify the <codeph>conf/stack/extra_ca_certs/splunkserver.crt</codeph> file in your <codeph>config.yaml</codeph>. For example:</p>
+              <codeblock outputclass="language-yaml"># ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+    producer: splunk
+    splunk_config:
+        host: ec2-12-345-67-891.us-east-2.compute.amazonaws.com
+        port: 8089
+        bearer_token: eyJra
+        url_scheme: https
+        verify_ssl: true
+        index_prefix: quay123456
+        ssl_ca_path: conf/stack/splunkserver.crt
+# ...</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

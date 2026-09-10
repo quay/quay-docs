@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="enabling-image-pull-activity-tracking">
+  <title>Enabling image pull activity tracking</title>
+  <shortdesc>To enable image pull activity tracking in Red Hat Quay, you can set <codeph>FEATURE_IMAGE_PULL_STATS</codeph> in your <codeph>config.yaml</codeph> file and configure Redis for pull metrics.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>In your Red Hat Quay <codeph>config.yaml</codeph> file, set <codeph>FEATURE_IMAGE_PULL_STATS: true</codeph>. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+FEATURE_IMAGE_PULL_STATS: true
+REDIS_FLUSH_INTERVAL_SECONDS: 30
+PULL_METRICS_REDIS:
+    host: &lt;redis_host&gt;
+    password: &lt;redis_password&gt;
+    port: 6379
+    db: 1
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>FEATURE_IMAGE_PULL_STATS</codeph>
+              </dt>
+              <dd>Specifies whether image pull tracking activity is enabled.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>REDIS_FLUSH_INTERVAL_SECONDS</codeph>
+              </dt>
+              <dd>Specifies the time, in seconds, at which the Redis flush worker clears old data. Shorter intervals keep data fresher and help prevent Redis from bloating, while longer intervals reduce flush frequency.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>PULL_METRICS_REDIS</codeph>
+              </dt>
+              <dd>Specifies the connection settings for the Redis database used to store image pull metrics.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay deployment.</cmd>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Push an image to your registry by entering the following command. Following this step, you can use your browser to see the tagged image in your repository.
+<codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/&lt;organization&gt;/&lt;image&gt;:&lt;tag&gt;</codeblock></li>
+        <li>Pull the image from your Red Hat Quay registry by entering the following command:
+<codeblock outputclass="language-terminal">$ podman pull &lt;quay-server.example.com&gt;/&lt;organization&gt;/&lt;image&gt;:&lt;tag&gt;</codeblock></li>
+        <li>On the Red Hat Quay UI, navigate to <b>Repositories</b>, and then click the name of your repository.</li>
+        <li>Click <b>Tags</b>. The <b>Last Pulled</b> and <b>Pull Count</b> categories show you information about when the image was last pulled, and how many times it has been pulled, respectively. For example:
+<p><image href="../images/image-pull-stats.png" placement="inline"><alt>Image pull statistics</alt></image></p></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

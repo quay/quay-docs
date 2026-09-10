@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="upgrading-geo-repl-quay">
+  <title>Upgrading standalone geo-replication</title>
+  <shortdesc>To upgrade a geo-replication deployment of standalone Red Hat Quay, stop operations on all instances, back up the deployment, then follow the procedure to upgrade each system. Expect intermittent downtime when upgrading to the next y-stream release.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have logged into <codeph>registry.redhat.io</codeph></li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="important">
+        <ul>
+          <li>When upgrading geo-replication Red Hat Quay deployments to the next y-stream release (for example, Red Hat Quay 3.7 → Red Hat Quay 3.8), or geo-replication deployments, you must stop operations before upgrading.</li>
+          <li>There is intermittent downtime down upgrading from one y-stream release to the next.</li>
+          <li>It is highly recommended to back up your Red Hat Quay deployment before upgrading.</li>
+        </ul>
+      </note>
+      <note type="note">
+        <p>This procedure assumes that you are running Red Hat Quay services on three (or more) systems. For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/deploy_red_hat_quay_-_high_availability/index#preparing-for-quay-ha" format="html" scope="external">Preparing for Red Hat Quay high availability</xref>.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Obtain a list of all Red Hat Quay instances on each system running a Red Hat Quay instance.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enter the following command on System A to reveal the Red Hat Quay instances:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman ps</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
+ec16ece208c0  registry.redhat.io/quay/quay-rhel8:v{producty-n1}  registry        6 minutes ago  Up 6 minutes ago  0.0.0.0:80-&gt;8080/tcp, 0.0.0.0:443-&gt;8443/tcp  quay01</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command on System B to reveal the Red Hat Quay instances:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman ps</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
+7ae0c9a8b37d  registry.redhat.io/quay/quay-rhel8:v{producty-n1}  registry        5 minutes ago   Up 2 seconds ago   0.0.0.0:82-&gt;8080/tcp, 0.0.0.0:445-&gt;8443/tcp  quay02</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command on System C to reveal the Red Hat Quay instances:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman ps</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
+e75c4aebfee9  registry.redhat.io/quay/quay-rhel8:v{producty-n1}  registry        4 seconds ago   Up 4 seconds ago   0.0.0.0:84-&gt;8080/tcp, 0.0.0.0:447-&gt;8443/tcp  quay03</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Temporarily shut down all Red Hat Quay instances on each system.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enter the following command on System A to shut down the Red Hat Quay instance:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman stop ec16ece208c0</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command on System B to shut down the Red Hat Quay instance:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman stop 7ae0c9a8b37d</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command on System C to shut down the Red Hat Quay instance:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman stop e75c4aebfee9</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Obtain the latest Red Hat Quay version, for example, Red Hat Quay 3.18, on each system.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enter the following command on System A to obtain the latest Red Hat Quay version:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman pull registry.redhat.io/quay/quay-rhel8:{productminv}</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command on System B to obtain the latest Red Hat Quay version:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman pull registry.redhat.io/quay/quay-rhel8:v{producty}</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command on System C to obtain the latest Red Hat Quay version:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman pull registry.redhat.io/quay/quay-rhel8:{productminv}</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>On System A of your highly available Red Hat Quay deployment, run the new image version, for example, Red Hat Quay 3.18:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal"># sudo podman run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   --name=quay01 \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d registry.redhat.io/quay/quay-rhel8:{productminv}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Wait for the new Red Hat Quay container to become fully operational on System A. You can check the status of the container by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman ps</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">CONTAINER ID  IMAGE                                      COMMAND         CREATED        STATUS            PORTS                                        NAMES
+70b9f38c3fb4  registry.redhat.io/quay/quay-rhel8:v{producty} registry        2 seconds ago   Up 2 seconds ago   0.0.0.0:82-&gt;8080/tcp, 0.0.0.0:445-&gt;8443/tcp  quay01</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional: Ensure that Red Hat Quay is fully operation by navigating to the Red Hat Quay UI.</cmd>
+      </step>
+      <step>
+        <cmd>After ensuring that Red Hat Quay on System A is fully operational, run the new image versions on System B and on System C.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>On System B of your highly available Red Hat Quay deployment, run the new image version, for example, Red Hat Quay 3.18:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal"># sudo podman run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   --name=quay02 \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d registry.redhat.io/quay/quay-rhel8:{productminv}</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>On System C of your highly available Red Hat Quay deployment, run the new image version, for example, Red Hat Quay 3.18:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal"># sudo podman run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   --name=quay03 \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d registry.redhat.io/quay/quay-rhel8:{productminv}</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>You can check the status of the containers on System B and on System C by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman ps</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

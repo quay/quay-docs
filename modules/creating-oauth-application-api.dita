@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-oauth-application-api">
+  <title>Managing a user application by using the API</title>
+  <shortdesc>To create, list, or delete a user application token without sharing your password, you can use the Red Hat Quay API. User application tokens work like encrypted username and password credentials for Docker, Podman, or other clients.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth 2 access token.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Red Hat Quay users can create, list information about, and delete a <i>user application</i> that can be used as an alternative to using your password for Docker, Podman, or other service providers. User application tokens work like your username and password, but are encrypted and do not provide any information to third parties regarding who is accessing Red Hat Quay.</p>
+      <note type="note">
+        <p>After creation by using the CLI, the user application token is listed under <b>User Settings</b> of the Red Hat Quay UI. Note that this differs from an application token that is created under user settings, and should be considered a different application entirely.</p>
+      </note>
+    </context>
+    <steps-unordered>
+      <step>
+        <cmd>Create a user application by entering the <codeph>POST /api/v1/user/apptoken</codeph> API call:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "MyAppToken"
+  }' \
+  "http://quay-server.example.com/api/v1/user/apptoken"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"token": {"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null, "token_code": "string"}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can obtain information about your application, including when the application expires, by using the <codeph>GET /api/v1/user/apptoken</codeph> command. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "http://quay-server.example.com/api/v1/user/apptoken"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"tokens": [{"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null}], "only_expiring": null}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can obtain information about a specific user application by entering the <codeph>GET /api/v1/user/apptoken/{token_uuid}</codeph> command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "http://quay-server.example.com/api/v1/user/apptoken/&lt;token_uuid&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"token": {"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null, "token_code": "string"}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can delete or revoke a user application token by using the <codeph>DELETE /api/v1/user/apptoken/{token_uuid}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "http://quay-server.example.com/api/v1/user/apptoken/&lt;token_uuid&gt;"</codeblock>
+          <p>This command does not return output in the CLI. You can return a list of tokens by entering one of the aforementioned commands.</p>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

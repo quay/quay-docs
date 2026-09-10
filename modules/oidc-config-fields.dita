@@ -1,0 +1,343 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="oidc-config-fields">
+  <title>OIDC configuration fields</title>
+  <shortdesc>Configure OpenID Connect client credentials, endpoints, and token behavior for Red Hat Quay login.</shortdesc>
+  <refbody>
+    <section>
+      <p>You can configure Red Hat Quay to authenticate users through any OpenID Connect (OIDC)-compatible identity provider, including Azure Entra ID (formerly Azure AD), Okta, Keycloak, and others. These fields define the necessary client credentials, endpoints, and token behavior used during the OIDC login flow.</p>
+      <table>
+        <title>OIDC fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p><b>&lt;string&gt;_LOGIN_CONFIG</b> (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The parent key that holds the OIDC configuration settings. Typically the name of the OIDC provider, for example, <codeph>AZURE_LOGIN_CONFIG</codeph>, however any arbitrary string is accepted.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p><b>   .CLIENT_ID</b> (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client ID for this Red Hat Quay instance. <b>Example:</b><codeph>0e8dbe15c4c7630b6780</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p><b>   .CLIENT_SECRET</b> (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client secret for this Red Hat Quay instance. <b>Example:</b><codeph>e4a58ddd3d7408b7aec109e85564a0d153d3e846</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .LOGIN_BINDING_FIELD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Used when the internal authorization is set to LDAP. Red Hat Quay reads this parameter and tries to search through the LDAP tree for the user with this username. If it exists, it automatically creates a link to that LDAP account.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .LOGIN_SCOPES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Scopes Red Hat Quay requests during the OIDC login flow. Must include <codeph>openid</codeph>. Each scope listed here must also appear in the IdP’s <codeph>scopes_supported</codeph> array from <codeph>/.well-known/openid-configuration</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .OIDC_ENDPOINT_CUSTOM_PARAMS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Support for custom query parameters on OIDC endpoints. The following endpoints are supported: <codeph>authorization_endpoint</codeph>, <codeph>token_endpoint</codeph>, and <codeph>user_endpoint</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .OIDC_ISSUER</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Allows the user to define the issuer to verify. For example, JWT tokens container a parameter known as <codeph>iss</codeph> which defines who issued the token. By default, this is read from the <codeph>.well-know/openid/configuration</codeph> endpoint, which is exposed by every OIDC provider. If this verification fails, there is no login.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .OIDC_ISSUERS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>Accepted issuer URLs for this provider. When set, Red Hat Quay accepts tokens whose <codeph>iss</codeph> claim matches any entry. Use this field to accept multiple issuers, for example Microsoft Entra ID v1.0 and v2.0 URLs during migration. If not set, Red Hat Quay uses <codeph>OIDC_ISSUER</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .OIDC_AUDIENCES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>Accepted audience values for bearer token and On-Behalf-Of (OBO) flows. When set, Red Hat Quay validates the token <codeph>aud</codeph> claim against this list. <codeph>CLIENT_ID</codeph> is always implicitly included. If not set, audience validation defaults to <codeph>CLIENT_ID</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .OIDC_ALLOWED_CLIENTS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>Optional whitelist of authorized party (<codeph>azp</codeph>) client IDs. When set, only tokens from these client applications are accepted. If not set, all clients are accepted. When restricting OBO clients, include your application’s own <codeph>CLIENT_ID</codeph> so direct user login continues to work.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p><b>   .OIDC_SERVER</b> (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The OIDC discovery base URL for authentication. Red Hat Quay uses path joining for OIDC discovery, so the URL must end with a trailing <codeph>/</codeph>. <b>Example:</b><codeph>https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0/</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .PREFERRED_USERNAME_CLAIM_NAME</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Sets the preferred username to a parameter from the token.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .SERVICE_ICON</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Changes the icon on the login screen.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p><b>   .SERVICE_NAME</b> (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The name of the service that is being authenticated. <b>Example:</b><codeph>Microsoft Entra ID</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .VERIFIED_EMAIL_CLAIM_NAME</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The name of the claim that is used to verify the email address of the user.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .PREFERRED_GROUP_CLAIM_NAME</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The key name within the OIDC token payload that holds information about the user’s group memberships.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .OIDC_DISABLE_USER_ENDPOINT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to allow or disable the <codeph>/userinfo</codeph> endpoint. If using Azure Entra ID, this field must be set to <codeph>True</codeph> because Azure obtains the user’s information from the token instead of calling the <codeph>/userinfo</codeph> endpoint.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>USE_PKCE</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to enable support for Proof Key for Code Exchange.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>PKCE_METHOD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>The code challenge method used to generate the <codeph>code_challenge</codeph> sent in the initial authorization request.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>S256</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>PUBLIC_CLIENT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to omit <codeph>client_secret</codeph> during token request when the client is public.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>OIDC example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml">AUTHENTICATION_TYPE: OIDC
+# ...
+&lt;oidc_provider&gt;_LOGIN_CONFIG:
+  CLIENT_ID: &lt;client_id&gt;
+  CLIENT_SECRET: &lt;client_secret&gt;
+  LOGIN_BINDING_FIELD: &lt;login_binding_field&gt;
+  LOGIN_SCOPES:
+    - openid
+    - email
+    - profile
+  OIDC_ENDPOINT_CUSTOM_PARAMS:
+    authorization_endpoint:
+      some: "param"
+    token_endpoint:
+      some: "param"
+    user_endpoint:
+      some: "param"
+  OIDC_ISSUER: &lt;oidc_issuer_url&gt;
+  OIDC_ISSUERS:
+    - &lt;issuer_url_1&gt;
+    - &lt;issuer_url_2&gt;
+  OIDC_AUDIENCES:
+    - &lt;client_id&gt;
+    - &lt;custom_api_audience&gt;
+  OIDC_ALLOWED_CLIENTS:
+    - &lt;client_id&gt;
+    - &lt;upstream_client_id&gt;
+  OIDC_SERVER: &lt;oidc_server_address&gt;
+  PREFERRED_USERNAME_CLAIM_NAME: &lt;preferred_username_claim&gt;
+  SERVICE_ICON: &lt;service_icon_url&gt;
+  SERVICE_NAME: &lt;service_name&gt;
+  VERIFIED_EMAIL_CLAIM_NAME: &lt;verified_email_claim&gt;
+  PREFERRED_GROUP_CLAIM_NAME: &lt;preferred_group_claim&gt;
+  OIDC_DISABLE_USER_ENDPOINT: true
+  USE_PKCE: True
+  PKCE_METHOD: "S256"
+  PUBLIC_CLIENT: True
+# ...</codeblock>
+    </section>
+  </refbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/manage_red_hat_quay/index#configuring-entra-oidc" format="html" scope="external">
+      <linktext>Configuring OIDC for Red Hat Quay</linktext>
+    </link>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/manage_red_hat_quay/index#configuring-entra-v2-multi-issuer-oidc" format="html" scope="external">
+      <linktext>Configuring Microsoft Entra ID v2 and multi-issuer OIDC</linktext>
+    </link>
+  </related-links>
+</reference>

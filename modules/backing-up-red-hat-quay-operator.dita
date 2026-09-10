@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="backing-up-red-hat-quay-operator">
+  <title>Backing up Red Hat Quay on OpenShift Container Platform</title>
+  <shortdesc>To create backups of your Red Hat Quay on OpenShift Container Platform deployment for disaster recovery, you can back up the configuration, PostgreSQL database, and object storage. Regular backups ensure you can restore your registry to a previous state if needed.</shortdesc>
+  <conbody>
+    <p>Database backups should be performed regularly using either the supplied tools on the PostgreSQL image or your own backup infrastructure. The Red Hat Quay Operator does not ensure that the PostgreSQL database is backed up.</p>
+    <note type="important">
+      <p>PostgreSQL and S3 object storage backups must be taken at the same time to avoid desynchronization. If backups are taken at different times, the database might contain references to storage blobs that are not present in the storage backup, which can cause data inconsistency and restore failures.</p>
+    </note>
+    <note type="note">
+      <p>This procedure covers backing up your Red Hat Quay PostgreSQL database. It does not cover backing up the Clair PostgreSQL database. Backing up the Clair PostgreSQL database is not needed because it can be recreated. If you opt to recreate it from scratch, you wait for the information to be repopulated after all images inside of your Red Hat Quay deployment are scanned. During this downtime, security reports are unavailable.</p>
+      <p>If you are considering backing up the Clair PostgreSQL database, you must consider that its size is dependent upon the number of images stored inside of Red Hat Quay. As a result, the database can be extremely large.</p>
+    </note>
+    <section id="prerequisites-for-backing-up-red-hat-quay-operator">
+      <title>Prerequisites for backing up Red Hat Quay on OpenShift Container Platform</title>
+      <ul>
+        <li>A healthy Red Hat Quay deployment on OpenShift Container Platform using the Red Hat Quay Operator. The status condition <codeph>Available</codeph> is set to <codeph>True</codeph>.</li>
+        <li>The components <codeph>quay</codeph>, <codeph>postgres</codeph> and <codeph>objectstorage</codeph> are set to <codeph>managed: true</codeph></li>
+        <li>If the component <codeph>clair</codeph> is set to <codeph>managed: true</codeph> the component <codeph>clairpostgres</codeph> is also set to <codeph>managed: true</codeph> (starting with Red Hat Quay v3.7 or later)</li>
+      </ul>
+      <note type="note">
+        <p>If your deployment contains partially unmanaged database or storage components and you are using external services for PostgreSQL or S3-compatible object storage to run your Red Hat Quay deployment, you must refer to the service provider or vendor documentation to create a backup of the data.
+You can refer to the tools described in this guide as a starting point on how to backup your external PostgreSQL database or object storage.</p>
+      </note>
+    </section>
+  </conbody>
+</concept>

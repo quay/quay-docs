@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="supported-quayecossytem-configurations-for-upgrades_{context}">
+  <title>Supported QuayEcosystem configurations for migration</title>
+  <shortdesc>The Red Hat Quay Operator reports errors in its logs and in <codeph>status.conditions</codeph> if migrating a <codeph>QuayEcosystem</codeph> component fails or is unsupported.</shortdesc>
+  <conbody>
+    <p>All unmanaged components should migrate successfully because no Kubernetes resources need to be adopted and all the necessary values are already provided in Red Hat Quay’s <codeph>config.yaml</codeph> file.</p>
+    <dl>
+      <dlentry>
+        <dt>
+          <b>Database</b>
+        </dt>
+        <dd>Ephemeral database not supported (<codeph>volumeSize</codeph> field must be set).</dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <b>Redis</b>
+        </dt>
+        <dd>Nothing special needed.</dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <b>External Access</b>
+        </dt>
+        <dd>
+          <p>Only passthrough <codeph>Route</codeph> access is supported for automatic migration. Manual migration required for other methods.</p>
+          <ul>
+            <li><codeph>LoadBalancer</codeph> without custom hostname:
+After the <codeph>QuayEcosystem</codeph> is marked with label <codeph>"quay-operator/migration-complete": "true"</codeph>, delete the <codeph>metadata.ownerReferences</codeph> field from existing <codeph>Service</codeph><i>before</i> deleting the <codeph>QuayEcosystem</codeph> to prevent Kubernetes from garbage collecting the <codeph>Service</codeph> and removing the load balancer. A new <codeph>Service</codeph> will be created with <codeph>metadata.name</codeph> format <codeph>&lt;QuayEcosystem-name&gt;-quay-app</codeph>. Edit the <codeph>spec.selector</codeph> of the existing <codeph>Service</codeph> to match the <codeph>spec.selector</codeph> of the new <codeph>Service</codeph> so traffic to the old load balancer endpoint will now be directed to the new pods. You are now responsible for the old <codeph>Service</codeph>; the Quay Operator will not manage it.</li>
+            <li><codeph>LoadBalancer</codeph>/<codeph>NodePort</codeph>/<codeph>Ingress</codeph> with custom hostname:
+A new <codeph>Service</codeph> of type <codeph>LoadBalancer</codeph> will be created with <codeph>metadata.name</codeph> format <codeph>&lt;QuayEcosystem-name&gt;-quay-app</codeph>. Change your DNS settings to point to the <codeph>status.loadBalancer</codeph> endpoint provided by the new <codeph>Service</codeph>.</li>
+          </ul>
+        </dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <b>Clair</b>
+        </dt>
+        <dd>Nothing special needed.</dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <b>Object Storage</b>
+        </dt>
+        <dd><codeph>QuayEcosystem</codeph> did not have a managed object storage component, so object storage will always be marked as unmanaged. Local storage is not supported.</dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <b>Repository Mirroring</b>
+        </dt>
+        <dd>Nothing special needed.</dd>
+      </dlentry>
+    </dl>
+  </conbody>
+</concept>

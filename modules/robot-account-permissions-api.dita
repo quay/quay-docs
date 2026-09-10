@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="robot-account-permissions-api">
+  <title>Obtaining robot account information by using the Red Hat Quay API</title>
+  <shortdesc>To review robot account details and permissions for an organization or user in Red Hat Quay, you can call the robot account API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/organization/{orgname}/robots/{robot_shortname}</codeph> API endpoint to return information for a robot for an organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://quay-server.example.com/api/v1/organization/&lt;ORGNAME&gt;/robots/&lt;ROBOT_SHORTNAME&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"name": "test+example", "created": "Mon, 25 Nov 2024 16:25:16 -0000", "last_accessed": null, "description": "", "token": "string", "unstructured_metadata": {}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/organization/{orgname}/robots/{robot_shortname}/permissions</codeph> endpoint to return the list of permissions for a specific organization robot:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://quay-server.example.com/api/v1/organization/&lt;ORGNAME&gt;/robots/&lt;ROBOT_SHORTNAME&gt;/permissions"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"permissions": [{"repository": {"name": "testrepo", "is_public": true}, "role": "admin"}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/user/robots/{robot_shortname}</codeph> API endpoint to return the user’s robot with the specified name:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://quay-server.example.com/api/v1/user/robots/&lt;ROBOT_SHORTNAME&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"name": "quayadmin+mirror_robot", "created": "Wed, 15 Jan 2025 17:22:09 -0000", "last_accessed": null, "description": "", "token": "&lt;token_example&gt;", "unstructured_metadata": {}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/user/robots/{robot_shortname}/permissions</codeph> API endpoint to return a list of permissions for the user robot:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://quay-server.example.com/api/v1/user/robots/&lt;ROBOT_SHORTNAME&gt;/permissions"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"permissions": [{"repository": {"name": "busybox", "is_public": false}, "role": "write"}]}</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

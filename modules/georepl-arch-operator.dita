@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="georepl-arch-operator">
+  <title>Operator geo-replication architecture</title>
+  <shortdesc>Red Hat Quay geo-replication on OpenShift Container Platform uses the Operator in multiple regions with a shared database and Redis and localized storage per region. Image pulls use the closest storage and pushes replicate in the background for distributed users.</shortdesc>
+  <conbody>
+    <p>In the following example, the Red Hat Quay Operator is deployed in two separate regions, with a common database and a common Redis instance. Localized image storage is provided in each region and image pulls are served from the closest available storage engine. Container image pushes are written to the preferred storage engine for the Quay instance, and are then replicated in the background to the other storage engines.</p>
+    <p>
+      <image href="../images/178_Quay_architecture_0821_georeplication_openshift-temp.png" placement="inline">
+        <alt>Geo-replication architecture</alt>
+      </image>
+    </p>
+    <p>Because the Operator now manages the Clair security scanner and its database separately, geo-replication setups can be leveraged so that they do not manage the Clair database. Instead, an external shared database would be used. Red Hat Quay and Clair support several providers and vendors of PostgreSQL, which can be found in the Red Hat Quay 3.x test matrix. Additionally, the Operator also supports custom Clair configurations that can be injected into the deployment, which allows users to configure Clair with the connection credentials for the external database.</p>
+  </conbody>
+  <related-links>
+    <link href="https://access.redhat.com/articles/4067991" format="html" scope="external">
+      <linktext>Quay Enterprise 3.x Tested Integrations</linktext>
+    </link>
+  </related-links>
+</concept>

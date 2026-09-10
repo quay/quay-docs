@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="obtaining-configuration-information-quay-standalone">
+  <title>Reading the configuration file from a standalone deployment by using Podman</title>
+  <shortdesc>To obtain configuration information for your Red Hat Quay deployment and troubleshoot issues, you can use <codeph>podman cp</codeph> or <codeph>podman exec</codeph> for standalone deployments. You can then update your <codeph>config.yaml</codeph> file, search the Red Hat Knowledgebase, or file a support ticket.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>To obtain configuration information on standalone Red Hat Quay deployments, you can use <codeph>podman cp</codeph> or <codeph>podman exec</codeph>.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>To use the <codeph>podman copy</codeph> command, enter the following commands:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman cp &lt;quay_container_id&gt;:/conf/stack/config.yaml /tmp/local_directory/</codeblock>
+              <p>To display this information in your terminal, enter the following command:</p>
+              <codeblock outputclass="language-terminal">$ cat /tmp/local_directory/config.yaml</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>To use <codeph>podman exec</codeph>, enter the following commands:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman exec -it &lt;quay_container_id&gt; cat /conf/stack/config.yaml</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-yaml">BROWSER_API_CALLS_XHR_ONLY: false
+ALLOWED_OCI_ARTIFACT_TYPES:
+    application/vnd.oci.image.config.v1+json:
+        - application/vnd.oci.image.layer.v1.tar+zstd
+    application/vnd.sylabs.sif.config.v1+json:
+        - application/vnd.sylabs.sif.layer.v1+tar
+AUTHENTICATION_TYPE: Database
+AVATAR_KIND: local
+BUILDLOGS_REDIS:
+    host: quay-server.example.com
+    password: strongpassword
+    port: 6379
+DATABASE_SECRET_KEY: 05ee6382-24a6-43c0-b30f-849c8a0f7260
+DB_CONNECTION_ARGS: {}
+---</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

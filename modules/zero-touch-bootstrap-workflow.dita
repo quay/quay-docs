@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="zero-touch-bootstrap-workflow">
+  <title>Using the bootstrap token for zero-touch deployment</title>
+  <shortdesc>To provision Red Hat Quay resources without using the UI, you can use the bootstrap OAuth token as Bearer authentication for organization, application, and token API calls.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Export the bootstrap token. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export BOOTSTRAP_TOKEN=&lt;bootstrap_token_value&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create an organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"name": "myorg", "email": "admin@example.com"}' \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create an OAuth application in the organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ci-automation", "description": "CI/CD token source"}' \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/myorg/applications</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a scoped OAuth API token for the application:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"name": "ci-job-token", "scope": "repo:read repo:write", "expiration": 2592000}' \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/myorg/applications/&lt;client_id&gt;/tokens</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Store the <codeph>token</codeph> value from the response for your automation workflow. The token secret is returned only in the create response.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

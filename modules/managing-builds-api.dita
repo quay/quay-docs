@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="manage-builds-api">
+  <title>Managing builds by using the Red Hat Quay API</title>
+  <shortdesc>To list, activate, start, update, or delete build triggers in Red Hat Quay, you can use the build trigger API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/repository/{repository}/trigger/</codeph> endpoint to list the triggers for the specified repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"triggers": [{"id": "32ca5eae-a29f-46c7-8f44-3221ca417c92", "service": "custom-git", "is_active": false, "build_source": null, "repository_url": null, "config": {}, "can_invoke": true, "enabled": true, "disabled_reason": null}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/activate</codeph> endpoint to activate the specified build trigger.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid/activate" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "config": {
+      "branch": "main"
+    },
+    "pull_robot": "example+robot"
+  }'</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/repository/{repository}/trigger/{trigger_uuid}/start</codeph> endpoint to manually start the build from the specified trigger:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid/start" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "branch_name": "main",
+    "commit_sha": "abcdef1234567890",
+    "refs": "refs/heads/main"
+  }'</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/repository/{repository}/trigger/{trigger_uuid}/builds</codeph> endpoint to list the builds started by the specified trigger:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid/builds?limit=10" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/repository/{repository}/trigger/{trigger_uuid}</codeph> endpoint to get information for the specified build trigger:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>PUT /api/v1/repository/{repository}/trigger/{trigger_uuid}</codeph> endpoint to update the specified build trigger:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": true}'</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>DELETE /api/v1/repository/{repository}/trigger/{trigger_uuid}</codeph> endpoint to delete the specified build trigger:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE "https://quay-server.example.com/api/v1/repository/example_namespace/example_repo/trigger/example-trigger-uuid" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;"</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-quay-ha">
+  <title>Configuring Red Hat Quay for high availability</title>
+  <shortdesc>To configure Red Hat Quay for high availability, you can create a <codeph>config.yaml</codeph> file that defines database, Redis, storage, and registry settings before starting the registry containers.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You completed the load balancer, database, Ceph, and Redis setup procedures in this guide.</li>
+        <li>You generated unique values for <codeph>SECRET_KEY</codeph> and <codeph>DATABASE_SECRET_KEY</codeph>. These values must remain consistent across all Red Hat Quay nodes.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>On the first Red Hat Quay node, for example <codeph>quay01</codeph>, create a directory for the configuration bundle:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal"># mkdir -p /mnt/quay/config</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a <codeph>config.yaml</codeph> file in that directory. The following example shows the minimum fields for a high availability deployment that uses the PostgreSQL database, Redis, and Ceph Object Gateway resources from earlier procedures:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">AUTHENTICATION_TYPE: Database
+PREFERRED_URL_SCHEME: https
+SERVER_HOSTNAME: quay.example.com
+SECRET_KEY: &lt;secret_key_value&gt;
+DATABASE_SECRET_KEY: &lt;database_secret_key_value&gt;
+SETUP_COMPLETE: true
+DB_URI: postgresql://quayuser:quaypass@db01:5432/quaydb
+BUILDLOGS_REDIS:
+  host: db01
+  port: 6379
+USER_EVENTS_REDIS:
+  host: db01
+  port: 6379
+DISTRIBUTED_STORAGE_CONFIG:
+  radosGWStorage:
+    - RadosGWStorage
+    - access_key: &lt;access_key&gt;
+      bucket_name: &lt;bucket_name&gt;
+      hostname: db01
+      is_secure: false
+      port: '7480'
+      secret_key: &lt;secret_key&gt;
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_PREFERENCE:
+  - radosGWStorage
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+SUPER_USERS:
+  - quayadmin</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>SERVER_HOSTNAME</codeph>
+              </dt>
+              <dd>Specifies the hostname or IP address that clients use to reach the Red Hat Quay service, typically the load balancer front end.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DB_URI</codeph>
+              </dt>
+              <dd>Specifies the database user, password, host, and database name from "Setting up the HAProxy load balancer and the PostgreSQL database."</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>BUILDLOGS_REDIS.host</codeph>
+              </dt>
+              <dd>Specifies the load balancer hostname that exposes Redis on port <codeph>6379</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>USER_EVENTS_REDIS.host</codeph>
+              </dt>
+              <dd>Specifies the load balancer hostname that exposes Redis on port <codeph>6379</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DISTRIBUTED_STORAGE_CONFIG.radosGWStorage.hostname</codeph>
+              </dt>
+              <dd>Specifies the load balancer hostname that exposes the Ceph RADOS gateway on port <codeph>7480</codeph>. For additional RadosGW fields, see "Ceph Object Gateway (RadosGW) storage example."</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>SUPER_USERS</codeph>
+              </dt>
+              <dd>Specifies an initial superuser account. This field is optional.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Configure additional registry settings as needed. The following fields are commonly updated for production high availability deployments:
+</cmd>
+        <info>
+          <ul>
+            <li><b>TLS certificates</b>: Place <codeph>ssl.cert</codeph> and <codeph>ssl.key</codeph> in <codeph>/mnt/quay/config</codeph> and set <codeph>PREFERRED_URL_SCHEME: https</codeph>. See <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview" format="html" scope="external">Using SSL to protect connections to Red Hat Quay</xref>.
+<note type="important"><p>Using SSL certificates is recommended for production deployments. If you do not use SSL, configure your container clients to treat the registry as an insecure registry, as described in <xref href="https://docs.docker.com/registry/insecure/" format="html" scope="external">Test an Insecure Registry</xref>.</p></note></li>
+            <li><b>Clair image scanning</b>: Configure security scanner settings before enabling Clair. See <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#clair-vulnerability-scanner" format="html" scope="external">Clair Security Scanning</xref>.</li>
+            <li><b>Repository mirroring</b>: Set <codeph>FEATURE_REPO_MIRROR: true</codeph> and related fields in <codeph>config.yaml</codeph>. See <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/manage_red_hat_quay/index#enabling-repository-mirroring-quay" format="html" scope="external">Enabling repository mirroring for Red Hat Quay</xref>.</li>
+            <li><b>Action log storage, authentication, and access control</b>: See <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index" format="html" scope="external">Configure Red Hat Quay</xref> for the complete list of supported configuration fields.</li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Copy the configuration directory, including <codeph>config.yaml</codeph> and any TLS certificate files, to each Red Hat Quay node in the cluster, for example <codeph>quay02</codeph> and <codeph>quay03</codeph>.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

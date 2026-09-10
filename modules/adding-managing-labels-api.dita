@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="adding-managing-labels-api">
+  <title>Adding and managing labels by using the API</title>
+  <shortdesc>To add, list, retrieve, or delete labels on image manifests in Red Hat Quay, you can use the repository manifest labels API endpoints with an OAuth 2 access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/repository/{repository}/manifest/{manifestref}</codeph> command to retrieve the details of a specific manifest in a repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;repository&gt;/manifest/&lt;manifestref&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/repository/{repository}/manifest/{manifestref}/labels</codeph> command to retrieve a list of labels for a specific manifest:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;repository&gt;/manifest/&lt;manifestref&gt;/labels</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"labels": [{"id": "e9f717d2-c1dd-4626-802d-733a029d17ad", "key": "org.opencontainers.image.url", "value": "https://github.com/docker-library/busybox", "source_type": "manifest", "media_type": "text/plain"}, {"id": "2d34ec64-4051-43ad-ae06-d5f81003576a", "key": "org.opencontainers.image.version", "value": "1.36.1-glibc", "source_type": "manifest", "media_type": "text/plain"}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/repository/{repository}/manifest/{manifestref}/labels/{labelid}</codeph> command to obtain information about a specific manifest:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;repository&gt;/manifest/&lt;manifestref&gt;/labels/&lt;label_id&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"id": "e9f717d2-c1dd-4626-802d-733a029d17ad", "key": "org.opencontainers.image.url", "value": "https://github.com/docker-library/busybox", "source_type": "manifest", "media_type": "text/plain"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Add an additional label to a manifest in a given repository with the <codeph>POST /api/v1/repository/{repository}/manifest/{manifestref}/labels</codeph> command. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "key": "&lt;key&gt;",
+    "value": "&lt;value&gt;",
+    "media_type": "&lt;media_type&gt;"
+  }' \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;repository&gt;/manifest/&lt;manifestref&gt;/labels</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"label": {"id": "346593fd-18c8-49db-854f-4cb1fb76ff9c", "key": "example-key", "value": "example-value", "source_type": "api", "media_type": "text/plain"}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Delete a label by using the <codeph>DELETE /api/v1/repository/{repository}/manifest/{manifestref}/labels/{labelid}</codeph> command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;repository&gt;/manifest/&lt;manifestref&gt;/labels/&lt;labelid&gt;</codeblock>
+          <p>This command does not return output in the CLI. You can list labels again to confirm that the label was removed.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

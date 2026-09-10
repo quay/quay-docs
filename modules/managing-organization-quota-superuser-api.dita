@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="managing-organization-quota-superuser-api">
+  <title>Managing organization quota as a superuser with the Red Hat Quay API</title>
+  <shortdesc>To create, view, update, or delete organization quota policies in Red Hat Quay, you can use the superuser organization quota API endpoints.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li>You are logged into your Red Hat Quay deployment as a superuser.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/superuser/organization/{namespace}/quota</codeph> API endpoint to create a quota policy for an organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://quay-server.example.com/api/v1/superuser/organization/&lt;namespace&gt;/quota" \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "limit_bytes": 10737418240
+  }'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">"Created"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/superuser/organization/{namespace}/quota</codeph> API endpoint to obtain information about the policy, including the quota ID:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://quay-server.example.com/api/v1/superuser/organization/&lt;namespace&gt;/quota" \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">[{"id": 2, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [{"id": 1, "type": "Reject", "limit_percent": 90}], "default_config_exists": false}]</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>PUT /api/v1/superuser/organization/{namespace}/quota/{quota_id}</codeph> API endpoint to change the quota policy:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT "https://quay-server.example.com/api/v1/superuser/organization/&lt;namespace&gt;/quota/&lt;quota_id&gt;" \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "limit_bytes": &lt;NEW_QUOTA_LIMIT&gt;
+  }'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"id": 2, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [{"id": 1, "type": "Reject", "limit_percent": 90}], "default_config_exists": false}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>DELETE /api/v1/superuser/organization/{namespace}/quota/{quota_id}</codeph> API endpoint to delete a quota policy for an organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE "https://quay-server.example.com/api/v1/superuser/organization/&lt;namespace&gt;/quota/&lt;quota_id&gt;" \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;"</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

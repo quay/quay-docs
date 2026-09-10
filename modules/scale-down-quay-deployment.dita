@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="scale-down-quay-deployment">
+  <title>Scaling down the Red Hat Quay deployment before restore</title>
+  <shortdesc>To scale down your Red Hat Quay deployment, you can disable auto scaling and set replica counts to zero. This reduces resource consumption and stops registry operations temporarily.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Scale down the Red Hat Quay deployment by disabling auto scaling and overriding the replica count for Quay, mirror workers and Clair (if managed). For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: false
+    - kind: quay
+      managed: true
+      overrides:
+        replicas: 0
+    - kind: clair
+      managed: true
+      overrides:
+        replicas: 0
+    - kind: mirror
+      managed: true
+      overrides:
+        replicas: 0
+    …</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>spec.components.horizontalpodautoscaler.managed</codeph>
+              </dt>
+              <dd>Specifies that the component is not managed by the Red Hat Quay Operator.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>spec.components.quay.overrides</codeph>
+              </dt>
+              <dd>Specifies the replica count for the component.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Wait for the <codeph>registry-quay-app</codeph>, <codeph>registry-quay-mirror</codeph> and <codeph>registry-clair-app</codeph> pods (depending on which components you set to be managed by Red Hat Quay Operator) to disappear. You can check their status by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get pods -n &lt;quay-namespace&gt;</codeblock>
+          <p>Example output:</p>
+          <codeblock outputclass="language-terminal">registry-quay-config-editor-77847fc4f5-nsbbv   1/1     Running            0          9m1s
+registry-quay-database-66969cd859-n2ssm        1/1     Running            0          6d1h
+registry-quay-redis-7cc5f6c977-956g8           1/1     Running            0          5d21h</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

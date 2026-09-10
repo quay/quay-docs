@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="preparing-registry-large-artifacts">
+  <title>Preparing your registry to accept large artifacts</title>
+  <shortdesc>To accept large AI or ML artifacts in Red Hat Quay, you can increase the <codeph>minimum_chunk_size_mb</codeph> value in your <codeph>config.yaml</codeph> file after you consult Red Hat Support.</shortdesc>
+  <refbody>
+    <section>
+      <note type="important">
+        <p>Before altering the <codeph>minimum_chunk_size_mb</codeph> configuration field, open a support case with Red Hat Support. Altering <codeph>minimum_chunk_size_mb</codeph> can have unintended consequences for your registry.</p>
+        <p>Altering this field can also slow down uploads. You should only alter this field if necessary.</p>
+      </note>
+      <p>Artificial intelligence (AI) or machine learning (ML) artifacts such as large-language models (LLMs), vector graphics, trained model files, or large datasets often require that Red Hat Quay administrators modify their registry to suit the needs of pushing such larger artifacts. By default, Red Hat Quay uses a minimum chunk size (or the pieces that a large file is split into during upload) of 5 MB. This means that larger layers, for example, 50 GB, result in 10,000 chunks. This can be confirmed based on the following formula:</p>
+      <ul>
+        <li>50 GB = 50,000 MB</li>
+        <li>50,000 MB divided by Red Hat Quay’s default minimum chunk size of 5 MB = 10,000 chunks</li>
+      </ul>
+      <p>Some backend storage providers, for example, Amazon Web Services (AWS) S3, are unable to store artifacts larger than 50 GB because of a strict limitation of 10,000 parts per upload; attempting to push an artifact larger than 50 GB with Red Hat Quay’s default of 5 MB results in S3 protocol violations.</p>
+      <p>As a workaround to this limitation, you can set the <codeph>minimum_chunk_size_mb</codeph> field in your <codeph>config.yaml</codeph> file to a value larger than 5 MB. For example:</p>
+      <codeblock outputclass="language-yaml"># ...
+minimum_chunk_size_mb: 20
+# ...</codeblock>
+      <p>Configuring <codeph>minimum_chunk_size_mb</codeph> to more than 5 MB allows your registry backend to accept artifacts larger than 50 GB and up to 200 GB. In the event that your artifact is larger than 200 GB, you could increase the <codeph>minimum_chunk_size_mb</codeph> value.</p>
+      <p>Consult Red Hat Support before you alter the <codeph>minimum_chunk_size_mb</codeph> configuration field.</p>
+    </section>
+  </refbody>
+</reference>

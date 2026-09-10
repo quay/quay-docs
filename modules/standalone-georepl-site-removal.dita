@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="standalone-georepl-site-removal">
+  <title>Removing a geo-replicated site from your standalone Red Hat Quay deployment</title>
+  <shortdesc>To remove a geo-replicated site from a standalone Red Hat Quay deployment, you can sync blobs between sites, update <codeph>config.yaml</codeph>, and run the <codeph>removelocation</codeph> utility.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have configured Red Hat Quay geo-replication with at least two sites, for example, <codeph>usstorage</codeph> and <codeph>eustorage</codeph>.</li>
+        <li>Each site has its own Organization, Repository, and image tags.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Sync the blobs between all of your defined sites by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ python -m util.backfillreplication</codeblock>
+          <note type="warning">
+            <p>Prior to removing storage engines from your Red Hat Quay <codeph>config.yaml</codeph> file, you <b>must</b> ensure that all blobs are synced between all defined sites. Complete this step before proceeding.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>In your Red Hat Quay <codeph>config.yaml</codeph> file for site <codeph>usstorage</codeph>, remove the <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> entry for the <codeph>eustorage</codeph> site.</cmd>
+      </step>
+      <step>
+        <cmd>Enter the following command to obtain a list of running containers:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman ps</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">CONTAINER ID  IMAGE                                                                     COMMAND         CREATED         STATUS             PORTS                                        NAMES
+92c5321cde38  registry.redhat.io/rhel8/redis-5:1                                        run-redis       11 days ago     Up 11 days ago     0.0.0.0:6379-&gt;6379/tcp                       redis
+4e6d1ecd3811  registry.redhat.io/rhel8/postgresql-13:1-109                              run-postgresql  33 seconds ago  Up 34 seconds ago  0.0.0.0:5432-&gt;5432/tcp                       postgresql-quay
+d2eadac74fda  registry-proxy.engineering.redhat.com/rh-osbs/quay-quay-rhel8:v3.9.0-131  registry        4 seconds ago   Up 4 seconds ago   0.0.0.0:80-&gt;8080/tcp, 0.0.0.0:443-&gt;8443/tcp  quay</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to execute a shell inside of the PostgreSQL container:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman exec -it postgresql-quay -- /bin/bash</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter psql by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">bash-4.4$ psql</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to reveal a list of sites in your geo-replicated deployment:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">quay=# select * from imagestoragelocation;</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal"> id |       name
+----+-------------------
+  1 | usstorage
+  2 | eustorage</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to exit the postgres CLI to re-enter bash-4.4:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">\q</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to permanently remove the <codeph>eustorage</codeph> site:
+</cmd>
+        <info>
+          <note type="important">
+            <p>The following action cannot be undone. Use with caution.</p>
+          </note>
+          <codeblock outputclass="language-terminal">bash-4.4$ python -m util.removelocation eustorage</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">WARNING: This is a destructive operation. Are you sure you want to remove eustorage from your storage locations? [y/n] y
+Deleted placement 30
+Deleted placement 31
+Deleted placement 32
+Deleted placement 33
+Deleted location eustorage</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,307 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="prepare-ocp-for-bare-metal-builds">
+  <title>Configuring bare metal builds for Red Hat Quay on OpenShift Container Platform</title>
+  <shortdesc>To configure bare metal builds for Red Hat Quay on OpenShift Container Platform with Red Hat Quay, you can create a build project, configure service accounts, and update your configuration file.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have an OpenShift Container Platform cluster provisioned with the Red Hat Quay Operator running.</li>
+        <li>You have set the <codeph>tls</codeph> component to <codeph>unmanaged</codeph> and uploaded custom SSL/TLS certificates to the Red Hat Quay Operator. For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview" format="html" scope="external">SSL and TLS for Red Hat Quay</xref>.</li>
+        <li>You are logged into OpenShift Container Platform as a cluster administrator.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <p>If you are using the Red Hat Quay Operator on OpenShift Container Platform with a managed <codeph>route</codeph> component in your <codeph>QuayRegistry</codeph> CRD, see "Red Hat Quay on OpenShift Container Platform <i>builds</i> limitations with self-managed <i>routes</i>".</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Enter the following command to create a project where Builds will be run, for example, <codeph>bare-metal-builder</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc new-project bare-metal-builder</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a new <codeph>ServiceAccount</codeph> in the <codeph>bare-metal-builder</codeph> namespace by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create sa -n bare-metal-builder quay-builder</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to grant a user the <codeph>edit</codeph> role within the <codeph>bare-metal-builder</codeph> namespace:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc policy add-role-to-user -n bare-metal-builder edit system:serviceaccount:bare-metal-builder:quay-builder</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to retrieve a token associated with the <codeph>quay-builder</codeph> service account in the <codeph>bare-metal-builder</codeph> namespace. This token is used to authenticate and interact with the OpenShift Container Platform cluster’s API server.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>If your OpenShift Container Platform cluster is version 4.11+, enter the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">oc create token quay-builder  -n bare-metal-builder --duration 24h</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>If your OpenShift Container Platform cluster is earlier than version 4.11, for example, version 4.10, enter the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc sa get-token -n bare-metal-builder quay-builder</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Identify the URL for the OpenShift Container Platform cluster’s API server. This can be found in the OpenShift Container Platform web console.</cmd>
+      </step>
+      <step>
+        <cmd>Identify a worker node label to be used when scheduling <i>build jobs</i>. Because <i>build pods</i> must run on bare metal worker nodes, typically these are identified with specific labels.
+</cmd>
+        <info>
+          <p>Check with your cluster administrator to determine exactly which node label should be used.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the Kube API Server’s certificate authority (CA) to add to Red Hat Quay’s extra certificates.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>On OpenShift Container Platform versions 4.15+, enter the following commands to obtain the name of the secret containing the CA:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc extract cm/kube-root-ca.crt -n openshift-apiserver</codeblock>
+              <codeblock outputclass="language-terminal">$ mv ca.crt build_cluster.crt</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>On OpenShift Container Platform versions earlier than 4.15, for example, 4.14, enter the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc get sa openshift-apiserver-sa --namespace=openshift-apiserver -o json | jq '.secrets[] | select(.name | contains("openshift-apiserver-sa-token"))'.name</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Obtain the <codeph>ca.crt</codeph> key value from the secret in the OpenShift Container Platform Web Console. The value begins with <b>"-----BEGIN CERTIFICATE-----"`</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Import the CA to Red Hat Quay. Ensure that the name of this file matches the <codeph>K8S_API_TLS_CA</codeph> field used in Step 9.</cmd>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Create the following <codeph>SecurityContextConstraints</codeph> resource for the <codeph>ServiceAccount</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: quay-builder
+priority: null
+readOnlyRootFilesystem: false
+requiredDropCapabilities: null
+runAsUser:
+  type: RunAsAny
+seLinuxContext:
+  type: RunAsAny
+seccompProfiles:
+- '*'
+supplementalGroups:
+  type: RunAsAny
+volumes:
+- '*'
+allowHostDirVolumePlugin: true
+allowHostIPC: true
+allowHostNetwork: true
+allowHostPID: true
+allowHostPorts: true
+allowPrivilegeEscalation: true
+allowPrivilegedContainer: true
+allowedCapabilities:
+- '*'
+allowedUnsafeSysctls:
+- '*'
+defaultAddCapabilities: null
+fsGroup:
+  type: RunAsAny
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: quay-builder-scc
+  namespace: bare-metal-builder
+rules:
+- apiGroups:
+  - security.openshift.io
+  resourceNames:
+  - quay-builder
+  resources:
+  - securitycontextconstraints
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: quay-builder-scc
+  namespace: bare-metal-builder
+subjects:
+- kind: ServiceAccount
+  name: quay-builder
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: quay-builder-scc</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update the <codeph>config.yaml</codeph> file of your Red Hat Quay on OpenShift Container Platform deployment to include an appropriate <i>bare metal builds</i> configuration by using the OpenShift Container Platform web console.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Click <b>Operators</b> → <b>Installed Operators</b> → <b>Red Hat Quay</b> → <b>Quay Registry</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the name of your registry, for example, <b>example-registry</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Under <b>Config Bundle Secret</b>, click the name of your configuration bundle, for example, <b>extra-ca-certificate-config-bundle-secret</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Actions</b> → <b>Edit Secret</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Add the following information to your Red Hat Quay <codeph>config.yaml</codeph> file, replacing each value with information that is relevant to your specific installation:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml">FEATURE_USER_INITIALIZE: true
+BROWSER_API_CALLS_XHR_ONLY: false
+SUPER_USERS:
+- &lt;superusername&gt;
+FEATURE_USER_CREATION: false
+FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_BUILD_SUPPORT: True
+BUILDMAN_HOSTNAME: ${BUILDMAN_HOSTNAME}:443
+BUILD_MANAGER:
+- ephemeral
+- ALLOWED_WORKER_COUNT: 10
+  ORCHESTRATOR_PREFIX: buildman/production/
+    ORCHESTRATOR:
+      REDIS_HOST: &lt;sample_redis_hostname&gt;
+      REDIS_PASSWORD: ""
+      REDIS_SSL: false
+      REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+  EXECUTORS:
+  - EXECUTOR: kubernetes
+    BUILDER_NAMESPACE: &lt;sample_builder_namespace&gt;
+    K8S_API_SERVER: &lt;sample_k8s_api_server&gt;
+    K8S_API_TLS_CA: &lt;sample_crt_file&gt;
+    VOLUME_SIZE: 8G
+    KUBERNETES_DISTRIBUTION: openshift
+    CONTAINER_MEMORY_LIMITS: 1G
+    CONTAINER_CPU_LIMITS: 300m
+    CONTAINER_MEMORY_REQUEST: 1G
+    CONTAINER_CPU_REQUEST: 300m
+    NODE_SELECTOR_LABEL_KEY: beta.kubernetes.io/instance-type
+    NODE_SELECTOR_LABEL_VALUE: n1-standard-4
+    CONTAINER_RUNTIME: podman
+    SERVICE_ACCOUNT_NAME: &lt;sample_service_account_name&gt;
+    SERVICE_ACCOUNT_TOKEN: &lt;sample_account_token&gt;
+    QUAY_USERNAME: &lt;quay_username&gt;
+    QUAY_PASSWORD: &lt;quay_password&gt;
+    WORKER_IMAGE: &lt;registry&gt;/quay-quay-builder
+    WORKER_TAG: &lt;some_tag&gt;
+    BUILDER_VM_CONTAINER_IMAGE: registry.redhat.io/quay/quay-builder-qemu-rhcos-rhel8:v3.9.10-4
+    SETUP_TIME: 180
+    MINIMUM_RETRY_THRESHOLD: 0
+    SSH_AUTHORIZED_KEYS:
+    - &lt;ssh-rsa 12345 someuser@email.com&gt;
+    - &lt;ssh-rsa 67890 someuser2@email.com&gt;
+    HTTP_PROXY: &lt;http://10.0.0.1:80&gt;
+    HTTPS_PROXY: &lt;http://10.0.0.1:80&gt;
+    NO_PROXY: &lt;hostname.example.com&gt;</codeblock>
+              <p>where:</p>
+              <dl>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILDMAN_HOSTNAME</codeph>
+                  </dt>
+                  <dd>Specifies the hostname of the Red Hat Quay registry. Obtain this by running the following command: <codeph>$ oc get route quayregistry-quay-builder -n ${QUAY_PROJECT} -o jsonpath='{.spec.host}'</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.ORCHESTRATOR.REDIS_HOST</codeph>
+                  </dt>
+                  <dd>Specifies the hostname for your Redis service.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.EXECUTORS.BUILDER_NAMESPACE</codeph>
+                  </dt>
+                  <dd>Specifies the name of your <i>bare metal builds</i> namespace. This example used <codeph>bare-metal-builder</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.EXECUTORS.K8S_API_SERVER</codeph>
+                  </dt>
+                  <dd>Specifies the <codeph>K8S_API_SERVER</codeph> is obtained by running <codeph>$ oc cluster-info</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.EXECUTORS.K8S_API_TLS_CA</codeph>
+                  </dt>
+                  <dd>Specifies the name of your custom CA cert, for example, <codeph>K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build-cluster.crt</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.EXECUTORS.CONTAINER_MEMORY_LIMITS</codeph>
+                  </dt>
+                  <dd>Specifies the memory limit for your container. Defaults to <codeph>5120Mi</codeph> if left unspecified.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.EXECUTORS.CONTAINER_CPU_LIMITS</codeph>
+                  </dt>
+                  <dd>Specifies the CPU limit for your container. Defaults to <codeph>1000m</codeph> if left unspecified.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.EXECUTORS.CONTAINER_MEMORY_REQUEST</codeph>
+                  </dt>
+                  <dd>Specifies the memory request for your container. Defaults to <codeph>3968Mi</codeph> if left unspecified.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.EXECUTORS.CONTAINER_CPU_REQUEST</codeph>
+                  </dt>
+                  <dd>Specifies the CPU request for your container. Defaults to <codeph>500m</codeph> if left unspecified.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.EXECUTORS.SERVICE_ACCOUNT_TOKEN</codeph>
+                  </dt>
+                  <dd>Specifies the token for your service account. Obtain this by running <codeph>$ oc create sa</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>BUILD_MANAGER.EXECUTORS.SSH_AUTHORIZED_KEYS</codeph>
+                  </dt>
+                  <dd>Specifies the SSH authorized keys for your build environment. This key, or keys, should correspond to the private key that an admin or developer will use to SSH into the build worker for debugging purposes. This key can be obtained by establishing an SSH connection to the remote host using a specific SSH key and port. For example: <codeph>$ ssh -i /path/to/ssh/key/set/in/ssh_authorized_keys -p 9999 core@localhost</codeph>.</dd>
+                </dlentry>
+              </dl>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay registry to enable the <i>builds</i> feature.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

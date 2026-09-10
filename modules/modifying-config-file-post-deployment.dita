@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="modifying-config-file-post-deployment-on-prem">
+  <title>Modifying your configuration file after deployment</title>
+  <shortdesc>To update your on-premises Red Hat Quay configuration after deployment, you can edit the <codeph>config.yaml</codeph> file and restart the <codeph>quay-registry</codeph> container. You can retrieve the file from the container if you do not have direct access to it.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have deployed Red Hat Quay.</li>
+        <li>You are a registry administrator.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>After deploying a Red Hat Quay registry with an initial <codeph>config.yaml</codeph> file, Red Hat Quay administrators can update the configuration file to enable or disable features as needed. This flexibility allows administrators to tailor the registry to fit their specific environment needs, or to meet certain security policies.</p>
+      <note type="note">
+        <p>Because the <codeph>config.yaml</codeph> file is not dynamically reloaded, you must restart the Red Hat Quay container after making changes for them to take effect.</p>
+      </note>
+      <p>The following procedure shows you how to retrieve the <codeph>config.yaml</codeph> file from the <codeph>quay-registry</codeph> container, how to enable a new feature by adding that feature’s configuration field to the file, and how to restart the <codeph>quay-registry</codeph> container using Podman.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>If you have access to the <codeph>config.yaml</codeph> file:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Navigate to the directory that is storing the <codeph>config.yaml</codeph> file. For example:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ cd /home/&lt;username&gt;/&lt;quay-deployment-directory&gt;/config</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Make changes to the <codeph>config.yaml</codeph> file by adding a new feature flag. The following example enables the v2 UI:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml"># ...
+FEATURE_UI_V2: true
+# ...</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Save the changes made to the <codeph>config.yaml</codeph> file.</cmd>
+          </substep>
+          <substep>
+            <cmd>Restart the <codeph>quay-registry</codeph> pod by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman restart &lt;container_id&gt;</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>If you do not have access to the <codeph>config.yaml</codeph> file and need to create a new file while keeping the same credentials:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Retrieve the container ID of your <codeph>quay-registry</codeph> pod by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman ps</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">CONTAINER ID  IMAGE                                                                     COMMAND         CREATED       STATUS       PORTS                                                                       NAMES
+5f2297ef53ff  registry.redhat.io/rhel8/postgresql-13:1-109                              run-postgresql  20 hours ago  Up 20 hours  0.0.0.0:5432-&gt;5432/tcp                                                      postgresql-quay
+3b40fb83bead  registry.redhat.io/rhel8/redis-5:1                                        run-redis       20 hours ago  Up 20 hours  0.0.0.0:6379-&gt;6379/tcp                                                      redis
+0b4b8fbfca6d  registry-proxy.engineering.redhat.com/rh-osbs/quay-quay-rhel8:v3.14.0-14  registry        20 hours ago  Up 20 hours  0.0.0.0:80-&gt;8080/tcp, 0.0.0.0:443-&gt;8443/tcp, 7443/tcp, 9091/tcp, 55443/tcp  quay</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Copy the <codeph>config.yaml</codeph> file from the <codeph>quay-registry</codeph> pod to a directory by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman cp &lt;container_id&gt;:/quay-registry/conf/stack/config.yaml ./config.yaml</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Make changes to the <codeph>config.yaml</codeph> file by adding a new feature flag. The following example sets the <codeph>AUTHENTICATION_TYPE</codeph> to <codeph>LDAP</codeph></cmd>
+            <info>
+              <codeblock outputclass="language-yaml"># ...
+AUTHENTICATION_TYPE: LDAP
+# ...</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Re-deploy the registry, mounting the <codeph>config.yaml</codeph> file into the <codeph>quay-registry</codeph> configuration volume by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman run -d --rm -p 80:8080 -p 443:8443 \
+   --name=quay \
+   -v /home/&lt;username&gt;/&lt;quay-deployment-directory&gt;/config:/conf/stack:Z \
+   registry.redhat.io/quay/quay-rhel8:v3.14.0</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-quay-ocp-aws-sts">
+  <title>Configuring Red Hat Quay on OpenShift Container Platform to use AWS STS</title>
+  <shortdesc>To configure your Red Hat Quay on OpenShift Container Platform deployment to use AWS STS for S3 authentication, you can edit the <codeph>config.yaml</codeph> file through the OpenShift Container Platform UI and update the <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> fields with your role ARN, bucket name, and access keys.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have configured a Role ARN.</li>
+        <li>You have generated a User Access Key.</li>
+        <li>You have generated a User Secret Key.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>This procedure enables temporary credential authentication for object storage access.</p>
+      <note type="note">
+        <p>You can also edit and re-deploy your Red Hat Quay on OpenShift Container Platform <codeph>config.yaml</codeph> file directly instead of using the OpenShift Container Platform UI.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>On the <b>Home</b> page of your OpenShift Container Platform deployment, click <b>Operators</b> → <b>Installed Operators</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Red Hat Quay</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Quay Registry</b> and then the name of your Red Hat Quay registry.</cmd>
+      </step>
+      <step>
+        <cmd>Under <b>Config Bundle Secret</b>, click the name of your registry configuration bundle, for example, <b>quay-registry-config-bundle-qet56</b>.</cmd>
+      </step>
+      <step>
+        <cmd>On the configuration bundle page, click <b>Actions</b> to reveal a drop-down menu. Then click <b>Edit Secret</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Update your the <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> fields of your <codeph>config.yaml</codeph> file with the following information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - STSS3Storage
+    - sts_role_arn: &lt;role_arn&gt;
+      s3_bucket: &lt;s3_bucket_name&gt;
+      storage_path: &lt;storage_path&gt;
+      s3_region: &lt;region&gt;
+      sts_user_access_key: &lt;s3_user_access_key&gt;
+      sts_user_secret_key: &lt;s3_user_secret_key&gt;
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>DISTRIBUTED_STORAGE_CONFIG.default.sts_role_arn</codeph>
+              </dt>
+              <dd>Specifies the unique Amazon Resource Name (ARN) required when configuring AWS STS.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DISTRIBUTED_STORAGE_CONFIG.default.s3_bucket</codeph>
+              </dt>
+              <dd>Specifies the name of your s3 bucket.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DISTRIBUTED_STORAGE_CONFIG.default.storage_path</codeph>
+              </dt>
+              <dd>Specifies the storage path for data. Usually <codeph>/datastorage</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DISTRIBUTED_STORAGE_CONFIG.default.s3_region</codeph>
+              </dt>
+              <dd>Specifies the Amazon Web Services region. Defaults to <codeph>us-east-1</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DISTRIBUTED_STORAGE_CONFIG.default.sts_user_access_key</codeph>
+              </dt>
+              <dd>Specifies the generated AWS S3 user access key required when configuring AWS STS.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DISTRIBUTED_STORAGE_CONFIG.default.sts_user_secret_key</codeph>
+              </dt>
+              <dd>Specifies the generated AWS S3 user secret key required when configuring AWS STS.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Click <b>Save</b>.</cmd>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Tag a sample image, for example, <codeph>busybox</codeph>, that will be pushed to the repository. For example:
+<codeblock outputclass="language-terminal">$ podman tag docker.io/library/busybox &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/busybox:test</codeblock></li>
+        <li>Push the sample image by running the following command:
+<codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/busybox:test</codeblock></li>
+        <li>Verify that the push was successful by navigating to the Organization that you pushed the image to in your Red Hat Quay registry → <b>Tags</b>.</li>
+        <li>Navigate to the Amazon Web Services (AWS) console and locate your s3 bucket.</li>
+        <li>Click the name of your s3 bucket.</li>
+        <li>On the <b>Objects</b> page, click <b>datastorage/</b>.</li>
+        <li>On the <b>datastorage/</b> page, the following resources should seen:
+<ul><li><b>sha256/</b></li><li><b>uploads/</b><p>These resources indicate that the push was successful, and that AWS STS is properly configured.</p></li></ul></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

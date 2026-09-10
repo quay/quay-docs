@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="quay-configuration-backup">
+  <title>Red Hat Quay configuration backup</title>
+  <shortdesc>To back up your Red Hat Quay configuration for disaster recovery, you can export the <codeph>QuayRegistry</codeph> custom resource, back up the managed secret keys, and save the config bundle and <codeph>config.yaml</codeph> files. This procedure creates backup files that you can use to restore your registry configuration.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>To back the <codeph>QuayRegistry</codeph> custom resource by exporting it, enter the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get quayregistry &lt;quay_registry_name&gt; -n &lt;quay_namespace&gt; -o yaml &gt; quay-registry.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Edit the resulting <codeph>quayregistry.yaml</codeph> and remove the status section and the following metadata fields:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">  metadata.creationTimestamp
+  metadata.finalizers
+  metadata.generation
+  metadata.resourceVersion
+  metadata.uid</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Backup the managed keys secret by entering the following command:
+</cmd>
+        <info>
+          <note type="note">
+            <p>If you are running a version older than Red Hat Quay 3.7.0, this step can be skipped. Some secrets are automatically generated while deploying Red Hat Quay for the first time. These are stored in a secret called <codeph>&lt;quay_registry_name&gt;-quay-registry-managed-secret-keys</codeph> in the namespace of the <codeph>QuayRegistry</codeph> resource.</p>
+          </note>
+          <codeblock outputclass="language-terminal">$ oc get secret -n &lt;quay_namespace&gt; &lt;quay_registry_name&gt;-quay-registry-managed-secret-keys -o yaml &gt; managed_secret_keys.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Edit the resulting <codeph>managed_secret_keys.yaml</codeph> file and remove the entry <codeph>metadata.ownerReferences</codeph>. Your <codeph>managed_secret_keys.yaml</codeph> file should look similar to the following:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: &lt;quay_registry_name&gt;-quay-registry-managed-secret-keys
+  namespace: &lt;quay_namespace&gt;
+data:
+  CONFIG_EDITOR_PW: &lt;redacted&gt;
+  DATABASE_SECRET_KEY: &lt;redacted&gt;
+  DB_ROOT_PW: &lt;redacted&gt;
+  DB_URI: &lt;redacted&gt;
+  SECRET_KEY: &lt;redacted&gt;
+  SECURITY_SCANNER_V4_PSK: &lt;redacted&gt;</codeblock>
+          <p>All information under the <codeph>data</codeph> property should remain the same.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Redirect the current <codeph>Quay</codeph> configuration file by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get secret -n &lt;quay-namespace&gt;  $(oc get quayregistry &lt;quay_registry_name&gt; -n &lt;quay_namespace&gt;  -o jsonpath='{.spec.configBundleSecret}') -o yaml &gt; config-bundle.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Backup the <codeph>/conf/stack/config.yaml</codeph> file mounted inside of the <codeph>Quay</codeph> pods:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc exec -it quay_pod_name -- cat /conf/stack/config.yaml &gt; quay_config.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the <codeph>Quay</codeph> database name:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc -n &lt;quay_namespace&gt; rsh $(oc get pod -l app=quay -o NAME -n &lt;quay_namespace&gt; |head -n 1) cat /conf/stack/config.yaml|awk -F"/" '/^DB_URI/ {print $4}'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">quayregistry-quay-database</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

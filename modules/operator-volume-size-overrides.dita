@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="operator-volume-size-overrides">
+  <title>Volume size overrides</title>
+  <shortdesc>Volume size overrides let you specify the desired capacity and storage class for managed components that use persistent or ephemeral volumes in your Red Hat Quay deployment. You can set larger volumes upfront for performance reasons or when your storage backend does not support resizing.</shortdesc>
+  <refbody>
+    <section>
+      <p>The default size for the managed <codeph>postgres</codeph> and <codeph>clairpostgres</codeph> persistent volumes is <codeph>50Gi</codeph>. The default size for the managed <codeph>clair</codeph> ephemeral scratch volume is <codeph>20Gi</codeph>.</p>
+      <p>Use <codeph>overrides.volumeSize</codeph> and <codeph>overrides.storageClassName</codeph> on the <codeph>postgres</codeph>, <codeph>clairpostgres</codeph>, and <codeph>clair</codeph> components in the <codeph>QuayRegistry</codeph> custom resource. For <codeph>postgres</codeph> and <codeph>clairpostgres</codeph>, set these overrides during initial installation of the component. Changing <codeph>storageClassName</codeph> after a database PVC is created is not supported.</p>
+      <note type="note">
+        <p>To expand database storage on an existing deployment, see <xref href="quay_jtbd-optimize.dita#operator-resize-storage">Resizing managed storage</xref>.</p>
+      </note>
+      <p>In the following example, storage overrides are applied to three managed components:</p>
+      <ul>
+        <li>On <codeph>clair</codeph>, <codeph>volumeSize</codeph> and <codeph>storageClassName</codeph> configure ephemeral scratch storage for image layer extraction at <codeph>/var/tmp</codeph>.</li>
+        <li>On <codeph>postgres</codeph> and <codeph>clairpostgres</codeph>, <codeph>volumeSize</codeph> and <codeph>storageClassName</codeph> configure the managed PostgreSQL database persistent volumes.</li>
+      </ul>
+      <codeblock outputclass="language-yaml">apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: quay-example
+  namespace: quay-enterprise
+spec:
+  configBundleSecret: config-bundle-secret
+  components:
+    - kind: objectstorage
+      managed: false
+    - kind: route
+      managed: true
+    - kind: tls
+      managed: false
+    - kind: clair
+      managed: true
+      overrides:
+        volumeSize: 50Gi
+        storageClassName: fast-ssd
+    - kind: postgres
+      managed: true
+      overrides:
+        volumeSize: 70Gi
+        storageClassName: local-path
+    - kind: clairpostgres
+      managed: true
+      overrides:
+        volumeSize: 70Gi
+        storageClassName: local-path</codeblock>
+      <p>where:</p>
+      <dl>
+        <dlentry>
+          <dt>
+            <codeph>spec.components.clair.overrides.volumeSize</codeph>
+          </dt>
+          <dd>Specifies the desired capacity for the ephemeral scratch volume.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>spec.components.clair.overrides.storageClassName</codeph>
+          </dt>
+          <dd>Specifies the storage class to use for the ephemeral scratch volume.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>spec.components.postgres.overrides.volumeSize</codeph>
+          </dt>
+          <dd>Specifies the desired capacity for the database persistent volume.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>spec.components.postgres.overrides.storageClassName</codeph>
+          </dt>
+          <dd>Specifies the storage class to use for the database persistent volume.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>spec.components.clairpostgres.overrides.volumeSize</codeph>
+          </dt>
+          <dd>Specifies the desired capacity for the database persistent volume.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>spec.components.clairpostgres.overrides.storageClassName</codeph>
+          </dt>
+          <dd>Specifies the storage class to use for the database persistent volume.</dd>
+        </dlentry>
+      </dl>
+    </section>
+  </refbody>
+</reference>

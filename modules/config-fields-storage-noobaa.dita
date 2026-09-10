@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="config-fields-storage-noobaa">
+  <title>Red Hat OpenShift Data Foundation</title>
+  <shortdesc>You can configure Red Hat Quay to use Red Hat OpenShift Data Foundation object storage by defining a <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> entry for the storage backend. Use this example as a starting point for required fields and optional tuning parameters.</shortdesc>
+  <conbody>
+    <p>The following YAML shows a sample configuration using an Red Hat OpenShift Data Foundation:</p>
+    <codeblock outputclass="language-yaml">DISTRIBUTED_STORAGE_CONFIG:
+  rhocsStorage:
+    - RHOCSStorage
+    - access_key: &lt;access_key_here&gt;
+      secret_key: &lt;secret_key_here&gt;
+      bucket_name: &lt;bucket_name&gt;
+      hostname: &lt;hostname&gt;
+      is_secure: 'true'
+      port: '443'
+      storage_path: /datastorage/registry
+      maximum_chunk_size_mb: 100
+      maximum_chunk_size_gb: 5
+      server_side_assembly: true</codeblock>
+    <p>where:</p>
+    <dl>
+      <dlentry>
+        <dt>
+          <codeph>DISTRIBUTED_STORAGE_CONFIG.rhocsStorage.maximum_chunk_size_mb</codeph>
+        </dt>
+        <dd>Specifies the maximum chunk size, in MB, for the final copy. Has no effect if <codeph>server_side_assembly</codeph> is set to <codeph>False</codeph>.</dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <codeph>DISTRIBUTED_STORAGE_CONFIG.rhocsStorage.maximum_chunk_size_gb</codeph>
+        </dt>
+        <dd>Specifies the maximum chunk size, in GB, for the final copy. Defaults to <codeph>5</codeph>. Has no effect if <codeph>server_side_assembly</codeph> is set to <codeph>False</codeph>. This field is optional.</dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <codeph>DISTRIBUTED_STORAGE_CONFIG.rhocsStorage.server_side_assembly</codeph>
+        </dt>
+        <dd>Specifies whether Red Hat Quay tries to use server-side assembly and the final chunked copy instead of client assembly. Defaults to <codeph>True</codeph>. This field is optional.</dd>
+      </dlentry>
+    </dl>
+  </conbody>
+</concept>

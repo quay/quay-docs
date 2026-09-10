@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="operator-resize-storage">
+  <title>Resizing Managed Storage</title>
+  <shortdesc>To expand storage capacity for your Red Hat Quay on OpenShift Container Platform deployment, you can use the OpenShift Container Platform console to resize the PostgreSQL and Clair PostgreSQL persistent volume claims. This lets you increase storage beyond the default 50 GiB allocation when your registry needs more space.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have cluster admin privileges on OpenShift Container Platform.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>When deploying Red Hat Quay on OpenShift Container Platform, three distinct persistent volume claims (PVCs) are deployed:</p>
+      <ul>
+        <li>One for the PostgreSQL 15 registry.</li>
+        <li>One for the Clair PostgreSQL 15 registry.</li>
+        <li>One that uses NooBaa as a backend storage.</li>
+      </ul>
+      <note type="note">
+        <p>The connection between Red Hat Quay and NooBaa is done through the S3 API and ObjectBucketClaim API in OpenShift Container Platform. Red Hat Quay leverages that API group to create a bucket in NooBaa, obtain access keys, and automatically set everything up. On the backend, or NooBaa, side, that bucket is creating inside of the backing store. As a result, NooBaa PVCs are not mounted or connected to Red Hat Quay pods.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Log into the OpenShift Container Platform console and select <b>Storage</b> → <b>Persistent Volume Claims</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Select the desired <codeph>PersistentVolumeClaim</codeph> for either PostgreSQL 13 or Clair PostgreSQL 13, for example, <codeph>example-registry-quay-postgres-13</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>From the <b>Action</b> menu, select <b>Expand PVC</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Enter the new size of the Persistent Volume Claim and select <b>Expand</b>.
+</cmd>
+        <info>
+          <p>After a few minutes, the expanded size should reflect in the PVC’s <b>Capacity</b> field.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

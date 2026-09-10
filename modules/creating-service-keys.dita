@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-service-keys">
+  <title>Creating service keys for standalone Red Hat Quay</title>
+  <shortdesc>To create service keys for standalone Red Hat Quay read-only mode, you can generate a key pair inside the Quay container or in a local Python virtual environment.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>If you are using Red Hat Enterprise Linux (RHEL) 7.x:
+<ul><li>You have enabled the Red Hat Software Collections List (RHSCL).</li><li>You have installed Python 3.6.</li><li>You have downloaded the <codeph>virtualenv</codeph> package.</li><li>You have installed the <codeph>git</codeph> CLI.</li></ul></li>
+        <li>If you are using Red Hat Enterprise Linux (RHEL) 8:
+<ul><li>You have installed Python 3 on your machine.</li><li>You have downloaded the <codeph>python3-virtualenv</codeph> package.</li><li>You have installed the <codeph>git</codeph> CLI.</li></ul></li>
+        <li>You have cloned the <codeph>quay/quay</codeph> repository from GitHub.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Red Hat Quay uses service keys to communicate with various components. These keys are used to sign completed requests, such as requesting to scan images, login, storage access, and so on.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>If your Red Hat Quay registry is readily available, you can generate service keys inside of the <codeph>Quay</codeph> registry container.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enter the following command to generate a key pair inside of the <codeph>Quay</codeph> container:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman exec quay python3 tools/generatekeypair.py quay-readonly</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>If your Red Hat Quay is not readily available, you must generate your service keys inside of a virtual environment.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Change into the directory of your Red Hat Quay deployment and create a virtual environment inside of that directory:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ cd &lt;$QUAY&gt;/quay &amp;&amp; virtualenv -v venv</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Activate the virtual environment by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ source venv/bin/activate</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Optional. Install the <codeph>pip</codeph> CLI tool if you do not have it installed:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ venv/bin/pip install --upgrade pip</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>In your Red Hat Quay directory, create a <codeph>requirements-generatekeys.txt</codeph> file with the following content:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ cat &lt;&lt; EOF &gt; requirements-generatekeys.txt
+cryptography==3.4.7
+pycparser==2.19
+pycryptodome==3.9.4
+pycryptodomex==3.9.4
+pyjwkest==1.4.2
+PyJWT==1.7.1
+Authlib==1.0.0a2
+EOF</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to install the Python dependencies defined in the <codeph>requirements-generatekeys.txt</codeph> file:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ venv/bin/pip install -r requirements-generatekeys.txt</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to create the necessary service keys:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ PYTHONPATH=. venv/bin/python /&lt;path_to_cloned_repo&gt;/tools/generatekeypair.py quay-readonly</codeblock>
+              <p outputclass="title">
+                <b>Example output:</b>
+              </p>
+              <codeblock outputclass="language-terminal">Writing public key to quay-readonly.jwk
+Writing key ID to quay-readonly.kid
+Writing private key to quay-readonly.pem</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to deactivate the virtual environment:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ deactivate</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

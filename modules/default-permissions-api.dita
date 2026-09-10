@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="default-permissions-api">
+  <title>Creating and managing default permissions by using the API</title>
+  <shortdesc>To create, update, or delete default permissions for an Red Hat Quay organization, you can use the API. Default permissions grant access when a repository is created.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token" format="html" scope="external">Created an OAuth access token</xref>.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to create a default permission with the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#createorganizationprototypepermission" format="html" scope="external"><codeph>POST /api/v1/organization/{orgname}/prototypes</codeph></xref> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST   -H "Authorization: Bearer &lt;bearer_token&gt;"   -H "Content-Type: application/json"   --data '{
+    "role": "&lt;admin_read_or_write&gt;",
+    "delegate": {
+      "name": "&lt;username&gt;",
+      "kind": "user"
+    },
+    "activating_user": {
+      "name": "&lt;robot_name&gt;"
+    }
+  }'   https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/prototypes</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"activating_user": {"name": "test-org+test", "is_robot": true, "kind": "user", "is_org_member": true, "avatar": {"name": "test-org+test", "hash": "aa85264436fe9839e7160bf349100a9b71403a5e9ec684d5b5e9571f6c821370", "color": "#8c564b", "kind": "robot"}}, "delegate": {"name": "testuser", "is_robot": false, "kind": "user", "is_org_member": false, "avatar": {"name": "testuser", "hash": "f660ab912ec121d1b1e928a0bb4bc61b15f5ad44d5efdc4e1c92a25e99b8e44a", "color": "#6b6ecf", "kind": "user"}}, "role": "admin", "id": "977dc2bc-bc75-411d-82b3-604e5b79a493"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to update a default permission using the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#updateorganizationprototypepermission" format="html" scope="external"><codeph>PUT /api/v1/organization/{orgname}/prototypes/{prototypeid}</codeph></xref> endpoint, for example, if you want to change the permission type. You must include the ID that was returned when you created the policy.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "role": "write"
+  }' \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/prototypes/&lt;prototypeid&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"activating_user": {"name": "test-org+test", "is_robot": true, "kind": "user", "is_org_member": true, "avatar": {"name": "test-org+test", "hash": "aa85264436fe9839e7160bf349100a9b71403a5e9ec684d5b5e9571f6c821370", "color": "#8c564b", "kind": "robot"}}, "delegate": {"name": "testuser", "is_robot": false, "kind": "user", "is_org_member": false, "avatar": {"name": "testuser", "hash": "f660ab912ec121d1b1e928a0bb4bc61b15f5ad44d5efdc4e1c92a25e99b8e44a", "color": "#6b6ecf", "kind": "user"}}, "role": "write", "id": "977dc2bc-bc75-411d-82b3-604e5b79a493"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can delete the permission by entering the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#deleteorganizationprototypepermission" format="html" scope="external"><codeph>DELETE /api/v1/organization/{orgname}/prototypes/{prototypeid}</codeph></xref> command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/prototypes/&lt;prototype_id&gt;</codeblock>
+          <p>This command does not return an output. Instead, you can obtain a list of all permissions by entering the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#getorganizationprototypepermissions" format="html" scope="external"><codeph>GET /api/v1/organization/{orgname}/prototypes</codeph></xref> command:</p>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/prototypes</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"prototypes": []}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

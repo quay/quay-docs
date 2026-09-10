@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="new-api-endpoints-318">
+  <title>API endpoint enhancements</title>
+  <shortdesc>You can review API enhancements in Red Hat Quay 3.18, including robot federation audiences, organization application OAuth token life cycle endpoints, and bootstrap token renewal.</shortdesc>
+  <refbody>
+    <section id="robot-federation-audiences-318">
+      <title>Robot federation audiences field</title>
+      <p>Robot federation configuration entries now support an optional <codeph>audiences</codeph> array in addition to <codeph>issuer</codeph> and <codeph>subject</codeph>. During federated robot token exchange (<codeph>GET /oauth2/federation/robot/token</codeph>), when <codeph>audiences</codeph> is present on the matching federation entry, Red Hat Quay validates the external OIDC token audience against that list. When <codeph>audiences</codeph> is absent, audience validation is skipped and Red Hat Quay logs a deprecation warning advising you to configure audiences.</p>
+      <p>A future release requires the <codeph>audiences</codeph> field for federated robot authentication.</p>
+      <p>Configure federation entries by using the UI or <codeph>POST /api/v1/organization/{orgname}/robots/{robot_shortname}/federation</codeph>. In Red Hat Quay 3.18, create and update requests persist <codeph>issuer</codeph> and <codeph>subject</codeph> only; audience validation applies when <codeph>audiences</codeph> is present in the stored federation configuration. For field descriptions, examples, and current API limitations, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#createorgrobotfederation" format="html" scope="external">createOrgRobotFederation</xref> and <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/use_red_hat_quay/index#configuring-federation-audiences" format="html" scope="external">Configuring federation audiences</xref>.</p>
+    </section>
+    <section id="organization-application-token-api-318">
+      <title>Organization application OAuth token life cycle</title>
+      <p>Red Hat Quay 3.18 adds REST API endpoints to manage OAuth API tokens for organization applications:</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="16.6666*"/>
+          <colspec colname="col_2" colwidth="50*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Method</entry>
+              <entry>Endpoint</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <codeph>POST</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>
+                  <codeph>/api/v1/organization/{orgname}/applications/{client_id}/tokens</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Create a token</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>GET</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>
+                  <codeph>/api/v1/organization/{orgname}/applications/{client_id}/tokens</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>List token metadata</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>DELETE</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>
+                  <codeph>/api/v1/organization/{orgname}/applications/{client_id}/tokens/{token_uuid}</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Revoke a token</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p>Create requests accept <codeph>name</codeph>, <codeph>scope</codeph>, and optional <codeph>expiration</codeph> (seconds). The bearer token secret is returned only in the create response.</p>
+      <p>For API schemas and examples, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#createorganizationapplicationtoken" format="html" scope="external">createOrganizationApplicationToken</xref>, <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#listorganizationapplicationtokens" format="html" scope="external">listOrganizationApplicationTokens</xref>, and <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#deleteorganizationapplicationtoken" format="html" scope="external">deleteOrganizationApplicationToken</xref>.</p>
+    </section>
+    <section id="bootstrap-token-renewal-api-318">
+      <title>Bootstrap token renewal</title>
+      <p>When <codeph>FEATURE_PROGRAMMATIC_BOOTSTRAP</codeph> is enabled, <codeph>POST /api/v1/bootstrap/renew</codeph> rotates the bootstrap OAuth token. The new token is written to the configured filesystem path or Kubernetes Secret, and the previous token is invalidated immediately. The response is <codeph>{"status": "rotated"}</codeph>.</p>
+      <p>For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#renewbootstraptoken" format="html" scope="external">renewBootstrapToken</xref> and <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/manage_red_hat_quay/index#renewing-bootstrap-token" format="html" scope="external">Renewing the bootstrap token</xref>.
+The following API endpoints were added in Red Hat Quay 3.18.</p>
+    </section>
+    <section id="repository-mirror-health-api">
+      <title>Repository mirror health API endpoints</title>
+      <p>New health endpoints report the status of repository mirroring operations, including worker availability, repository sync counts, and detected issues. Both require a fresh login. Global queries without a namespace require superuser access; namespace-scoped queries require organization membership or user-admin permission for that namespace.</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="33.3333*"/>
+          <colspec colname="col_2" colwidth="33.3333*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>getRepositoryMirrorHealth</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Return health status for repository mirroring operations. Optional <codeph>namespace</codeph> and <codeph>detailed</codeph> query parameters. Returns HTTP <codeph>200</codeph> when healthy and HTTP <codeph>503</codeph> when unhealthy.</p>
+              </entry>
+              <entry>
+                <p>object</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>getSuperUserRepositoryMirrorHealth</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Return a global mirror health summary for superusers without repository-identifying samples. Returns HTTP <codeph>200</codeph> when healthy and HTTP <codeph>503</codeph> when unhealthy.</p>
+              </entry>
+              <entry>
+                <p>object</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p>See <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#getrepositorymirrorhealth" format="html" scope="external">getRepositoryMirrorHealth</xref> and <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#getsuperuserrepositorymirrorhealth" format="html" scope="external">getSuperUserRepositoryMirrorHealth</xref> for more information, including example commands.</p>
+    </section>
+  </refbody>
+</reference>

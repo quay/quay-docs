@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="reverting-tag-changes-api">
+  <title>Reverting tag changes by using the API</title>
+  <shortdesc>To restore a previous image for a tag in Red Hat Quay, you can use the API.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token" format="html" scope="external">Created an OAuth access token</xref>.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>offers a comprehensive <i>time machine</i> feature that allows older images tags to remain in the repository for set periods of time so that they can revert changes made to tags. This feature allows users to revert tag changes, like tag deletions.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>You can restore a repository tag to its previous image by using the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#restoretag" format="html" scope="external"><codeph>POST /api/v1/repository/{repository}/tag/{tag}/restore</codeph></xref> command. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "manifest_digest": &lt;manifest_digest&gt;
+  }' \
+  quay-server.example.com/api/v1/repository/quayadmin/busybox/tag/test/restore</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To see a list of tags after restoring an old tag you can use the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#listrepotags" format="html" scope="external"><codeph>GET /api/v1/repository/{repository}/tag/</codeph></xref> command. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+   https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/tag</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"tags": [{"name": "test", "reversion": false, "start_ts": 1716324069, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 21 May 2024 20:41:09 -0000"}, {"name": "example", "reversion": false, "start_ts": 1715698131, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 14 May 2024 14:48:51 -0000"}, {"name": "example", "reversion": false, "start_ts": 1715697708, "end_ts": 1715698131, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 14 May 2024 14:41:48 -0000", "expiration": "Tue, 14 May 2024 14:48:51 -0000"}, {"name": "test", "reversion": false, "start_ts": 1715695488, "end_ts": 1716324069, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 14 May 2024 14:04:48 -0000", "expiration": "Tue, 21 May 2024 20:41:09 -0000"}, {"name": "test", "reversion": false, "start_ts": 1715631517, "end_ts": 1715695488, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Mon, 13 May 2024 20:18:37 -0000", "expiration": "Tue, 14 May 2024 14:04:48 -0000"}], "page": 1, "has_additional": false}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

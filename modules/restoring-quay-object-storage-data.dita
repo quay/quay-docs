@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="restoring-quay-object-storage-data">
+  <title>Restoring the Red Hat Quay object storage data</title>
+  <shortdesc>To restore your Red Hat Quay object storage data from a backup, you can export AWS credentials from secrets and use the <codeph>aws s3 sync</codeph> command to upload blobs to your storage bucket. This procedure restores your registry’s object storage data using backup files.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>You can also use <xref href="https://rclone.org/" format="html" scope="external">rclone</xref> or <xref href="https://s3tools.org/s3cmd" format="html" scope="external">sc3md</xref> instead of the AWS command line utility.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Export the <codeph>AWS_ACCESS_KEY_ID</codeph> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export AWS_ACCESS_KEY_ID=$(oc get secret -l app=noobaa -n &lt;quay-namespace&gt;  -o jsonpath='{.items[0].data.AWS_ACCESS_KEY_ID}' |base64 -d)</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Export the <codeph>AWS_SECRET_ACCESS_KEY</codeph> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export AWS_SECRET_ACCESS_KEY=$(oc get secret -l app=noobaa -n &lt;quay-namespace&gt; -o jsonpath='{.items[0].data.AWS_SECRET_ACCESS_KEY}' |base64 -d)</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Upload all blobs to the bucket by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ aws s3 sync --no-verify-ssl --endpoint https://$(oc get route s3 -n openshift-storage  -o jsonpath='{.spec.host}') ./blobs  s3://$(oc get cm -l app=noobaa -n &lt;quay-namespace&gt; -o jsonpath='{.items[0].data.BUCKET_NAME}')</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

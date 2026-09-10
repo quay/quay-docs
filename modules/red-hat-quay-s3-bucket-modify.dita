@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="red-hat-quay-s3-bucket-modify">
+  <title>Modifying your AWS S3 storage bucket</title>
+  <shortdesc>To enable builds with AWS S3 storage in Red Hat Quay, you can configure cross-origin resource sharing (CORS) settings in your S3 bucket. This allows build workers to access and store build artifacts in your S3 bucket.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Log in to your AWS console at <xref href="https://s3.console.aws.amazon.com" format="html" scope="external">s3.console.aws.com</xref>.</cmd>
+      </step>
+      <step>
+        <cmd>In the search bar, search for <codeph>S3</codeph> and then click <b>S3</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click the name of your bucket, for example, <codeph>myawsbucket</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>Click the <b>Permissions</b> tab.</cmd>
+      </step>
+      <step>
+        <cmd>Under <b>Cross-origin resource sharing (CORS)</b>, include the following parameters:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">  [
+      {
+          "AllowedHeaders": [
+              "Authorization"
+          ],
+          "AllowedMethods": [
+              "GET"
+          ],
+          "AllowedOrigins": [
+              "*"
+          ],
+          "ExposeHeaders": [],
+          "MaxAgeSeconds": 3000
+      },
+      {
+          "AllowedHeaders": [
+              "Content-Type",
+              "x-amz-acl",
+              "origin"
+          ],
+          "AllowedMethods": [
+              "PUT"
+          ],
+          "AllowedOrigins": [
+              "*"
+          ],
+          "ExposeHeaders": [],
+          "MaxAgeSeconds": 3000
+      }
+  ]</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

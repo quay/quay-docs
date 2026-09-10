@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="check-resource-allocation">
+  <title>Checking resource allocation</title>
+  <shortdesc>To check resource allocation for your Red Hat Quay deployment and monitor disk, CPU, and memory usage, you can use <codeph>oc exec</codeph> or <codeph>podman exec</codeph> for disk usage and <codeph>oc adm top pods</codeph> or <codeph>podman stats</codeph> for other resources.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Obtain a list of running containers.</cmd>
+      </step>
+      <step>
+        <cmd>Monitor disk usage of your Red Hat Quay deployment.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>If you are using the Red Hat Quay Operator on OpenShift Container Platform, enter the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc exec -it &lt;quay_database_pod_name&gt; -- df -ah</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>If you are using a standalone deployment of Red Hat Quay, enter the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman exec -it &lt;quay_database_conatiner_name&gt; df -ah</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Monitor other resource usage.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enter the following command to check resource allocation on a Red Hat Quay Operator deployment:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc adm top pods</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to check the status of a specific pod on a standalone deployment of Red Hat Quay:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman pod stats &lt;pod_name&gt;</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to check the status of a specific container on a standalone deployment of Red Hat Quay:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman stats &lt;container_name&gt;</codeblock>
+              <p>The following information is returned:</p>
+              <ul>
+                <li><b>CPU %</b>. The percentage of CPU usage by the container since the last measurement. This value represents the container’s share of the available CPU resources.</li>
+                <li><b>MEM USAGE / LIMIT</b>. The current memory usage of the container followed by its memory limit. The values are displayed in the format <codeph>current_usage / memory_limit</codeph>. For example, <codeph>300.4MiB / 7.795GiB</codeph> indicates that the container is currently using 300.4 megabytes of memory out of a limit of 7.795 gigabytes.</li>
+                <li><b>MEM %</b>. The percentage of memory usage by the container in relation to its memory limit.</li>
+                <li><b>NET I/O</b>. The network I/O (input/output) statistics of the container. It displays the amount of data transmitted and received by the container over the network. The values are displayed in the format: <codeph>transmitted_bytes / received_bytes</codeph>.</li>
+                <li><b>BLOCK I/O</b>. The block I/O (input/output) statistics of the container. It represents the amount of data read from and written to the block devices (for example, disks) used by the container. The values are displayed in the format <codeph>read_bytes / written_bytes</codeph>.</li>
+              </ul>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

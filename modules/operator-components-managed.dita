@@ -1,0 +1,201 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="operator-components-managed">
+  <title>Managed components</title>
+  <shortdesc>Managed components are Red Hat Quay registry components that the Operator automatically configures and installs. By using managed components, you simplify deployment and reduce manual configuration tasks.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>QuayRegistry required fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="40*"/>
+          <colspec colname="col_2" colwidth="20*"/>
+          <colspec colname="col_3" colwidth="40*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <codeph>quay</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Holds overrides for deployment of Red Hat Quay on OpenShift Container Platform, such as environment variables and number of replicas. This component cannot be set to unmanaged (<codeph>managed: false</codeph>).</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>postgres</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Used for storing registry metadata. Currently, PostgreSQL version 13 is used.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>clair</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Provides image vulnerability scanning. You can override ephemeral scratch storage for image layer extraction by using <codeph>overrides.volumeSize</codeph> and <codeph>overrides.storageClassName</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>redis</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Stores live builder logs and the locking mechanism that is required for garbage collection. You can override CPU and memory resources for this component when it is managed.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>horizontalpodautoscaler</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Adjusts the number of <codeph>quay</codeph> pods depending on your memory and CPU consumption.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>objectstorage</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Stores image layer blobs. When set to <codeph>managed: true</codeph>, utilizes the <codeph>ObjectBucketClaim</codeph> Kubernetes API which is provided by NooBaa or Red Hat OpenShift Data Foundation. Setting this field to <codeph>managed: false</codeph> requires you to provide your own object storage.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>route</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Provides an external entrypoint to the Red Hat Quay registry from outside of OpenShift Container Platform.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>mirror</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Configures repository mirror workers to support optional repository mirroring.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>monitoring</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Features include a Grafana dashboard, access to individual metrics, and notifications for frequently restarting <codeph>quay</codeph> pods.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>tls</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Configures whether SSL/TLS is automatically handled. When <codeph>managed</codeph> is <codeph>false</codeph>, you can optionally set <codeph>secretRef</codeph> to reference an external <codeph>kubernetes.io/tls</codeph> Secret instead of embedding <codeph>ssl.cert</codeph> and <codeph>ssl.key</codeph> in the <codeph>configBundleSecret</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>clairpostgres</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Configures a managed Clair database. This is a separate database than the PostgreSQL database that is used to deploy Red Hat Quay.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p>The following example shows you the default configuration for the <codeph>QuayRegistry</codeph> custom resource provided by the Red Hat Quay Operator. It is available on the OpenShift Container Platform web console.</p>
+      <codeblock outputclass="language-yaml">apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: &lt;example_registry&gt;
+  namespace: &lt;namespace&gt;
+  spec:
+    configBundleSecret: config-bundle-secret
+    components:
+    - kind: quay
+      managed: true
+    - kind: postgres
+      managed: true
+    - kind: clair
+      managed: true
+    - kind: redis
+      managed: true
+    - kind: horizontalpodautoscaler
+      managed: true
+    - kind: objectstorage
+      managed: true
+    - kind: route
+      managed: true
+    - kind: mirror
+      managed: true
+    - kind: monitoring
+      managed: true
+    - kind: tls
+      managed: true
+    - kind: clairpostgres
+      managed: true</codeblock>
+    </section>
+  </refbody>
+</reference>

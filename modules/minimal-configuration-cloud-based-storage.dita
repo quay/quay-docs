@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="minimal-configuration-cloud-based-storage">
+  <title>Minimal configuration using cloud-based storage</title>
+  <shortdesc>A minimal <codeph>config.yaml</codeph> for on-premises Red Hat Quay can use cloud-based object storage such as Google Cloud Platform. Use this pattern when you deploy Red Hat Quay with a supported enterprise storage backend.</shortdesc>
+  <refbody>
+    <section>
+      <p>In most production environments, Red Hat Quay administrators use cloud or enterprise-grade storage backends provided by supported vendors. The following example shows you how to configure Red Hat Quay to use Google Cloud Platform for image storage. For a complete list of supported storage providers, see "Image storage".</p>
+      <note type="note">
+        <p>When using a cloud or enterprise-grade storage backend, additional configuration, such as mapping the registry to a local directory, is not required.</p>
+      </note>
+      <p outputclass="title">
+        <b>Cloud storage minimal configuration</b>
+      </p>
+      <codeblock outputclass="language-yaml">AUTHENTICATION_TYPE: Database
+BUILDLOGS_REDIS:
+    host: &lt;quay-server.example.com&gt;
+    password: &lt;password&gt;
+    port: &lt;port&gt;
+DATABASE_SECRET_KEY: &lt;example_database_secret_key&gt;
+DB_URI: postgresql://&lt;username&gt;:&lt;password&gt;@&lt;registry_url&gt;.com:&lt;port&gt;/quay
+DISTRIBUTED_STORAGE_CONFIG:
+    default:
+        - GoogleCloudStorage
+        - access_key: &lt;access_key&gt;
+          bucket_name: &lt;bucket_name&gt;
+          secret_key: &lt;secret_key&gt;
+          storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+SECRET_KEY: &lt;example_secret_key&gt;
+SERVER_HOSTNAME: &lt;server_host_name&gt;
+SETUP_COMPLETE: true
+USER_EVENTS_REDIS:
+  host: &lt;redis_events_url&gt;
+  password: &lt;password&gt;
+  port: &lt;port&gt;</codeblock>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-quota-management">
+  <title>Quota management configuration fields</title>
+  <shortdesc>The following configuration fields enable and customize quota management functionality in Red Hat Quay. Quota management helps administrators enforce storage usage policies at the organization level by allowing them to set usage limits, calculate blob sizes, and control tag deletion behavior.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>Quota management configuration</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_QUOTA_MANAGEMENT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enables configuration, caching, and validation for quota management feature.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>false</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_QUOTA_NOTIFICATIONS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enables external notification channels, such as email, for quota threshold alerts. When enabled, namespace owners receive proactive notifications when storage consumption crosses configured warning or critical thresholds.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>false</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_MAILING</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enables email delivery features across Red Hat Quay. Must be <codeph>true</codeph> with SMTP server settings configured for email quota notifications to be delivered to contact email addresses or administrators.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>true</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>QUOTA_NOTIFICATION_COOLDOWN_SECONDS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Cooldown period in seconds before re-sending a quota notification for the same threshold (default: 86400 / 24 hours). The system prevents repeated notifications for the same namespace and threshold combination within this window. If storage usage drops below a threshold and later crosses the threshold again, the notification state is cleared and the notification will re-fire upon the new crossing. Notification claims (<codeph>claim_notification()</codeph>) are handled atomically in the backend to prevent notification storms caused by concurrent image pushes.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>86400</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>QUOTA_NOTIFICATION_WORKER_POLL_PERIOD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>How often, in seconds, the quota notification background worker polls for threshold crossings that occur between image pushes—for example, when an administrator lowers a quota limit. Default: <codeph>300</codeph> (5 minutes).</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>300</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>DEFAULT_SYSTEM_REJECT_QUOTA_BYTES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Enables system default quota reject byte allowance for all organizations.</p>
+                <p>By default, no limit is set.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>QUOTA_BACKFILL</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enables the quota backfill worker to calculate the size of pre-existing blobs.</p>
+                <p><b>Default</b>: <codeph>true</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>QUOTA_TOTAL_DELAY_SECONDS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The time delay for starting the quota backfill. Rolling deployments can cause incorrect totals. This field <b>must</b> be set to a time longer than it takes for the rolling deployment to complete.</p>
+                <p><b>Default</b>: <codeph>1800</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>PERMANENTLY_DELETE_TAGS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enables functionality related to the removal of tags from the time machine window.</p>
+                <p><b>Default</b>: <codeph>false</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>RESET_CHILD_MANIFEST_EXPIRATION</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Resets the expirations of temporary tags targeting the child manifests. With this feature set to <codeph>True</codeph>, child manifests are immediately garbage collected.</p>
+                <p><b>Default</b>: <codeph>false</codeph></p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Quota management example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_QUOTA_NOTIFICATIONS: true
+DEFAULT_SYSTEM_REJECT_QUOTA_BYTES: 107374182400
+QUOTA_BACKFILL: true
+QUOTA_TOTAL_DELAY_SECONDS: 3600
+QUOTA_NOTIFICATION_COOLDOWN_SECONDS: 86400
+QUOTA_NOTIFICATION_WORKER_POLL_PERIOD: 300
+PERMANENTLY_DELETE_TAGS: true
+RESET_CHILD_MANIFEST_EXPIRATION: true
+# ...</codeblock>
+    </section>
+  </refbody>
+</reference>

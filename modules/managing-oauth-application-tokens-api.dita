@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="managing-oauth-application-tokens-api">
+  <title>Managing OAuth application tokens by using the API</title>
+  <shortdesc>To manage organization application OAuth tokens without using the UI, you can list, create, and revoke tokens through the Red Hat Quay REST API when your token has <codeph>org:admin</codeph> scope.</shortdesc>
+  <taskbody>
+    <context>
+      <p>The bootstrap token includes <codeph>org:admin</codeph> by default. Scoped tokens that you create for automation must also include <codeph>org:admin</codeph> to list, create, or revoke application tokens through these endpoints.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>List existing tokens for an application:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -H "Authorization: Bearer &lt;access_token&gt;" -X GET \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/myorg/applications/&lt;client_id&gt;/tokens</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a token with a custom expiration and scope:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -H "Authorization: Bearer &lt;access_token&gt;" -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"name": "short-lived-token", "scope": "repo:read", "expiration": 3600}' \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/myorg/applications/&lt;client_id&gt;/tokens</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Revoke a token by UUID:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -H "Authorization: Bearer &lt;access_token&gt;" -X DELETE \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/myorg/applications/&lt;client_id&gt;/tokens/&lt;token_uuid&gt;</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

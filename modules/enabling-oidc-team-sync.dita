@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="enabling-oidc-team-sync">
+  <title>Enabling synchronization for Red Hat Quay OIDC deployments</title>
+  <shortdesc>To enable team synchronization when your Red Hat Quay deployment uses an OIDC authenticator, you can set the team syncing fields in your <codeph>config.yaml</codeph> file and restart the registry.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="important">
+        <p>The following procedure does not use a specific OIDC provider. Instead, it provides a general outline of how best to approach team synchronization between an OIDC provider and Red Hat Quay. Any OIDC provider can be used to enable team synchronization, however, setup might vary depending on your provider.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Update your <codeph>config.yaml</codeph> file with the following information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">AUTHENTICATION_TYPE: OIDC
+# ...
+OIDC_LOGIN_CONFIG:
+  CLIENT_ID:
+  CLIENT_SECRET:
+  OIDC_SERVER:
+  SERVICE_NAME:
+  PREFERRED_GROUP_CLAIM_NAME:
+  LOGIN_SCOPES: [ 'openid', '&lt;example_scope&gt;' ]
+  OIDC_DISABLE_USER_ENDPOINT: false
+# ...
+FEATURE_TEAM_SYNCING: true
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: true
+FEATURE_UI_V2: true
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>CLIENT_ID</codeph>
+              </dt>
+              <dd>Specifies the registered OIDC client ID for this Red Hat Quay instance. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>CLIENT_SECRET</codeph>
+              </dt>
+              <dd>Specifies the registered OIDC client secret for this Red Hat Quay instance. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>OIDC_SERVER</codeph>
+              </dt>
+              <dd>Specifies the address of the OIDC server that is being used for authentication. This URL should be such that a <codeph>GET</codeph> request to <codeph>&lt;OIDC_SERVER&gt;/.well-known/openid-configuration</codeph> returns the provider’s configuration information. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>SERVICE_NAME</codeph>
+              </dt>
+              <dd>Specifies the name of the service that is being authenticated. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>PREFERRED_GROUP_CLAIM_NAME</codeph>
+              </dt>
+              <dd>Specifies the key name within the OIDC token payload that holds information about the user’s group memberships. This field allows the authentication system to extract group membership information from the OIDC token so that it can be used with Red Hat Quay. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGIN_SCOPES</codeph>
+              </dt>
+              <dd>Specifies the scopes Red Hat Quay requests during login. Must include <codeph>'openid'</codeph>. Each scope must also be listed in the identity provider’s <codeph>scopes_supported</codeph> from <codeph>/.well-known/openid-configuration</codeph>. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>OIDC_DISABLE_USER_ENDPOINT</codeph>
+              </dt>
+              <dd>Specifies whether to allow or disable the <codeph>/userinfo</codeph> endpoint. If using Azure Entra ID, set this field to <codeph>true</codeph>. Defaults to <codeph>false</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>FEATURE_TEAM_SYNCING</codeph>
+              </dt>
+              <dd>Specifies whether to allow team membership to be synced from a backing group in the authentication engine. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP</codeph>
+              </dt>
+              <dd>Optional. If enabled, non-superusers can configure team synchronization.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay registry.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="adding-ca-certs-to-config">
+  <title>Adding additional Certificate Authorities to Red Hat Quay on OpenShift Container Platform</title>
+  <shortdesc>To add additional Certificate Authorities to Red Hat Quay on OpenShift Container Platform, you can extend the <codeph>configBundleSecret</codeph> with <codeph>extra_ca_cert_*</codeph> entries for each CA PEM file and update the <codeph>QuayRegistry</codeph> custom resource to reference the updated secret. Each key name determines the file name under conf/stack/extra_ca_certs/ at runtime.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have base64 decoded the original config bundle into a <codeph>config.yaml</codeph> file. For more information, see <xref href="quay_jtbd-configure.dita#operator-config-cli-download">Downloading the existing configuration</xref>.</li>
+        <li>You have a Certificate Authority (CA) file or files.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Additional CAs are not declared as an <codeph>extra_ca_certs</codeph> field inside the <codeph>config.yaml</codeph> file. Each CA is a separate entry in the Secret: the key must start with <codeph>extra_ca_cert_</codeph>, and the remainder of the key name becomes the file name under <codeph>conf/stack/extra_ca_certs/</codeph> after the Operator reconciles the registry.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Create a new YAML file, for example, <codeph>extra-ca-certificate-config-bundle-secret.yaml</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ touch extra-ca-certificate-config-bundle-secret.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create the <codeph>extra-ca-certificate-config-bundle-secret</codeph> resource.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Create the resource by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc -n &lt;namespace&gt; create secret generic extra-ca-certificate-config-bundle-secret \
+  --from-file=config.yaml=&lt;/path/to/config.yaml&gt; \
+  --from-file=extra_ca_cert_&lt;name-of-certificate-one&gt;=&lt;path/to/certificate_one&gt; \
+  --from-file=extra_ca_cert_&lt;name-of-certificate-two&gt;=&lt;path/to/certificate_two&gt; \
+  --from-file=extra_ca_cert_&lt;name-of-certificate-three&gt;=&lt;path/to/certificate_three&gt; \
+  --dry-run=client -o yaml &gt; extra-ca-certificate-config-bundle-secret.yaml</codeblock>
+              <p>where:</p>
+              <dl>
+                <dlentry>
+                  <dt>
+                    <codeph>--from-file=config.yaml=&lt;/path/to/config.yaml&gt;</codeph>
+                  </dt>
+                  <dd>Specifies your base64 decoded <codeph>config.yaml</codeph> file.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>--from-file=extra_ca_cert_&lt;name-of-certificate-one&gt;=&lt;path/to/certificate_one&gt;</codeph>
+                  </dt>
+                  <dd>Specifies the extra CA file to be added to the system trust bundle.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>--from-file=extra_ca_cert_&lt;name-of-certificate-two&gt;=&lt;path/to/certificate_two&gt;</codeph>
+                  </dt>
+                  <dd>Specifies a second CA file to be added into the system trust bundle. This parameter is optional.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>--from-file=extra_ca_cert_&lt;name-of-certificate-three&gt;=&lt;path/to/certificate_three&gt;</codeph>
+                  </dt>
+                  <dd>Specifies a third CA file to be added into the system trust bundle. This parameter is optional.</dd>
+                </dlentry>
+              </dl>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Optional. You can check the content of the <codeph>extra-ca-certificate-config-bundle-secret.yaml</codeph> file by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cat extra-ca-certificate-config-bundle-secret.yaml</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">apiVersion: v1
+data:
+  config.yaml: &lt;example_scren&gt;...
+  extra_ca_cert_certificate-one: &lt;example_secret&gt;...
+  extra_ca_cert_certificate-three: &lt;example_secret&gt;...
+  extra_ca_cert_certificate-two: &lt;example_secret&gt;...
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: extra-ca-certificate-config-bundle-secret
+  namespace: &lt;namespace&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create the <codeph>configBundleSecret</codeph> resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create -n &lt;namespace&gt; -f extra-ca-certificate-config-bundle-secret.yaml</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">secret/extra-ca-certificate-config-bundle-secret created</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update the <codeph>QuayRegistry</codeph> YAML file to reference the <codeph>extra-ca-certificate-config-bundle-secret</codeph> object by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc patch quayregistry &lt;registry_name&gt; -n &lt;namespace&gt; --type=merge -p '{"spec":{"configBundleSecret":"extra-ca-certificate-config-bundle-secret"}}'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">quayregistry.quay.redhat.com/example-registry patched</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Ensure that your <codeph>QuayRegistry</codeph> YAML file has been updated to use the extra CA certificate <codeph>configBundleSecret</codeph> resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get quayregistry &lt;registry_name&gt; -n &lt;namespace&gt; -o yaml</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal"># ...
+  configBundleSecret: extra-ca-certificate-config-bundle-secret
+# ...</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

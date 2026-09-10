@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="arch-quay-infrastructure">
+  <title>Red Hat Quay infrastructure</title>
+  <shortdesc>Red Hat Quay infrastructure options range from all-in-one to highly available and geo-distributed, on standalone hosts or on OpenShift Container Platform. You can deploy standalone with automation or use the Red Hat Quay Operator for OpenShift Container Platform for managed deployment, scaling, and integration. Red Hat Quay runs on any physical or virtual infrastructure, both on premise or public cloud.</shortdesc>
+  <conbody>
+    <section id="arch-quay-standalone-hosts">
+      <title>Running Red Hat Quay on standalone hosts</title>
+      <p>You can automate the standalone deployment process by using Ansible or another automation suite. All standalone hosts require valid a Red Hat Enterprise Linux (RHEL) subscription.</p>
+      <dl>
+        <dlentry>
+          <dt>Proof of Concept deployment</dt>
+          <dd>Red Hat Quay runs on a machine with image storage, containerized database, Redis, and optionally, Clair security scanning.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>Highly available setups</dt>
+          <dd>
+            <p>Red Hat Quay and Clair run in containers across multiple hosts. You can use <codeph>systemd</codeph> units to ensure restart on failure or reboot.</p>
+            <p>High availability setups on standalone hosts require customer-provided load balancers, either low-level TCP load balancers or application load balancers, capable of terminating TLS.</p>
+          </dd>
+        </dlentry>
+      </dl>
+    </section>
+    <section id="arch-quay-openshift">
+      <title>Running Red Hat Quay on OpenShift Container Platform</title>
+      <p>The Red Hat Quay Operator for OpenShift Container Platform provides the following features:</p>
+      <ul>
+        <li>Automated deployment and management of Red Hat Quay with customization options</li>
+        <li>Management of Red Hat Quay and all of its dependencies</li>
+        <li>Automated scaling and updates</li>
+        <li>Integration with existing OpenShift Container Platform processes like GitOps, monitoring, alerting, logging</li>
+        <li>Provision of object storage with limited availability, backed by the multi-cloud object gateway (NooBaa), as part of the Red Hat OpenShift Data Foundation (ODF) Operator. This service does not require an additional subscription.</li>
+        <li>Scaled-out, high availability object storage provided by the ODF Operator. This service requires an additional subscription.</li>
+      </ul>
+      <p>Red Hat Quay can run on OpenShift Container Platform infrastructure nodes. As a result, no further subscriptions are required. Running Red Hat Quay on OpenShift Container Platform has the following benefits:</p>
+      <ul>
+        <li><b>Simplified deployment:</b> Simplified deployment of Red Hat Quay and associated components means that you can start using the product immediately</li>
+        <li><b>Scalability:</b> Use cluster compute capacity to manage demand through automated scaling, based on actual load</li>
+        <li><b>Simplified Networking:</b> Automated provisioning of load balancers and traffic ingress secured through HTTPS using OpenShift Container Platform TLS certificates and Routes</li>
+        <li><b>Declarative configuration management:</b> Configurations stored in CustomResource objects for GitOps-friendly lifecycle management</li>
+        <li><b>Repeatability:</b> Consistency regardless of the number of replicas of Red Hat Quay and Clair</li>
+        <li><b>OpenShift integration:</b> Additional services to use OpenShift Container Platform Monitoring and Alerting facilities to manage multiple Red Hat Quay deployments on a single cluster</li>
+      </ul>
+    </section>
+    <section id="arch-integrating-standalone-ocp">
+      <title>Integrating standalone Red Hat Quay with OpenShift Container Platform</title>
+      <p>While the Red Hat Quay Operator ensures seamless deployment and management of Red Hat Quay running on OpenShift Container Platform, it is also possible to run Red Hat Quay in standalone mode and then serve content to one or many OpenShift Container Platform clusters, wherever they are running.</p>
+      <p>The following figure shows integrating standalone Red Hat Quay with OpenShift Container Platform:</p>
+      <p>
+        <image href="../images/178_Quay_architecture_0821_deployment_ex2.png" placement="inline">
+          <alt>Integrating standalone Red Hat Quay with OpenShift Container Platform</alt>
+        </image>
+      </p>
+      <p>The following Operator is available to help integrate standalone and Operator based deployments of Red Hat Quay with OpenShift Container Platform:</p>
+      <dl>
+        <dlentry>
+          <dt>Quay Bridge Operator</dt>
+          <dd>Ensures seamless integration and user experience by using Red Hat Quay with OpenShift Container Platform in conjunction with OpenShift Container Platform Builds and ImageStreams</dd>
+        </dlentry>
+      </dl>
+    </section>
+  </conbody>
+</concept>

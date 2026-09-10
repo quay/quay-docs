@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-programmatic-bootstrap">
+  <title>Programmatic bootstrap configuration fields</title>
+  <shortdesc>Use these configuration fields to control bootstrap OAuth token provisioning for automated Red Hat Quay deployments. The feature remains disabled until you enable it. Standalone deployments store the token in a local file. Red Hat Quay on OpenShift Container Platform Operator deployments store the token in a Kubernetes Secret that the Operator creates and mounts.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>Programmatic bootstrap fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_PROGRAMMATIC_BOOTSTRAP</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enables programmatic bootstrap token provisioning. When <codeph>true</codeph>, Red Hat Quay creates a bootstrap OAuth token on startup and writes it to a local file or Kubernetes Secret. When <codeph>false</codeph>, Red Hat Quay revokes any existing bootstrap token on restart.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>false</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>BOOTSTRAP_TOKEN_OWNER</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Username that owns the bootstrap OAuth application and token. Required when <codeph>FEATURE_PROGRAMMATIC_BOOTSTRAP</codeph> is <codeph>true</codeph>. The user must exist in the database and be listed in <codeph>SUPER_USERS</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>BOOTSTRAP_TOKEN_PATH</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Filesystem path where the bootstrap token JSON is written on standalone and virtual machine deployments. In containerized deployments, use a mounted path that the Red Hat Quay process can write, for example <codeph>/datastorage/bootstrap-token.json</codeph>.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>/var/lib/quay/quay-machine-token.json</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>BOOTSTRAP_TOKEN_EXPIRATION</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Bootstrap token lifetime in seconds.</p>
+                <p><b>Default:</b><codeph>3600</codeph> (60 minutes)</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>BOOTSTRAP_TOKEN_SCOPE</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Space-separated OAuth scopes assigned to the bootstrap token.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>PROGRAMMATIC_TOKEN_K8S_SECRET</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Kubernetes Secret name used to store the bootstrap token when Red Hat Quay runs in Kubernetes. When set, Red Hat Quay writes the token to this Secret instead of <codeph>BOOTSTRAP_TOKEN_PATH</codeph>. On Red Hat Quay on OpenShift Container Platform, the Operator sets this field to <codeph>&lt;quayregistry_name&gt;-bootstrap-token</codeph> when programmatic bootstrap is enabled. Do not set this field manually in Operator-managed deployments.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>PROGRAMMATIC_TOKEN_K8S_KEY</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Secret data key that stores the bootstrap token JSON. On Red Hat Quay on OpenShift Container Platform, the Operator sets this field to <codeph>token.json</codeph>.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>token.json</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>PROGRAMMATIC_TOKEN_K8S_NAMESPACE</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Kubernetes namespace that contains the bootstrap token Secret. When unset, Red Hat Quay uses the pod service account namespace. On Red Hat Quay on OpenShift Container Platform, the Operator uses the <codeph>QuayRegistry</codeph> namespace.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>PROGRAMMATIC_TOKEN_PATH</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Operator-rendered mount path for configuration compatibility. On Red Hat Quay on OpenShift Container Platform, the Operator sets this field to <codeph>/var/lib/quay/bootstrap-token/token.json</codeph>. Standalone deployments use <codeph>BOOTSTRAP_TOKEN_PATH</codeph> for local file storage.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Programmatic bootstrap example YAML (standalone)</b>
+      </p>
+      <codeblock outputclass="language-yaml">FEATURE_PROGRAMMATIC_BOOTSTRAP: true
+SUPER_USERS:
+  - quayadmin
+BOOTSTRAP_TOKEN_OWNER: quayadmin
+BOOTSTRAP_TOKEN_PATH: /var/lib/quay/quay-machine-token.json
+BOOTSTRAP_TOKEN_EXPIRATION: 7776000
+BOOTSTRAP_TOKEN_SCOPE: "org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read"</codeblock>
+      <p outputclass="title">
+        <b>Programmatic bootstrap example YAML (Red Hat Quay on OpenShift Container Platform <codeph>configBundleSecret</codeph>)</b>
+      </p>
+      <codeblock outputclass="language-yaml">FEATURE_PROGRAMMATIC_BOOTSTRAP: true
+SUPER_USERS:
+  - quayadmin
+BOOTSTRAP_TOKEN_OWNER: quayadmin
+BOOTSTRAP_TOKEN_EXPIRATION: 7776000
+BOOTSTRAP_TOKEN_SCOPE: "org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read"</codeblock>
+      <note type="note">
+        <p>For Operator deployments, omit <codeph>BOOTSTRAP_TOKEN_PATH</codeph> and the <codeph>PROGRAMMATIC_TOKEN_K8S_*</codeph> fields from the <codeph>configBundleSecret</codeph>. The Operator injects <codeph>PROGRAMMATIC_TOKEN_K8S_SECRET</codeph>, <codeph>PROGRAMMATIC_TOKEN_K8S_KEY</codeph>, and <codeph>PROGRAMMATIC_TOKEN_PATH</codeph>, and creates the <codeph>&lt;quayregistry_name&gt;-bootstrap-token</codeph> Secret, Role, and RoleBinding automatically.</p>
+        <p>Always quote <codeph>BOOTSTRAP_TOKEN_SCOPE</codeph>. Unquoted values that contain <codeph>:</codeph> can be misparsed by YAML.</p>
+      </note>
+      <note type="important">
+        <p>The bootstrap token is a high-privilege credential. Use it only to provision organizations, applications, and narrower-scoped OAuth tokens for automation. Do not use the bootstrap token for routine API operations.</p>
+        <p>For regulated environments, set <codeph>BOOTSTRAP_TOKEN_EXPIRATION</codeph> according to your token rotation policy and renew the token by using <codeph>POST /api/v1/bootstrap/renew</codeph>.</p>
+      </note>
+    </section>
+  </refbody>
+</reference>

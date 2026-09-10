@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="setting-robot-federation">
+  <title>Setting up a robot account federation by using the UI</title>
+  <shortdesc>To configure robot account federation in Red Hat Quay, you can map an OIDC issuer and subject to a robot account in the v2 UI.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an organization. The following example uses <codeph>fed_test</codeph>.</li>
+        <li>You have created a robot account. The following example uses <codeph>fest_test+robot1</codeph>.</li>
+        <li>You have configured OIDC for your Red Hat Quay deployment. The following example uses Red Hat Single Sign-On.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>This procedure uses Red Hat Single Sign-On, which is based on the Keycloak project. The steps, and the information used to configure a robot account federation, vary depending on your OIDC provider.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>On the Red Hat Single Sign-On main page:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Select the appropriate realm that is authenticated for use with Red Hat Quay. Store the issuer URL, for example, <codeph>https://keycloak-auth-realm.quayadmin.org/realms/quayrealm</codeph>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Users</b> → the name of the user to be linked with the robot account for authentication. You must use the same user account that you used when generating the OAuth2 access token.</cmd>
+          </substep>
+          <substep>
+            <cmd>On the <b>Details</b> page, store the <b>ID</b> of the user, for example, <codeph>449e14f8-9eb5-4d59-a63e-b7a77c75f770</codeph>.
+</cmd>
+            <info>
+              <note type="note">
+                <p>The information collected in this step varies depending on your OIDC provider. For example, with Red Hat Single Sign-On, the <b>ID</b> of a user is used as the <b>Subject</b> to configure the robot account federation in a subsequent step. For a different OIDC provider, like Microsoft Entra ID, this information is stored as the <b>Subject</b>.</p>
+              </note>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>On your Red Hat Quay registry:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Navigate to <b>Organizations</b> and click the name of your organization, for example, <b>fed_test</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Robot Accounts</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the menu kebab → <b>Set robot federation</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the <b>+</b> symbol.</cmd>
+          </substep>
+          <substep>
+            <cmd>In the popup window, include the following information:
+</cmd>
+            <info>
+              <ul>
+                <li><b>Issuer URL</b>: <codeph>https://keycloak-auth-realm.quayadmin.org/realms/quayrealm</codeph>. For Red Hat Single Sign-On, this is the URL of your Red Hat Single Sign-On realm. This might vary depending on your OIDC provider.</li>
+                <li><b>Subject</b>: <codeph>449e14f8-9eb5-4d59-a63e-b7a77c75f770</codeph>. For Red Hat Single Sign-On, the <b>Subject</b> is the <b>ID</b> of your Red Hat Single Sign-On user. This varies depending on your OIDC provider. For example, if you are using Microsoft Entra ID, the <b>Subject</b> is the <b>Subject</b> of your Entra ID user.</li>
+              </ul>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Click <b>Save</b>.
+</cmd>
+            <info>
+              <note type="note">
+                <p>The Red Hat Quay v2 UI federation modal accepts <b>Issuer URL</b> and <b>Subject</b> only.</p>
+              </note>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

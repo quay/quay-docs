@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-system-trust-ca">
+  <title>Configuring the system to trust the certificate authority</title>
+  <shortdesc>To trust your self-signed certificate authority, you can add the root CA to the system-wide trust store and update certificate configuration. You can verify trust with the trust list command before browsing your Red Hat Quay registry over HTTPS.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Enter the following command to copy the <codeph>rootCA.pem</codeph> file to the consolidated system-wide trust store:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo cp rootCA.pem /etc/pki/ca-trust/source/anchors/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to update the system-wide trust store configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo update-ca-trust extract</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. You can use the <codeph>trust list</codeph> command to ensure that the <codeph>Quay</codeph> server has been configured:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ trust list | grep quay
+    label: quay-server.example.com</codeblock>
+          <p>Now, when you browse to the registry at <codeph><xref href="https://quay-server.example.com" format="html" scope="external">https://quay-server.example.com</xref></codeph>, the lock icon shows that the connection is secure:</p>
+          <p>
+            <image href="../images/ssl-connection-secure.png" placement="inline">
+              <alt>Connection not secure</alt>
+            </image>
+          </p>
+        </info>
+      </step>
+      <step>
+        <cmd>To remove the <codeph>rootCA.pem</codeph> file from system-wide trust, delete the file and update the configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo rm /etc/pki/ca-trust/source/anchors/rootCA.pem</codeblock>
+          <codeblock outputclass="language-terminal">$ sudo update-ca-trust extract</codeblock>
+          <codeblock outputclass="language-terminal">$ trust list | grep quay</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+  <related-links>
+    <link href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/9/html-single/securing_networks/index#using-shared-system-certificates_securing-networks" format="html" scope="external">
+      <linktext>Using shared system certificates</linktext>
+    </link>
+  </related-links>
+</task>

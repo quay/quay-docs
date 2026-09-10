@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="proc-manage-enabling-dual-stack">
+  <title>Enabling the dual-stack protocol family</title>
+  <shortdesc>To enable dual-stack (IPv4 and IPv6) support on your standalone Red Hat Quay deployment, you can set <codeph>FEATURE_LISTEN_IP_VERSION</codeph> to <codeph>dual-stack</codeph> in your <codeph>config.yaml</codeph> file and restart the registry.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>Your host and container software platform (Docker, Podman) must be configured to support IPv6.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>In your deployment’s <codeph>config.yaml</codeph> file, add the <codeph>FEATURE_LISTEN_IP_VERSION</codeph> parameter and set it to <codeph>dual-stack</codeph>, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">FEATURE_GOOGLE_LOGIN: false
+FEATURE_INVITE_ONLY_USER_CREATION: false
+FEATURE_LISTEN_IP_VERSION: dual-stack
+FEATURE_MAILING: false
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: false</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Start, or restart, your Red Hat Quay deployment.</cmd>
+      </step>
+      <step>
+        <cmd>Check that your deployment is listening on both channels by entering the following commands:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>For IPv4, enter the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ curl --ipv4 &lt;quay_endpoint&gt;</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>For IPv6, enter the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ curl --ipv6 &lt;quay_endpoint&gt;</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+    <result>
+      <ul>
+        <li>After you enable dual-stack in your deployment’s <codeph>config.yaml</codeph> file, you can use all Red Hat Quay features as usual when your environment is configured for dual-stack.</li>
+      </ul>
+    </result>
+  </taskbody>
+</task>

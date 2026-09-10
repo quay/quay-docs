@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="pushing-pulling-first-image">
+  <title>Pushing and pulling your first image</title>
+  <shortdesc>To push and pull your first container image in Red Hat Quay, you can log in with Podman, tag a sample image, and push it to a repository that you own.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You can log in to your Red Hat Quay or Quay.io registry as a user.</li>
+        <li>You have a repository where you can push images, or you can create one by pushing to a new repository path.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Log in to your registry:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman login &lt;quay-server.example.com&gt;</codeblock>
+          <p>Replace <codeph>&lt;quay-server.example.com&gt;</codeph> with your registry hostname, for example, <codeph>quay.io</codeph> or your Operator registry endpoint.</p>
+          <p>For standalone proof of concept registries that use self-signed certificates, you might need <codeph>--tls-verify=false</codeph>.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Pull a sample image from an external registry:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman pull busybox</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Tag the image for your registry namespace and repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman tag docker.io/library/busybox &lt;quay-server.example.com&gt;/&lt;namespace&gt;/&lt;repository&gt;:test</codeblock>
+          <p>Replace <codeph>&lt;namespace&gt;</codeph> with your user or organization name and <codeph>&lt;repository&gt;</codeph> with the repository name.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Push the image to your registry:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/&lt;namespace&gt;/&lt;repository&gt;:test</codeblock>
+          <p>For standalone proof of concept registries that use self-signed certificates, you might need <codeph>--tls-verify=false</codeph>.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Pull the image from your registry to confirm that the push succeeded:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman pull &lt;quay-server.example.com&gt;/&lt;namespace&gt;/&lt;repository&gt;:test</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-entra-oidc">
+  <title>Configuring Microsoft Entra ID OIDC on a standalone deployment of Red Hat Quay</title>
+  <shortdesc>To configure Microsoft Entra ID OIDC on a standalone Red Hat Quay deployment, you can add an <codeph>AZURE_LOGIN_CONFIG</codeph> block to your <codeph>config.yaml</codeph> file and restart the registry.</shortdesc>
+  <taskbody>
+    <context>
+      <p>By integrating Microsoft Entra ID authentication with Red Hat Quay, your organization can take advantage of the centralized user management and security features offered by Microsoft Entra ID. Some features include the ability to manage user access to Red Hat Quay repositories based on their Microsoft Entra ID roles and permissions, and the ability to enable multi-factor authentication and other security features provided by Microsoft Entra ID.</p>
+      <p>Azure Active Directory (Microsoft Entra ID) authentication for Red Hat Quay allows users to authenticate and access Red Hat Quay by using their Microsoft Entra ID credentials.</p>
+      <note type="note">
+        <ul>
+          <li>By using the following procedure, you can add any OIDC provider to Red Hat Quay, regardless of which identity provider is being added.</li>
+          <li>If your system has a firewall in use, or a proxy enabled, you must allowlist all Azure API endpoints for each OAuth application that is created. Otherwise, the following error is returned: <codeph>x509: certificate signed by unknown authority</codeph>.</li>
+        </ul>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Use the following reference and update your <codeph>config.yaml</codeph> file with your desired OIDC provider’s credentials:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">AUTHENTICATION_TYPE: OIDC
+# ...
+AZURE_LOGIN_CONFIG:
+    CLIENT_ID: &lt;client_id&gt;
+    CLIENT_SECRET: &lt;client_secret&gt;
+    OIDC_SERVER: https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0/
+    SERVICE_NAME: Microsoft Entra ID
+    OIDC_DISABLE_USER_ENDPOINT: true
+    VERIFIED_EMAIL_CLAIM_NAME: &lt;verified_email&gt;
+    USE_PKCE: True
+    PKCE_METHOD: "S256"
+    PUBLIC_CLIENT: True
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>AZURE_LOGIN_CONFIG</codeph>
+              </dt>
+              <dd>Specifies the parent key that holds the OIDC configuration settings. In this example, the parent key used is <codeph>AZURE_LOGIN_CONFIG</codeph>. However, the string <codeph>AZURE</codeph> can be replaced with any arbitrary string based on your specific needs, for example <codeph>ABC123</codeph>. The following strings are not accepted: <codeph>GOOGLE</codeph>, <codeph>GITHUB</codeph>. These strings are reserved for their respective identity platforms and require a specific <codeph>config.yaml</codeph> entry contingent upon which platform you are using.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>CLIENT_ID</codeph>
+              </dt>
+              <dd>Specifies the client ID of the application that is being registered with the identity provider.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>CLIENT_SECRET</codeph>
+              </dt>
+              <dd>Specifies the client secret of the application that is being registered with the identity provider.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>OIDC_SERVER</codeph>
+              </dt>
+              <dd>Specifies the OIDC discovery base URL. The URL must end with a trailing <codeph>/</codeph> because Red Hat Quay uses path joining for OIDC discovery. For new deployments, use the Entra ID v2.0 endpoint. To accept both v1.0 and v2.0 tokens during migration, configure multi-issuer OIDC.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>SERVICE_NAME</codeph>
+              </dt>
+              <dd>Specifies the name of the service that is being authenticated.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>OIDC_DISABLE_USER_ENDPOINT</codeph>
+              </dt>
+              <dd>Specifies whether to disable the <codeph>/userinfo</codeph> endpoint. Set to <codeph>true</codeph> for Microsoft Entra ID because Azure obtains user information from the token instead of calling the <codeph>/userinfo</codeph> endpoint.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>VERIFIED_EMAIL_CLAIM_NAME</codeph>
+              </dt>
+              <dd>Specifies the name of the claim that is used to verify the email address of the user.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>USE_PKCE</codeph>
+              </dt>
+              <dd>Specifies whether to enable Proof Key for Code Exchange (PKCE) for OIDC authentication. Defaults to <codeph>false</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>PKCE_METHOD</codeph>
+              </dt>
+              <dd>Specifies the code challenge method used to generate the <codeph>code_challenge</codeph> sent in the initial authorization request. Defaults to <codeph>S256</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>PUBLIC_CLIENT</codeph>
+              </dt>
+              <dd>Specifies whether to omit <codeph>client_secret</codeph> during the token request when the client is public. Defaults to <codeph>false</codeph>.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Proper configuration of Microsoft Entra ID results in three redirects with the following format:
+</cmd>
+        <info>
+          <ul>
+            <li>
+              <codeph>https://QUAY_HOSTNAME/oauth2/&lt;name_of_service&gt;/callback</codeph>
+            </li>
+            <li>
+              <codeph>https://QUAY_HOSTNAME/oauth2/&lt;name_of_service&gt;/callback/attach</codeph>
+            </li>
+            <li>
+              <codeph>https://QUAY_HOSTNAME/oauth2/&lt;name_of_service&gt;/callback/cli</codeph>
+            </li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay deployment.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

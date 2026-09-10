@@ -1,0 +1,318 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-actionlog">
+  <title>Action log storage configuration fields</title>
+  <shortdesc>The following configuration fields control how Red Hat Quay stores, exports, rotates, and audits action logs for registry activity. You can use these fields to export or forward logs to external systems like Elasticsearch or Splunk for advanced analysis, auditing, or compliance.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>Action log storage configuration fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_LOG_EXPORT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to allow exporting of action logs.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>True</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>LOGS_MODEL</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Specifies the preferred method for handling log data. <b>Values:</b> One of <codeph>database</codeph>, <codeph>transition_reads_both_writes_es</codeph>, <codeph>elasticsearch</codeph>, <codeph>splunk</codeph></p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>database</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>LOGS_MODEL_CONFIG</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Logs model config for action logs.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ALLOW_WITHOUT_STRICT_LOGGING</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>When set to <codeph>True</codeph>, if the external log system like Splunk or ElasticSearch is intermittently unavailable, allows users to push images normally. Events are logged to the stdout instead. Overrides <codeph>ALLOW_PULLS_WITHOUT_STRICT_LOGGING</codeph> if set.</p>
+                <p><b>Default:</b> False</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Action log storage example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_LOG_EXPORT: true
+LOGS_MODEL: elasticsearch
+LOGS_MODEL_CONFIG:
+  elasticsearch:
+    endpoint: http://elasticsearch.example.com:9200
+    index_prefix: quay-logs
+    username: elastic
+    password: changeme
+ALLOW_WITHOUT_STRICT_LOGGING: true
+# ...</codeblock>
+    </section>
+    <section id="action-log-rotation-archiving-configuration-fields">
+      <title>Action log rotation and archiving configuration</title>
+      <p>This section describes configuration fields related to action log rotation and archiving in Red Hat Quay. When enabled, older logs can be automatically rotated and archived to designated storage locations, helping to manage log retention and storage utilization efficiently.</p>
+      <table>
+        <title>Action log rotation and archiving configuration</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_ACTION_LOG_ROTATION</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enabling log rotation and archival will move all logs older than 30 days to storage.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ACTION_LOG_ARCHIVE_LOCATION</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>If action log archiving is enabled, the storage engine in which to place the archived data.</p>
+                <p><b>Example:</b>: <codeph>s3_us_east</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ACTION_LOG_ARCHIVE_PATH</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>If action log archiving is enabled, the path in storage in which to place the archived data.</p>
+                <p>
+                  <b>Example:</b>
+                  <codeph>archives/actionlogs</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ACTION_LOG_ROTATION_THRESHOLD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The time interval after which to rotate logs.</p>
+                <p>
+                  <b>Example:</b>
+                  <codeph>30d</codeph>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Action log rotation and archiving example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_ACTION_LOG_ROTATION: true
+ACTION_LOG_ARCHIVE_LOCATION: s3_us_east
+ACTION_LOG_ARCHIVE_PATH: archives/actionlogs
+ACTION_LOG_ROTATION_THRESHOLD: 30d
+# ...</codeblock>
+    </section>
+    <section id="action-log-audit-configuration-fields">
+      <title>Action log audit configuration</title>
+      <p>This section covers the configuration fields for audit logging within Red Hat Quay. When enabled, audit logging tracks detailed user activity such as UI logins, logouts, and Docker logins for regular users, robot accounts, and token-based accounts.</p>
+      <table>
+        <title>Audit logs configuration field</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="40*"/>
+          <colspec colname="col_2" colwidth="20*"/>
+          <colspec colname="col_3" colwidth="40*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>ACTION_LOG_AUDIT_LOGINS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>When set to <codeph>True</codeph>, tracks advanced events such as logging into, and out of, the UI, and logging in using Docker for regular users, robot accounts, and for application-specific token accounts.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>True</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ACTION_LOG_AUDIT_LOGIN_FAILURES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether logging of failed logins attempts is enabled.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ACTION_LOG_AUDIT_PULL_FAILURES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether logging of failed image pull attempts is enabled.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ACTION_LOG_AUDIT_PUSH_FAILURES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether logging of failed image push attempts is enabled.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ACTION_LOG_AUDIT_DELETE_FAILURES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether logging of failed image delete attempts is enabled.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Audit logs configuration example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+ACTION_LOG_AUDIT_LOGINS: true
+ACTION_LOG_AUDIT_LOGIN_FAILURES: false
+ACTION_LOG_AUDIT_PULL_FAILURES: false
+ACTION_LOG_AUDIT_PUSH_FAILURES: false
+ACTION_LOG_AUDIT_DELETE_FAILURES: false
+# ...</codeblock>
+    </section>
+  </refbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/manage_red_hat_quay/index#proc_manage-log-storage" format="html" scope="external">
+      <linktext>Configuring action log storage for Elasticsearch and Splunk</linktext>
+    </link>
+  </related-links>
+</reference>

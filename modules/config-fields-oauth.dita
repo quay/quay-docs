@@ -1,0 +1,280 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-oauth">
+  <title>OAuth configuration fields</title>
+  <shortdesc>The following configuration fields define the behavior of Red Hat Quay when handling authentication through external identity providers using OAuth. You can configure global OAuth options such as token assignment and whitelisted client IDs, as well as provider-specific settings for GitHub and Google.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>OAuth fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>DIRECT_OAUTH_CLIENTID_WHITELIST</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>A list of client IDs for <b>Quay-managed</b> applications that are allowed to perform direct OAuth approval without user approval.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_ASSIGN_OAUTH_TOKEN</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Allows organization administrators to assign OAuth tokens to other users.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Global OAuth example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+DIRECT_OAUTH_CLIENTID_WHITELIST:
+  - &lt;quay_robot_client&gt;
+  - &lt;quay_app_token_issuer&gt;
+FEATURE_ASSIGN_OAUTH_TOKEN: true
+# ...</codeblock>
+      <table>
+        <title>GitHub OAuth configuration fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_GITHUB_LOGIN</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether GitHub login is supported</p>
+                <p>
+                  <b>Default: <codeph>False</codeph></b>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>GITHUB_LOGIN_CONFIG</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Configuration for using GitHub (Enterprise) as an external login provider.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.ALLOWED_ORGANIZATIONS</b></p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>The names of the GitHub (Enterprise) organizations whitelisted to work with the ORG_RESTRICT option.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.API_ENDPOINT</b></p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The endpoint of the GitHub (Enterprise) API to use. Must be overridden for github.com <b>Example:</b><codeph><xref href="https://api.github.com/" format="html" scope="external">https://api.github.com/</xref></codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CLIENT_ID</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client ID for this Red Hat Quay instance; cannot be shared with <codeph>GITHUB_TRIGGER_CONFIG</codeph>. <b>Example:</b><codeph>&lt;client_id&gt;</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CLIENT_SECRET</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client secret for this Red Hat Quay instance. <b>Example:</b><codeph>&lt;client_secret&gt;</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.GITHUB_ENDPOINT</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The endpoint for GitHub (Enterprise).</p>
+                <p><b>Example</b>: <codeph><xref href="https://github.com/" format="html" scope="external">https://github.com/</xref></codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.ORG_RESTRICT</b></p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>If true, only users within the organization whitelist can login using this provider.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Github OAth example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_GITHUB_LOGIN: true
+GITHUB_LOGIN_CONFIG:
+  ALLOWED_ORGANIZATIONS:
+    - &lt;myorg&gt;
+    - &lt;dev-team&gt;
+  API_ENDPOINT: &lt;https://api.github.com/&gt;
+  CLIENT_ID: &lt;client_id&gt;
+  CLIENT_SECRET: &lt;client_secret&gt;
+  GITHUB_ENDPOINT: &lt;https://github.com/&gt;
+  ORG_RESTRICT: true
+# ...</codeblock>
+      <table>
+        <title>Google OAuth configuration fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_GOOGLE_LOGIN</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether Google login is supported.</p>
+                <p>
+                  <b>Default: <codeph>False</codeph></b>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>GOOGLE_LOGIN_CONFIG</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Configuration for using Google for external authentication.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CLIENT_ID</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client ID for this Red Hat Quay instance.</p>
+                <p>
+                  <b>Example:</b>
+                  <codeph>&lt;client_id&gt;</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CLIENT_SECRET</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client secret for this Red Hat Quay instance.</p>
+                <p>
+                  <b>Example:</b>
+                  <codeph>&lt;client_secret&gt;</codeph>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Google OAuth example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_GOOGLE_LOGIN: true
+GOOGLE_LOGIN_CONFIG:
+  CLIENT_ID: &lt;client_id&gt;
+  CLIENT_SECRET: &lt;client_secret&gt;
+# ...</codeblock>
+    </section>
+  </refbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_guide/index#reassigning-oauth-access-token" format="html" scope="external">
+      <linktext>Reassigning an OAuth access token</linktext>
+    </link>
+  </related-links>
+</reference>

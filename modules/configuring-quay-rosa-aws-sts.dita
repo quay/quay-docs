@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-quay-rosa-aws-sts">
+  <title>Configuring Red Hat Quay on Red Hat OpenShift Service on AWS to use AWS STS</title>
+  <shortdesc>To configure your Red Hat Quay deployment on Red Hat OpenShift Service on AWS to use AWS STS for S3 authentication, you can update the IAM role trust policy to use federated identity, configure the <codeph>config.yaml</codeph> file, and annotate the service account with the role ARN.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an IAM user.</li>
+        <li>You have created an s3 Role ARN.</li>
+        <li>You have created a <b>Custom Trust Policy</b> that uses the Role ARN.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>This procedure enables web identity federation for temporary credential authentication.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Get the <codeph>serviceAccountIssuer</codeph> resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get authentication.config.openshift.io cluster -o json | jq -r .spec.serviceAccountIssuer | sed -e "s/^https:\/\///"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">oidc.op1.openshiftapps.com/123456</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>On the Identity and Access Management (IAM) console of the Amazon Web Services (AWS) console:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Click <b>Roles</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the name of the Role to be used with AWS STS, for example, <codeph>example-role</codeph>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the <b>Trust relationships</b> tab, which shows the JSON policy created during "Creating an S3 role". Update the JSON policy as follows:
+</cmd>
+            <info>
+              <codeblock outputclass="language-json">{
+	"Version": "2012-10-17",
+	"Statement": [
+    	{
+        	"Sid": "Statement1",
+        	"Effect": "Allow",
+        	"Principal": {
+            	"Federated": "arn:aws:iam::123456:oidc-provider/oidc.op1.openshiftapps.com/123456"
+        	},
+        	"Action": "sts:AssumeRoleWithWebIdentity",
+        	"Condition": {
+            	"StringEquals": {
+                	"oidc.op1.openshiftapps.com/123456:sub": "system:serviceaccount:quay:registry-quay-app"
+            	}
+        	}
+    	}
+	]
+}</codeblock>
+              <p>where:</p>
+              <dl>
+                <dlentry>
+                  <dt>
+                    <codeph>Statement.Principal.Federated</codeph>
+                  </dt>
+                  <dd>Specifies that the <codeph>Principal</codeph> parameter of the JSON policy is updated to <codeph>Federated:&lt;your_user_ARN&gt;:&lt;serviceAccountIssuer_domain_path&gt;</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>Statement.Action</codeph>
+                  </dt>
+                  <dd>Specifies that the <codeph>Action</codeph> parameter of the JSON policy is updated to <codeph>sts:AssumeRoleWithWebIdentity</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>Statement.Condition</codeph>
+                  </dt>
+                  <dd>Specifies that the <codeph>Condition</codeph> parameter of the JSON policy is updated to <codeph>StringEquals”: “&lt;serviceAccountIssuer&gt;:sub”: “system:serviceAccount:&lt;quay_namespace&gt;:&lt;quay_registry_using_serviceAccount&gt;</codeph>.</dd>
+                </dlentry>
+              </dl>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Verify that your User ARN is configured correct, then click <b>Next</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>On the <b>Add permissions</b> page, select <b>AmazonS3FullAccess</b>, then click <b>Next</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>On the <b>Name, review, and create</b> page, provide your role a name, a description, verify your configuration, add any optional tags. Then, click <b>Create Role</b>.</cmd>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>On the <b>Roles</b> page, click the new role and store the <codeph>Role ARN</codeph> resource. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-text">arn:aws:iam::123456:role/test_s3_access</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>On the Red Hat Quay web console:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Click <b>Operators</b> → <b>Installed Operators</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Red Hat Quay</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Quay Registry</b> and then the name of your Red Hat Quay registry.</cmd>
+          </substep>
+          <substep>
+            <cmd>Under <b>Config Bundle Secret</b>, click the name of your registry configuration bundle, for example, <b>quay-registry-config-bundle-12345</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>On the configuration bundle page, click <b>Actions</b> to reveal a drop-down menu. Then click <b>Edit Secret</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Update your the <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> fields of your <codeph>config.yaml</codeph> file with the following information:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml"># ...
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - STSS3Storage
+      s3_bucket: &lt;s3_bucket_name&gt;
+      storage_path: &lt;storage_path&gt;
+      s3_region: &lt;region&gt;
+# ...</codeblock>
+              <p>where:</p>
+              <dl>
+                <dlentry>
+                  <dt>
+                    <codeph>DISTRIBUTED_STORAGE_CONFIG.default.s3_bucket</codeph>
+                  </dt>
+                  <dd>Specifies the name of your s3 bucket.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>DISTRIBUTED_STORAGE_CONFIG.default.storage_path</codeph>
+                  </dt>
+                  <dd>Specifies the storage path for data. Usually <codeph>/datastorage</codeph>.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>DISTRIBUTED_STORAGE_CONFIG.default.s3_region</codeph>
+                  </dt>
+                  <dd>Specifies the Amazon Web Services region. Defaults to <codeph>us-east-1</codeph>.</dd>
+                </dlentry>
+              </dl>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Click <b>Save</b>. Your <codeph>QuayRegistry</codeph> custom resource (CR) automatically restarts.</cmd>
+      </step>
+      <step>
+        <cmd>Annotate the Service Account (SA) that executes pods with the EKS configuration values. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc annotate sa registry-quay-app "eks.amazonaws.com/role-arn"="arn:aws:iam::123456:role/test_s3_access" "eks.amazonaws.com/audience"="sts.amazonaws.com" "eks.amazonaws.com/sts-regional-endpoints"="true"</codeblock>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Tag a sample image, for example, <codeph>busybox</codeph>, that will be pushed to the repository. For example:
+<codeblock outputclass="language-terminal">$ podman tag docker.io/library/busybox &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/busybox:test</codeblock></li>
+        <li>Push the sample image by running the following command:
+<codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/busybox:test</codeblock></li>
+        <li>Verify that the push was successful by navigating to the Organization that you pushed the image to in your Red Hat Quay registry → <b>Tags</b>.</li>
+        <li>Navigate to the Amazon Web Services (AWS) console and locate your s3 bucket.</li>
+        <li>Click the name of your s3 bucket.</li>
+        <li>On the <b>Objects</b> page, click <b>datastorage/</b>.</li>
+        <li>On the <b>datastorage/</b> page, the following resources should seen:
+<ul><li><b>sha256/</b></li><li><b>uploads/</b><p>These resources indicate that the push was successful, and that AWS STS is properly configured.</p></li></ul></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

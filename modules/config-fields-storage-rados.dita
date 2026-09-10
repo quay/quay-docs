@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="config-fields-storage-rados">
+  <title>Ceph Object Gateway (RadosGW) storage example</title>
+  <shortdesc>You can configure Red Hat Quay to use Ceph Object Gateway (RadosGW) as an S3-compatible storage backend. Use this example to set required authentication fields and optional assembly settings.</shortdesc>
+  <conbody>
+    <note type="note">
+      <p>RadosGW is an on-premises S3-compatible storage solution. It implements the S3 API and requires the same authentication fields, such as <codeph>access_key</codeph>, <codeph>secret_key</codeph>, and <codeph>bucket_name</codeph>.</p>
+    </note>
+    <p>The following YAML shows an example configuration using RadosGW.</p>
+    <p outputclass="title">
+      <b>RadosGW with general s3 access example</b>
+    </p>
+    <codeblock outputclass="language-yaml">DISTRIBUTED_STORAGE_CONFIG:
+  radosGWStorage:
+    - RadosGWStorage
+    - access_key: &lt;access_key_here&gt;
+      bucket_name: &lt;bucket_name_here&gt;
+      hostname: &lt;hostname_here&gt;
+      is_secure: true
+      port: '443'
+      secret_key: &lt;secret_key_here&gt;
+      storage_path: /datastorage/registry
+      maximum_chunk_size_mb: 100
+      maximum_chunk_size_gb: 5
+      server_side_assembly: true</codeblock>
+    <p>where:</p>
+    <dl>
+      <dlentry>
+        <dt>
+          <codeph>DISTRIBUTED_STORAGE_CONFIG.radosGWStorage</codeph>
+        </dt>
+        <dd>Specifies general S3 access. Note that general S3 access is not strictly limited to Amazon Web Services (AWS) S3, and can be used with RadosGW or other storage services. For an example of general S3 access using the AWS S3 driver, see "AWS S3 storage".</dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <codeph>DISTRIBUTED_STORAGE_CONFIG.radosGWStorage.maximum_chunk_size_mb</codeph>
+        </dt>
+        <dd>Specifies the maximum chunk size in MB for the final copy. Has no effect if <codeph>server_side_assembly</codeph> is set to <codeph>False</codeph>. This field is optional.</dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <codeph>DISTRIBUTED_STORAGE_CONFIG.radosGWStorage.maximum_chunk_size_gb</codeph>
+        </dt>
+        <dd>Specifies the maximum chunk size in GB for the final copy. Defaults to <codeph>5</codeph>. Has no effect if <codeph>server_side_assembly</codeph> is set to <codeph>False</codeph>. This field is optional.</dd>
+      </dlentry>
+      <dlentry>
+        <dt>
+          <codeph>DISTRIBUTED_STORAGE_CONFIG.radosGWStorage.server_side_assembly</codeph>
+        </dt>
+        <dd>Specifies whether Red Hat Quay tries to use server-side assembly and the final chunked copy instead of client assembly. Defaults to <codeph>True</codeph>. This field is optional.</dd>
+      </dlentry>
+    </dl>
+  </conbody>
+  <related-links>
+    <link href="https://www.redhat.com/en/technologies/storage/ceph" format="html" scope="external">
+      <linktext>Red Hat Ceph Storage</linktext>
+    </link>
+    <link href="https://www.ibm.com/docs/en/storage-ceph/8.0.0?topic=ceph-object-gateway" format="html" scope="external">
+      <linktext>Ceph Object Gateway</linktext>
+    </link>
+    <link href="quay_jtbd-configure.dita#config-fields-storage-aws">
+      <linktext>AWS S3 storage</linktext>
+    </link>
+  </related-links>
+</concept>

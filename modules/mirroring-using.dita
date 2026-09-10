@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="arch-mirroring-using">
+  <title>Using mirroring</title>
+  <shortdesc>Repository mirroring in Red Hat Quay syncs images for a repository or organization from an external registry. Filters, robot accounts, and sync intervals control what is copied and when.</shortdesc>
+  <conbody>
+    <p>The following list shows features and limitations of Red Hat Quay mirroring for a repository or organization.</p>
+    <note type="note">
+      <p>The word <i>entity</i> is used in the mirroring documentation to refer to either a repository or organization.</p>
+    </note>
+    <ul>
+      <li>With mirroring, you can mirror an entire entity or selectively limit which images are synced. Filters can be based on a comma-separated list of tags, a range of tags, or other means of identifying tags through Unix shell-style wildcards.</li>
+      <li>After you set mirroring for an entity, you cannot manually add other images to that entity.</li>
+      <li>Because the mirrored entity is based on the entity and the tags that you set, the entity holds only the content represented by the entity and tag pair. For example, if you change the tag so that some images in the entity no longer match, those images are deleted.</li>
+      <li>Only the designated robot can push images to a mirrored entity, superseding any role-based access control permissions set on the entity.</li>
+      <li>Mirroring can be configured to roll back on failure, <i>or</i> to run on a best-effort basis.</li>
+      <li>With a mirrored entity, a user with <i>read</i> permissions can pull images from the entity but cannot push images to the entity.</li>
+      <li>Changing settings on your mirrored entity can be performed in the Red Hat Quay user interface.</li>
+      <li>Images are synced at set intervals, but can also be synced on demand.</li>
+      <li>In the current implementation of organization-level repository mirroring, Red Hat Quay does not replicate deletions from the source registry. If any of the following entities are removed or absent in the upstream source, they persist in the local Red Hat Quay mirror:
+<ul><li><b>Source namespaces or organizations and their repositories</b>. If the entire upstream source namespace (for example, a Harbor project or Red Hat Quay organization) is removed, all previously mirrored repositories and their content remain in the local mirror.</li><li><b>Individual repositories</b>. Repositories previously discovered and synced continue to be tracked and served even if removed from the upstream source.</li><li><b>Image tags</b>. Tags that existed at the time of the last sync persist in the mirror even if deleted upstream.</li><li><b>Referrers</b>. OCI Referrers API artifacts, such as Cosign signatures and SBOMs, are not currently mirrored. When present locally, they are not cleaned up automatically.</li></ul></li>
+      <li>The downstream mirror acts as a cumulative archive. If an upstream namespace is emptied or its repositories and tags are removed, the mirror continues to serve the last successfully synchronized versions of those objects. This might lead to higher storage consumption in the mirror than in the source.
+<note type="note"><p>This behavior differs from repository-level mirroring, which automatically removes local tags that are no longer present in the source registry.</p><p>Manual deletion by using the Red Hat Quay UI or API is required to remove these entities from the mirror. A future release can introduce a configurable option to automatically delete absent items, including organizations, repositories, tags, referrers, and manifest list children from the local mirror.</p></note></li>
+    </ul>
+  </conbody>
+  <related-links>
+    <link href="https://tldp.org/LDP/GNU-Linux-Tools-Summary/html/x11655.htm" format="html" scope="external">
+      <linktext>Unix shell-style wildcards</linktext>
+    </link>
+  </related-links>
+</concept>

@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="enabling-organization-mirroring-quay">
+  <title>Enabling organization mirroring for Red Hat Quay</title>
+  <shortdesc>To enable organization mirroring in Red Hat Quay, you can set <codeph>FEATURE_ORG_MIRROR</codeph> to <codeph>true</codeph> in your <codeph>config.yaml</codeph> file and restart the registry.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>To enable organization mirroring, set the following configuration fields in your <codeph>config.yaml</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+FEATURE_PROXY_CACHE: true
+FEATURE_REPO_MIRROR: true
+FEATURE_ORG_MIRROR: true
+ORG_MIRROR_INTERVAL: 60
+ORG_MIRROR_BATCH_SIZE: 100
+ORG_MIRROR_MAX_SYNC_DURATION: 3600
+ORG_MIRROR_DEFAULT_SKOPEO_TIMEOUT: 600
+ORG_MIRROR_DISCOVERY_TIMEOUT: 600
+ORG_MIRROR_MAX_REPOS_PER_ORG: 5000
+ORG_MIRROR_MAX_RETRIES: 3
+SSRF_ALLOWED_HOSTS:
+    - harbor.example.lab
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>FEATURE_PROXY_CACHE</codeph>
+              </dt>
+              <dd>Specifies whether to enable or disable proxy caching. This field must be set to <codeph>true</codeph> to use the organization mirroring feature.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>FEATURE_REPO_MIRROR</codeph>
+              </dt>
+              <dd>Specifies whether to enable or disable repository-level mirroring. This field must be set to <codeph>true</codeph> to use the organization mirroring feature.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>FEATURE_ORG_MIRROR</codeph>
+              </dt>
+              <dd>Specifies whether to enable or disable organization-level mirroring.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ORG_MIRROR_INTERVAL</codeph>
+              </dt>
+              <dd>Specifies the worker processing interval in seconds.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ORG_MIRROR_BATCH_SIZE</codeph>
+              </dt>
+              <dd>Specifies the number of organization mirrors to process for each iteration.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ORG_MIRROR_MAX_SYNC_DURATION</codeph>
+              </dt>
+              <dd>Specifies the maximum sync duration in seconds.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ORG_MIRROR_DEFAULT_SKOPEO_TIMEOUT</codeph>
+              </dt>
+              <dd>Specifies the default skopeo timeout in seconds.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ORG_MIRROR_DISCOVERY_TIMEOUT</codeph>
+              </dt>
+              <dd>Specifies the discovery timeout in seconds.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ORG_MIRROR_MAX_REPOS_PER_ORG</codeph>
+              </dt>
+              <dd>Specifies the maximum repositories to discover for each organization.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ORG_MIRROR_MAX_RETRIES</codeph>
+              </dt>
+              <dd>Specifies the maximum sync retries for a failure operation.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>SSRF_ALLOWED_HOSTS</codeph>
+              </dt>
+              <dd>Specifies the allowed hosts for Server-Side Request Forgery (SSRF) protection. Use this optional field to allow specific hosts to be accessed by the registry.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay registry.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

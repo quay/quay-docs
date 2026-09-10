@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="oauth2-access-tokens">
+  <title>About OAuth 2 access tokens</title>
+  <shortdesc>OAuth 2 access tokens authenticate users to the Red Hat Quay API for applications that require user identity verification. You create a token for an organization OAuth application and select scopes that authorize API actions.</shortdesc>
+  <refbody>
+    <section>
+      <note type="note">
+        <p>Although OAuth 2 tokens authorize actions on API endpoints based on the scopes that you define for the token, Red Hat Quay role-based access control (RBAC) still governs access to the resources. You can create actions on a resource, for example a repository, when you have the proper role (<b>Admin</b> or <b>Creator</b>) for that namespace. This is true even if the API token was granted the <codeph>repo:admin</codeph> scope.</p>
+      </note>
+      <p>You can create OAuth 2 access tokens by using the Red Hat Quay UI or by using the organization application token API.</p>
+      <p>When you create an OAuth 2 token, you can select the following options:</p>
+      <ul>
+        <li><b>Name</b>. A user-defined identifier for the token.</li>
+        <li><b>Expiration</b>. A lifetime for the token. Use short expirations for scripts and CI systems when practical. Use no expiration only for controlled bootstrap cases.</li>
+        <li><b>Scopes</b>, which can include the following permissions:
+<ul><li><b>Administer Organization</b>. Administration of organizations, including creating robots, creating teams, adjusting team membership, and changing billing settings.</li><li><b>Administer Repositories</b>. Administrator access to all repositories to which the granting user has access.</li><li><b>Create Repositories</b>. Creation of repositories in namespaces where the granting user can create repositories.</li><li><b>View all visible repositories</b>. Viewing and pulling all repositories visible to the granting user.</li><li><b>Read/Write to any accessible repositories</b>. Viewing, pushing, and pulling to repositories where the granting user has write access.</li><li><b>Super User Access</b>. Administration of the installation, including managing users and organizations from the superuser panel.</li><li><b>Administer User</b>. Administration of your account, including creating robots and granting them repository permissions.</li><li><b>Read User Information</b>. Reading user information such as username and email address.</li></ul></li>
+      </ul>
+      <p>The <b>API Access Tokens</b> page can show additional columns such as <b>Created By</b>, <b>Expires</b>, and <b>Last Used</b> so that you can audit tokens without deleting the parent application.</p>
+      <note type="important">
+        <p>The token secret is shown only when the token is created. Store it securely. Do not share token secrets through insecure channels.</p>
+      </note>
+      <p>OAuth 2 access tokens are passed as a <codeph>Bearer</codeph> token in the <codeph>Authorization</codeph> header of an API call. The API is available from the <codeph>/api/v1</codeph> endpoint of your Red Hat Quay host. For example, <codeph>https://&lt;quay-server.example.com&gt;/api/v1</codeph>. You can connect to endpoints through your browser to <codeph>GET</codeph>, <codeph>POST</codeph>, <codeph>DELETE</codeph>, and <codeph>PUT</codeph> Red Hat Quay settings by enabling the Swagger UI. Applications that make API calls and use OAuth tokens can access the API, which sends and receives data as JSON.</p>
+      <p>Organization application OAuth API tokens created through the UI support various expiration values, from 7 days to 10 years. Tokens created by using the organization application token API support custom <codeph>expiration</codeph> values in seconds. You can revoke tokens individually by using the API or by deleting the application in which they were created. Deleting an application revokes all tokens created within that application.</p>
+      <p>Token distributors should be mindful of the permissions that they grant when generating a token on behalf of a user, and should have absolute trust in a user before granting such permissions as <b>Administer organization</b>, <b>Super User Access</b>, and <b>Administer User</b>. Additionally, the access token is only revealed at the time of creation; they cannot be listed from the CLI, nor can they be found on the Red Hat Quay UI. If an access token is lost or forgotten, a new token must be created; a token cannot be recovered.</p>
+      <p>In practice, Red Hat Quay administrators can create a new OAuth application on the <b>OAuth Applications</b> page of their organization each time they want to create a new OAuth token for a user. This ensures that a single application is not responsible for all OAuth tokens. As a result, if a user’s token is compromised, the administrator can delete the application of the compromised token without disrupting other users whose tokens might be part of the same application.</p>
+      <p>Older tokens that you created with the previous <b>Generate Token</b> workflow continue to work. In the <b>API Access Tokens</b> list, legacy tokens might appear with a name such as <codeph>Legacy Token</codeph>. You can leave them in place, or replace them with named tokens that have explicit expiration policies and then revoke the legacy token.</p>
+      <note type="note">
+        <p>Deleting an OAuth application still deletes all tokens that belong to that application. Prefer revoking an individual token from the <b>API Access Tokens</b> page when you only need to invalidate one credential.</p>
+      </note>
+    </section>
+  </refbody>
+</reference>

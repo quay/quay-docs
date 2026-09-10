@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="org-contact-email-api-change">
+  <title>Managing organization contact email with the API</title>
+  <shortdesc>Use the organization contact email setting to configure where automated system alerts are sent for an organization. The <codeph>contact_email</codeph> field allows multiple organizations to share the same notification address without requiring separate user accounts for each team.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have <xref href="quay_jtbd-develop.dita#creating-oauth-access-token">Created an OAuth access token</xref>.</li>
+        <li>You have organization administrator permissions.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <p>In the Red Hat Quay web UI, the <codeph>contact_email</codeph> field is labeled as <b>Organization creation: "Email (Optional)"</b> and <b>Organization Settings page: "Email"</b>.</p>
+      </note>
+      <p>The organization <codeph>contact_email</codeph> field has the following properties:</p>
+      <ul>
+        <li>Receives namespace-level notifications (such as quota warnings and quota errors), billing and payment alerts (invoices, payment failures), and organization account recovery emails.</li>
+        <li>Can be shared across multiple organizations (useful for team distribution lists).</li>
+        <li>An optional setting; if left empty, notifications default to organization owners.</li>
+      </ul>
+      <note type="note">
+        <p>When <codeph>FEATURE_ORG_SHARED_EMAIL: false</codeph>, Red Hat Quay enforces email uniqueness by default so that the same address cannot be used by more than one user or organization entity. This is a backend restriction and not a UI-only rule. It applies during organization creation only, not when you later update an organization contact email. At creation time, the organization contact email cannot match any existing user account email in the system.</p>
+        <p>When you set <codeph>FEATURE_ORG_SHARED_EMAIL: true</codeph> in your <codeph>config.yaml</codeph> file, the same email address can be shared across multiple organizations and with at most one user account.</p>
+      </note>
+      <note type="note">
+        <p>For <codeph>POST</codeph> and <codeph>PUT</codeph> requests, the API accepts both <codeph>email</codeph> and <codeph>contact_email</codeph> fields. When both are provided, <codeph>contact_email</codeph> takes precedence. The <codeph>email</codeph> field is retained for backward compatibility, but new integrations should use <codeph>contact_email</codeph>.</p>
+      </note>
+    </context>
+    <steps-unordered>
+      <step>
+        <cmd>To retrieve the current email configured for an organization, use the following <codeph>GET /api/v1/organization/{orgname}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+"https://&lt;quay-server.example.com&gt;/api/v1/organization/engineering"</codeblock>
+          <p outputclass="title">
+            <b>Example response</b>
+          </p>
+          <codeblock outputclass="language-json">{
+  "name": "engineering",
+  "email": "team-notifications@example.com",
+  "is_admin": true
+}</codeblock>
+          <p>When an email address is not configured, the API response returns <codeph>"email": ""</codeph>.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>To set the contact email when creating an organization, pass the <codeph>contact_email</codeph> field by using the <codeph>POST /api/v1/organization/</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Content-Type: application/json" \
+-d '{"name": "engineering", "contact_email": "team-alerts@example.com"}' \
+"https://&lt;quay-server.example.com&gt;/api/v1/organization/"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To update the contact email for an existing organization, use the <codeph>PUT /api/v1/organization/{orgname}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Content-Type: application/json" \
+-d '{"contact_email": "new-team-alerts@example.com"}' \
+"https://&lt;quay-server.example.com&gt;/api/v1/organization/engineering"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To remove the contact email, set <codeph>contact_email</codeph> to <codeph>null</codeph> or <codeph>""</codeph> (empty string). System notifications default to organization owners:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Content-Type: application/json" \
+-d '{"contact_email": ""}' \
+"https://&lt;quay-server.example.com&gt;/api/v1/organization/engineering"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Multiple organizations can share the same notification address (for example, a team distribution list):
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT -H "Authorization: Bearer &lt;token&gt;" -H "Content-Type: application/json" \
+-d '{"email": "devops-team@example.com"}' \
+"https://&lt;quay-server.example.com&gt;/api/v1/organization/engineering"</codeblock>
+          <codeblock outputclass="language-terminal">$ curl -X PUT -H "Authorization: Bearer &lt;token&gt;" -H "Content-Type: application/json" \
+-d '{"email": "devops-team@example.com"}' \
+"https://&lt;quay-server.example.com&gt;/api/v1/organization/qa-team"</codeblock>
+          <note type="note">
+            <p>With the default setting (<codeph>FEATURE_ORG_SHARED_EMAIL: false</codeph>), attempting to set an organization email to an address already registered to a user account returns <codeph>Email has already been used: &lt;email&gt;</codeph>.</p>
+            <p>To allow the same email address to be shared across multiple organizations and with at most one user account, set <codeph>FEATURE_ORG_SHARED_EMAIL: true</codeph> in your <codeph>config.yaml</codeph> file.</p>
+          </note>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-federation-audiences">
+  <title>Configuring federation audiences</title>
+  <shortdesc>To manage robot federation entries in Red Hat Quay, you can use the robot federation API to set the issuer and subject that map an OIDC identity to a robot account.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an organization and robot account.</li>
+        <li>You have configured OIDC for your Red Hat Quay deployment.</li>
+        <li>You have the issuer URL and subject identifier from your OIDC provider.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Each robot federation entry maps an external OIDC identity (<codeph>issuer</codeph> and <codeph>subject</codeph>) to a Red Hat Quay robot account. Starting in Red Hat Quay 3.18, robot federation supports an optional <codeph>audiences</codeph> array on each entry for token audience validation during federated robot token exchange (<codeph>GET /oauth2/federation/robot/token</codeph>).</p>
+      <note type="important">
+        <p>In Red Hat Quay 3.18, create and update requests persist <codeph>issuer</codeph> and <codeph>subject</codeph> only. The optional <codeph>audiences</codeph> field is not stored from API requests, and the Red Hat Quay v2 UI federation modal does not provide an <codeph>audiences</codeph> field. Until API support is available, federated robot token exchange skips audience validation and logs a deprecation warning when <codeph>audiences</codeph> is not stored for the matching federation entry. A later release requires <codeph>audiences</codeph> for federated robot authentication.</p>
+      </note>
+      <p>When <codeph>audiences</codeph> is present in stored federation configuration, configure it to match the <codeph>aud</codeph> claim values your OIDC provider issues—for example, a custom API audience such as <codeph>api://quay-api</codeph> for Microsoft Entra ID v2.0 tokens, or your OIDC client ID for standard flows. For Microsoft Entra ID v2.0, use an application-specific audience rather than the Microsoft Graph audience.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Create or update the robot federation configuration by using <codeph>POST /api/v1/organization/{orgname}/robots/{robot_shortname}/federation</codeph>. Include <codeph>issuer</codeph> and <codeph>subject</codeph> in each federation entry. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/organization/fed_test/robots/robot1/federation" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "issuer": "https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0",
+      "subject": "&lt;user-object-id&gt;"
+    }
+  ]'</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>After you configure federation, exchange an external OIDC access token for a Red Hat Quay robot token.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

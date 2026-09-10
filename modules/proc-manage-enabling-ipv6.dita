@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="proc-manage-enabling-ipv6">
+  <title>Enabling the IPv6 protocol family</title>
+  <shortdesc>To enable IPv6 support on your standalone Red Hat Quay deployment, you can set <codeph>FEATURE_LISTEN_IP_VERSION</codeph> to <codeph>IPv6</codeph> in your <codeph>config.yaml</codeph> file and restart the registry.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>Your host and container software platform (Docker, Podman) must be configured to support IPv6.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="warning">
+        <p>If your environment is configured for IPv4, but the <codeph>FEATURE_LISTEN_IP_VERSION</codeph> configuration field is set to <codeph>IPv6</codeph>, Red Hat Quay fails to deploy.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>In your deployment’s <codeph>config.yaml</codeph> file, add the <codeph>FEATURE_LISTEN_IP_VERSION</codeph> parameter and set it to <codeph>IPv6</codeph>, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">FEATURE_GOOGLE_LOGIN: false
+FEATURE_INVITE_ONLY_USER_CREATION: false
+FEATURE_LISTEN_IP_VERSION: IPv6
+FEATURE_MAILING: false
+FEATURE_NONSUPERUSER_TEAM_SYNCING_SETUP: false</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Start, or restart, your Red Hat Quay deployment.</cmd>
+      </step>
+      <step>
+        <cmd>Check that your deployment is listening to IPv6 by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl &lt;quay_endpoint&gt;/health/instance</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}</codeblock>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ul>
+        <li>After you enable IPv6 in your deployment’s <codeph>config.yaml</codeph> file, you can use all Red Hat Quay features as usual when your environment is configured for IPv6 and is not affected by known IPv6 limitations.</li>
+      </ul>
+    </result>
+  </taskbody>
+</task>

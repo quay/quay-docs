@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="proc_splunk-hec-obtaining-bearer-token">
+  <title>Generating an HEC ingest token</title>
+  <shortdesc>To forward Red Hat Quay action logs to Splunk through the HTTP Event Collector (HEC), you can generate an HEC ingest token in the Splunk web UI or by using the Splunk REST API.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have installed Splunk and created a username.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <p>Splunk HEC tokens are ingest-only and cannot search.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>To create an HEC token using the Splunk web UI:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Log in to the Splunk via the web UI.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Settings</b> → <b>Data Inputs</b> → <b>HTTP Event Collector</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>New Token</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Name the token, for example, <codeph>quay-hec</codeph>, and select the target index, for example, <codeph>quay_logs</codeph>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Submit</b> and copy the token value.</cmd>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>To create an HEC token using the Splunk REST API:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enable HEC by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ curl -k -u &lt;username&gt;:&lt;password&gt; \
+ https://&lt;splunk.example.com&gt;:8089/servicesNS/admin/splunk_httpinput/data/inputs/http/http \
+ -d "disabled=0"</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Create an HEC token by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ curl -k -u &lt;username&gt;:&lt;password&gt; \
+ "https://&lt;splunk.example.com&gt;:8089/servicesNS/admin/splunk_httpinput/data/inputs/http?output_mode=json" \
+ -d "name=quay-hec" -d "index=quay_logs"</codeblock>
+              <p outputclass="title">
+                <b>Example output:</b>
+              </p>
+              <codeblock outputclass="language-terminal">{"entry":[{"content":{"token":"&lt;your_bearer_token&gt;"}}]}</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

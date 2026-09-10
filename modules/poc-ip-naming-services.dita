@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="poc-ip-naming-services">
+  <title>IP addressing and naming services for a proof of concept deployment</title>
+  <shortdesc>Container networking for a proof of concept Red Hat Quay deployment can use naming services, host networking, or port mapping. This guide uses port mapping with a static host IP address.</shortdesc>
+  <conbody>
+    <p>You can configure the component containers in Red Hat Quay to communicate with each other in several ways, for example:</p>
+    <ul>
+      <li><b>Using a naming service</b>. If you want your deployment to survive container restarts, which typically result in changed IP addresses, you can implement a naming service. For example, the <codeph>dnsname</codeph> plugin allows containers to resolve each other by name.</li>
+      <li><b>Using the host network</b>. You can use the <codeph>podman run</codeph> command with the <codeph>--net=host</codeph> option and then use container ports on the host when specifying the addresses in the configuration. This option is susceptible to port conflicts when two containers want to use the same port. This method is not recommended.</li>
+      <li><b>Configuring port mapping</b>. You can use port mappings to expose ports on the host and then use these ports in combination with the host IP address or host name.</li>
+    </ul>
+    <p>This document uses port mapping and assumes a static IP address for your host system.</p>
+    <table>
+      <title>Sample proof of concept port mapping</title>
+      <tgroup cols="3">
+        <colspec colname="col_1" colwidth="50*"/>
+        <colspec colname="col_2" colwidth="25*"/>
+        <colspec colname="col_3" colwidth="25*"/>
+        <thead>
+          <row>
+            <entry>Component</entry>
+            <entry>Port mapping</entry>
+            <entry>Address</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <p>Quay</p>
+            </entry>
+            <entry>
+              <p>
+                <codeph>-p 80:8080</codeph>
+                <codeph>-p 443:8443</codeph>
+              </p>
+            </entry>
+            <entry>
+              <p>http://quay-server.example.com</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Postgres for Quay</p>
+            </entry>
+            <entry>
+              <p>
+                <codeph>-p 5432:5432</codeph>
+              </p>
+            </entry>
+            <entry>
+              <p>quay-server.example.com:5432</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Redis</p>
+            </entry>
+            <entry>
+              <p>
+                <codeph>-p 6379:6379</codeph>
+              </p>
+            </entry>
+            <entry>
+              <p>quay-server.example.com:6379</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Postgres for Clair V4</p>
+            </entry>
+            <entry>
+              <p>
+                <codeph>-p 5433:5432</codeph>
+              </p>
+            </entry>
+            <entry>
+              <p>quay-server.example.com:5433</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Clair V4</p>
+            </entry>
+            <entry>
+              <p>
+                <codeph>-p 8081:8080</codeph>
+              </p>
+            </entry>
+            <entry>
+              <p>http://quay-server.example.com:8081</p>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </conbody>
+  <related-links>
+    <link href="https://github.com/containers/dnsname" format="html" scope="external">
+      <linktext>dnsname</linktext>
+    </link>
+  </related-links>
+</concept>

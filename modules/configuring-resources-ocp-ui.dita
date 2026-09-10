@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-resources-ocp-ui">
+  <title>Configuring resource requests by using the OpenShift Container Platform web console</title>
+  <shortdesc>To configure resource requests for your Red Hat Quay registry components, you can use the OpenShift Container Platform web console to edit the <codeph>QuayRegistry</codeph> custom resource. You can set CPU and memory limits and requests for <codeph>quay</codeph>, <codeph>clair</codeph>, <codeph>mirror</codeph>, <codeph>redis</codeph>, and database pods.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>On the OpenShift Container Platform developer console, click <b>Operators</b> → <b>Installed Operators</b> → <b>Red Hat Quay</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>QuayRegistry</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click the name of your registry, for example, <b>example-registry</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>YAML</b>.</cmd>
+      </step>
+      <step>
+        <cmd>In the <codeph>spec.components</codeph> field, you can override the resources of all components by setting values for the <codeph>.overrides.resources.limits</codeph> and the <codeph>overrides.resources.requests</codeph> fields. You can also specify a <codeph>storageClassName</codeph> for <codeph>postgres</codeph>, <codeph>clairpostgres</codeph>, and <codeph>clair</codeph> resources. For <codeph>postgres</codeph> and <codeph>clairpostgres</codeph>, these fields must be defined during initial installation of the component. For <codeph>clair</codeph>, <codeph>storageClassName</codeph> applies to the ephemeral scratch volume used for image layer extraction. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">spec:
+  components:
+    - kind: clair
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: "5"     # Limiting to 5 CPU (equivalent to 5000m or 5000 millicpu)
+            memory: "18Gi"  # Limiting to 18 Gibibytes of memory
+          requests:
+            cpu: "4"     # Requesting 4 CPU
+            memory: "4Gi"   # Requesting 4 Gibibytes of memory
+    - kind: postgres
+      managed: true
+      overrides:
+        storageClassName: "local-path"
+        resources:
+          limits: {}
+          requests:
+            cpu: "700m"   # Requesting 700 millicpu or 0.7 CPU
+            memory: "4Gi"   # Requesting 4 Gibibytes of memory
+    - kind: mirror
+      managed: true
+      overrides:
+        resources:
+          limits:
+          requests:
+            cpu: "800m"   # Requesting 800 millicpu or 0.8 CPU
+            memory: "1Gi"   # Requesting 1 Gibibyte of memory
+    - kind: quay
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: "4"    # Limiting to 4 CPU
+            memory: "10Gi"   # Limiting to 10 Gibibytes of memory
+          requests:
+            cpu: "4"   # Requesting 4 CPU
+            memory: "10Gi"   # Requesting 10 Gibi of memory
+    - kind: redis
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: "400m"   # Limiting to 400 millicpu or 0.4 CPU
+            memory: "400Mi"   # Limiting to 400 Mebibytes of memory
+          requests:
+            cpu: "400m"   # Requesting 400 millicpu or 0.4 CPU
+            memory: "400Mi"   # Requesting 400 Mebibytes of memory
+    - kind: clairpostgres
+      managed: true
+      overrides:
+        storageClassName: "local-path"
+        resources:
+          limits:
+            cpu: "800m"   # Limiting to 800 millicpu or 0.8 CPU
+            memory: "3Gi"   # Limiting to 3 Gibibytes of memory
+          requests: {}</codeblock>
+          <ul>
+            <li><codeph>limits</codeph>: Setting the <codeph>limits</codeph> or <codeph>requests</codeph> fields to <codeph>{}</codeph> uses the default values for these resources.</li>
+            <li><codeph>limits</codeph>: Leaving the <codeph>limits</codeph> or <codeph>requests</codeph> field empty puts no limitations on these resources.</li>
+          </ul>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

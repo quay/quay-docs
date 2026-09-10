@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="reading-bootstrap-token">
+  <title>Reading the bootstrap token</title>
+  <shortdesc>To obtain the bootstrap OAuth token after Red Hat Quay starts with programmatic bootstrap enabled, you can read the token from the configured local file or Kubernetes Secret.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>For standalone or virtual machine deployments, read the token from the <codeph>BOOTSTRAP_TOKEN_PATH</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ BOOTSTRAP_TOKEN=$(jq -r '.access_token' /var/lib/quay/quay-machine-token.json)</codeblock>
+          <note type="note">
+            <p>Red Hat Quay writes the bootstrap token file with <codeph>0600</codeph> permissions owned by the Red Hat Quay process user. If you cannot read the file from the host, read it from inside the Red Hat Quay container instead. For example:</p>
+            <codeblock outputclass="language-terminal">$ BOOTSTRAP_TOKEN=$(docker exec quay cat /datastorage/bootstrap-token.json | jq -r '.access_token')</codeblock>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>For Red Hat Quay on OpenShift Container Platform Operator deployments, read the token from the Operator-managed Secret. The Secret name is <codeph>&lt;quayregistry_name&gt;-bootstrap-token</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ BOOTSTRAP_TOKEN=$(oc get secret &lt;quayregistry_name&gt;-bootstrap-token -n &lt;quay_namespace&gt; \
+  -o jsonpath='{.data.token\.json}' | base64 -d | jq -r '.access_token')</codeblock>
+          <p outputclass="title">
+            <b>Example</b>
+          </p>
+          <codeblock outputclass="language-terminal">$ BOOTSTRAP_TOKEN=$(oc get secret example-registry-bootstrap-token -n quay-operator \
+  -o jsonpath='{.data.token\.json}' | base64 -d | jq -r '.access_token')</codeblock>
+          <note type="note">
+            <p>Secret propagation can take up to 60 seconds after renewal or initial provisioning. If the <codeph>token.json</codeph> key is missing, wait for the Quay application pods to finish starting and retry the command.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

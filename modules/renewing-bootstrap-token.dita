@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="renewing-bootstrap-token">
+  <title>Renewing the bootstrap token</title>
+  <shortdesc>To keep automation running when the bootstrap OAuth token approaches expiry, you can renew it through the Red Hat Quay REST API before the previous token is invalidated.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Renew the token by using the bootstrap token as Bearer authentication:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST \
+  https://&lt;quay-server.example.com&gt;/api/v1/bootstrap/renew</codeblock>
+          <p>The following example shows a successful response:</p>
+          <codeblock outputclass="language-json">{"status": "rotated"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Read the new token value from <codeph>BOOTSTRAP_TOKEN_PATH</codeph> or the configured Kubernetes Secret. The previous bootstrap token is invalidated immediately.
+</cmd>
+        <info>
+          <note type="note">
+            <p>If the bootstrap token is already expired, renewal is accepted only from localhost. On Kubernetes and OpenShift Container Platform, use port forwarding to send the renewal request through the local ingress path.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

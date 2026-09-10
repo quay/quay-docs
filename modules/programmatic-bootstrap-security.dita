@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="programmatic-bootstrap-security">
+  <title>Security considerations for programmatic bootstrap</title>
+  <shortdesc>Apply these practices when you use the Red Hat Quay bootstrap OAuth token so that automation remains limited to provisioning and uses narrower-scoped tokens for day-to-day work.</shortdesc>
+  <conbody>
+    <ul>
+      <li>Use the bootstrap token only for initial provisioning and token minting. Create narrower-scoped OAuth tokens for CI/CD and day-2 automation.</li>
+      <li>Set <codeph>BOOTSTRAP_TOKEN_EXPIRATION</codeph> according to your security policy. The default is 60 minutes.</li>
+      <li>On standalone deployments, the bootstrap token file is written with <codeph>0600</codeph> permissions. Restrict access to the directory that contains the token file.</li>
+      <li>On Kubernetes and OpenShift Container Platform, store the bootstrap token in a dedicated Secret with scoped RBAC.</li>
+      <li>Schedule bootstrap token renewal by using <codeph>POST /api/v1/bootstrap/renew</codeph> before expiry.</li>
+      <li>Monitor Red Hat Quay action logs for bootstrap and OAuth token life cycle events.</li>
+    </ul>
+  </conbody>
+</concept>

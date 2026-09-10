@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-registry-wide-auto-pruning-policy">
+  <title>Creating a registry-wide auto-pruning policy</title>
+  <shortdesc>To apply an auto-prune policy to all organizations in a Red Hat Quay registry, you can configure <codeph>DEFAULT_NAMESPACE_AUTOPRUNE_POLICY</codeph> in your <codeph>config.yaml</codeph> file.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have enabled the <codeph>FEATURE_AUTO_PRUNE</codeph> feature.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Registry-wide auto-pruning policies can apply to new and existing organizations. Red Hat Quay administrators enable this feature by adding the <codeph>DEFAULT_NAMESPACE_AUTOPRUNE_POLICY</codeph> configuration field with either the <codeph>number_of_tags</codeph> or <codeph>creation_date</codeph> method. Currently, you cannot enable this feature by using the v2 UI or the API.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Update your <codeph>config.yaml</codeph> file to add the <codeph>DEFAULT_NAMESPACE_AUTOPRUNE_POLICY</codeph> configuration field:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>To set the policy method to remove the oldest tags by their creation date until the number of tags provided is left, use the <codeph>number_of_tags</codeph> method:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml"># ...
+DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: number_of_tags
+  value: 2
+# ...</codeblock>
+              <p>where:
+<codeph>value</codeph>:: Specifies the number of tags to keep. In this example, two tags remain.</p>
+            </info>
+          </substep>
+          <substep>
+            <cmd>To set the policy method to remove tags with a creation date older than the provided time span, for example, <codeph>5d</codeph>, use the <codeph>creation_date</codeph> method:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml">DEFAULT_NAMESPACE_AUTOPRUNE_POLICY:
+  method: creation_date
+  value: 5d</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay deployment.</cmd>
+      </step>
+      <step>
+        <cmd>Optional. If you need to tag and push images to test this feature:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Tag four sample images that you push to a Red Hat Quay registry. For example:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman tag docker.io/library/busybox &lt;quay-server.example.com&gt;/&lt;quayadmin&gt;/busybox:test</codeblock>
+              <codeblock outputclass="language-terminal">$ podman tag docker.io/library/busybox &lt;quay-server.example.com&gt;/&lt;quayadmin&gt;/busybox:test2</codeblock>
+              <codeblock outputclass="language-terminal">$ podman tag docker.io/library/busybox &lt;quay-server.example.com&gt;/&lt;quayadmin&gt;/busybox:test3</codeblock>
+              <codeblock outputclass="language-terminal">$ podman tag docker.io/library/busybox &lt;quay-server.example.com&gt;/&lt;quayadmin&gt;/busybox:test4</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Push the four sample images to the registry with auto-pruning enabled by entering the following commands:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/quayadmin/busybox:test</codeblock>
+              <codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/&lt;quayadmin&gt;/busybox:test2</codeblock>
+              <codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/&lt;quayadmin&gt;/busybox:test3</codeblock>
+              <codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/&lt;quayadmin&gt;/busybox:test4</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Check that the registry that you pushed the images to shows four tags.</cmd>
+      </step>
+      <step>
+        <cmd>By default, the auto-pruner worker at the registry level runs every 24 hours. After 24 hours, the two oldest image tags are removed, leaving the <codeph>test3</codeph> and <codeph>test4</codeph> tags if you followed these instructions. Check your Red Hat Quay organization to ensure that the two oldest tags were removed.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

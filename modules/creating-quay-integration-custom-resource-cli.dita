@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-quay-integration-custom-resource-cli">
+  <title>Creating the QuayIntegration custom resource using the CLI</title>
+  <shortdesc>To create the <codeph>QuayIntegration</codeph> custom resource from the command line, you can define the configuration in a YAML file and apply it using the oc create command.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have installed the Quay Bridge Operator on OpenShift Container Platform.</li>
+        <li>You have created a secret containing the OAuth access token in OpenShift Container Platform.</li>
+        <li>You have installed the OpenShift CLI (<codeph>oc</codeph>).</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Create a <codeph>quay-integration.yaml</codeph>:
+</cmd>
+        <info>
+          <codeblock>$ touch quay-integration.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the following configuration for a minimal deployment of the <codeph>QuayIntegration</codeph> custom resource:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">  apiVersion: quay.redhat.com/v1
+  kind: QuayIntegration
+  metadata:
+    name: example-quayintegration
+  spec:
+    clusterID: openshift
+    credentialsSecret:
+      namespace: openshift-operators
+      name: quay-integration
+    quayHostname: https://&lt;QUAY_URL&gt;
+    insecureRegistry: false</codeblock>
+          <p>where:</p>
+          <div>
+            <dl>
+              <dlentry>
+                <dt>
+                  <codeph>spec.clusterID</codeph>
+                </dt>
+                <dd>Specifies the unique identifier for the OpenShift Container Platform cluster. This value is required and defaults to <codeph>openshift</codeph>.</dd>
+              </dlentry>
+              <dlentry>
+                <dt>
+                  <codeph>spec.credentialsSecret</codeph>
+                </dt>
+                <dd>Specifies the namespace and name of the secret containing the token that was previously created.</dd>
+              </dlentry>
+              <dlentry>
+                <dt>
+                  <codeph>spec.quayHostname</codeph>
+                </dt>
+                <dd>Specifies the hostname of your Red Hat Quay instance.</dd>
+              </dlentry>
+              <dlentry>
+                <dt>
+                  <codeph>spec.insecureRegistry</codeph>
+                </dt>
+                <dd>Specifies whether Red Hat Quay uses self signed certificates. When Red Hat Quay uses self signed certificates, set the property to <codeph>insecureRegistry: true</codeph>.</dd>
+              </dlentry>
+            </dl>
+          </div>
+          <p>For a list of all configuration fields, see "`QuayIntegration` configuration fields".</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Create the <codeph>QuayIntegration</codeph> custom resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock>$ oc create -f quay-integration.yaml</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

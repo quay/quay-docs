@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="config-additional-cas-ocp">
+  <title>Adding additional Certificate Authorities to Red Hat Quay on OpenShift Container Platform</title>
+  <shortdesc>On Red Hat Quay on OpenShift Container Platform, additional Certificate Authorities (CAs) are merged into the registry trust store from the <codeph>conf/stack/extra_ca_certs/</codeph> directory inside the final configuration bundle. Red Hat Quay uses those CAs to verify TLS to external services such as LDAP, OIDC, and storage endpoints.</shortdesc>
+  <conbody>
+    <p>This path is the same logical location as the <codeph>extra_ca_certs</codeph> directory used on standalone deployments. On Red Hat Quay on OpenShift Container Platform, you do not create that directory on a node yourself. Instead, add each CA PEM file to the <codeph>configBundleSecret</codeph> as its own Secret data entry whose key name begins with <codeph>extra_ca_cert_</codeph>. The Red Hat Quay Operator extracts these keys when it reconciles the registry and writes the files under <codeph>conf/stack/extra_ca_certs/</codeph>. The file name in that directory is the key name with the <codeph>extra_ca_cert_</codeph> prefix removed. For example, a Secret key <codeph>extra_ca_cert_ldap-ca.pem</codeph> is available at runtime as <codeph>conf/stack/extra_ca_certs/ldap-ca.pem</codeph>.</p>
+    <p>You do not add an <codeph>extra_ca_certs</codeph> list or block to <codeph>config.yaml</codeph> only to load those CAs on Red Hat Quay on OpenShift Container Platform. The supported approach is the <codeph>extra_ca_cert_*</codeph> keys in the bundle Secret, as shown in the procedures that follow.</p>
+    <p>When another setting requires an explicit path to one of those PEM files (for example, <codeph>ssl_ca_path</codeph> for a given integration), set the path in <codeph>config.yaml</codeph> to the runtime location under <codeph>conf/stack/extra_ca_certs/</codeph>, for example:</p>
+    <codeblock outputclass="language-yaml"># ...
+ssl_ca_path: conf/stack/extra_ca_certs/ldap-ca.pem
+# ...</codeblock>
+    <p>The following procedures show you how to download your existing configuration file, include additional CA files in the <codeph>configBundleSecret</codeph>, and re-apply the bundle so that OpenShift Container Platform deploys the updated configuration.</p>
+  </conbody>
+</concept>

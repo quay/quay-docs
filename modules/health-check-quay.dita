@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="health-check-quay">
+  <title>Performing health checks on Red Hat Quay deployments</title>
+  <shortdesc>Use Red Hat Quay health check endpoints to monitor instance, end-to-end, and warning status before issues become critical.</shortdesc>
+  <refbody>
+    <section>
+      <p>Health checks help ensure that everything is working correctly, and can be used to identify potential issues before they become critical problems. By monitoring the health of a system, Red Hat Quay administrators can address abnormalities or potential failures for things like geo-replication deployments, Operator deployments, standalone Red Hat Quay deployments, object storage issues, and so on. Performing health checks can also help reduce the likelihood of encountering troubleshooting scenarios.</p>
+      <note type="important">
+        <p>Links contained herein to any external website(s) are provided for convenience only. Red Hat has not reviewed the links and is not responsible for the content or its availability. The inclusion of any link to an external website does not imply endorsement by Red Hat of the website or its entities, products, or services. You agree that Red Hat is not responsible or liable for any loss or expenses that may result due to your use of (or reliance on) the external site or content.</p>
+      </note>
+      <p>Red Hat Quay has several health check endpoints. The following table shows you the health check, a description, an endpoint, and an example output.</p>
+      <table>
+        <title>Health check endpoints</title>
+        <tgroup cols="4">
+          <colspec colname="col_1" colwidth="12.5*"/>
+          <colspec colname="col_2" colwidth="37.5*"/>
+          <colspec colname="col_3" colwidth="25*"/>
+          <colspec colname="col_4" colwidth="25*"/>
+          <thead>
+            <row>
+              <entry>Health check</entry>
+              <entry>Description</entry>
+              <entry>Endpoint</entry>
+              <entry>Example output</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <codeph>instance</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>The <codeph>instance</codeph> endpoint acquires the entire status of the specific Red Hat Quay instance. Returns a <codeph>dict</codeph> with key-value pairs for the following: <codeph>auth</codeph>, <codeph>database</codeph>, <codeph>disk_space</codeph>, <codeph>registry_gunicorn</codeph>, <codeph>service_key</codeph>, and <codeph>web_gunicorn</codeph>. Returns a number indicating the health check response of either <codeph>200</codeph>, which indicates that the instance is healthy, or <codeph>503</codeph>, which indicates an issue with your deployment.</p>
+                <p>When <codeph>HEALTH_CHECKER_INSTANCE_CHECK_PREFERRED_STORAGE</codeph> is set to <codeph>true</codeph>, a <codeph>preferred_storage</codeph> key is also included in the response. If the preferred storage engine is unavailable, the endpoint returns <codeph>503</codeph>. This check is automatically skipped when the registry is in readonly mode.</p>
+              </entry>
+              <entry>
+                <p>
+                  <codeph>
+                    <xref href="https://{quay-ip-endpoint}/health/instance" format="html" scope="external">https://{quay-ip-endpoint}/health/instance</xref>
+                  </codeph>
+                  <i>or</i>
+                  <codeph>
+                    <xref href="https://{quay-ip-endpoint}/health" format="html" scope="external">https://{quay-ip-endpoint}/health</xref>
+                  </codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Default:</p>
+                <codeblock outputclass="language-json">{"data":{"services":{"auth":true,"database":true,"disk_space":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}</codeblock>
+                <p>With <codeph>HEALTH_CHECKER_INSTANCE_CHECK_PREFERRED_STORAGE: true</codeph>, storage healthy:</p>
+                <codeblock outputclass="language-json">{"data":{"services":{"auth":true,"database":true,"disk_space":true,"preferred_storage":true,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":200}</codeblock>
+                <p>Preferred storage unavailable:</p>
+                <codeblock outputclass="language-json">{"data":{"services":{"auth":true,"database":true,"disk_space":true,"preferred_storage":false,"registry_gunicorn":true,"service_key":true,"web_gunicorn":true}},"status_code":503}</codeblock>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>endtoend</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>The <codeph>endtoend</codeph> endpoint conducts checks on all services of your Red Hat Quay instance. Returns a <codeph>dict</codeph> with key-value pairs for the following: <codeph>auth</codeph>, <codeph>database</codeph>, <codeph>redis</codeph>, <codeph>storage</codeph>. Returns a number indicating the health check response of either <codeph>200</codeph>, which indicates that the instance is healthy, or <codeph>503</codeph>, which indicates an issue with your deployment.</p>
+                <p>By default, only the preferred storage engine is validated. When <codeph>DISTRIBUTED_STORAGE_VALIDATE_ENDTOEND</codeph> is set to <codeph>true</codeph>, all configured storage engines are checked. With <codeph>DISTRIBUTED_STORAGE_REQUIRES_ALL_AVAILABLE: false</codeph> (default), <codeph>503</codeph> is returned only when all storage engines fail simultaneously; a partial failure returns <codeph>200</codeph>. With <codeph>DISTRIBUTED_STORAGE_REQUIRES_ALL_AVAILABLE: true</codeph>, <codeph>503</codeph> is returned if any single storage engine is unavailable. The storage check is automatically skipped when the registry is in readonly mode.</p>
+              </entry>
+              <entry>
+                <p>
+                  <codeph>
+                    <xref href="https://{quay-ip-endpoint}/health/endtoend" format="html" scope="external">https://{quay-ip-endpoint}/health/endtoend</xref>
+                  </codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>All services healthy:</p>
+                <codeblock outputclass="language-json">{"data":{"services":{"auth":true,"database":true,"redis":true,"storage":true}},"status_code":200}</codeblock>
+                <p>Storage engine unavailable (superuser view with <codeph>DISTRIBUTED_STORAGE_VALIDATE_ENDTOEND: true</codeph>):</p>
+                <codeblock outputclass="language-json">{
+  "data": {
+    "services": {
+      "auth": true,
+      "database": true,
+      "redis": true,
+      "storage": false
+    },
+    "services_expanded": {
+      "auth": {"status": true},
+      "database": {"status": true},
+      "redis": {"status": true},
+      "storage": {
+        "status": false,
+        "failure": "Storage check failed with exception An error occurred (403) when calling the HeadBucket operation: Forbidden"
+      }
+    },
+    "notes": [],
+    "hostname": "quay-pod-abc123"
+  },
+  "status_code": 503
+}</codeblock>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>warning</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>The <codeph>warning</codeph> endpoint conducts a check on the warnings. Returns a <codeph>dict</codeph> with key-value pairs for the following: <codeph>disk_space_warning</codeph>. Returns a number indicating the health check response of either <codeph>200</codeph>, which indicates that the instance is healthy, or <codeph>503</codeph>, which indicates an issue with your deployment.</p>
+              </entry>
+              <entry>
+                <p>
+                  <codeph>
+                    <xref href="https://{quay-ip-endpoint}/health/warning" format="html" scope="external">https://{quay-ip-endpoint}/health/warning</xref>
+                  </codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>
+                  <codeph>{"data":{"services":{"disk_space_warning":true}},"status_code":503}</codeph>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <note type="note">
+        <p>Superusers and sessions with <codeph>health_debug</codeph> enabled receive a <codeph>services_expanded</codeph> field in health check responses that includes per-service failure details.</p>
+      </note>
+    </section>
+  </refbody>
+</reference>

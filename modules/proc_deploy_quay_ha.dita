@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="set-up-redis">
+  <title>Setting up Redis</title>
+  <shortdesc>To run Redis for Red Hat Quay builder logs and locking, you can deploy the Redis container on each registry node and verify connectivity through the load balancer.</shortdesc>
+  <taskbody>
+    <context>
+      <p>With Red Hat Enterprise Linux 8 server installed on each of the three Red Hat Quay
+systems (quay01, quay02, and quay03), install and start the Redis service as follows:</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Run Redis as a container on each of the three quay0* systems:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal"># mkdir -p /var/lib/redis
+# chmod 777 /var/lib/redis
+# sudo podman run -d -p 6379:6379 \
+    -v /var/lib/redis:/var/lib/redis/data:Z \
+    registry.redhat.io/rhel8/redis-5</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>telnet</codeph> command to test connectivity to the redis service. Type MONITOR (to begin monitoring the service) and QUIT to exit:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal"># yum install telnet -y
+# telnet 192.168.122.99 6379
+Trying 192.168.122.99...
+Connected to 192.168.122.99.
+Escape character is '^]'.
+MONITOR
++OK
++1525703165.754099 [0 172.17.0.1:43848] "PING"
+QUIT
++OK
+Connection closed by foreign host.</codeblock>
+          <note type="note">
+            <p>For more information on using <codeph>podman</codeph> and restarting containers, see "Using Podman."</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-debug-variables">
+  <title>Logging and debugging variables</title>
+  <shortdesc>Configure logging, debugging, and health check variables for troubleshooting Red Hat Quay.</shortdesc>
+  <refbody>
+    <section>
+      <p>The following variables control how Red Hat Quay logs events, exposes debugging information, and interacts with system health checks. These settings are useful for troubleshooting and monitoring your registry</p>
+      <table>
+        <title>Logging and debug configuration variables</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Variable</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>DEBUGLOG</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to enable or disable debug logs.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>USERS_DEBUG</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer. Either <codeph>0</codeph> or <codeph>1</codeph>.</p>
+              </entry>
+              <entry>
+                <p>Used to debug LDAP operations in clear text, including passwords. Must be used with <codeph>DEBUGLOG=TRUE</codeph>.</p>
+                <p>+</p>
+                <note type="important">
+                  <p>Setting <codeph>USERS_DEBUG=1</codeph> exposes credentials in clear text. This variable should be removed from the Red Hat Quay deployment after debugging. The log file that is generated with this environment variable should be scrutinized, and passwords should be removed before sending to other users. Use with caution.</p>
+                </note>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ALLOW_PULLS_WITHOUT_STRICT_LOGGING</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>If true, pulls will still succeed even if the pull audit log entry cannot be written . This is useful if the database is in a read-only state and it is desired for pulls to continue during that time. <b>Default:</b>  False</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ENABLE_HEALTH_DEBUG_SECRET</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>If specified, a secret that can be given to health endpoints to see full debug info when not authenticated as a superuser</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>HEALTH_CHECKER</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The configured health check <b>Example:</b><codeph>('RDSAwareHealthCheck', {'access_key': 'foo', 'secret_key': 'bar'})</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_AGGREGATED_LOG_COUNT_RETRIEVAL</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to allow retrieval of aggregated log counts <b>Default:</b> True</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Logging and debugging example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml">#...
+DEBUGLOG: true
+USERS_DEBUG: 1
+ALLOW_PULLS_WITHOUT_STRICT_LOGGING: "true"
+ENABLE_HEALTH_DEBUG_SECRET: "&lt;secret_value&gt;"
+HEALTH_CHECKER: "('RDSAwareHealthCheck', {'access_key': 'foo', 'secret_key': 'bar'})"
+FEATURE_AGGREGATED_LOG_COUNT_RETRIEVAL: true
+# ...</codeblock>
+    </section>
+  </refbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/troubleshooting_red_hat_quay/index" format="html" scope="external">
+      <linktext>Troubleshooting Red Hat Quay</linktext>
+    </link>
+  </related-links>
+</reference>

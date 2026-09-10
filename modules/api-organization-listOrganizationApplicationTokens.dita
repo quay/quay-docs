@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="listorganizationapplicationtokens">
+  <title>listOrganizationApplicationTokens</title>
+  <shortdesc>List OAuth API tokens for the specified organization application.</shortdesc>
+  <refbody>
+    <section id="listorganizationapplicationtokens-get">
+      <title>GET /api/v1/organization/{orgname}/applications/{client_id}/tokens</title>
+      <p>Return token metadata for the specified application. The bearer token secret is not included in list responses.</p>
+      <p><b>Authorizations:</b> oauth2_implicit (<b>org:admin</b>)</p>
+    </section>
+    <section id="listorganizationapplicationtokens-path-parameters">
+      <title>Path parameters</title>
+      <table>
+        <tgroup cols="4">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <colspec colname="col_4" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Type</entry>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>path</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>orgname</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The name of the organization</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>path</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>client_id</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The OAuth client ID of the organization application</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="listorganizationapplicationtokens-query-parameters">
+      <title>Query parameters</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>next_page</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Pagination token from a previous response</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="listorganizationapplicationtokens-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>200</p>
+              </entry>
+              <entry>
+                <p>Successful invocation</p>
+              </entry>
+              <entry>
+                <p>Object with <codeph>tokens</codeph> array and optional <codeph>next_page</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>404</p>
+              </entry>
+              <entry>
+                <p>Not found</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="listorganizationapplicationtokens-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/applications/&lt;client_id&gt;/tokens" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+      <p outputclass="title">
+        <b>Example response</b>
+      </p>
+      <codeblock outputclass="language-json">{
+  "tokens": [
+    {
+      "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "ci-job-token",
+      "scope": "repo:read repo:write",
+      "expires_at": "2026-08-14T10:00:00Z",
+      "created": "2026-07-15T10:00:00Z",
+      "created_by": "quayadmin",
+      "last_accessed": null
+    }
+  ],
+  "next_page": null
+}</codeblock>
+    </section>
+  </refbody>
+</reference>

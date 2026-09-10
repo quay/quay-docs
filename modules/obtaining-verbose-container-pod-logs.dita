@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="obtaining-verbose-container-pod-logs">
+  <title>Examining verbose logs</title>
+  <shortdesc>To get a detailed status check of your Red Hat Quay database pod or container, you can use oc logs or podman logs with --previous and copy PostgreSQL logs with oc cp or podman cp. Enable DEBUGLOG=true for additional debugging information.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>Additional debugging information can be returned if you have deployed Red Hat Quay in one of the following ways:</p>
+        <ul>
+          <li>You have deployed Red Hat Quay by passing in the <codeph>DEBUGLOG=true</codeph> variable.</li>
+          <li>You have deployed Red Hat Quay with LDAP authentication enabled by passing in the <codeph>DEBUGLOG=true</codeph> and <codeph>USERS_DEBUG=1</codeph> variables.</li>
+          <li>You have configured Red Hat Quay on OpenShift Container Platform by updating the <codeph>QuayRegistry</codeph> resource to include <codeph>DEBUGLOG=true</codeph>.</li>
+        </ul>
+        <p>For more information, see "Running Red Hat Quay in debug mode".</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Enter the following commands to examine verbose database logs.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>If you are using the Red Hat Quay Operator on OpenShift Container Platform, enter the following commands:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc logs &lt;quay_pod_name&gt; --previous</codeblock>
+              <codeblock outputclass="language-terminal">$ oc logs &lt;quay_pod_name&gt; --previous -c &lt;container_name&gt;</codeblock>
+              <codeblock outputclass="language-terminal">$ oc cp &lt;quay_pod_name&gt;:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>If you are using a standalone deployment of Red Hat Quay, enter the following commands:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ podman logs &lt;quay_container_id&gt; --previous</codeblock>
+              <codeblock outputclass="language-terminal">$ podman logs &lt;quay_container_id&gt; --previous -c &lt;container_name&gt;</codeblock>
+              <codeblock outputclass="language-terminal">$ podman cp &lt;quay_container_id&gt;:/var/lib/pgsql/data/userdata/log/* /path/to/desired_directory_on_host</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

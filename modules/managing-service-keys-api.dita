@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="service-key-manage-api">
+  <title>Managing service keys as a superuser with the Red Hat Quay API</title>
+  <shortdesc>To create, list, approve, update, or delete service keys as a Red Hat Quay superuser, you can use the superuser keys API endpoints.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li>You have superuser privileges.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Enter the following command to create a service key by using the <codeph>POST /api/v1/superuser/keys</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "service": "&lt;service_name&gt;",
+        "expiration": &lt;unix_timestamp&gt;
+      }' \
+  "&lt;quay_server&gt;/api/v1/superuser/keys"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"message":""}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to approve a service key by using the <codeph>POST /api/v1/superuser/approvedkeys/{kid}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "notes": "&lt;approval_notes&gt;"
+      }' \
+  "https://&lt;quay_server&gt;/api/v1/superuser/approvedkeys/&lt;kid&gt;"</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to list service keys by using the <codeph>GET /api/v1/superuser/keys</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://&lt;quay_server&gt;/api/v1/superuser/keys"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"keys":[{"approval":{"approval_type":"ServiceKeyApprovalType.AUTOMATIC","approved_date":"Mon, 20 Jan 2025 14:46:01 GMT","approver":null,"notes":""},"created_date":"Mon, 20 Jan 2025 14:46:01 GMT","expiration_date":"Wed, 05 Feb 2025 22:03:37 GMT","jwk":{"e":"AQAB","kid":"&lt;example&gt;","kty":"RSA","n":"&lt;example&gt;"},"kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","metadata":{"created_by":"CLI tool"},"name":"http://quay-server.example.com:80","rotation_duration":null,"service":"quay"}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to return a list of service account keys by using the <codeph>GET /api/v1/superuser/apptokens</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  "https://quay-server.example.com/api/v1/superuser/apptokens" \
+  -H "Authorization: Bearer &lt;superuser_access_token&gt;" \
+  -H "Accept: application/json"</codeblock>
+          <p>Alternatively, you can include the <codeph>expiring=true</codeph> option. For example:</p>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  "https://quay-server.example.com/api/v1/superuser/apptokens?expiring=true" \
+  -H "Authorization: Bearer &lt;superuser_access_token&gt;" \
+  -H "Accept: application/json"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to retrieve information about a service account by its kid by using the <codeph>GET /api/v1/superuser/keys/{kid}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://&lt;quay_server&gt;/api/v1/superuser/keys/&lt;kid&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"approval":{"approval_type":"ServiceKeyApprovalType.AUTOMATIC","approved_date":"Mon, 20 Jan 2025 14:46:01 GMT","approver":null,"notes":""},"created_date":"Mon, 20 Jan 2025 14:46:01 GMT","expiration_date":"Wed, 05 Feb 2025 22:03:37 GMT","jwk":{"e":"AQAB","kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","kty":"RSA","n":"5iMX7RQ_4F_zdb1qonMsuWUDauCOqEyRpD8L_EhgnwDxrgMHuOlJ4_7sEOrOa3Jkx3QhwIW6LJCP69PR5X0wvz6vmC1DoWEaWv41bAq23Knzj7gUU9-N_fkZPZN9NQwZ-D-Zqg9L1c_cJF93Dy93py8_JswWFDj1FxMaThJmrX68wBwjhF-JLYqgCAGFyezzJ3oTpO-esV9v6R7skfkaqtx_cjLZk_0cKB4VKTtxiy2A8D_5nANTOSSbZLXNh2Vatgh3yrOmnTTNLIs0YO3vFIuylEkczHlln-40UMAzRB3HNspUySyzImO_2yGdrA762LATQrOzJN8E1YKCADx5CQ"},"kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","metadata":{"created_by":"CLI tool"},"name":"http://quay-server.example.com:80","rotation_duration":null,"service":"quay"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to update your service key, such as the metadata, by using the <codeph>PUT /api/v1/superuser/keys/{kid}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "name": "&lt;service_key_name&gt;",
+        "metadata": {"&lt;key&gt;": "&lt;value&gt;"},
+        "expiration": &lt;unix_timestamp&gt;
+      }' \
+  "https://&lt;quay_server&gt;/api/v1/superuser/keys/&lt;kid&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"approval":{"approval_type":"ServiceKeyApprovalType.AUTOMATIC","approved_date":"Mon, 20 Jan 2025 14:46:01 GMT","approver":null,"notes":""},"created_date":"Mon, 20 Jan 2025 14:46:01 GMT","expiration_date":"Mon, 03 Mar 2025 10:40:00 GMT","jwk":{"e":"AQAB","kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","kty":"RSA","n":"5iMX7RQ_4F_zdb1qonMsuWUDauCOqEyRpD8L_EhgnwDxrgMHuOlJ4_7sEOrOa3Jkx3QhwIW6LJCP69PR5X0wvz6vmC1DoWEaWv41bAq23Knzj7gUU9-N_fkZPZN9NQwZ-D-Zqg9L1c_cJF93Dy93py8_JswWFDj1FxMaThJmrX68wBwjhF-JLYqgCAGFyezzJ3oTpO-esV9v6R7skfkaqtx_cjLZk_0cKB4VKTtxiy2A8D_5nANTOSSbZLXNh2Vatgh3yrOmnTTNLIs0YO3vFIuylEkczHlln-40UMAzRB3HNspUySyzImO_2yGdrA762LATQrOzJN8E1YKCADx5CQ"},"kid":"7fr8soqXGgea8JqjwgItjjJT9GKlt-bMyMCDmvzy6WQ","metadata":{"created_by":"CLI tool","environment":"production"},"name":"quay-service-key-updated","rotation_duration":null,"service":"quay"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to delete a service key by using the <codeph>DELETE /api/v1/superuser/keys/{kid}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://&lt;quay_server&gt;/api/v1/superuser/keys/&lt;kid&gt;"</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

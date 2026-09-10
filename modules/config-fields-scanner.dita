@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-scanner">
+  <title>Clair security scanner configuration fields</title>
+  <shortdesc>The following configuration fields control how the Clair security scanner is enabled, how frequently it indexes new content, which endpoints are used, and how notifications are handled.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>Security scanner configuration</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_SECURITY_SCANNER</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enable or disable the security scanner <b>Default:</b><codeph>False</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_SECURITY_NOTIFICATIONS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>If the security scanner is enabled, turn on or turn off security notifications <b>Default:</b><codeph>False</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SECURITY_SCANNER_V4_REINDEX_THRESHOLD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>This parameter is used to determine the minimum time, in seconds, to wait before re-indexing a manifest that has either previously failed or has changed states since the last indexing. The data is calculated from the <codeph>last_indexed datetime</codeph> in the <b>manifestsecuritystatus</b> table. This parameter is used to avoid trying to re-index every failed manifest on every indexing run. The default time to re-index is 300 seconds.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SECURITY_SCANNER_V4_ENDPOINT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The endpoint for the V4 security scanner <b>Pattern:</b><codeph>^http(s)?://(.)+$</codeph><b>Example:</b><codeph><xref href="http://192.168.99.101:6060" format="html" scope="external">http://192.168.99.101:6060</xref></codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SECURITY_SCANNER_V4_PSK</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The generated pre-shared key (PSK) for Clair // TODO 36 Check that SECURITY_SCANNER_NOTIFICATIONS can be dropped //</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SECURITY_SCANNER_NOTIFICATIONS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SECURITY_SCANNER_ENDPOINT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The endpoint for the V2 security scanner <b>Pattern:</b><codeph>^http(s)?://(.)+$</codeph><b>Example:</b><codeph><xref href="http://192.168.99.100:6060" format="html" scope="external">http://192.168.99.100:6060</xref></codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SECURITY_SCANNER_INDEXING_INTERVAL</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>This parameter is used to determine the number of seconds between indexing intervals in the security scanner. When indexing is triggered, Red Hat Quay will query its database for manifests that must be indexed by Clair. These include manifests that have not yet been indexed and manifests that previously failed indexing. <b>Default:</b> 30</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_SECURITY_SCANNER_NOTIFY_ON_NEW_INDEX</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to allow sending notifications about vulnerabilities for new pushes.</p>
+                <p><b>Default</b>: <codeph>True</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SECURITY_SCANNER_V4_MANIFEST_CLEANUP</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether the Red Hat Quay garbage collector removes manifests that are not referenced by other tags or manifests.</p>
+                <p><b>Default</b>: <codeph>True</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>NOTIFICATION_MIN_SEVERITY_ON_NEW_INDEX</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Set minimal security level for new notifications on detected vulnerabilities. Avoids creation of large number of notifications after first index. If not defined, defaults to <codeph>High</codeph>. Available options include <codeph>Critical</codeph>, <codeph>High</codeph>, <codeph>Medium</codeph>, <codeph>Low</codeph>, <codeph>Negligible</codeph>, and <codeph>Unknown</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SECURITY_SCANNER_V4_INDEX_MAX_LAYER_SIZE</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The maximum layer size allowed for indexing. If the layer size exceeds the configured size, the Red Hat Quay UI returns the following message: <codeph>The manifest for this tag has layer(s) that are too large to index by the Quay Security Scanner</codeph>. The default is <codeph>8G</codeph>, and the maximum recommended is <codeph>10G</codeph>. Accepted values are <codeph>B</codeph>, <codeph>K</codeph>, <codeph>M</codeph>, <codeph>T</codeph>, and <codeph>G</codeph>.</p>
+                <p><b>Default</b>: <codeph>8G</codeph></p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Security scanner YAML configuration</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_SECURITY_NOTIFICATIONS: true
+FEATURE_SECURITY_SCANNER: true
+FEATURE_SECURITY_SCANNER_NOTIFY_ON_NEW_INDEX: true
+...
+SECURITY_SCANNER_INDEXING_INTERVAL: 30
+SECURITY_SCANNER_V4_MANIFEST_CLEANUP: true
+SECURITY_SCANNER_V4_ENDPOINT: http://quay-server.example.com:8081
+SECURITY_SCANNER_V4_PSK: MTU5YzA4Y2ZkNzJoMQ==
+SERVER_HOSTNAME: quay-server.example.com
+SECURITY_SCANNER_V4_INDEX_MAX_LAYER_SIZE: 8G
+# ...</codeblock>
+      <p>Recommended maximum is <codeph>10G</codeph>.</p>
+    </section>
+    <section id="reindexing-clair-v4">
+      <title>Re-indexing with Clair v4</title>
+      <p>When Clair v4 indexes a manifest, the result should be deterministic. For example, the same manifest should produce the same index report. This is true until the scanners are changed, as using different scanners will produce different information relating to a specific manifest to be returned in the report. Because of this, Clair v4 exposes a state representation of the indexing engine (<codeph>/indexer/api/v1/index_state</codeph>) to determine whether the scanner configuration has been changed.</p>
+      <p>Red Hat Quay leverages this index state by saving it to the index report when parsing to Quay’s database. If this state has changed since the manifest was previously scanned, Red Hat Quay will attempt to re-index that manifest during the periodic indexing process.</p>
+      <p>By default this parameter is set to 30 seconds. Users might decrease the time if they want the indexing process to run more frequently, for example, if they did not want to wait 30 seconds to see security scan results in the UI after pushing a new tag. Users can also change the parameter if they want more control over the request pattern to Clair and the pattern of database operations being performed on the Red Hat Quay database.</p>
+    </section>
+  </refbody>
+</reference>

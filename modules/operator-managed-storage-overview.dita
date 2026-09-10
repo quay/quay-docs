@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="operator-managed-storage-overview">
+  <title>Choosing managed object storage</title>
+  <shortdesc>Managed storage is object storage that the Red Hat Quay Operator automatically provisions through the <codeph>ObjectBucketClaim</codeph> Kubernetes API. You can use managed storage to deploy a registry without configuring an external object storage provider.</shortdesc>
+  <conbody>
+    <p>If you are using managed object storage, the Red Hat Quay Operator can provision it for you using this <codeph>ObjectBucketClaim</codeph> mechanism. The NooBaa component of Red Hat OpenShift Data Foundation is a common provider that implements the <codeph>ObjectBucketClaim</codeph> API.</p>
+    <p>There are two supported managed options available through Red Hat OpenShift Data Foundation: using the Multicloud Object Gateway, or a production-grade deployment of Red Hat OpenShift Data Foundation. The differences between the two are summarized in the following tables.</p>
+    <table>
+      <tgroup cols="3">
+        <colspec colname="col_1" colwidth="25*"/>
+        <colspec colname="col_2" colwidth="25*"/>
+        <colspec colname="col_3" colwidth="50*"/>
+        <thead>
+          <row>
+            <entry>Aspect</entry>
+            <entry>Description</entry>
+            <entry>Benefit</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <p>Component</p>
+            </entry>
+            <entry>
+              <p>A standalone instance of the Multicloud Object Gateway backed by a local Kubernetes <codeph>PersistentVolume</codeph> storage.</p>
+            </entry>
+            <entry>
+              <p>Allows you to quickly deploy a Red Hat Quay registry without procuring an external service.</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>High availability</p>
+            </entry>
+            <entry>
+              <p>The Multicloud Object Gateway is not highly available. If the node fails, storage is temporarily inaccessible.</p>
+            </entry>
+            <entry>
+              <p>Depending on your use case, it should not be substituted for high availability needs.</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Subscription</p>
+            </entry>
+            <entry>
+              <p>Included in the Red Hat Quay subscription.</p>
+            </entry>
+            <entry>
+              <p>Reduces complexity and avoids purchasing separate products.</p>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table>
+      <tgroup cols="3">
+        <colspec colname="col_1" colwidth="25*"/>
+        <colspec colname="col_2" colwidth="25*"/>
+        <colspec colname="col_3" colwidth="50*"/>
+        <thead>
+          <row>
+            <entry>Aspect</entry>
+            <entry>Description</entry>
+            <entry>Benefit</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <p>Component</p>
+            </entry>
+            <entry>
+              <p>A production deployment of Red Hat OpenShift Data Foundation with scale-out Object Service and Ceph.</p>
+            </entry>
+            <entry>
+              <p>Provides reliability and data redundancy.</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>High availability</p>
+            </entry>
+            <entry>
+              <p>Highly available, meaning that object storage layer can withstand node failures.</p>
+            </entry>
+            <entry>
+              <p>Beneficial for production environments where uptime is essential.</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Subscription</p>
+            </entry>
+            <entry>
+              <p>Requires a separate subscription for Red Hat OpenShift Data Foundation.</p>
+            </entry>
+            <entry>
+              <p>Ensures enterprise-level support and stability for your storage layer.</p>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <section id="operator-standalone-object-gateway">
+      <title>About the Multicloud Object Gateway component</title>
+      <p>As part of a Red Hat Quay subscription, users are entitled to use the <i>Multicloud Object Gateway</i> component of the Red Hat OpenShift Data Foundation Operator (formerly known as OpenShift Container Storage Operator). The following table describes some of the benefits to using the Multicloud Object Gateway:</p>
+      <p>The Multicloud Object Gateway gateway component allows you to provide an S3-compatible object storage interface to Red Hat Quay backed by Kubernetes <codeph>PersistentVolume</codeph>-based block storage. The usage is limited to a Red Hat Quay deployment managed by the Operator and to the exact specifications of the Multicloud Object Gateway instance as documented below.</p>
+      <p>Since Red Hat Quay does not support local filesystem storage, users can leverage the gateway in combination with Kubernetes <codeph>PersistentVolume</codeph> storage instead, to provide a supported deployment. A <codeph>PersistentVolume</codeph> is directly mounted on the gateway instance as a backing store for object storage and any block-based <codeph>StorageClass</codeph> is supported.</p>
+      <p>By the nature of <codeph>PersistentVolume</codeph>, this is not a scale-out, highly available solution and does not replace a scale-out storage system like Red Hat OpenShift Data Foundation. Only a single instance of the gateway is running. If the pod running the gateway becomes unavailable due to rescheduling, updates or unplanned downtime, this will cause temporary degradation of the connected Red Hat Quay instances.</p>
+      <p>Deploying Red Hat Quay on OpenShift Container Platform using Red Hat OpenShift Data Foundation requires you to download the Local Storage Operator, the Red Hat OpenShift Data Foundation Operator, and then Multicloud Object Gateway using the OpenShift Container Platform UI. See <i>Additional resources</i> for Red Hat OpenShift Data Foundation documentation for these steps.</p>
+    </section>
+    <section id="about-odf">
+      <title>About Red Hat OpenShift Data Foundation</title>
+      <p>Red Hat OpenShift Data Foundation is a provider of agnostic persistent storage for OpenShift Container Platform supporting file, block, and object storage, either in-house or in hybrid clouds. As a Red Hat storage solution, Red Hat OpenShift Data Foundation is completely integrated with OpenShift Container Platform for deployment, management, and monitoring. For more information, see <i>Additional resources</i>.</p>
+    </section>
+  </conbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/deploy-using-local-storage-devices-bm#installing-local-storage-operator_local-bare-metal" format="html" scope="external">
+      <linktext>Local Storage Operator</linktext>
+    </link>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/deploy-using-local-storage-devices-bm#installing-openshift-data-foundation-operator-using-the-operator-hub_local-bare-metal" format="html" scope="external">
+      <linktext>Red Hat OpenShift Data Foundation Operator</linktext>
+    </link>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19/html/deploying_openshift_data_foundation_using_bare_metal_infrastructure/deploy-standalone-multicloud-object-gateway" format="html" scope="external">
+      <linktext>Creating a standalone Multicloud Object Gateway</linktext>
+    </link>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.19" format="html" scope="external">
+      <linktext>Red Hat OpenShift Data Foundation documentation</linktext>
+    </link>
+  </related-links>
+</concept>

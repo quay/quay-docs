@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-ssl">
+  <title>SSL/TLS configuration fields</title>
+  <shortdesc>Configure SSL/TLS settings, hostname, cipher suites, and session cookie security for Red Hat Quay.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>SSL configuration fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>PREFERRED_URL_SCHEME</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>One of <codeph>http</codeph> or <codeph>https</codeph>. Note that users only set their <codeph>PREFERRED_URL_SCHEME</codeph> to <codeph>http</codeph> when there is no TLS encryption in the communication path from the client to Quay. Users must set their <codeph>PREFERRED_URL_SCHEME`to `https</codeph> when using a TLS-terminating load balancer, a reverse proxy (for example, Nginx), or when using Quay with custom SSL certificates directly. In most cases, the <codeph>PREFERRED_URL_SCHEME</codeph> should be <codeph>https</codeph>. <b>Default:</b><codeph>http</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p><b>SERVER_HOSTNAME</b> (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The URL at which Red Hat Quay is accessible, without the scheme <b>Example:</b><codeph>quay-server.example.com</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SSL_CIPHERS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>If specified, the nginx-defined list of SSL ciphers to enabled and disabled <b>Example:</b> [<codeph>ECDHE-RSA-AES128-GCM-SHA256</codeph>, <codeph>ECDHE-ECDSA-AES128-GCM-SHA256</codeph>, <codeph>ECDHE-RSA-AES256-GCM-SHA384</codeph>, <codeph>ECDHE-ECDSA-AES256-GCM-SHA384</codeph>, <codeph>DHE-RSA-AES128-GCM-SHA256</codeph>, <codeph>DHE-DSS-AES128-GCM-SHA256</codeph>, <codeph>kEDH+AESGCM</codeph>, <codeph>ECDHE-RSA-AES128-SHA256</codeph>, <codeph>ECDHE-ECDSA-AES128-SHA256</codeph>, <codeph>ECDHE-RSA-AES128-SHA</codeph>, <codeph>ECDHE-ECDSA-AES128-SHA</codeph>, <codeph>ECDHE-RSA-AES256-SHA384</codeph>, <codeph>ECDHE-ECDSA-AES256-SHA384</codeph>, <codeph>ECDHE-RSA-AES256-SHA</codeph>, <codeph>ECDHE-ECDSA-AES256-SHA</codeph>, <codeph>DHE-RSA-AES128-SHA256</codeph>, <codeph>DHE-RSA-AES128-SHA</codeph>, <codeph>DHE-DSS-AES128-SHA256</codeph>, <codeph>DHE-RSA-AES256-SHA256</codeph>, <codeph>DHE-DSS-AES256-SHA</codeph>, <codeph>DHE-DSS-AES256-SHA</codeph>, <codeph>AES128-GCM-SHA256</codeph>, <codeph>AES256-GCM-SHA384</codeph>, <codeph>AES128-SHA256</codeph>, <codeph>AES256-SHA256</codeph>, <codeph>AES128-SHA</codeph>, <codeph>AES256-SHA</codeph>, <codeph>AES</codeph>, <codeph>!3DES"</codeph>, <codeph>!aNULL</codeph>, <codeph>!eNULL</codeph>, <codeph>!EXPORT</codeph>, <codeph>DES</codeph>, <codeph>!RC4</codeph>, <codeph>MD5</codeph>, <codeph>!PSK</codeph>, <codeph>!aECDH</codeph>, <codeph>!EDH-DSS-DES-CBC3-SHA</codeph>, <codeph>!EDH-RSA-DES-CBC3-SHA</codeph>, <codeph>!KRB5-DES-CBC3-SHA</codeph>]</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SSL_PROTOCOLS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>If specified, nginx is configured to enabled a list of SSL protocols defined in the list. Removing an SSL protocol from the list disables the protocol during Red Hat Quay startup. <b>Example:</b><codeph>['TLSv1','TLSv1.1','TLSv1.2', `TLSv1.3</codeph>]`</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SESSION_COOKIE_SECURE</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether the <codeph>secure</codeph> property should be set on session cookies <b>Default:</b> False <b>Recommendation:</b> Set to True for all installations using SSL</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>EXTERNAL_TLS_TERMINATION</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Set to <codeph>True</codeph> if TLS is supported, but terminated at a layer before Quay. Set to <codeph>False</codeph> when Quay is running with its own SSL certificates and receiving TLS traffic directly.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>SSL configuration example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+PREFERRED_URL_SCHEME: https
+SERVER_HOSTNAME: quay-server.example.com
+SSL_CIPHERS:
+  - ECDHE-RSA-AES128-GCM-SHA256
+SSL_PROTOCOLS:
+  - TLSv1.3
+SESSION_COOKIE_SECURE: true
+EXTERNAL_TLS_TERMINATION: true
+# ...</codeblock>
+    </section>
+  </refbody>
+  <related-links id="additional-resources">
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview" format="html" scope="external">
+      <linktext>SSL and TLS for Red Hat Quay</linktext>
+    </link>
+  </related-links>
+</reference>

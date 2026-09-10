@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="georepl-deploy-standalone">
+  <title>Run Red Hat Quay with storage preferences</title>
+  <shortdesc>To run a standalone Red Hat Quay instance with a regional storage preference, you can set the <codeph>QUAY_DISTRIBUTED_STORAGE_PREFERENCE</codeph> environment variable when you start the container.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Copy the <codeph>config.yaml</codeph> file to all machines running Red Hat Quay.</cmd>
+      </step>
+      <step>
+        <cmd>For each machine in each region, add a <codeph>QUAY_DISTRIBUTED_STORAGE_PREFERENCE</codeph> environment variable with the preferred storage engine for the region in which the machine is running.
+</cmd>
+        <info>
+          <p>For example, for a machine running in Europe with the config directory on the host available from <codeph>$QUAY/config</codeph>:</p>
+          <codeblock>$ sudo podman run -d --rm -p 80:8080 -p 443:8443  \
+   --name=quay \
+   -v $QUAY/config:/conf/stack:Z \
+   -e QUAY_DISTRIBUTED_STORAGE_PREFERENCE=europestorage \
+   registry.redhat.io/quay/quay-rhel9:v3.18.0</codeblock>
+          <note type="note">
+            <p>The value of the environment variable specified must match the name of a Location ID as defined in the config panel.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart all Red Hat Quay containers.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

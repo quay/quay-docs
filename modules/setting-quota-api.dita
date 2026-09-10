@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="setting-quota-api">
+  <title>Setting quota by using the API</title>
+  <shortdesc>To create, view, or update an organization storage quota in Red Hat Quay, you can call the organization quota API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>To set a quota for an organization, you can use the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#createorganizationquota" format="html" scope="external"><codeph>POST /api/v1/organization/{orgname}/quota</codeph></xref> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/quota" \
+     -H "Authorization: Bearer &lt;access_token&gt;" \
+     -H "Content-Type: application/json" \
+     -d '{
+         "limit_bytes": 10737418240,
+         "limits": "10 Gi"
+     }'</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">"Created"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#listorganizationquota" format="html" scope="external"><codeph>GET /api/v1/organization/{orgname}/quota</codeph></xref> command to see if your organization already has an established quota:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -k -X GET -H "Authorization: Bearer &lt;token&gt;" -H 'Content-Type: application/json'  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/quota  | jq</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">[{"id": 1, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}]</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can use the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#changeorganizationquota" format="html" scope="external"><codeph>PUT /api/v1/organization/{orgname}/quota/{quota_id}</codeph></xref> command to modify the existing quota limitation. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/quota/&lt;quota_id&gt;" \
+     -H "Authorization: Bearer &lt;access_token&gt;" \
+     -H "Content-Type: application/json" \
+     -d '{
+         "limit_bytes": &lt;limit_in_bytes&gt;
+     }'</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-json">{"id": 1, "limit_bytes": 21474836480, "limit": "20.0 GiB", "default_config": false, "limits": [], "default_config_exists": false}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

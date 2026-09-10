@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="getsuperuserrepositorymirrorhealth">
+  <title>getSuperUserRepositoryMirrorHealth</title>
+  <shortdesc>Return a global repository mirror health summary for superusers.</shortdesc>
+  <refbody>
+    <section id="getsuperuserrepositorymirrorhealth-get">
+      <title>GET /api/v1/superuser/mirror/health</title>
+      <p><b>Authorizations:</b> oauth2_implicit (<b>super:user</b>)</p>
+      <p>Returns HTTP <codeph>200</codeph> when mirroring is healthy and HTTP <codeph>503</codeph> when unhealthy.</p>
+      <p>This endpoint requires a fresh login. A validated OAuth or SSO token satisfies the check. A password-based browser session must be within <codeph>FRESH_LOGIN_TIMEOUT</codeph> (default: <codeph>10m</codeph>).</p>
+      <p>The response is a cluster-wide summary without repository-identifying issue samples. For namespace-scoped details, use <codeph>GET /api/v1/repository/mirror/health?namespace=&lt;orgname&gt;&amp;detailed=true</codeph>. See <xref href="quay_jtbd-reference.dita#getrepositorymirrorhealth">getRepositoryMirrorHealth</xref>.</p>
+    </section>
+    <section id="getsuperuserrepositorymirrorhealth-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>200</p>
+              </entry>
+              <entry>
+                <p>Mirroring is healthy</p>
+              </entry>
+              <entry>
+                <p>object</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>503</p>
+              </entry>
+              <entry>
+                <p>Mirroring is unhealthy</p>
+              </entry>
+              <entry>
+                <p>object</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="getsuperuserrepositorymirrorhealth-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/superuser/mirror/health" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+      <p>Substitute an OAuth access token that includes the <codeph>super:user</codeph> scope, or use a fresh superuser login session.</p>
+      <p outputclass="title">
+        <b>Example output</b>
+      </p>
+      <codeblock outputclass="language-json">{
+  "healthy": true,
+  "workers": {
+    "active": 1,
+    "configured": 1,
+    "status": "healthy"
+  },
+  "repositories": {
+    "total": 0,
+    "syncing": 0,
+    "completed": 0,
+    "failed": 0,
+    "never_run": 0
+  },
+  "tags_pending": 0,
+  "last_check": "2026-07-16T20:11:17.064697Z",
+  "issues": []
+}</codeblock>
+    </section>
+  </refbody>
+</reference>

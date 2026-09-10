@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="cosign-oci-with-quay">
+  <title>Installing and using Cosign</title>
+  <shortdesc>To install Cosign and sign images in Red Hat Quay, you can generate a key pair, sign a tag, and verify the signature. You authenticate to the registry with your existing credentials.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have installed Go version 1.16 or later.</li>
+        <li>You have set <codeph>FEATURE_GENERAL_OCI_SUPPORT</codeph> to <codeph>True</codeph> in your <codeph>config.yaml</codeph> file.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following <codeph>go</codeph> command to directly install Cosign:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ go install github.com/sigstore/cosign/cmd/cosign@v1.0.0</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">go: downloading github.com/sigstore/cosign v1.0.0
+go: downloading github.com/peterbourgon/ff/v3 v3.1.0</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Generate a key-value pair for Cosign by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cosign generate-key-pair</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Enter password for private key:
+Enter again:
+Private key written to cosign.key
+Public key written to cosign.pub</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Sign the key-value pair by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cosign sign -key cosign.key &lt;quay-server.example.com&gt;/user1/busybox:test</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Enter password for private key:
+Pushing signature to: quay-server.example.com/user1/busybox:sha256-ff13b8f6f289b92ec2913fa57c5dd0a874c3a7f8f149aabee50e3d01546473e3.sig</codeblock>
+          <p>If you experience an <codeph>UNAUTHORIZED: access to the requested resource is not authorized</codeph> error when signing, which occurs because Cosign relies on <codeph>~./docker/config.json</codeph> for authorization, you might need to execute the following command:</p>
+          <codeblock outputclass="language-terminal">$ podman login --authfile ~/.docker/config.json &lt;quay-server.example.com&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Username:
+Password:
+Login Succeeded!</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to see the updated authorization configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cat ~/.docker/config.json
+{
+	"auths": {
+		"quay-server.example.com": {
+			"auth": "cXVheWFkbWluOnBhc3N3b3Jk"
+		}
+	}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,680 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-clair-notifiers">
+  <title>Clair notifier configuration fields</title>
+  <shortdesc>You can use the Clair notifier configuration fields to set database connections, polling intervals, and webhook, AMQP, or STOMP delivery options in Red Hat Quay.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>notifier</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Provides Clair notifier node configuration.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.connstring</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Postgres connection string. Accepts format as URL, or libpq connection string.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.migrations</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether notifier nodes handle migrations to their database.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.indexer_addr</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>A notifier contacts an indexer to create or obtain manifests affected by vulnerabilities. The location of this indexer is required.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.matcher_addr</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>A notifier contacts a matcher to list update operations and acquire diffs. The location of this matcher is required.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.poll_interval</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The frequency at which the notifier will query a matcher for update operations.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.delivery_interval</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The frequency at which the notifier attempts delivery of created, or previously failed, notifications.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.disable_summary</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Controls whether notifications should be summarized to one per manifest.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="config-fields-clair-notifier-example">
+      <title>Example notifier configuration</title>
+      <p>The following <codeph>notifier</codeph> snippet is for a minimal configuration.</p>
+      <p outputclass="title">
+        <b>Example notifier configuration</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+notifier:
+  connstring: &gt;-
+    host=DB_HOST port=5432 dbname=notifier user=DB_USER password=DB_PASS
+    sslmode=verify-ca sslcert=/etc/clair/ssl/cert.pem sslkey=/etc/clair/ssl/key.pem
+    sslrootcert=/etc/clair/ssl/ca.pem
+  indexer_addr: http://clair-v4/
+  matcher_addr: http://clair-v4/
+  delivery_interval: 5s
+  migrations: true
+  poll_interval: 15s
+  webhook:
+    target: "http://webhook/"
+    callback: "http://clair-notifier/notifier/api/v1/notifications"
+    headers: ""
+  amqp: null
+  stomp: null
+# ...</codeblock>
+    </section>
+    <section id="clair-webhook-config-fields">
+      <title>Clair webhook configuration fields</title>
+      <p>The following webhook fields are available for the Clair notifier environment.</p>
+      <table>
+        <title>Clair webhook fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="33.3333*"/>
+          <colspec colname="col_2" colwidth="33.3333*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>.webhook</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Configures the notifier for webhook delivery.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.webhook.target</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>URL where the webhook will be delivered.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.webhook.callback</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The callback URL where notifications can be retrieved. The notification ID will be appended to this URL.</p>
+                <p>This will typically be where the Clair notifier is hosted.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.webhook.headers</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>A map associating a header name to a list of values.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="_example_webhook_configuration">
+      <title>Example webhook configuration</title>
+      <p outputclass="title">
+        <b>Example webhook configuration</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+notifier:
+# ...
+  webhook:
+    target: "http://webhook/"
+    callback: "http://clair-notifier/notifier/api/v1/notifications"
+# ...</codeblock>
+    </section>
+    <section id="clair-amqp-config-fields">
+      <title>Clair amqp configuration fields</title>
+      <p>The following Advanced Message Queuing Protocol (AMQP) fields are available for the Clair notifier environment.</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="33.3333*"/>
+          <colspec colname="col_2" colwidth="33.3333*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Configures the notifier for AMQP delivery.</p>
+                <p>[NOTE]
+====
+Clair does not declare any AMQP components on its own. All attempts to use an exchange or queue are passive only and will fail. Broker administrators should setup exchanges and queues ahead of time.
+====</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.direct</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>If <codeph>True</codeph>, the notifier will deliver individual notifications (not a callback) to the configured AMQP broker.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.rollup</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>When <codeph>amqp.direct</codeph> is set to <codeph>True</codeph>, this value informs the notifier of how many notifications to send in a direct delivery. For example, if <codeph>direct</codeph> is set to <codeph>True</codeph>, and <codeph>amqp.rollup</codeph> is set to <codeph>5</codeph>, the notifier delivers no more than 5 notifications in a single JSON payload to the broker. Setting the value to <codeph>0</codeph> effectively sets it to <codeph>1</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.exchange</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>The AMQP exchange to connect to.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.exchange.name</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The name of the exchange to connect to.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.exchange.type</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The type of the exchange. Typically one of the following: <b>direct</b>, <b>fanout</b>, <b>topic</b>, <b>headers</b>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.exchange.durability</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether the configured queue is durable.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.exchange.auto_delete</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether the configured queue uses an <codeph>auto_delete_policy</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.routing_key</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The name of the routing key each notification is sent with.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.callback</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>If <codeph>amqp.direct</codeph> is set to <codeph>False</codeph>, this URL is provided in the notification callback sent to the broker. This URL should point to Clair’s notification API endpoint.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.uris</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>A list of one or more AMQP brokers to connect to, in priority order.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.tls</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Configures TLS/SSL connection to an AMQP broker.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.tls.root_ca</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The filesystem path where a root CA can be read.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.tls.cert</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The filesystem path where a TLS/SSL certificate can be read.</p>
+                <p>[NOTE]
+====
+Clair also allows <codeph>SSL_CERT_DIR</codeph>, as documented for the Go <codeph>crypto/x509</codeph> package.
+====</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.amqp.tls.key</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The filesystem path where a TLS/SSL private key can be read.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="config-fields-clair-amqp-example">
+      <title>Example AMQP configuration</title>
+      <p>The following example shows a hypothetical AMQP configuration for Clair.</p>
+      <p outputclass="title">
+        <b>Example AMQP configuration</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+notifier:
+# ...
+  amqp:
+    exchange:
+        name: ""
+        type: "direct"
+        durable: true
+        auto_delete: false
+    uris: ["amqp://user:pass@host:10000/vhost"]
+    direct: false
+    routing_key: "notifications"
+    callback: "http://clair-notifier/notifier/api/v1/notifications"
+    tls:
+     root_ca: "optional/path/to/rootca"
+     cert: "madatory/path/to/cert"
+     key: "madatory/path/to/key"
+# ...</codeblock>
+    </section>
+    <section id="clair-stomp-config-fields">
+      <title>Clair STOMP configuration fields</title>
+      <p>The following Simple Text Oriented Message Protocol (STOMP) fields are available for the Clair notifier environment.</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="33.3333*"/>
+          <colspec colname="col_2" colwidth="33.3333*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>
+                <b>.stomp</b>
+              </entry>
+              <entry>Object</entry>
+              <entry>Configures the notifier for STOMP delivery.</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.direct</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>If <codeph>True</codeph>, the notifier delivers individual notifications (not a callback) to the configured STOMP broker.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.rollup</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>If <codeph>stomp.direct</codeph> is set to <codeph>True</codeph>, this value limits the number of notifications sent in a single direct delivery. For example, if <codeph>direct</codeph> is set to <codeph>True</codeph>, and <codeph>rollup</codeph> is set to <codeph>5</codeph>, the notifier delivers no more than 5 notifications in a single JSON payload to the broker. Setting the value to <codeph>0</codeph> effectively sets it to <codeph>1</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.callback</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>If <codeph>stomp.callback</codeph> is set to <codeph>False</codeph>, the provided URL in the notification callback is sent to the broker. This URL should point to Clair’s notification API endpoint.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.destination</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The STOMP destination to deliver notifications to.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.uris</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>A list of one or more STOMP brokers to connect to in priority order.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.tls</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Configured TLS/SSL connection to STOMP broker.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.tls.root_ca</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The filesystem path where a root CA can be read.</p>
+                <p>[NOTE]
+====
+Clair also respects <codeph>SSL_CERT_DIR</codeph>, as documented for the Go <codeph>crypto/x509</codeph> package.
+====</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.tls.cert</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The filesystem path where a TLS/SSL certificate can be read.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.tls.key</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The filesystem path where a TLS/SSL private key can be read.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.user</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Configures login details for the STOMP broker.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.user.login</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The STOMP login to connect with.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.stomp.user.passcode</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The STOMP passcode to connect with.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="config-fields-clair-stomp-example">
+      <title>Example STOMP configuration</title>
+      <p>The following example shows a hypothetical STOMP configuration for Clair.</p>
+      <p outputclass="title">
+        <b>Example STOMP configuration</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+notifier:
+# ...
+  stomp:
+    desitnation: "notifications"
+    direct: false
+    callback: "http://clair-notifier/notifier/api/v1/notifications"
+    login:
+      login: "username"
+      passcode: "passcode"
+    tls:
+     root_ca: "optional/path/to/rootca"
+     cert: "madatory/path/to/cert"
+     key: "madatory/path/to/key"
+# ...</codeblock>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="restoring-quay-and-configuration-from-backup">
+  <title>Restoring Red Hat Quay from a backup</title>
+  <shortdesc>To restore your Red Hat Quay registry and configuration from a backup, you can restore the configuration bundle, managed secret keys, and <codeph>QuayRegistry</codeph> custom resource. This procedure restores your registry to a previous state using backup files created with the backup process.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have backed up your Red Hat Quay registry and configuration.</li>
+        <li>You have the backup files <codeph>config-bundle.yaml</codeph>, <codeph>managed-secret-keys.yaml</codeph>, and <codeph>quay-registry.yaml</codeph>.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Restore the backed up Red Hat Quay configuration by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create -f ./config-bundle.yaml</codeblock>
+          <note type="important">
+            <p>If you receive the error <codeph>Error from server (AlreadyExists): error when creating "./config-bundle.yaml": secrets "config-bundle-secret" already exists</codeph>, you must delete your existing resource with <codeph>$ oc delete Secret config-bundle-secret -n &lt;quay-namespace&gt;</codeph> and recreate it with <codeph>$ oc create -f ./config-bundle.yaml</codeph>.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Restore the generated keys from the backup by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create -f ./managed-secret-keys.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Restore the <codeph>QuayRegistry</codeph> custom resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create -f ./quay-registry.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Check the status of the Red Hat Quay deployment by entering the following command. Wait for it to be available:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc wait quayregistry registry --for=condition=Available=true -n &lt;quay-namespace&gt;</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="use-quay-export-logs-api">
+  <title>Exporting logs by using the API</title>
+  <shortdesc>To export detailed Red Hat Quay logs for a user, organization, or repository, you can call the export logs API endpoints and deliver the results to a callback URL or email address.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/user/exportlogs</codeph> endpoint to export logs for the current user:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+        "starttime": "&lt;MM/DD/YYYY&gt;",
+        "endtime": "&lt;MM/DD/YYYY&gt;",
+        "callback_email": "your.email@example.com"
+      }' \
+  "http://&lt;quay-server.example.com&gt;/api/v1/user/exportlogs"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"export_id": "6a0b9ea9-444c-4a19-9db8-113201c38cd4"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/organization/{orgname}/exportlogs</codeph> endpoint to export logs for an organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+        "starttime": "&lt;MM/DD/YYYY&gt;",
+        "endtime": "&lt;MM/DD/YYYY&gt;",
+        "callback_email": "org.logs@example.com"
+      }' \
+  "http://&lt;quay-server.example.com&gt;/api/v1/organization/{orgname}/exportlogs"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/repository/{repository}/exportlogs</codeph> endpoint to export logs for a repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+        "starttime": "2024-01-01",
+        "endtime": "2024-06-18",
+        "callback_url": "http://your-callback-url.example.com"
+      }' \
+  "http://&lt;quay-server.example.com&gt;/api/v1/repository/{repository}/exportlogs"</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

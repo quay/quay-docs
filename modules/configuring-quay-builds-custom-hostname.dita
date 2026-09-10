@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-quay-builds-custom-hostname_{context}">
+  <title>Configuring Red Hat Quay builds for managed routes</title>
+  <shortdesc>To use Red Hat Quay builds with managed routes and custom hostnames, you can configure DNS records and update your registry configuration. This enables gRPC communication between build executors and the build manager.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>The Red Hat Quay Operator is installed and a <codeph>QuayRegistry</codeph> exists.</li>
+        <li>Your <codeph>kubectl</codeph> or <codeph>oc</codeph> CLI tool is configured for the target cluster.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enable HTTP/2 ingress on your OpenShift Container Platform cluster to support gRPC.</cmd>
+      </step>
+      <step>
+        <cmd>Retrieve the host address of the generated build-manager route:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ kubectl get -n &lt;namespace&gt; route &lt;quayregistry-name&gt;-quay-builder -o jsonpath={.status.ingress[0].host}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a CNAME record with your DNS provider that points your custom hostname (for example, <codeph>builder-registry.example.com</codeph>) to the route host retrieved in the previous step.</cmd>
+      </step>
+      <step>
+        <cmd>Update the <codeph>Secret</codeph> referenced by <codeph>spec.configBundleSecret</codeph> in your <codeph>QuayRegistry</codeph> to include the build cluster CA certificate. The key must be named <codeph>extra_ca_cert_build_cluster.cert</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>Add the <codeph>BUILDMAN_HOSTNAME</codeph> field to your <codeph>config.yaml</codeph> and include the port number:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">BUILDMAN_HOSTNAME: builder-registry.example.com:443
+BUILD_MANAGER:
+- ephemeral
+  ALLOWED_WORKER_COUNT: 1
+  ...</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="red-hat-quay-gcp-bucket-modify">
+  <title>Modifying your Google Cloud Platform object bucket</title>
+  <shortdesc>To enable virtual builds with Google Cloud Platform storage in Red Hat Quay, you can configure cross-origin resource sharing (CORS) settings in your GCP bucket. This allows build workers to upload Dockerfiles and access build artifacts.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>Currently, modifying your Google Cloud Platform object bucket is not supported on IBM Power and IBM Z.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Use the following reference to create a JSON file for your specific CORS needs. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cat gcp_cors.json</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-json">[
+    {
+      "origin": ["*"],
+      "method": ["GET"],
+      "responseHeader": ["Authorization"],
+      "maxAgeSeconds": 3600
+    },
+    {
+      "origin": ["*"],
+      "method": ["PUT"],
+      "responseHeader": [
+              "Content-Type",
+              "x-goog-acl",
+              "origin"],
+      "maxAgeSeconds": 3600
+    }
+]</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to update your GCP storage bucket:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ gcloud storage buckets update gs://&lt;bucket_name&gt; --cors-file=./gcp_cors.json</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Updating
+  Completed 1</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can display the updated CORS configuration of your GCP bucket by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ gcloud storage buckets describe gs://&lt;bucket_name&gt;  --format="default(cors)"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-yaml">cors:
+- maxAgeSeconds: 3600
+  method:
+  - GET
+  origin:
+  - '*'
+  responseHeader:
+  - Authorization
+- maxAgeSeconds: 3600
+  method:
+  - PUT
+  origin:
+  - '*'
+  responseHeader:
+  - Content-Type
+  - x-goog-acl
+  - origin</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

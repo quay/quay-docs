@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="config-extra-ca-certs-standalone">
+  <title>Adding additional Certificate Authorities to the Red Hat Quay container</title>
+  <shortdesc>To add Certificate Authorities to a standalone Red Hat Quay container, you can copy CA files into the <codeph>extra_ca_certs</codeph> directory in your configuration folder and restart the registry container. Red Hat Quay uses these certificates to verify TLS connections to external services.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have a CA for the desired service.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>View the certificate to be added to the container by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cat storage.crt</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">-----BEGIN CERTIFICATE-----
+MIIDTTCCAjWgAwIBAgIJAMVr9ngjJhzbMA0GCSqGSIb3DQEBCwUAMD0xCzAJBgNV...
+-----END CERTIFICATE-----</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create the <codeph>extra_ca_certs</codeph> in the <codeph>/config</codeph> folder of your Red Hat Quay directory by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir -p /path/to/quay_config_folder/extra_ca_certs</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Copy the CA file to the <codeph>extra_ca_certs</codeph> folder. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cp storage.crt /path/to/quay_config_folder/extra_ca_certs/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Ensure that the <codeph>storage.crt</codeph> file exists within the <codeph>extra_ca_certs</codeph> folder by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ tree /path/to/quay_config_folder/extra_ca_certs</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">/path/to/quay_config_folder/extra_ca_certs
+├── storage.crt----</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the <codeph>CONTAINER ID</codeph> of your <codeph>Quay</codeph> consider by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman ps</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">CONTAINER ID        IMAGE                                COMMAND                  CREATED             STATUS              PORTS
+5a3e82c4a75f        &lt;registry&gt;/&lt;repo&gt;/quay:{productminv} "/sbin/my_init"          24 hours ago        Up 18 hours         0.0.0.0:80-&gt;80/tcp, 0.0.0.0:443-&gt;443/tcp, 443/tcp   grave_keller</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart the container by entering the following command
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman restart 5a3e82c4a75f</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Confirm that the certificate was copied into the container namespace by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman exec -it 5a3e82c4a75f cat /etc/ssl/certs/storage.pem</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">-----BEGIN CERTIFICATE-----
+MIIDTTCCAjWgAwIBAgIJAMVr9ngjJhzbMA0GCSqGSIb3DQEBCwUAMD0xCzAJBgNV...
+-----END CERTIFICATE-----</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="viewing-quota-usage-api">
+  <title>Viewing quota usage by using the API</title>
+  <shortdesc>To view organization and repository storage consumption in Red Hat Quay, you can query the repository list and organization API endpoints.</shortdesc>
+  <taskbody>
+    <steps-unordered>
+      <step>
+        <cmd>To view storage consumed by repositories in an organization, send a <codeph>GET</codeph> request to the <codeph>/api/v1/repository</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -k -X GET -H "Authorization: Bearer &lt;token&gt;" -H 'Content-Type: application/json' 'https://&lt;quay-server.example.com&gt;/api/v1/repository?last_modified=true&amp;namespace=&lt;organization_name&gt;&amp;popularity=true&amp;public=true'  | jq</codeblock>
+          <p>Example output:</p>
+          <codeblock outputclass="language-json">{
+  "repositories": [
+    {
+      "namespace": "testorg",
+      "name": "ubuntu",
+      "description": null,
+      "is_public": false,
+      "kind": "image",
+      "state": "NORMAL",
+      "quota_report": {
+        "quota_bytes": 27959066,
+        "configured_quota": 104857600
+      },
+      "last_modified": 1651225630,
+      "popularity": 0,
+      "is_starred": false
+    }
+  ]
+}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To view the quota report for multiple repositories in the organization, send a <codeph>GET</codeph> request to the <codeph>/api/v1/repository</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -k -X GET -H "Authorization: Bearer &lt;token&gt;" -H 'Content-Type: application/json' 'https://&lt;quay-server.example.com&gt;/api/v1/repository?last_modified=true&amp;namespace=&lt;organization_name&gt;&amp;popularity=true&amp;public=true'</codeblock>
+          <p>Example output:</p>
+          <codeblock outputclass="language-json">{
+  "repositories": [
+    {
+      "namespace": "testorg",
+      "name": "ubuntu",
+      "description": null,
+      "is_public": false,
+      "kind": "image",
+      "state": "NORMAL",
+      "quota_report": {
+        "quota_bytes": 27959066,
+        "configured_quota": 104857600
+      },
+      "last_modified": 1651225630,
+      "popularity": 0,
+      "is_starred": false
+    },
+    {
+      "namespace": "testorg",
+      "name": "nginx",
+      "description": null,
+      "is_public": false,
+      "kind": "image",
+      "state": "NORMAL",
+      "quota_report": {
+        "quota_bytes": 59231659,
+        "configured_quota": 104857600
+      },
+      "last_modified": 1651229507,
+      "popularity": 0,
+      "is_starred": false
+    }
+  ]
+}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To view quota information in the organization details, send a <codeph>GET</codeph> request to the <codeph>/api/v1/organization/&lt;organization_name&gt;</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -k -X GET -H "Authorization: Bearer &lt;token&gt;" -H 'Content-Type: application/json' 'https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;' | jq</codeblock>
+          <p>Example output:</p>
+          <codeblock outputclass="language-json">{
+  "name": "testorg",
+  ...
+  "quotas": [
+    {
+      "id": 1,
+      "limit_bytes": 104857600,
+      "limits": []
+    }
+  ],
+  "quota_report": {
+    "quota_bytes": 87190725,
+    "configured_quota": 104857600
+  }
+}</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

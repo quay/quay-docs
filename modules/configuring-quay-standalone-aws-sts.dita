@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-quay-standalone-aws-sts">
+  <title>Configuring Red Hat Quay to use AWS STS</title>
+  <shortdesc>To configure Red Hat Quay to use AWS STS for Amazon S3 storage, you can update the <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> block in your <codeph>config.yaml</codeph> file and restart the registry.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Update your <codeph>config.yaml</codeph> file for Red Hat Quay to include the following information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - STSS3Storage
+    - sts_role_arn: &lt;role_arn&gt;
+      s3_bucket: &lt;s3_bucket_name&gt;
+      storage_path: &lt;storage_path&gt;
+      s3_region: &lt;region&gt;
+      sts_user_access_key: &lt;s3_user_access_key&gt;
+      sts_user_secret_key: &lt;s3_user_secret_key&gt;
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>sts_role_arn</codeph>
+              </dt>
+              <dd>Specifies the unique Amazon Resource Name (ARN) required when configuring AWS STS.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>s3_bucket</codeph>
+              </dt>
+              <dd>Specifies the name of your S3 bucket.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>storage_path</codeph>
+              </dt>
+              <dd>Specifies the storage path for data. Usually <codeph>/datastorage</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>s3_region</codeph>
+              </dt>
+              <dd>Specifies the Amazon Web Services region. Defaults to <codeph>us-east-1</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>sts_user_access_key</codeph>
+              </dt>
+              <dd>Specifies the generated AWS S3 user access key required when configuring AWS STS.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>sts_user_secret_key</codeph>
+              </dt>
+              <dd>Specifies the generated AWS S3 user secret key required when configuring AWS STS.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay deployment.</cmd>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Tag a sample image, for example, <codeph>busybox</codeph>, that you push to the repository. For example:
+<codeblock outputclass="language-terminal">$ podman tag docker.io/library/busybox &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/busybox:test</codeblock></li>
+        <li>Push the sample image by running the following command:
+<codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/busybox:test</codeblock></li>
+        <li>Verify that the push was successful by navigating to the Organization that you pushed the image to in your Red Hat Quay registry → <b>Tags</b>.</li>
+        <li>Navigate to the Amazon Web Services (AWS) console and locate your S3 bucket.</li>
+        <li>Click the name of your S3 bucket.</li>
+        <li>On the <b>Objects</b> page, click <b>datastorage/</b>.</li>
+        <li>On the <b>datastorage/</b> page, the following resources should appear:
+<ul><li><b>sha256/</b></li><li><b>uploads/</b><p>These resources indicate that the push was successful, and that AWS STS is properly configured.</p></li></ul></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

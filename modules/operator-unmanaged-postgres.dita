@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="operator-unmanaged-postgres">
+  <title>Using an external PostgreSQL database</title>
+  <shortdesc>Using an external PostgreSQL database with Red Hat Quay lets you manage your own database infrastructure instead of using the Operator-managed database. You must ensure that required configuration and extensions, such as <codeph>pg_trgm</codeph>, are in place before deployment.</shortdesc>
+  <conbody>
+    <p>If you use the Operator-managed PostgreSQL database and require encryption in transit, you can enable TLS on the <codeph>postgres</codeph> component without switching to an external database. For more information, see "TLS encryption for Operator-managed PostgreSQL".</p>
+    <note type="important">
+      <p>Do not share the same PostgreSQL database between Red Hat Quay and Clair deployments. Each service must use its own database instance.
+Sharing databases with other workloads is also not supported, because connection-intensive components such as Red Hat Quay and Clair can quickly exceed PostgreSQL’s connection limits.</p>
+      <p>Connection poolers such as <b>pgBouncer</b> are not supported with Red Hat Quay or Clair.</p>
+    </note>
+    <p>When managing your own PostgreSQL database for use with Red Hat Quay, the following best practices are recommended:</p>
+    <ul>
+      <li><b><codeph>pg_trgm</codeph> extension:</b> The <codeph>pg_trgm</codeph> extension must be enabled on the database for a successful deployment.</li>
+      <li><b>Backups:</b> Perform regular database backups using PostgreSQL-native tools or your existing backup infrastructure. The Red Hat Quay Operator does not manage database backups.</li>
+      <li><b>Restores:</b> When restoring a backup, ensure that all Red Hat Quay pods are stopped before beginning the restore process.</li>
+      <li><b>Storage sizing:</b> When using the Operator-managed PostgreSQL database, the default storage allocation is 50 GiB. For external databases, you must ensure sufficient storage capacity for your environment, as the Operator does not handle volume resizing.</li>
+      <li><b>Monitoring:</b> Monitor disk usage, connection limits, and query performance to prevent outages caused by resource exhaustion.</li>
+    </ul>
+  </conbody>
+</concept>

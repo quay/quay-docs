@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-registry-infra-node">
+  <title>Creating the Red Hat Quay registry on infrastructure nodes</title>
+  <shortdesc>To create a Red Hat Quay registry that runs on infrastructure nodes, you can create a QuayRegistry custom resource in the annotated namespace. You must patch the registry components (<codeph>clair</codeph>, <codeph>postgres</codeph>, <codeph>redis</codeph>, and so on) with toleration annotations so they can schedule onto the infra worker nodes.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>On the OpenShift Container Platform web console, click <b>Operators</b> → <b>Installed Operators</b> → <b>Red Hat Quay</b>.</cmd>
+      </step>
+      <step>
+        <cmd>On the <b>Red Hat Quay Operator details</b> page, click <b>Quay Registry</b> → <b>Create QuayRegistry</b>.</cmd>
+      </step>
+      <step>
+        <cmd>On the <b>Create QuayRegistry</b> page, set the <codeph>monitoring</codeph> and <codeph>objectstorage</codeph> fields to <codeph>false</codeph>. The monitoring component cannot be enabled when Red Hat Quay is installed in a single namespace. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+    - kind: monitoring
+      managed: false
+    - kind: objectstorage
+      managed: false
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Click <b>Create</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Optional: Confirm that the pods are running on infra nodes.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>List all <codeph>Quay</codeph>-related pods along with the nodes that they are scheduled on by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc get pods -n &lt;annotated_namespace&gt; -o wide | grep example-registry</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

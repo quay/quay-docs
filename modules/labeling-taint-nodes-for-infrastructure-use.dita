@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="labeling-taint-nodes-for-infrastructure-use">
+  <title>Labeling and tainting nodes for infrastructure use</title>
+  <shortdesc>To dedicate nodes for infrastructure workloads like <codeph>quay</codeph> pods, you can label and taint worker nodes with the infra role. This prevents user workloads from being scheduled on infrastructure nodes and ensures only infrastructure pods run on these dedicated nodes.</shortdesc>
+  <conbody>
+    <note type="note">
+      <p>The following procedure labels three worker nodes with the <codeph>infra</codeph> label. Depending on the resources relevant to your environment, you might have to label more than three worker nodes with the <codeph>infra</codeph> label.</p>
+    </note>
+    <ol>
+      <li>Obtain a list of <i>worker</i> nodes in your deployment by entering the following command:
+<codeblock outputclass="language-terminal">$ oc get nodes | grep worker</codeblock><codeblock outputclass="language-terminal">NAME                                                              STATUS   ROLES                  AGE    VERSION
+---
+example-cluster-new-c5qqp-worker-b-4zxx5.c.quay-devel.internal   Ready    worker                 401d   v1.31.11
+example-cluster-new-c5qqp-worker-b-kz6jn.c.quay-devel.internal   Ready    worker                 402d   v1.31.11
+example-cluster-new-c5qqp-worker-b-wrhw4.c.quay-devel.internal   Ready    worker                 401d   v1.31.11
+---</codeblock></li>
+      <li>Add the <codeph>node-role.kubernetes.io/infra=</codeph> label to the worker nodes by entering the following command.
+The number of infrastructure nodes required depends on your environment. Production environments should provision enough infra nodes to ensure high availability and sufficient resources for all <codeph>quay</codeph>-related components. Monitor CPU, memory, and storage utilization to determine if additional infra nodes are required.
+<codeblock outputclass="language-terminal">$ oc label node --overwrite &lt;infra_node_one&gt; &lt;infra_node_two&gt; &lt;infra_node_three&gt; node-role.kubernetes.io/infra=</codeblock></li>
+      <li>Confirm that the <codeph>node-role.kubernetes.io/infra=</codeph> label has been added to the proper nodes by entering the following command:
+<codeblock outputclass="language-terminal">$ oc get node | grep infra</codeblock><codeblock outputclass="language-terminal">---
+example-cluster-new-c5qqp-worker-b-4zxx5.c.quay-devel.internal   Ready    infra,worker           405d   v1.32.8
+example-cluster-new-c5qqp-worker-b-kz6jn.c.quay-devel.internal   Ready    infra,worker           406d   v1.32.8
+example-cluster-new-c5qqp-worker-b-wrhw4.c.quay-devel.internal   Ready    infra,worker           405d   v1.32.8
+---</codeblock></li>
+      <li>When a worker node is assigned the <codeph>infra</codeph> role, there is a chance that user workloads could get inadvertently assigned to an infra node. To avoid this, you can apply a taint to the infra node, and then add tolerations for the pods that you want to control. Taint the worker nodes with the <codeph>infra</codeph> label by entering the following command:
+<codeblock outputclass="language-terminal">$ oc adm taint nodes -l node-role.kubernetes.io/infra \
+  node-role.kubernetes.io/infra=reserved:NoSchedule --overwrite</codeblock><codeblock outputclass="language-terminal">node/example-cluster-new-c5qqp-worker-b-4zxx5.c.quay-devel.internal modified
+node/example-cluster-new-c5qqp-worker-b-kz6jn.c.quay-devel.internal modified
+node/example-cluster-new-c5qqp-worker-b-wrhw4.c.quay-devel.internal modified</codeblock></li>
+    </ol>
+  </conbody>
+</concept>

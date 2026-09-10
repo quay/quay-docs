@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="org-member-info-api">
+  <title>Retrieving organization member information by using the API</title>
+  <shortdesc>To list organization members and collaborators or remove a member in Red Hat Quay, you can call the organization members API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/organization/{orgname}/members</codeph> endpoint to return a list of organization members:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/members" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"members": [{"name": "quayadmin", "kind": "user", "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}, "teams": [{"name": "owners", "avatar": {"name": "owners", "hash": "6f0e3a8c0eb46e8834b43b03374ece43a030621d92a7437beb48f871e90f8d90", "color": "#c7c7c7", "kind": "team"}}], "repositories": ["testrepo"]}, {"name": "testuser", "kind": "user", "avatar": {"name": "testuser", "hash": "f660ab912ec121d1b1e928a0bb4bc61b15f5ad44d5efdc4e1c92a25e99b8e44a", "color": "#6b6ecf", "kind": "user"}, "teams": [{"name": "owners", "avatar": {"name": "owners", "hash": "6f0e3a8c0eb46e8834b43b03374ece43a030621d92a7437beb48f871e90f8d90", "color": "#c7c7c7", "kind": "team"}}], "repositories": []}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can use the <codeph>GET /api/v1/organization/{orgname}/collaborators</codeph> endpoint to return a list of organization collaborators:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/organization/{orgname}/collaborators" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"collaborators": [user-test]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/organization/{orgname}/members/{membername}</codeph> endpoint to obtain more specific information about a user:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/members/&lt;membername&gt;" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"name": "quayadmin", "kind": "user", "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}, "teams": [{"name": "owners", "avatar": {"name": "owners", "hash": "6f0e3a8c0eb46e8834b43b03374ece43a030621d92a7437beb48f871e90f8d90", "color": "#c7c7c7", "kind": "team"}}], "repositories": ["testrepo"]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>DELETE /api/v1/organization/{orgname}/members/{membername}</codeph> endpoint to delete a team member.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/members/&lt;membername&gt;" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p>This command does not return output.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

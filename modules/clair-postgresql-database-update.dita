@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="upgrading-clair-postgresql-database">
+  <title>Migrating the Clair PostgreSQL database from version 13 to 15</title>
+  <shortdesc>To migrate your Clair PostgreSQL database from version 13 to version 15 in Red Hat Quay, you can stop Clair and Quay, run the data migration container, and restart the services.</shortdesc>
+  <taskbody>
+    <context>
+      <p>If you are upgrading Red Hat Quay to version 13, you must migrate your Clair PostgreSQL database version from PostgreSQL version 13 to version 15. This requires bringing down your Clair PostgreSQL 13 database and running a migration script to initiate the process.</p>
+      <note type="important">
+        <p>Clair security scans might become temporarily disrupted after the migration procedure has succeeded.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Stop the Red Hat Quay container by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman stop &lt;quay_container_name&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Stop the Clair container by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman stop &lt;clair_container_id&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Run the following Podman process from SCLOrg’s Data Migration procedure, which allows for data migration from a remote PostgreSQL server:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman run -d --name &lt;clair_migration_postgresql_database&gt; \
+  -e POSTGRESQL_MIGRATION_REMOTE_HOST=&lt;container_ip_address&gt; \
+  -e POSTGRESQL_MIGRATION_ADMIN_PASSWORD=remoteAdminP@ssword \
+  -v &lt;/host/data/directory:/var/lib/pgsql/data:Z&gt; \
+  [ OPTIONAL_CONFIGURATION_VARIABLES ]
+  registry.redhat.io/rhel8/postgresql-15</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>&lt;clair_migration_postgresql_database&gt;</codeph>
+              </dt>
+              <dd>Specifies a name for your Clair PostgreSQL 15 migration database.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>&lt;container_ip_address&gt;</codeph>
+              </dt>
+              <dd>Specifies your new Clair PostgreSQL 15 database container IP address. Can be obtained by running the following command: <codeph>sudo podman inspect -f "{{.NetworkSettings.IPAddress}}" postgresql-quay</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>&lt;/host/data/directory:/var/lib/pgsql/data:Z&gt;</codeph>
+              </dt>
+              <dd>
+                <p>Specifies a different volume mount point than the one from your initial Clair PostgreSQL 13 deployment. Modify the access control lists for said directory. For example:</p>
+                <codeblock outputclass="language-terminal">$ mkdir -p /host/data/clair-postgresql15-directory</codeblock>
+                <codeblock outputclass="language-terminal">$ setfacl -m u:26:-wx /host/data/clair-postgresql15-directory</codeblock>
+                <p>This prevents data from being overwritten by the new container.</p>
+              </dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Stop the Clair PostgreSQL 13 container:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman stop &lt;clair_postgresql13_container_name&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>After completing the PostgreSQL migration, run the Clair PostgreSQL 15 container, using the new data volume mount from Step 3, for example, <codeph>&lt;/host/data/clair-postgresql15-directory:/var/lib/postgresql/data&gt;</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman run -d --rm --name &lt;postgresql15-clairv4&gt; \
+  -e POSTGRESQL_USER=&lt;clair_username&gt; \
+  -e POSTGRESQL_PASSWORD=&lt;clair_password&gt; \
+  -e POSTGRESQL_DATABASE=&lt;clair_database_name&gt; \
+  -e POSTGRESQL_ADMIN_PASSWORD=&lt;admin_password&gt; \
+  -p 5433:5432 \
+  -v &lt;/host/data/clair-postgresql15-directory:/var/lib/postgresql/data:Z&gt; \
+    registry.redhat.io/rhel8/postgresql-15</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Start the Red Hat Quay container by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman run -d --rm -p 80:8080 -p 443:8443 --name=quay \
+-v /home/&lt;quay_user&gt;/quay-poc/config:/conf/stack:Z \
+-v /home/&lt;quay_user&gt;/quay-poc/storage:/datastorage:Z \
+{productrepo}/{quayimage}:{productminv}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Start the Clair container by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman run -d --name clairv4 \
+-p 8081:8081 -p 8088:8088 \
+-e CLAIR_CONF=/clair/config.yaml \
+-e CLAIR_MODE=combo \
+registry.redhat.io/quay/clair-rhel8:{productminv}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-openshift-tls-component-builds">
+  <title>Configuring the OpenShift Container Platform TLS component for builds</title>
+  <shortdesc>To enable the builds feature with unmanaged TLS in Red Hat Quay, you can add the builder route name to the Subject Alternative Name (SAN) field in your SSL/TLS certificate configuration.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have set the <codeph>tls</codeph> component to <codeph>unmanaged</codeph> and uploaded custom SSL/TLS certificates to the Red Hat Quay Operator. For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview" format="html" scope="external">SSL and TLS for Red Hat Quay</xref>.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>The <codeph>tls</codeph> component of the <codeph>QuayRegistry</codeph> custom resource definition (CRD) allows you to control whether SSL/TLS are managed by the Red Hat Quay Operator, or self managed. In its current state, Red Hat Quay does not support the <i>builds</i> feature, or the <i>builder</i> workers, when the <codeph>tls</codeph> component is managed by the Red Hat Quay Operator.</p>
+      <p>When setting the <codeph>tls</codeph> component to <codeph>unmanaged</codeph>, you must supply your own <codeph>ssl.cert</codeph> and <codeph>ssl.key</codeph> files. Additionally, if you want your cluster to support <i>builders</i>, or the worker nodes that are responsible for building images, you must add both the <codeph>Quay</codeph> route and the <codeph>builder</codeph> route name to the SAN list in the certificate. Alternatively, however, you could use a wildcard.</p>
+    </context>
+    <steps-unordered>
+      <step>
+        <cmd>In the configuration file that defines your SSL/TLS certificate parameters, for example, <codeph>openssl.cnf</codeph>, add the following information to the certificate’s Subject Alternative Name (SAN) field. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+[alt_names]
+&lt;quay_registry_name&gt;-quay-builder-&lt;namespace&gt;.&lt;domain-name&gt;:443
+# ...</codeblock>
+          <p>For example:</p>
+          <codeblock outputclass="language-yaml"># ...
+[alt_names]
+example-registry-quay-builder-quay-enterprise.apps.cluster-new.gcp.quaydev.org:443
+# ...</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

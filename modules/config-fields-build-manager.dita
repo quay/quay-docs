@@ -1,0 +1,346 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-build-manager">
+  <title>Build manager configuration fields</title>
+  <shortdesc>The following configuration fields control how the build manager component of Red Hat Quay orchestrates and manages container image builds. This includes settings for Redis coordination, executor backends such as Kubernetes or EC2, builder image configuration, and advanced scheduling and retry policies.</shortdesc>
+  <refbody>
+    <section>
+      <p>These fields must be configured to align with your infrastructure environment and workload requirements.</p>
+      <table>
+        <title>Build manager configuration fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>ALLOWED_WORKER_COUNT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Defines how many Build Workers are instantiated per Red Hat Quay pod. Typically set to <codeph>1</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>ORCHESTRATOR_PREFIX</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Defines a unique prefix to be added to all Redis keys. This is useful to isolate Orchestrator values from other Redis keys.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>REDIS_HOST</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>The hostname for your Redis service.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>REDIS_PASSWORD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The password to authenticate into your Redis service.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>REDIS_SSL</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Defines whether or not your Redis connection uses SSL/TLS.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>REDIS_SKIP_KEYSPACE_EVENT_SETUP</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>By default, Red Hat Quay does not set up the keyspace events required for key events at runtime. To do so, set <codeph>REDIS_SKIP_KEYSPACE_EVENT_SETUP</codeph> to <codeph>False</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>EXECUTOR</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Starts a definition of an Executor of this type.  Valid values are <codeph>kubernetes</codeph> and <codeph>ec2</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>BUILDER_NAMESPACE</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Kubernetes namespace where Red Hat Quay Builds will take place.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>K8S_API_SERVER</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Hostname for API Server of the OpenShift Container Platform cluster where Builds will take place.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>K8S_API_TLS_CA</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>The filepath in the <codeph>Quay</codeph> container of the Build cluster’s CA certificate for the <codeph>Quay</codeph> application to trust when making API calls.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>KUBERNETES_DISTRIBUTION</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Indicates which type of Kubernetes is being used. Valid values are <codeph>openshift</codeph> and <codeph>k8s</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p><b>CONTAINER_</b>*</p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Define the resource requests and limits for each <codeph>build</codeph> pod.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p><b>NODE_SELECTOR_</b>*</p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Defines the node selector label name-value pair where <codeph>build</codeph> Pods should be scheduled.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>CONTAINER_RUNTIME</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Specifies whether the Builder should run <codeph>docker</codeph> or <codeph>podman</codeph>.  Customers using Red Hat’s <codeph>quay-builder</codeph> image should set this to <codeph>podman</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SERVICE_ACCOUNT_NAME/SERVICE_ACCOUNT_TOKEN</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Defines the Service Account name or token that will be used by <codeph>build</codeph> pods.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>QUAY_USERNAME/QUAY_PASSWORD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Defines the registry credentials needed to pull the Red Hat Quay build worker image that is specified in the <codeph>WORKER_IMAGE</codeph> field.
+This is useful if pulling a non-public quay-builder image from quay.io.
+Customers should provide a Red Hat Service Account credential as defined in the section "Creating Registry Service Accounts" against registry.redhat.io in the article at <xref href="https://access.redhat.com/RegistryAuthentication" format="html" scope="external">https://access.redhat.com/RegistryAuthentication</xref>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_IMAGE</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Image reference for the Red Hat Quay Builder image.
+quay.io/quay/quay-builder
+registry.redhat.io/quay/quay-builder</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_TAG</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Tag for the Builder image desired. The latest version is 3.18.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>BUILDER_VM_CONTAINER_IMAGE</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>The full reference to the container image holding the internal VM needed to run each Red Hat Quay Build.
+(<codeph>quay.io/quay/quay-builder-qemu-fedoracoreos:latest</codeph>).
+(<codeph>registry.redhat.io/quay/quay-builder-qemu-rhcos:3.18</codeph>).</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SETUP_TIME</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Specifies the number of seconds at which a Build times out if it has not yet registered itself with the Build Manager. Defaults at <codeph>500</codeph> seconds. Builds that time out are attempted to be restarted three times. If the Build does not register itself after three attempts it is considered failed.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>MINIMUM_RETRY_THRESHOLD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>This setting is used with multiple Executors. It indicates how many retries are attempted to start a Build before a different Executor is chosen. Setting to <codeph>0</codeph> means there are no restrictions on how many tries the build job needs to have. This value should be kept intentionally small (three or less) to ensure failovers happen quickly during infrastructure failures. You must specify a value for this setting. For example, <codeph>Kubernetes</codeph> is set as the first executor and <codeph>EC2</codeph> as the second executor. If you want the last attempt to run a job to always be executed on EC2 and not Kubernetes, you can set the Kubernetes executor’s <codeph>MINIMUM_RETRY_THRESHOLD</codeph> to <codeph>1</codeph> and EC2’s <codeph>MINIMUM_RETRY_THRESHOLD</codeph> to <codeph>0</codeph> (defaults to <codeph>0</codeph> if not set). In this case, the Kubernetes' <codeph>MINIMUM_RETRY_THRESHOLD</codeph><b>retries_remaining(1)</b> would evaluate to <codeph>False</codeph>, therefore falling back to the second executor configured.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SSH_AUTHORIZED_KEYS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>List of SSH keys to bootstrap in the <codeph>ignition</codeph> config. This allows other keys to be used to SSH into the EC2 instance or QEMU virtual machine (VM).</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Build manager configuration fields</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+ALLOWED_WORKER_COUNT: "1"
+ORCHESTRATOR_PREFIX: "quaybuild:"
+REDIS_HOST: redis.example.com
+REDIS_PASSWORD: examplepassword
+REDIS_SSL: true
+REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+EXECUTOR: kubernetes
+BUILDER_NAMESPACE: quay-builder
+K8S_API_SERVER: https://api.openshift.example.com:6443
+K8S_API_TLS_CA: /etc/ssl/certs/ca.crt
+KUBERNETES_DISTRIBUTION: openshift
+CONTAINER_RUNTIME: podman
+CONTAINER_MEMORY_LIMITS: 2Gi
+NODE_SELECTOR_ROLE: quay-build-node
+SERVICE_ACCOUNT_NAME: quay-builder-sa
+QUAY_USERNAME: quayuser
+QUAY_PASSWORD: quaypassword
+WORKER_IMAGE: quay.io/quay/quay-builder
+WORKER_TAG: latest
+BUILDER_VM_CONTAINER_IMAGE: quay.io/quay/vm-builder:latest
+SETUP_TIME: "500"
+MINIMUM_RETRY_THRESHOLD: "1"
+SSH_AUTHORIZED_KEYS:
+  - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAsomekey user@example.com
+  - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAnotherkey user2@example.com
+# ...</codeblock>
+    </section>
+  </refbody>
+</reference>

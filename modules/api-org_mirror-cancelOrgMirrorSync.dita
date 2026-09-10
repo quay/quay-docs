@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="cancelorgmirrorsync">
+  <title>cancelOrgMirrorSync</title>
+  <shortdesc>Cancel ongoing discovery or sync operation.</shortdesc>
+  <refbody>
+    <section>
+      <pre>Transitions the config to CANCEL status from any state except already CANCEL.
+The worker detects the CANCEL status and propagates it to associated repository
+syncs during tag processing. Repo status changes are applied when the worker
+picks up the cancellation request, not immediately.</pre>
+      <pre>Returns 204 on success, 404 if config not found, 400 if already cancelled.</pre>
+    </section>
+    <section id="cancelorgmirrorsync-post">
+      <title>POST /api/v1/organization/{orgname}/mirror/sync-cancel</title>
+      <p><b>Authorizations: </b>oauth2_implicit (<b>org:admin</b>)</p>
+    </section>
+    <section id="cancelorgmirrorsync-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>201</p>
+              </entry>
+              <entry>
+                <p>Successful creation</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>400</p>
+              </entry>
+              <entry>
+                <p>Bad Request</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>404</p>
+              </entry>
+              <entry>
+                <p>Not found</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="cancelorgmirrorsync-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror/sync-cancel</codeblock>
+    </section>
+  </refbody>
+</reference>

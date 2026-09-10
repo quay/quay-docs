@@ -1,0 +1,235 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="getrepositorymirrorhealth">
+  <title>getRepositoryMirrorHealth</title>
+  <shortdesc>Return health status for repository mirroring operations.</shortdesc>
+  <refbody>
+    <section id="getrepositorymirrorhealth-get">
+      <title>GET /api/v1/repository/mirror/health</title>
+      <p><b>Authorizations:</b> oauth2_implicit (<b>super:user</b> for global queries; organization membership or user administration for namespace-scoped queries)</p>
+      <p>Returns HTTP <codeph>200</codeph> when mirroring is healthy and HTTP <codeph>503</codeph> when unhealthy.</p>
+      <p>This endpoint requires a fresh login. A validated OAuth or SSO token satisfies the check. A password-based browser session must be within <codeph>FRESH_LOGIN_TIMEOUT</codeph> (default: <codeph>10m</codeph>). Robot accounts cannot call this endpoint.</p>
+      <p>Access control:</p>
+      <ul>
+        <li>Without the <codeph>namespace</codeph> query parameter, the caller must be a superuser with full access, or a global read-only superuser.</li>
+        <li>With <codeph>namespace</codeph>, organization members can query their organization. For a user namespace, the caller must be that user or have user-admin permission. Superusers can query any namespace.</li>
+      </ul>
+      <p>For a global summary without per-repository samples, superusers can also call <codeph>GET /api/v1/superuser/mirror/health</codeph>. See <xref href="quay_jtbd-reference.dita#getsuperuserrepositorymirrorhealth">getSuperUserRepositoryMirrorHealth</xref>.</p>
+    </section>
+    <section id="getrepositorymirrorhealth-query-parameters">
+      <title>Query parameters</title>
+      <table>
+        <tgroup cols="4">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <colspec colname="col_4" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Type</entry>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>query</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>namespace</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Filter the health check to a specific namespace</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>query</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>detailed</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Include per-repository breakdown</p>
+              </entry>
+              <entry>
+                <p>boolean</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>query</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>limit</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Maximum repositories in the detailed response when <codeph>detailed=true</codeph> (default: 100, max: 1000)</p>
+              </entry>
+              <entry>
+                <p>integer</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>query</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>offset</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Offset into the sorted mirror list for paginated details (default: 0)</p>
+              </entry>
+              <entry>
+                <p>integer</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="getrepositorymirrorhealth-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>200</p>
+              </entry>
+              <entry>
+                <p>Mirroring is healthy</p>
+              </entry>
+              <entry>
+                <p>object</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>404</p>
+              </entry>
+              <entry>
+                <p>Namespace not found</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>503</p>
+              </entry>
+              <entry>
+                <p>Mirroring is unhealthy</p>
+              </entry>
+              <entry>
+                <p>object</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="getrepositorymirrorhealth-example-commands">
+      <title>Example commands</title>
+      <p>Query health for a namespace that you can administer. Include <codeph>detailed=true</codeph> for a per-repository breakdown:</p>
+      <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/repository/mirror/health?namespace=&lt;orgname&gt;&amp;detailed=true" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+      <p>Query global mirror health as a superuser with full access:</p>
+      <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/repository/mirror/health" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+      <p>Substitute an OAuth access token that includes the <codeph>super:user</codeph> scope for global queries. For namespace-scoped queries, use a token or fresh login session for an organization member or namespace administrator.</p>
+      <p outputclass="title">
+        <b>Example output</b>
+      </p>
+      <codeblock outputclass="language-json">{
+  "healthy": true,
+  "workers": {
+    "active": 1,
+    "configured": 1,
+    "status": "healthy"
+  },
+  "repositories": {
+    "total": 0,
+    "syncing": 0,
+    "completed": 0,
+    "failed": 0,
+    "never_run": 0,
+    "details": [],
+    "pagination": {
+      "limit": 100,
+      "offset": 0,
+      "has_more": false
+    }
+  },
+  "tags_pending": 0,
+  "last_check": "2026-07-16T20:11:54.820064Z",
+  "issues": []
+}</codeblock>
+      <p>For metric names, example Prometheus queries, and health determination logic, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/manage_red_hat_quay/index#mirroring-metrics-health" format="html" scope="external">Monitoring repository mirroring</xref>.</p>
+    </section>
+  </refbody>
+</reference>

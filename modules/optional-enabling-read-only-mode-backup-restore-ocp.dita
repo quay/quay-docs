@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="optional-enabling-read-only-mode-backup-restore-ocp">
+  <title>Enabling read-only mode for Red Hat Quay on OpenShift Container Platform</title>
+  <shortdesc>Read-only mode keeps your Red Hat Quay on OpenShift Container Platform registry online during backup and restore by blocking write operations. You can use this mode when scaling down the deployment is unacceptable.</shortdesc>
+  <conbody>
+    <p>When backing up and restoring, you are required to scale down your Red Hat Quay on OpenShift Container Platform deployment. This results in service unavailability during the backup period which, in some cases, might be unacceptable. Enabling read-only mode ensures service availability during the backup and restore procedure for Red Hat Quay on OpenShift Container Platform deployments.</p>
+    <note type="note">
+      <p>In some cases, you cannot enable read-only mode for Red Hat Quay because it requires inserting a service key and other manual configuration changes. As an alternative to read-only mode, Red Hat Quay administrators might consider enabling the <codeph>DISABLE_PUSHES</codeph> feature. When this field is set to <codeph>True</codeph>, users are unable to push images or image tags to the registry when using the CLI. Enabling <codeph>DISABLE_PUSHES</codeph> differs from <codeph>read-only</codeph> mode because the database is not set as <codeph>read-only</codeph> when it is enabled.</p>
+      <p>This field might be useful in some situations such as when Red Hat Quay administrators want to calculate their registry’s quota and disable image pushing until after calculation has completed. With this method, administrators can avoid putting the whole registry in <codeph>read-only</codeph> mode, which affects the database, so that most operations can still be done.</p>
+    </note>
+    <section id="prerequisites-for-enabling-read-only-mode">
+      <title>Prerequisites for enabling read-only mode</title>
+      <p>You must meet the following prerequisites to enable read-only mode for Red Hat Quay on OpenShift Container Platform:</p>
+      <ul>
+        <li>If you are using Red Hat Enterprise Linux (RHEL) 7.x:
+<ul><li>You have enabled the Red Hat Software Collections List (RHSCL).</li><li>You have installed Python 3.6.</li><li>You have downloaded the <codeph>virtualenv</codeph> package.</li><li>You have installed the <codeph>git</codeph> CLI.</li></ul></li>
+        <li>If you are using Red Hat Enterprise Linux (RHEL) 8:
+<ul><li>You have installed Python 3 on your machine.</li><li>You have downloaded the <codeph>python3-virtualenv</codeph> package.</li><li>You have installed the <codeph>git</codeph> CLI.</li></ul></li>
+        <li>You have cloned the quay/quay repository.</li>
+        <li>You have installed the <codeph>oc</codeph> CLI.</li>
+        <li>You have access to the cluster with <codeph>cluster-admin</codeph> privileges.</li>
+      </ul>
+    </section>
+  </conbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#config-fields-web-ui" format="html" scope="external">
+      <linktext>Miscellaneous configuration fields</linktext>
+    </link>
+  </related-links>
+</concept>

@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="viewing-database-logs">
+  <title>Viewing database logs</title>
+  <shortdesc>To view repository usage logs stored in the Red Hat Quay PostgreSQL database, you can query the logentry tables with the psql CLI tool.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have administrative privileges.</li>
+        <li>You have installed the <codeph>psql</codeph> CLI tool.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to log in to your Red Hat Quay PostgreSQL database:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ psql -h &lt;quay-server.example.com&gt; -p 5432 -U &lt;user_name&gt; -d &lt;database_name&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">psql (16.1, server 13.7)
+Type "help" for help.</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. Enter the following command to display the tables list of your PostgreSQL database:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">quay=&gt; \dt</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">                   List of relations
+ Schema |            Name            | Type  |  Owner
+--------+----------------------------+-------+----------
+ public | logentry                   | table | quayuser
+ public | logentry2                  | table | quayuser
+ public | logentry3                  | table | quayuser
+ public | logentrykind               | table | quayuser
+...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to return a list of <codeph>repository_ids</codeph> that are required to return log information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">quay=&gt; SELECT id, name FROM repository;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal"> id |        name
+----+---------------------
+  3 | new_repository_name
+  6 | api-repo
+  7 | busybox
+...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to use the <codeph>logentry3</codeph> relation to show log information about one of your repositories:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">SELECT * FROM logentry3 WHERE repository_id = &lt;repository_id&gt;;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal"> id | kind_id | account_id | performer_id | repository_id | datetime | ip |    metadata_json
+
+ 59 | 14 | 2 | 1 | 6 | 2024-05-13 15:51:01.897189 | 192.168.1.130 | {"repo": "api-repo", "namespace": "test-org"}</codeblock>
+          <p>In this example, the following information is returned:</p>
+          <codeblock outputclass="language-terminal">{
+  "log_data": {
+    "id": 59
+    "kind_id": "14",
+    "account_id": "2",
+    "performer_id": "1",
+    "repository_id": "6",
+    "ip": "192.168.1.100",
+    "metadata_json": {"repo": "api-repo", "namespace": "test-org"}
+    "datetime": "2024-05-13 15:51:01.897189"
+  }
+}</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>id</codeph>
+              </dt>
+              <dd>Specifies the unique identifier for the log entry.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>kind_id</codeph>
+              </dt>
+              <dd>Specifies the action that was performed. In this example, <codeph>14</codeph> maps to creating a repository (<codeph>create_repo</codeph>).</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>account_id</codeph>
+              </dt>
+              <dd>Specifies the account that performed the action.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>performer_id</codeph>
+              </dt>
+              <dd>Specifies the performer of the action.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>repository_id</codeph>
+              </dt>
+              <dd>Specifies the repository that the action was performed on. In this example, <codeph>6</codeph> correlates to the <codeph>api-repo</codeph> repository from the previous step.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ip</codeph>
+              </dt>
+              <dd>Specifies the IP address where the action was performed.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>metadata_json</codeph>
+              </dt>
+              <dd>Specifies metadata information, including the name of the repository and its namespace.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>datetime</codeph>
+              </dt>
+              <dd>Specifies the time when the action was performed.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

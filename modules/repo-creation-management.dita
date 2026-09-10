@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="repo-creation-api">
+  <title>Creating and configuring repositories</title>
+  <shortdesc>To create a repository and manage its visibility, details, and description in Red Hat Quay, you can call the repository API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to create a repository by using the <codeph>POST /api/v1/repository</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "repository": "&lt;new_repository_name&gt;",
+    "visibility": "&lt;private&gt;",
+    "description": "&lt;This is a description of the new repository&gt;."
+  }' \
+  "https://quay-server.example.com/api/v1/repository"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"namespace": "quayadmin", "name": "&lt;new_repository_name&gt;", "kind": "image"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can list repositories with the <codeph>GET /api/v1/repository</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;" \
+  "https://quay-server.example.com/api/v1/repository?public=true&amp;starred=false&amp;namespace=&lt;NAMESPACE&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"repositories": [{"namespace": "quayadmin", "name": "busybox", "description": null, "is_public": false, "kind": "image", "state": "MIRROR", "is_starred": false, "quota_report": {"quota_bytes": 2280675, "configured_quota": 2199023255552}}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Change visibility from public to private with the <codeph>POST /api/v1/repository/{repository}/changevisibility</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "visibility": "private"
+      }' \
+  "https://quay-server.example.com/api/v1/repository/&lt;NAMESPACE&gt;/&lt;REPO_NAME&gt;/changevisibility"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"success": true}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can check the Red Hat Quay UI, or you can enter the following <codeph>GET /api/v1/repository/{repository}</codeph> command to return details about a repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;bearer_token&gt;" "&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"detail": "Not Found", "error_message": "Not Found", "error_type": "not_found", "title": "not_found", "type": "http://quay-server.example.com/api/v1/error/not_found", "status": 404}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update repository descriptions with the <codeph>PUT /api/v1/repository/{repository}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "description": "This is an updated description for the repository."
+      }' \
+  "https://quay-server.example.com/api/v1/repository/&lt;NAMESPACE&gt;/&lt;REPOSITORY&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"success": true}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to delete a repository by using the <codeph>DELETE /api/v1/repository/{repository}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE   -H "Authorization: Bearer &lt;bearer_token&gt;" "&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;"</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

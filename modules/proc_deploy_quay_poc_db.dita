@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="poc-configuring-database">
+  <title>Configuring the database</title>
+  <shortdesc>Red Hat Quay requires a database for storing metadata. PostgreSQL is used throughout this document. To configure the database for your proof of concept Red Hat Quay deployment, you can create a local PostgreSQL data directory and start a Postgres container with Podman. You must also install the <codeph>pg_trgm</codeph> extension required by the registry.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>In the installation folder, denoted here by the <codeph>$QUAY</codeph> variable, create a directory for the database data by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir -p $QUAY/postgres-quay</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Set the appropriate permissions by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ setfacl -m u:26:-wx $QUAY/postgres-quay</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Start the <codeph>Postgres</codeph> container, specifying the username, password, and database name and port, with the volume definition for database data:
+</cmd>
+        <info>
+          <codeblock>$ sudo podman run -d --rm --name postgresql-quay \
+  -e POSTGRESQL_USER=quayuser \
+  -e POSTGRESQL_PASSWORD=quaypass \
+  -e POSTGRESQL_DATABASE=quay \
+  -e POSTGRESQL_ADMIN_PASSWORD=adminpass \
+  -p 5432:5432 \
+  -v $QUAY/postgres-quay:/var/lib/pgsql/data:Z \
+  registry.redhat.io/rhel9/postgresql-15</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Ensure that the Postgres <codeph>pg_trgm</codeph> module is installed by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman exec -it postgresql-quay /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS pg_trgm" | psql -d quay -U postgres'</codeblock>
+          <note type="note">
+            <p>The <codeph>pg_trgm</codeph> module is required for the <codeph>Quay</codeph> container.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

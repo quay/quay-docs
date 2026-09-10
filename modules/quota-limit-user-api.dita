@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="quota-limit-user-api">
+  <title>Obtaining quota limits for the user with the Red Hat Quay API</title>
+  <shortdesc>To view storage quota and limit policies for the logged-in user in Red Hat Quay, you can call the user quota API endpoints.</shortdesc>
+  <taskbody>
+    <context>
+      <p>Quota limits for users must be set on the Red Hat Quay UI. The following APIs return the quota limits for the user that is logged in.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/user/quota</codeph> command to return information about the quota limitations:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/user/quota" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">[{"id": 4, "limit_bytes": 2199023255552, "limit": "2.0 TiB", "default_config": false, "limits": [], "default_config_exists": false}]</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>After you have received the quota ID, pass it in with the <codeph>GET /api/v1/user/quota/{quota_id}</codeph> endpoint to return information about the limitation:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/user/quota/{quota_id}" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"id": 4, "limit_bytes": 2199023255552, "limit": "2.0 TiB", "default_config": false, "limits": [], "default_config_exists": false}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>View the limitations by using the <codeph>GET /api/v1/user/quota/{quota_id}/limit</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/user/quota/{quota_id}/limit" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">[{"id": 3, "type": "Reject", "limit_percent": 100}]</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Return additional information about the entire policy by using the <codeph>GET /api/v1/user/quota/{quota_id}/limit/{limit_id}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/user/quota/{quota_id}/limit/{limit_id}" \
+  -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"id": 4, "limit_bytes": 2199023255552, "limit": "2.0 TiB", "default_config": false, "limits": [{"id": 3, "type": "Reject", "limit_percent": 100}], "default_config_exists": false}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

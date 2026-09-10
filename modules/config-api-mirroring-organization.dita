@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="mirroring-creating-org-api">
+  <title>Creating a mirrored organization by using the API</title>
+  <shortdesc>To create a mirrored organization in Red Hat Quay by using the API, you can send HTTP requests to the organization mirror endpoints with <codeph>curl</codeph> and an OAuth bearer token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have generated an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <p>Organization-level mirroring cannot be configured on an existing organization that already contains repositories. A dedicated organization must be created specifically to serve as a mirror target, with all repositories within the organization managed exclusively by the mirroring configuration.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/organization/{orgname}/mirror</codeph> endpoint to create a new organization-level mirroring configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror" \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "external_registry_type": "quay",
+    "external_registry_url": "https://quay.io",
+    "external_namespace": "&lt;external_namespace&gt;",
+    "robot_username": "&lt;orgname&gt;+&lt;robot_account&gt;",
+    "visibility": "private",
+    "sync_interval": 3600,
+    "sync_start_date": "2025-01-01T00:00:00Z",
+    "is_enabled": true
+  }'</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/organization/{orgname}/mirror</codeph> endpoint to retrieve the organization-level mirroring configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"is_enabled": true, "external_registry_type": "quay", "external_registry_url": "http://quay.io", "external_namespace": "test", "external_registry_username": null, "external_registry_config": {}, "repository_filters": [], "robot_username": "example+test", "visibility": "private", "sync_interval": 3600, "sync_start_date": "2025-01-01T00:00:00Z", "sync_expiration_date": null, "sync_status": "NEVER_RUN", "sync_retries_remaining": 3, "skopeo_timeout": 300, "creation_date": "2026-03-09T18:39:21.993431Z"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/organization/{orgname}/mirror/repositories</codeph> endpoint to obtain a list of repositories that are being mirrored in the organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror/repositories?page=1&amp;limit=100"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"repositories": [], "page": 1, "limit": 100, "total": 0, "has_next": false}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/organization/{orgname}/mirror/sync-now</codeph> endpoint to trigger an immediate sync of all repositories in the organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror/sync-now</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/organization/{orgname}/mirror/sync-cancel</codeph> endpoint to cancel a pending sync of all repositories in the organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror/sync-cancel</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>PUT /api/v1/organization/{orgname}/mirror</codeph> endpoint to update the organization-level mirroring configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"is_enabled": true, "sync_interval": 7200}' \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">" "</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/organization/{orgname}/mirror/verify</codeph> endpoint to verify the connection to the external registry for the organization-level mirroring configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror/verify</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"success": false, "message": "Unexpected response: 301"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>DELETE /api/v1/organization/{orgname}/mirror</codeph> endpoint to delete the organization-level mirroring configuration:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

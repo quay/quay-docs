@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="migrating-entra-v1-to-v2-oidc">
+  <title>Dual-issuer cutover from Entra ID v1.0 to v2.0</title>
+  <shortdesc>To migrate from Microsoft Entra ID v1.0 to v2.0 without interrupting clients in Red Hat Quay, you can set the v2.0 discovery endpoint and temporarily list both issuers in <codeph>OIDC_ISSUERS</codeph>.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Set <codeph>OIDC_SERVER</codeph> to the v2.0 endpoint (<codeph><xref href="https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0/" format="html" scope="external">https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0/</xref></codeph>).</cmd>
+      </step>
+      <step>
+        <cmd>Add both issuer URLs to <codeph>OIDC_ISSUERS</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">  OIDC_ISSUERS:
+    - https://sts.windows.net/&lt;tenant-id&gt;/
+    - https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update upstream clients to v2.0 tokens.</cmd>
+      </step>
+      <step>
+        <cmd>After all clients use v2.0, remove the v1.0 issuer from <codeph>OIDC_ISSUERS</codeph>.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

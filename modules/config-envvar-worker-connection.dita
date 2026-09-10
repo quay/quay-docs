@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-envvar-worker-connection">
+  <title>HTTP connection counts</title>
+  <shortdesc>Use worker connection count environment variables to limit simultaneous HTTP connections per Red Hat Quay worker process globally or per component. These limits apply either globally or can be scoped to individual components (registry, web UI, or security scanning). By default, each worker process allows up to <codeph>50</codeph> parallel connections.</shortdesc>
+  <refbody>
+    <section>
+      <p>This setting is distinct from the number of <i>worker processes</i>.</p>
+      <p>These connection-related environment variables can be configured differently depending on your deployment type:</p>
+      <ul>
+        <li>In <b>standalone deployments</b>, configure connection counts in the <codeph>config.yaml</codeph> file.</li>
+        <li>In <b>Red Hat Quay on OpenShift Container Platform deployments</b>, define the values in the <codeph>env</codeph> block of the <codeph>QuayRegistry</codeph> CR.</li>
+      </ul>
+      <table>
+        <title>HTTP connection count configuration variables</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Variable</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_CONNECTION_COUNT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>Global default for the maximum number of HTTP connections per worker process.</p>
+                <p><b>Default:</b> 50</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_CONNECTION_COUNT_REGISTRY</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>HTTP connections per registry worker.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>WORKER_CONNECTION_COUNT</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_CONNECTION_COUNT_WEB</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>HTTP connections per web UI worker.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>WORKER_CONNECTION_COUNT</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_CONNECTION_COUNT_SECSCAN</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>HTTP connections per Clair security scanner worker.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>WORKER_CONNECTION_COUNT</codeph>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>HTTP connection configuration for standalone Red Hat Quay deployments</b>
+      </p>
+      <codeblock outputclass="language-yaml">WORKER_CONNECTION_COUNT: 10
+WORKER_CONNECTION_COUNT_REGISTRY: 10
+WORKER_CONNECTION_COUNT_WEB: 10
+WORKER_CONNECTION_COUNT_SECSCAN: 10</codeblock>
+      <p outputclass="title">
+        <b>HTTP connection configuration for Red Hat Quay on OpenShift Container Platform</b>
+      </p>
+      <codeblock outputclass="language-yaml">env:
+  - name: WORKER_CONNECTION_COUNT
+    value: "10"
+  - name: WORKER_CONNECTION_COUNT_REGISTRY
+    value: "10"
+  - name: WORKER_CONNECTION_COUNT_WEB
+    value: "10"
+  - name: WORKER_CONNECTION_COUNT_SECSCAN
+    value: "10"</codeblock>
+    </section>
+  </refbody>
+</reference>

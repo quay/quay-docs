@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-ssl-using-cli">
+  <title>Configuring custom SSL/TLS certificates by using the command line interface</title>
+  <shortdesc>To enable custom SSL/TLS certificates on your Red Hat Quay deployment, you can copy certificate files to your configuration directory and update the <codeph>config.yaml</codeph> file to use HTTPS. You can then restart the registry container to apply the SSL/TLS configuration.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created a certificate authority and signed the certificate.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Copy the certificate file and primary key file to your configuration directory, ensuring they are named <codeph>ssl.cert</codeph> and <codeph>ssl.key</codeph> respectively:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">cp ~/ssl.cert ~/ssl.key /path/to/configuration_directory</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Navigate to the configuration directory by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cd /path/to/configuration_directory</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Edit the <codeph>config.yaml</codeph> file and specify that you want Red Hat Quay to handle SSL/TLS:
+</cmd>
+        <info>
+          <p outputclass="title">
+            <b>Example <codeph>config.yaml</codeph> file</b>
+          </p>
+          <codeblock outputclass="language-yaml"># ...
+SERVER_HOSTNAME: &lt;quay-server.example.com&gt;
+...
+PREFERRED_URL_SCHEME: https
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional: Append the contents of the <codeph>rootCA.pem</codeph> file to the end of the <codeph>ssl.cert</codeph> file by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cat rootCA.pem &gt;&gt; ssl.cert</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Stop the <codeph>Quay</codeph> container by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman stop &lt;quay_container_name&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart the registry by entering the following command:
+</cmd>
+        <info>
+          <codeblock>$ sudo podman run -d --rm -p 80:8080 -p 443:8443 \
+  --name=quay \
+  -v $QUAY/config:/conf/stack:Z \
+  -v $QUAY/storage:/datastorage:Z \
+  registry.redhat.io/quay/quay-rhel9:v3.18.0</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="managing-notifications-api">
+  <title>Creating notifications by using the API</title>
+  <shortdesc>To create, test, reset, or delete repository notifications in Red Hat Quay, you can use the repository notification API endpoints.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created a repository.</li>
+        <li>You have administrative privileges for the repository.</li>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following <codeph>POST /api/v1/repository/{repository}/notification</codeph> command to create a notification on your repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "event": "&lt;event&gt;",
+    "method": "&lt;method&gt;",
+    "config": {
+      "&lt;config_key&gt;": "&lt;config_value&gt;"
+    },
+    "eventConfig": {
+      "&lt;eventConfig_key&gt;": "&lt;eventConfig_value&gt;"
+    }
+  }' \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/notification/</codeblock>
+          <p>This command does not return output in the CLI. Instead, you can enter the following <codeph>GET /api/v1/repository/{repository}/notification/{uuid}</codeph> command to obtain information about the repository notification:</p>
+          <codeblock outputclass="language-terminal">{"uuid": "240662ea-597b-499d-98bb-2b57e73408d6", "title": null, "event": "repo_push", "method": "quay_notification", "config": {"target": {"name": "quayadmin", "kind": "user", "is_robot": false, "avatar": {"name": "quayadmin", "hash": "b28d563a6dc76b4431fc7b0524bbff6b810387dac86d9303874871839859c7cc", "color": "#17becf", "kind": "user"}}}, "event_config": {}, "number_of_failures": 0}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can test your repository notification by entering the following <codeph>POST /api/v1/repository/{repository}/notification/{uuid}/test</codeph> command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;repository&gt;/notification/&lt;uuid&gt;/test</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can reset repository notification failures to 0 by entering the following <codeph>POST /api/v1/repository/{repository}/notification/{uuid}</codeph> command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;repository&gt;/notification/&lt;uuid&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following <codeph>DELETE /api/v1/repository/{repository}/notification/{uuid}</codeph> command to delete a repository notification:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/notification/&lt;uuid&gt;</codeblock>
+          <p>This command does not return output in the CLI. Instead, you can enter the following <codeph>GET /api/v1/repository/{repository}/notification/</codeph> command to retrieve a list of all notifications:</p>
+          <codeblock outputclass="language-terminal">$ curl -X GET  -H "Authorization: Bearer &lt;bearer_token&gt;"   -H "Accept: application/json"  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/notification</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"notifications": []}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>
