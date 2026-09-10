@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="testing-storage-quota-limits-proxy-orgs">
+  <title>Testing the storage quota limits feature in proxy organizations</title>
+  <shortdesc>Confirm that auto-pruning works in a proxy organization with storage quota limits by pulling images until the quota is exceeded and verifying that the least recently used tag is removed.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>Your organization is configured to serve as a proxy organization. The following example proxies from quay.io.</li>
+        <li><codeph>FEATURE_PROXY_CACHE</codeph> is set to <codeph>True</codeph> in your <codeph>config.yaml</codeph> file.</li>
+        <li><codeph>FEATURE_QUOTA_MANAGEMENT</codeph> is set to <codeph>True</codeph> in your <codeph>config.yaml</codeph> file.</li>
+        <li>Your organization is configured with a quota limit, for example, <codeph>150 MB</codeph>.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Pull an image to your repository from your proxy organization, for example:
+</cmd>
+        <info>
+          <codeblock>$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.7.9</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Depending on the space left in your repository, you might need to pull additional images from your proxy organization, for example:
+</cmd>
+        <info>
+          <codeblock>$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.6.2</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>In the Red Hat Quay registry UI, click the name of your repository.
+</cmd>
+        <info>
+          <ul>
+            <li>Click <b>Tags</b> in the navigation pane and ensure that <codeph>quay:3.7.9</codeph> and <codeph>quay:3.6.2</codeph> are tagged.</li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Pull the last image that will result in your repository exceeding the allotted quota, for example:
+</cmd>
+        <info>
+          <codeblock>$ podman pull quay-server.example.com/proxytest/projectquay/quay:3.5.1</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Refresh the <b>Tags</b> page of your Red Hat Quay registry. The first image that you pushed, for example, <codeph>quay:3.7.9</codeph> should have been auto-pruned. The <b>Tags</b> page should now show <codeph>quay:3.6.2</codeph> and <codeph>quay:3.5.1</codeph>.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

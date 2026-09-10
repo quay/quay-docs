@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-project-node-selector-toleration">
+  <title>Creating a project with node selector and tolerations</title>
+  <shortdesc>To ensure that Red Hat Quay pods run on infrastructure nodes, you can create a project with node selector and tolerations annotations. These annotations direct pods to infrastructure nodes and allow them to tolerate the node taints.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Add the <codeph>node-selector</codeph> annotation to the namespace by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc annotate namespace &lt;namespace&gt; openshift.io/node-selector='node-role.kubernetes.io/infra='</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Add the <codeph>tolerations</codeph> annotation to the namespace by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc annotate namespace &lt;namespace&gt; scheduler.alpha.kubernetes.io/defaultTolerations='[{"operator":"Equal","value":"reserved","effect":"NoSchedule","key":"node-role.kubernetes.io/infra"},{"operator":"Equal","value":"reserved","effect":"NoExecute","key":"node-role.kubernetes.io/infra"}]' --overwrite</codeblock>
+          <codeblock outputclass="language-yaml">namespace/&lt;namespace&gt; annotated</codeblock>
+          <note type="important">
+            <p>The tolerations in this example are specific to two taints commonly applied to infra nodes. The taints configured in your environment might differ. You must set the tolerations accordingly to match the taints applied to your infra nodes.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

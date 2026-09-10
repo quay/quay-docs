@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="quay-bridge-operator-test">
+  <title>Using the Quay Bridge Operator</title>
+  <shortdesc>To verify that the Quay Bridge Operator synchronizes your OpenShift Container Platform projects with Red Hat Quay, you can create a test project and confirm that organizations, robot accounts, and image repositories are created automatically.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have installed the Red Hat Quay Operator.</li>
+        <li>You have logged into OpenShift Container Platform as a cluster administrator.</li>
+        <li>You have logged into your Red Hat Quay registry.</li>
+        <li>You have installed the Quay Bridge Operator.</li>
+        <li>You have configured the <codeph>QuayIntegration</codeph> custom resource.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to create a new OpenShift Container Platform project called <codeph>e2e-demo</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc new-project e2e-demo</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>After you have created a new project, a new Organization is created in Red Hat Quay. Navigate to the Red Hat Quay registry and confirm that you have created a new Organization named <codeph>openshift_e2e-demo</codeph>.
+</cmd>
+        <info>
+          <note type="note">
+            <p>The <codeph>openshift</codeph> value of the Organization might be different if the clusterID in your <codeph>QuayIntegration</codeph> resource used a different value.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>On the Red Hat Quay UI, click the name of the new Organization, for example, <b>openshift_e2e-demo</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Robot Accounts</b> in the navigation pane. As part of new project, the following Robot Accounts should have been created:
+</cmd>
+        <info>
+          <ul>
+            <li>
+              <b>openshift_e2e-demo+deployer</b>
+            </li>
+            <li>
+              <b>openshift_e2e-demo+default</b>
+            </li>
+            <li>
+              <b>openshift_e2e-demo+builder</b>
+            </li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to confirm three secrets containing Docker configuration associated with the applicable Robot Accounts were created:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get secrets builder-quay-openshift deployer-quay-openshift default-quay-openshift</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">stevsmit@stevsmit ocp-quay $ oc get secrets builder-quay-openshift deployer-quay-openshift default-quay-openshift
+NAME                      TYPE                             DATA   AGE
+builder-quay-openshift    kubernetes.io/dockerconfigjson   1      77m
+deployer-quay-openshift   kubernetes.io/dockerconfigjson   1      77m
+default-quay-openshift    kubernetes.io/dockerconfigjson   1      77m</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to display detailed information about <codeph>builder</codeph> ServiceAccount (SA), including its secrets, token expiration, and associated roles and role bindings. This ensures that the project is integrated via the Quay Bridge Operator.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc describe sa builder default deployer</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">...
+Name:                builder
+Namespace:           e2e-demo
+Labels:              &lt;none&gt;
+Annotations:         &lt;none&gt;
+Image pull secrets:  builder-dockercfg-12345
+                     builder-quay-openshift
+Mountable secrets:   builder-dockercfg-12345
+                     builder-quay-openshift
+Tokens:              builder-token-12345
+Events:              &lt;none&gt;
+...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to create and deploy a new application called <codeph>httpd-template</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc new-app --template=httpd-example</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">--&gt; Deploying template "e2e-demo/httpd-example" to project e2e-demo
+...
+--&gt; Creating resources ...
+    service "httpd-example" created
+    route.route.openshift.io "httpd-example" created
+    imagestream.image.openshift.io "httpd-example" created
+    buildconfig.build.openshift.io "httpd-example" created
+    deploymentconfig.apps.openshift.io "httpd-example" created
+--&gt; Success
+    Access your application via route 'httpd-example-e2e-demo.apps.quay-ocp.gcp.quaydev.org'
+    Build scheduled, use 'oc logs -f buildconfig/httpd-example' to track its progress.
+    Run 'oc status' to view your app.</codeblock>
+          <p>After running this command, <codeph>BuildConfig</codeph>, <codeph>ImageStream</codeph>, <codeph>Service,</codeph><codeph>Route</codeph>, and <codeph>DeploymentConfig</codeph> resources are created. When the <codeph>ImageStream</codeph> resource is created, an associated repository is created in Red Hat Quay.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>The <codeph>ImageChangeTrigger</codeph> for the <codeph>BuildConfig</codeph> triggers a new Build when the Apache HTTPD image, located in the <codeph>openshift</codeph> namespace, is resolved. As the new Build is created, the <codeph>MutatingWebhookConfiguration</codeph> automatically rewrites the output to point at Red Hat Quay. You can confirm that the build is complete by querying the output field of the build by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get build httpd-example-1 --template='{{ .spec.output.to.name }}'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">example-registry-quay-quay-enterprise.apps.quay-ocp.gcp.quaydev.org/openshift_e2e-demo/httpd-example:latest</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>On the Red Hat Quay UI, navigate to the <codeph>openshift_e2e-demo</codeph> Organization and select the <b>httpd-example</b> repository.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Tags</b> in the navigation pane and confirm that the <codeph>latest</codeph> tag has been successfully pushed.</cmd>
+      </step>
+      <step>
+        <cmd>Enter the following command to ensure that the latest tag has been resolved:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc describe is httpd-example</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Name:			httpd-example
+Namespace:		e2e-demo
+Created:		55 minutes ago
+Labels:			app=httpd-example
+			template=httpd-example
+Description:		Keeps track of changes in the application image
+Annotations:		openshift.io/generated-by=OpenShiftNewApp
+			openshift.io/image.dockerRepositoryCheck=2023-10-02T17:56:45Z
+Image Repository:	image-registry.openshift-image-registry.svc:5000/e2e-demo/httpd-example
+Image Lookup:		local=false
+Unique Images:		0
+Tags:			1
+
+latest
+  tagged from example-registry-quay-quay-enterprise.apps.quay-ocp.gcp.quaydev.org/openshift_e2e-demo/httpd-example:latest</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>After the <codeph>ImageStream</codeph> is resolved, a new deployment should have been triggered. Enter the following command to generate a URL output:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get route httpd-example --template='{{ .spec.host }}'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">httpd-example-e2e-demo.apps.quay-ocp.gcp.quaydev.org</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Navigate to the URL. If a sample web page appears, the deployment was successful.</cmd>
+      </step>
+      <step>
+        <cmd>Enter the following command to delete the resources and clean up your Red Hat Quay repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc delete project e2e-demo</codeblock>
+          <note type="note">
+            <p>The command waits until the project resources have been removed. This can be bypassed by adding the <codeph>--wait=false</codeph> to the above command</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>After the command completes, navigate to your Red Hat Quay repository and confirm that the <codeph>openshift_e2e-demo</codeph> Organization is no longer available.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

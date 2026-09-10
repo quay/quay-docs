@@ -1,0 +1,325 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="createorgmirrorconfig">
+  <title>createOrgMirrorConfig</title>
+  <shortdesc>Create organization mirror configuration.</shortdesc>
+  <refbody>
+    <section id="createorgmirrorconfig-post">
+      <title>POST /api/v1/organization/{orgname}/mirror</title>
+      <p><b>Authorizations: </b>oauth2_implicit (<b>org:admin</b>)</p>
+    </section>
+    <section id="createorgmirrorconfig-request-body-schema">
+      <title>Request body schema (application/json)</title>
+      <p>Create organization mirror configuration</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>external_registry_type</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Type of source registry (e.g. <codeph>quay</codeph>, <codeph>harbor</codeph>)</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>external_registry_url</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>URL of the source registry</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>external_namespace</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Source namespace/project name</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>robot_username</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Robot account for creating repos (format: orgname+robotname)</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>visibility</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Visibility for created repositories (<codeph>public</codeph> or <codeph>private</codeph>)</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>sync_interval</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Seconds between syncs (minimum 60)</p>
+              </entry>
+              <entry>
+                <p>integer</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>sync_start_date</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Initial sync time (ISO 8601 format, e.g. <codeph>2025-01-01T00:00:00Z</codeph>)</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>is_enabled</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Enable or disable mirroring</p>
+              </entry>
+              <entry>
+                <p>boolean</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>external_registry_username</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Username for source registry authentication</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>external_registry_password</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Password for source registry authentication</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>external_registry_config</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>TLS and proxy settings</p>
+              </entry>
+              <entry>
+                <p>object</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>repository_filters</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Glob patterns for filtering repositories</p>
+              </entry>
+              <entry>
+                <p>array of string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>skopeo_timeout</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Timeout for Skopeo operations in seconds</p>
+              </entry>
+              <entry>
+                <p>integer</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createorgmirrorconfig-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>201</p>
+              </entry>
+              <entry>
+                <p>Successful creation</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>400</p>
+              </entry>
+              <entry>
+                <p>Bad Request</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>404</p>
+              </entry>
+              <entry>
+                <p>Not found</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createorgmirrorconfig-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"external_registry_type": "quay", "external_registry_url": "https://quay.example.com", "external_namespace": "&lt;source_namespace&gt;", "robot_username": "&lt;orgname&gt;+&lt;robotname&gt;", "visibility": "private", "sync_interval": 3600, "sync_start_date": "2025-01-01T00:00:00Z", "is_enabled": true}' \
+  https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/mirror</codeblock>
+    </section>
+  </refbody>
+</reference>

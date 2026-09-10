@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="building-dockerfiles">
+  <title>Building container images</title>
+  <shortdesc>The Red Hat Quay builds feature supports building Docker and Podman container images from Dockerfiles. You can create containerized applications by defining build contexts and using base images from public repositories.</shortdesc>
+  <conbody>
+    <p>supports the ability to build Docker and Podman container images. This functionality is valuable for developers and organizations who rely on container and container orchestration.</p>
+    <section id="build-contexts">
+      <title>Build contexts</title>
+      <p>When building an image with Docker or Podman, a directory is specified to become the <i>build context</i>. This is true for both manual Builds and Build triggers, because the Build that is created by
+is not different than running <codeph>docker build</codeph> or <codeph>podman build</codeph> on your local machine.</p>
+      <p>Build contexts are always specified in the <i>subdirectory</i> from the Build setup, and fallback to the root of the Build source if a directory is not specified.</p>
+      <p>When a build is triggered,
+Build workers clone the Git repository to the worker machine, and then enter the Build context before conducting a Build.</p>
+      <p>For Builds based on <codeph>.tar</codeph> archives, Build workers extract the archive and enter the Build context. For example:</p>
+      <p outputclass="title">
+        <b>Extracted Build archive</b>
+      </p>
+      <codeblock outputclass="language-terminal">example
+├── .git
+├── Dockerfile
+├── file
+└── subdir
+    └── Dockerfile</codeblock>
+      <p>Imagine that the <i>Extracted Build archive</i> is the directory structure got a Github repository called <b>example.</b> If no subdirectory is specified in the Build trigger setup, or when manually starting the Build, the Build operates in the example directory.</p>
+      <p>If a subdirectory is specified in the Build trigger setup, for example, <codeph>subdir</codeph>, only the Dockerfile within it is visible to the Build. This means that you cannot use the <codeph>ADD</codeph> command in the Dockerfile to add <codeph>file</codeph>, because it is outside of the Build context.</p>
+      <p>Unlike Docker Hub, the Dockerfile is part of the Build context on
+As a result, it must not appear in the <codeph>.dockerignore</codeph> file.</p>
+    </section>
+  </conbody>
+</concept>

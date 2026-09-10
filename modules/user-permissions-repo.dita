@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="repo-manage-user-permissions">
+  <title>Managing user permissions by using the Red Hat Quay API</title>
+  <shortdesc>To view, change, or remove a user role on a repository in Red Hat Quay, you can call the repository user permissions API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/repository/{repository}/permissions/user/{username}</codeph> endpoint to obtain repository permissions for a user. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "https://quay-server.example.com/api/v1/repository/&lt;repository_path&gt;/permissions/user/&lt;username&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"role": "read", "name": "testuser", "is_robot": false, "avatar": {"name": "testuser", "hash": "f660ab912ec121d1b1e928a0bb4bc61b15f5ad44d5efdc4e1c92a25e99b8e44a", "color": "#6b6ecf", "kind": "user"}, "is_org_member": false}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Return all user permissions with the <codeph>GET /api/v1/repository/{repository}/permissions/user/</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/permissions/user/"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"permissions": {"quayadmin": {"role": "admin", "name": "quayadmin", "is_robot": false, "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}, "is_org_member": true}, "test+example": {"role": "admin", "name": "test+example", "is_robot": true, "avatar": {"name": "test+example", "hash": "3b03050c26e900500437beee4f7f2a5855ca7e7c5eab4623a023ee613565a60e", "color": "#a1d99b", "kind": "robot"}, "is_org_member": true}}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Alternatively, use the <codeph>GET /api/v1/repository/{repository}/permissions/user/{username}/transitive</codeph> endpoint to return only the repository permission for the user:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "https://quay-server.example.com/api/v1/repository/&lt;repository_path&gt;/permissions/user/&lt;username&gt;/transitive"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"permissions": [{"role": "admin"}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Change the user’s permissions, such as making the user an <codeph>admin</codeph>, by using the <codeph>PUT /api/v1/repository/{repository}/permissions/user/{username}</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "&lt;role&gt;"}' \
+  "https://quay-server.example.com/api/v1/repository/&lt;repository_path&gt;/permissions/user/&lt;username&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"role": "admin", "name": "testuser", "is_robot": false, "avatar": {"name": "testuser", "hash": "f660ab912ec121d1b1e928a0bb4bc61b15f5ad44d5efdc4e1c92a25e99b8e44a", "color": "#6b6ecf", "kind": "user"}, "is_org_member": false}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Delete user permissions by using the <codeph>DELETE /api/v1/repository/{repository}/permissions/user/{username}</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/permissions/user/&lt;username&gt;"</codeblock>
+          <p>This command does not return output.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="quota-establishment-ui">
+  <title>Establishing quota for an organization by using the Red Hat Quay UI</title>
+  <shortdesc>To establishing quota for an organization by using the Red Hat Quay UI in Red Hat Quay, you can follow the steps in this procedure.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>A superuser account.</li>
+        <li>Enough storage to meet the demands of quota limitations.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>The following procedure describes how you can report storage consumption and establish storage quota limits for a repository.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Set <codeph>FEATURE_QUOTA_MANAGEMENT: True</codeph> in your <codeph>config.yaml</codeph> file and then restart your registry. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+FEATURE_QUOTA_MANAGEMENT: True
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a new organization or choose an existing one.</cmd>
+      </step>
+      <step>
+        <cmd>Log in to the registry as a superuser and navigate to the <b>Manage Organizations</b> tab on the <b>Super User Admin Panel</b>. Click the <b>Options</b> icon of the organization for which you want to create storage quota limits.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Configure Quota</b>.</cmd>
+      </step>
+      <step>
+        <cmd>For <b>Set storage quota</b>, enter the initial quota, for example, <b>10 MiB</b>. You can then click <b>Apply</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Optional: For <b>Quota policy</b> select one of the following <b>Actions</b>. You can then enter a <b>Quota Threshold</b> and click <b>Add Limit</b>.
+</cmd>
+        <info>
+          <ul>
+            <li><b>Reject</b>: When this option is selected, any artifact that exceeds the established quota is rejected.</li>
+            <li><b>Warning</b>: When this option is selected, users are notified of pushed artifacts that exceed the configured quota, however, the artifact successfully pushes.
+<note type="note"><p>The quota threshold percent determines when Red Hat Quay starts warning users that the repository is approaching its assigned storage quota.</p></note></li>
+          </ul>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Pull a sample artifact by entering the following command:
+<codeblock outputclass="language-terminal">$ podman pull busybox</codeblock></li>
+        <li>Tag the sample artifact by entering the following command:
+<codeblock outputclass="language-terminal">$ podman tag docker.io/library/busybox quay-server.example.com/testorg/busybox:test</codeblock></li>
+        <li>Push the sample artifact to the organization by entering the following command:
+<codeblock outputclass="language-terminal">$ podman push --tls-verify=false quay-server.example.com/testorg/busybox:test</codeblock></li>
+        <li>Navigate to the <b>Super User Admin Panel</b> on the Red Hat Quay UI, then click <b>Manage Organizations</b>. The <b>Organizations</b> page shows the total proportion of the quota used by the artifact.</li>
+        <li>Optional: Pull a second sample artifact with intentions of exceeding the established quota by entering the following command:
+<codeblock outputclass="language-terminal">$ podman pull nginx</codeblock></li>
+        <li>Optional: Tag the second artifact by entering the following command:
+<codeblock outputclass="language-terminal">$ podman tag docker.io/library/nginx quay-server.example.com/testorg/nginx</codeblock></li>
+        <li>Optional: Push the second artifact to the organization by entering the following command:
+<codeblock outputclass="language-terminal">$ podman push --tls-verify=false quay-server.example.com/testorg/nginx</codeblock><p>If the artifact exceeds the defined quota, and you set the <b>Quota policy</b> to <b>Reject</b>, the following error message is returned:</p><codeblock outputclass="language-terminal">denied: Quota has been exceeded on namespace</codeblock><p>If the artifact exceeds the defined quota, and you set the <b>Quota policy</b> to <b>Warning</b>, no error message is returned, and the image is successfully pushed.</p><p>Notifications for both <b>Reject</b> and <b>Warning</b> policies are also returned on the Red Hat Quay UI by clicking the <i>bell</i> icon.</p></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

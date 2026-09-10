@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="troubleshooting-crashloop-backoff-state">
+  <title>Troubleshooting crashloopbackoff states</title>
+  <shortdesc>To troubleshoot <codeph>crashloopbackoff</codeph> states for your Red Hat Quay deployment and restore pods or containers, you can scale down the Quay Operator and database, then edit the database deployment as needed.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>If your container or pod is in a <codeph>crashloopbackoff</codeph> state, you can enter the following commands.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enter the following command to scale down the Red Hat Quay Operator:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc scale deployment/quay-operator.v3.8.z  --replicas=0</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">deployment.apps/quay-operator.v3.8.z scaled</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to scale down the Red Hat Quay database:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc scale deployment/&lt;quay_database&gt; --replicas=0</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">deployment.apps/&lt;quay_database&gt; scaled</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to edit the Red Hat Quay database:
+</cmd>
+            <info>
+              <note type="warning">
+                <p>Interacting with the PostgreSQL database is potentially destructive. Red Hat recommends that you perform the following procedure with a Red Hat Quay Support Specialist.</p>
+              </note>
+              <codeblock outputclass="language-terminal">$ oc edit deployment &lt;quay_database&gt;</codeblock>
+              <codeblock outputclass="language-yaml">...
+ template:
+   metadata:
+     creationTimestamp: null
+     labels:
+       quay-component: &lt;quay_database&gt;
+       quay-operator/quayregistry: quay-operator.v3.8.z
+   spec:
+     containers:
+     - env:
+       - name: POSTGRESQL_USER
+         value: postgres
+       - name: POSTGRESQL_DATABASE
+         value: postgres
+       - name: POSTGRESQL_PASSWORD
+         value: postgres
+       - name: POSTGRESQL_ADMIN_PASSWORD
+         value: postgres
+       - name: POSTGRESQL_MAX_CONNECTIONS
+         value: "1000"
+       image: registry.redhat.io/rhel8/postgresql-10@sha256:a52ad402458ec8ef3f275972c6ebed05ad64398f884404b9bb8e3010c5c95291
+       imagePullPolicy: IfNotPresent
+       name: postgres
+       command: ["/bin/bash", "-c", "sleep 86400"]
+...</codeblock>
+              <ul>
+                <li>Add the <codeph>command: ["/bin/bash", "-c", "sleep 86400"]</codeph> line in the same indentation.
+<p outputclass="title"><b>Example output</b></p><codeblock outputclass="language-terminal">deployment.apps/&lt;quay_database&gt; edited</codeblock></li>
+              </ul>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Execute the following command inside of your <codeph>&lt;quay_database&gt;</codeph>:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc exec -it &lt;quay_database&gt; -- cat /var/lib/pgsql/data/userdata/postgresql/logs/* /path/to/desired_directory_on_host</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

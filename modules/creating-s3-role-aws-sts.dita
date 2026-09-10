@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-s3-role-aws-sts">
+  <title>Creating an S3 role</title>
+  <shortdesc>To enable AWS STS authentication for your Red Hat Quay deployment, you can create an S3 role in the AWS IAM console with a custom trust policy that allows your IAM user to assume the role. This procedure sets up the role that grants S3 access permissions for temporary credential authentication.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an IAM user and stored the access key and the secret access key.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Navigate to the IAM dashboard.</cmd>
+      </step>
+      <step>
+        <cmd>In the navigation pane, click <b>Roles</b> under <b>Access management</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Create role</b> → <b>Custom Trust Policy</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Under the <codeph>Principal</codeph> configuration field, add your AWS ARN information. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+   	 {
+   		 "Sid": "Statement1",
+   		 "Effect": "Allow",
+   		 "Principal": {
+   		 	"AWS": "arn:aws:iam::123456:user/quay-user"
+   		 },
+   		 "Action": "sts:AssumeRole"
+   	 }
+    ]
+}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Click <b>Next</b>.</cmd>
+      </step>
+      <step>
+        <cmd>On the <b>Add permissions</b> page, type <codeph>AmazonS3FullAccess</codeph> in the search box. Check the box to add that policy to the S3 role, then click <b>Next</b>.</cmd>
+      </step>
+      <step>
+        <cmd>On the <b>Name, review, and create</b> page, enter the following information:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enter a role name, for example, <codeph>example-role</codeph>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Optional. Add a description.</cmd>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Click the <b>Create role</b> button. You are navigated to the <b>Roles</b> page. Under <b>Role name</b>, the newly created S3 should be available.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

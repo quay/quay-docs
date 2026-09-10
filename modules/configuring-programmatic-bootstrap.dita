@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-programmatic-bootstrap">
+  <title>Configuring programmatic bootstrap on standalone deployments</title>
+  <shortdesc>To configure filesystem-based bootstrap OAuth token provisioning in a standalone Red Hat Quay deployment, you can set <codeph>FEATURE_PROGRAMMATIC_BOOTSTRAP</codeph> and related fields in the <codeph>config.yaml</codeph> file, then restart the registry.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have a standalone Red Hat Quay deployment with at least one superuser account created.</li>
+        <li>You can modify the Red Hat Quay <codeph>config.yaml</codeph> file.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Set the following fields in your Red Hat Quay <codeph>config.yaml</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">FEATURE_PROGRAMMATIC_BOOTSTRAP: true
+SUPER_USERS:
+  - quayadmin
+BOOTSTRAP_TOKEN_OWNER: quayadmin
+BOOTSTRAP_TOKEN_EXPIRATION: 7776000
+BOOTSTRAP_TOKEN_SCOPE: "org:admin repo:admin repo:create repo:read repo:write super:user user:admin user:read"
+BOOTSTRAP_TOKEN_PATH: /datastorage/bootstrap-token.json</codeblock>
+          <p>Set <codeph>BOOTSTRAP_TOKEN_PATH</codeph> to a directory that the Red Hat Quay process can write. In containerized standalone deployments, use a mounted storage path such as <codeph>/datastorage/bootstrap-token.json</codeph>. Quote the <codeph>BOOTSTRAP_TOKEN_SCOPE</codeph> value so YAML does not misparse scopes that contain <codeph>:</codeph>.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart Red Hat Quay after you update the configuration.
+</cmd>
+        <info>
+          <note type="note">
+            <p>If you enable <codeph>FEATURE_PROGRAMMATIC_BOOTSTRAP</codeph> on a deployment that is already running, you must restart Red Hat Quay so the bootstrap token is provisioned and the <codeph>POST /api/v1/bootstrap/renew</codeph> endpoint is registered. A full restart is required; reloading configuration without restarting does not register the bootstrap API endpoints.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Verify bootstrap provisioning:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Check Red Hat Quay startup logs for a <codeph>Bootstrap token provisioned</codeph> message.</cmd>
+          </substep>
+          <substep>
+            <cmd>Confirm that the bootstrap token file exists at the configured storage location. For example:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ ls -l &lt;BOOTSTRAP_TOKEN_PATH&gt;</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

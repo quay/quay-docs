@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="viewing-and-modifying-tags-api">
+  <title>Viewing image tag information by using the API</title>
+  <shortdesc>To view image tag details for a repository in Red Hat Quay, you can use the API.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have pushed an image tag to a Red Hat Quay repository.</li>
+        <li>You have <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token" format="html" scope="external">Created an OAuth access token</xref>.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>To obtain tag information, you must use the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#getrepo" format="html" scope="external"><codeph>GET /api/v1/repository/{repository}</codeph></xref> API endpoint and pass in the <codeph>includeTags</codeph> parameter. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;?includeTags=true</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"namespace": "quayadmin", "name": "busybox", "kind": "image", "description": null, "is_public": false, "is_organization": false, "is_starred": false, "status_token": "d8f5e074-690a-46d7-83c8-8d4e3d3d0715", "trust_enabled": false, "tag_expiration_s": 1209600, "is_free_account": true, "state": "NORMAL", "tags": {"example": {"name": "example", "size": 2275314, "last_modified": "Tue, 14 May 2024 14:48:51 -0000", "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d"}, "test": {"name": "test", "size": 2275314, "last_modified": "Tue, 14 May 2024 14:04:48 -0000", "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d"}}, "can_write": true, "can_admin": true}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Alternatively, you can use the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#listrepotags" format="html" scope="external"><codeph>GET /api/v1/repository/{repository}/tag/</codeph></xref> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/tag/</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"tags": [{"name": "test-two", "reversion": true, "start_ts": 1718737153, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 18 Jun 2024 18:59:13 -0000"}, {"name": "test-two", "reversion": false, "start_ts": 1718737029, "end_ts": 1718737153, "manifest_digest": "sha256:0cd3dd6236e246b349e63f76ce5f150e7cd5dbf2f2f1f88dbd734430418dbaea", "is_manifest_list": false, "size": 2275317, "last_modified": "Tue, 18 Jun 2024 18:57:09 -0000", "expiration": "Tue, 18 Jun 2024 18:59:13 -0000"}, {"name": "test-two", "reversion": false, "start_ts": 1718737018, "end_ts": 1718737029, "manifest_digest": "sha256:0cd3dd6236e246b349e63f76ce5f150e7cd5dbf2f2f1f88dbd734430418dbaea", "is_manifest_list": false, "size": 2275317, "last_modified": "Tue, 18 Jun 2024 18:56:58 -0000", "expiration": "Tue, 18 Jun 2024 18:57:09 -0000"}, {"name": "sample_tag", "reversion": false, "start_ts": 1718736147, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 18 Jun 2024 18:42:27 -0000"}, {"name": "test-two", "reversion": false, "start_ts": 1717680780, "end_ts": 1718737018, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Thu, 06 Jun 2024 13:33:00 -0000", "expiration": "Tue, 18 Jun 2024 18:56:58 -0000"}, {"name": "tag-test", "reversion": false, "start_ts": 1717680378, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Thu, 06 Jun 2024 13:26:18 -0000"}, {"name": "example", "reversion": false, "start_ts": 1715698131, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 14 May 2024 14:48:51 -0000"}], "page": 1, "has_additional": false}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

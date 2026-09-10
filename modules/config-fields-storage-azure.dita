@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="config-fields-storage-azure">
+  <title>Microsoft Azure Blob Storage</title>
+  <shortdesc>You can configure Red Hat Quay to use Microsoft Azure Blob Storage as an object storage backend. Use this example to set account credentials, container details, and optional government cloud endpoints.</shortdesc>
+  <conbody>
+    <p outputclass="title">
+      <b>Microsoft Azure Blob Storage example</b>
+    </p>
+    <codeblock outputclass="language-yaml">DISTRIBUTED_STORAGE_CONFIG:
+  azureStorage:
+    - AzureStorage
+    - azure_account_name: &lt;azure_account_name&gt;
+      azure_container: &lt;azure_container_name&gt;
+      storage_path: /datastorage/registry
+      azure_account_key: &lt;azure_account_key&gt;
+      sas_token: some/path/
+      endpoint_url: https://[account-name].blob.core.usgovcloudapi.net
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - azureStorage</codeblock>
+    <dl>
+      <dlentry>
+        <dt>
+          <codeph>DISTRIBUTED_STORAGE_CONFIG.azureStorage.endpoint_url</codeph>
+        </dt>
+        <dd>Specifies the endpoint URL for Azure storage. This parameter is optional and can be used with Microsoft Azure Government (MAG) endpoints. If left blank, the <codeph>endpoint_url</codeph> connects to the normal Azure region.</dd>
+      </dlentry>
+    </dl>
+    <p>You must use the Primary endpoint of your MAG Blob service. Using the Secondary endpoint of your MAG Blob service results in the following error: <codeph>AuthenticationErrorDetail:Cannot find the claimed account when trying to GetProperties for the account whusc8-secondary</codeph>.</p>
+  </conbody>
+  <related-links>
+    <link href="https://azure.microsoft.com/en-us/products/storage/blobs" format="html" scope="external">
+      <linktext>Microsoft Azure Blob Storage</linktext>
+    </link>
+  </related-links>
+</concept>

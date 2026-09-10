@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="listing-immutability-policy-api">
+  <title>Listing an immutability policy by using the Red Hat Quay API</title>
+  <shortdesc>To view or audit which tags are protected, you can list immutability policies for an organization or a repository in Red Hat Quay by using the API. Send <codeph>GET</codeph> requests with your bearer token to retrieve all policies or a single policy by UUID.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li>You have set <codeph>FEATURE_IMMUTABLE_TAGS</codeph> to <codeph>True</codeph> in your <codeph>config.yaml</codeph> file.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Retrieve all immutability policies for an organization by using the <codeph>GET /api/v1/organization/{orgname}/immutabilitypolicy/</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/immutabilitypolicy/</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"policies": [{"uuid": "3aae3390-de53-4b82-a2b7-4da8fe5dbe11", "tagPattern": ".*", "tagPatternMatches": true}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Retrieve all immutability policies for a repository by using the <codeph>GET /api/v1/repository/{repository}/immutabilitypolicy/</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/immutabilitypolicy/</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"policies": [{"uuid": "87f75fb5-d023-4054-87b4-469f37a59638", "tagPattern": ".*", "tagPatternMatches": true}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>List information about a specific immutability policy for an organization by using the <codeph>GET /api/v1/organization/{orgname}/immutabilitypolicy/{policy_uuid}/</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/immutabilitypolicy/&lt;policy_uuid&gt;/</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"policies": [{"uuid": "87f75fb5-d023-4054-87b4-469f37a59638", "tagPattern": ".*", "tagPatternMatches": true}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>List information about a specific immutability policy for a repository by using the <codeph>GET /api/v1/repository/{repository}/immutabilitypolicy/{policy_uuid}/</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/immutabilitypolicy/&lt;policy_uuid&gt;/</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"uuid": "87f75fb5-d023-4054-87b4-469f37a59638", "tagPattern": ".*", "tagPatternMatches": true}</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

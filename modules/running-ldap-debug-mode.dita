@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="running-ldap-debug-mode">
+  <title>Running an LDAP Red Hat Quay deployment in debug mode</title>
+  <shortdesc>To run an LDAP Red Hat Quay deployment in debug mode and debug LDAP operations, you can use <codeph>podman run</codeph> with <codeph>DEBUGLOG=true</codeph> and <codeph>USERS_DEBUG=1</codeph>. View debug output with the <codeph>podman logs</codeph> command.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Enter the following command to run your LDAP Red Hat Quay deployment in debug mode:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman run -p 443:8443 -p 80:8080 -e DEBUGLOG=true -e USERS_DEBUG=1  -v /config:/conf/stack -v /storage:/datastorage -d {productrepo}/{quayimage}:{productminv}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To view the debug logs, enter the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman logs &lt;quay_container_name&gt;</codeblock>
+          <note type="important">
+            <p>Setting <codeph>USERS_DEBUG=1</codeph> exposes credentials in clear text. This variable should be removed from the Red Hat Quay deployment after debugging. The log file that is generated with this environment variable should be scrutinized, and passwords should be removed before sending to other users. Use with caution.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

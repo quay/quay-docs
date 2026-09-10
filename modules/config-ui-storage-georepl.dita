@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="enable-storage-replication-standalone">
+  <title>Enabling storage replication for standalone Red Hat Quay</title>
+  <shortdesc>To enable storage replication for a standalone Red Hat Quay deployment, you can configure distributed storage engines in <codeph>config.yaml</codeph> and backfill existing image data.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Update your <codeph>config.yaml</codeph> file to include the storage engines to which data is replicated. You must list all storage engines to be used:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+FEATURE_STORAGE_REPLICATION: true
+# ...
+DISTRIBUTED_STORAGE_CONFIG:
+    usstorage:
+        - RHOCSStorage
+        - access_key: &lt;access_key&gt;
+          bucket_name: &lt;example_bucket&gt;
+          hostname: my.noobaa.hostname
+          is_secure: false
+          port: "443"
+          secret_key: &lt;secret_key&gt;
+          storage_path: /datastorage/registry
+    eustorage:
+        - S3Storage
+        - host: s3.amazon.com
+          port: "443"
+          s3_access_key: &lt;access_key&gt;
+          s3_bucket: &lt;example bucket&gt;
+          s3_secret_key: &lt;secret_key&gt;
+          storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - usstorage
+    - eustorage
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. If complete replication of all images to all storage engines is required, you can replicate images to the storage engine by manually setting the <codeph>DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS</codeph> field. This ensures that all images are replicated to that storage engine. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+    - usstorage
+    - eustorage
+# ...</codeblock>
+          <note type="note">
+            <p>To enable per-namespace replication, contact Red Hat Quay support.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>After adding storage and enabling <b>Replicate to storage engine by default</b> for geo-replication, you must sync existing image data across all storage. To do this, you must execute into the container by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman exec -it &lt;container_id&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To sync the content after adding new storage, enter the following commands:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal"># scl enable python27 bash</codeblock>
+          <codeblock outputclass="language-terminal"># python -m util.backfillreplication</codeblock>
+          <note type="note">
+            <p>This is a one time operation to sync content after adding new storage.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

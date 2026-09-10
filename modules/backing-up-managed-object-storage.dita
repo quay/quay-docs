@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="backing-up-managed-object-storage">
+  <title>Backing up the Red Hat Quay managed object storage</title>
+  <shortdesc>To back up your Red Hat Quay managed object storage for disaster recovery, you can export AWS credentials from secrets and use the <codeph>aws s3 sync</codeph> command to copy all blobs to a local directory. This procedure creates a backup of your registry’s object storage data.</shortdesc>
+  <taskbody>
+    <context>
+      <p>The instructions in this section apply to the following configurations:</p>
+      <ul>
+        <li>Standalone, multi-cloud object gateway configurations</li>
+        <li>OpenShift Data Foundations storage requires that the Red Hat Quay Operator provisioned an S3 object storage bucket from, through the <codeph>ObjectStorageBucketClaim</codeph> API.</li>
+      </ul>
+      <note type="note">
+        <p>You can also use <xref href="https://rclone.org/" format="html" scope="external">rclone</xref> or <xref href="https://s3tools.org/s3cmd" format="html" scope="external">sc3md</xref> instead of the AWS command line utility.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Decode and export the <codeph>AWS_ACCESS_KEY_ID</codeph> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export AWS_ACCESS_KEY_ID=$(oc get secret -l app=noobaa -n &lt;quay-namespace&gt;  -o jsonpath='{.items[0].data.AWS_ACCESS_KEY_ID}' |base64 -d)</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Decode and export the <codeph>AWS_SECRET_ACCESS_KEY_ID</codeph> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export AWS_SECRET_ACCESS_KEY=$(oc get secret -l app=noobaa -n &lt;quay-namespace&gt; -o jsonpath='{.items[0].data.AWS_SECRET_ACCESS_KEY}' |base64 -d)</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a new directory by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir blobs</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Copy all blobs to the directory by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ aws s3 sync --no-verify-ssl --endpoint https://$(oc get route s3 -n openshift-storage  -o jsonpath='{.spec.host}')  s3://$(oc get cm -l app=noobaa -n &lt;quay-namespace&gt; -o jsonpath='{.items[0].data.BUCKET_NAME}') ./blobs</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

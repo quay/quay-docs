@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="exposing-prometheus-standalone">
+  <title>Standalone Red Hat Quay</title>
+  <shortdesc>To expose Prometheus metrics for a standalone Red Hat Quay deployment, you can publish port <codeph>9091</codeph> when you start the <codeph>Quay</codeph> container.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>When using <codeph>podman run</codeph> to start the <codeph>Quay</codeph> container, expose the metrics port <codeph>9091</codeph>:
+</cmd>
+        <info>
+          <codeblock>$ sudo podman run -d --rm -p 80:8080 -p 443:8443  -p 9091:9091\
+   --name=quay \
+   -v $QUAY/config:/conf/stack:Z \
+   -v $QUAY/storage:/datastorage:Z \
+   registry.redhat.io/quay/quay-rhel9:v3.18.0</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Verify that the metrics are available:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl quay.example.com:9091/metrics</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

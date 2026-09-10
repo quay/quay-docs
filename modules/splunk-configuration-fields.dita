@@ -1,0 +1,453 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="splunk-configuration-fields">
+  <title>Splunk configuration fields</title>
+  <shortdesc>The following configuration fields export Red Hat Quay action logs to a Splunk endpoint. This configuration allows audit and event logs to be sent to an external Splunk server for centralized analysis, search, and long-term storage.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>Splunk configuration fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="28.5714*"/>
+          <colspec colname="col_2" colwidth="14.2857*"/>
+          <colspec colname="col_3" colwidth="57.1429*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>producer</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Must be set to <codeph>splunk</codeph> when configuring Splunk as the log exporter.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>splunk_config</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Logs model configuration for Splunk action logs or Splunk cluster configuration.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.host</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The Splunk cluster endpoint.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.port</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>The port number for the Splunk management cluster endpoint.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.bearer_token</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The bearer token used for authentication with Splunk.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.verify_ssl</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enable (<codeph>True</codeph>) or disable (<codeph>False</codeph>) TLS/SSL verification for HTTPS connections.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.index_prefix</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The index prefix used by Splunk.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.ssl_ca_path</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The relative container path to a <codeph>.pem</codeph> file containing the certificate authority (CA) for SSL validation.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.search_timeout</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>The timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.max_results</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>The maximum number of results to return per search query. Larger values require more memory.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.export_batch_size</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>The batch size for log export operations.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Splunk configuration example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+    producer: splunk
+    splunk_config:
+        host: http://&lt;user_name&gt;.remote.csb
+        port: 8089
+        bearer_token: &lt;bearer_token&gt;
+        url_scheme: &lt;http/https&gt;
+        verify_ssl: False
+        index_prefix: &lt;splunk_log_index_name&gt;
+        ssl_ca_path: &lt;location_to_ssl-ca-cert.pem&gt;
+        search_timeout: 60
+        max_results: 10000
+        export_batch_size: 5000
+# ...</codeblock>
+    </section>
+    <section id="splunk-hec-configuration-fields">
+      <title>Splunk HEC configuration fields</title>
+      <p>The following fields are available when configuring Splunk HTTP Event Collector (HEC) for Red Hat Quay.</p>
+      <table>
+        <title>Splunk HEC configuration fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="37.5*"/>
+          <colspec colname="col_2" colwidth="12.5*"/>
+          <colspec colname="col_3" colwidth="50*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>producer</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Must be set to <codeph>splunk_hec</codeph> when configuring Splunk HTTP Event Collector (HEC).</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>splunk_hec_config</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Logs model configuration for Splunk HTTP Event Collector action logs.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.host</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Splunk cluster endpoint.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.port</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Splunk management cluster endpoint port.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.hec_token</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>HEC token used for authenticating with Splunk.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.url_scheme</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>URL scheme to access the Splunk service. Use <codeph>https</codeph> if Splunk is behind SSL/TLS.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.verify_ssl</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enable (<codeph>True</codeph>) or disable (<codeph>False</codeph>) SSL/TLS verification for HTTPS connections.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.index</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The Splunk index to use for log storage.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.splunk_host</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The hostname to assign to the logged event.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.splunk_sourcetype</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The Splunk <codeph>sourcetype</codeph> to associate with the event.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.timeout</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Timeout in seconds for HTTP requests to Splunk HEC endpoint. Prevents requests from hanging indefinitely when Splunk is unresponsive.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.search_timeout</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>The timeout for Splunk search queries in seconds. Increase for slow Splunk clusters or complex queries.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.max_results</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>The maximum number of results to return per search query. Larger values require more memory.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.export_batch_size</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>The batch size for log export operations.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.search_host</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The Splunk management host for search API. Defaults to HEC host if not specified.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.search_port</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>The Splunk management port for search API. Defaults to 8089 if not specified.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p><b>.search_token</b> (Optional)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The bearer token for Splunk search API. Required because HEC tokens are ingest-only and cannot search.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Splunk HEC example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  producer: splunk_hec
+  splunk_hec_config:
+    host: prd-p-aaaaaq.splunkcloud.com
+    port: 8088
+    hec_token: 12345678-1234-1234-1234-1234567890ab
+    url_scheme: https
+    verify_ssl: False
+    index: quay
+    splunk_host: quay-dev
+    splunk_sourcetype: quay_logs
+    timeout: 10
+    search_token: &lt;bearer_token&gt;
+    search_host: &lt;splunk.example.com&gt;
+    search_port: 8089
+    search_timeout: 60
+    max_results: 10000
+    export_batch_size: 5000
+# ...</codeblock>
+    </section>
+  </refbody>
+</reference>

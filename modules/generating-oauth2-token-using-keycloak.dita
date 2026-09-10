@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="generating-oauth2-token-using-keycloak">
+  <title>Generating an OAuth2 token with Red Hat Single Sign-On</title>
+  <shortdesc>To exchange an external OIDC token for a Red Hat Quay robot account token, you can first generate an OAuth2 token by using Red Hat Single Sign-On.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>On the Red Hat Single Sign-On UI:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Click <b>Clients</b> and then the name of the application or service that can request authentication of a user.</cmd>
+          </substep>
+          <substep>
+            <cmd>On the <b>Settings</b> page of your client, ensure that the following options are set or enabled:
+</cmd>
+            <info>
+              <ul>
+                <li>
+                  <b>Client ID</b>
+                </li>
+                <li>
+                  <b>Valid redirect URI</b>
+                </li>
+                <li>
+                  <b>Client authentication</b>
+                </li>
+                <li>
+                  <b>Authorization</b>
+                </li>
+                <li>
+                  <b>Standard flow</b>
+                </li>
+                <li>
+                  <b>Direct access grants</b>
+                  <note type="note">
+                    <p>Settings can differ depending on your setup.</p>
+                  </note>
+                </li>
+              </ul>
+            </info>
+          </substep>
+          <substep>
+            <cmd>On the <b>Credentials</b> page, store the <b>Client Secret</b> for future use.</cmd>
+          </substep>
+          <substep>
+            <cmd>On the <b>Users</b> page, click <b>Add user</b> and enter a username, for example, <codeph>service-account-quaydev</codeph>. Then, click <b>Create</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the name of the user, for example <b>service-account-quaydev</b> on the <b>Users</b> page.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the <b>Credentials</b> tab → <b>Set password</b> → and provide a password for the user. If warranted, you can make this password temporary by selecting the <b>Temporary</b> option.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the <b>Realm settings</b> tab → <b>OpenID Endpoint Configuration</b>. Store the <codeph>/protocol/openid-connect/token</codeph> endpoint. For example:
+</cmd>
+            <info>
+              <codeblock outputclass="language-text">http://localhost:8080/realms/master/protocol/openid-connect/token</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>On a web browser, navigate to the following URL:
+</cmd>
+        <info>
+          <codeblock outputclass="language-text">http://&lt;keycloak_url&gt;/realms/&lt;realm_name&gt;/protocol/openid-connect/auth?response_type=code&amp;client_id=&lt;client_id&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>When prompted, log in with the <b>service-account-quaydev</b> user and the temporary password you set. Complete the login by providing the required information and setting a permanent password if necessary.</cmd>
+      </step>
+      <step>
+        <cmd>You are redirected to the URI address provided for your client. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-text">https://localhost:3000/cb?session_state=5c9bce22-6b85-4654-b716-e9bbb3e755bc&amp;iss=http%3A%2F%2Flocalhost%3A8080%2Frealms%2Fmaster&amp;code=ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43</codeblock>
+          <p>Take note of the <codeph>code</codeph> provided in the address. For example:</p>
+          <codeblock outputclass="language-text">code=ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43</codeblock>
+          <note type="note">
+            <p>This is a temporary code that can only be used one time. If necessary, you can refresh the page or revisit the URL to obtain another code.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>On your terminal, use the following <codeph>curl -X POST</codeph> command to generate a temporary OAuth2 access token:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
+-H "Content-Type: application/x-www-form-urlencoded" \
+-d "client_id=quaydev" \
+-d "client_secret=g8gPsBLxVrLo2PjmZkYBdKvcB9C7fmBz" \
+-d "grant_type=authorization_code" \
+-d "code=ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43"</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>http://localhost:8080/realms/master/protocol/openid-connect/token</codeph>
+              </dt>
+              <dd>Specifies the <codeph>protocol/openid-connect/token</codeph> endpoint found on the <b>Realm settings</b> page of the Red Hat Single Sign-On UI.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>quaydev</codeph>
+              </dt>
+              <dd>Specifies the Client ID used for this procedure.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>g8gPsBLxVrLo2PjmZkYBdKvcB9C7fmBz</codeph>
+              </dt>
+              <dd>Specifies the Client Secret for the Client ID.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ea5b76eb-47a5-4e5d-8f71-0892178250db.5c9bce22-6b85-4654-b716-e9bbb3e755bc.cdffafbc-20fb-42b9-b254-866017057f43</codeph>
+              </dt>
+              <dd>
+                <p>Specifies the code returned from the redirect URI.</p>
+                <p outputclass="title">
+                  <b>Example output</b>
+                </p>
+                <codeblock outputclass="language-terminal">{"access_token":"&lt;access_token&gt;...",
+"expires_in":60,"refresh_expires_in":1800,"refresh_token":"&lt;refresh_token&gt;","token_type":"Bearer","not-before-policy":0,"session_state":"5c9bce22-6b85-4654-b716-e9bbb3e755bc","scope":"profile email"}</codeblock>
+              </dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Store the <codeph>access_token</codeph> from the previous step so that you can exchange it for a Red Hat Quay robot account token in the following procedure.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

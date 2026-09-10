@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-oauth-access-token">
+  <title>Creating an OAuth 2 access token</title>
+  <shortdesc>To create an OAuth 2 access token for Red Hat Quay API calls, you can generate a named token from an organization OAuth application in the UI.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have logged in to Red Hat Quay as an administrator.</li>
+        <li>You have created an organization.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>On the Red Hat Quay UI, select your organization.</cmd>
+      </step>
+      <step>
+        <cmd>In the navigation pane, click <b>OAuth Applications</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Create an application if you do not already have one:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Click <b>Create OAuth Application</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Enter an application name and any required application details, such as homepage URL, description, avatar e-mail, and redirect/callback URL.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Create application</b>.</cmd>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Click the name of your OAuth application.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>API Access Tokens</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Generate New Token</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Configure the token:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enter a <b>Token name</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Set an expiration period, such as <b>10 years</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Optional: Click <b>Assign another user</b> to assign this OAuth token to another user. When prompted, select the desired user.</cmd>
+          </substep>
+          <substep>
+            <cmd>Select the permissions, or scopes, for the token. For example:
+</cmd>
+            <info>
+              <ol>
+                <li><b>Administer Organization</b>. This application can administer your organizations, including creating robots, creating teams, adjusting team membership, and changing billing settings. Grant this permission only when you have absolute trust in the requesting application.</li>
+                <li><b>Administer Repositories</b>. This application has administrator access to all repositories to which the granting user has access.</li>
+                <li><b>Create Repositories</b>. This application can create repositories in all namespaces where the granting user can create repositories.</li>
+                <li><b>View all visible repositories</b>. This application can view and pull all repositories visible to the granting user.</li>
+                <li><b>Read/Write to any accessible repositories</b>. This application can view, push, and pull to all repositories to which the granting user has write access.</li>
+                <li><b>Super User Access</b>. This application can administer your installation, including managing users, managing organizations, and other features found in the superuser panel. Grant this permission only when you have absolute trust in the requesting application.</li>
+                <li><b>Administer User</b>. This application can administer your account, including creating robots and granting them permissions to your repositories. Grant this permission only when you have absolute trust in the requesting application.</li>
+                <li><b>Read User Information</b>. This application can read user information such as username and email address.</li>
+              </ol>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Click <b>Generate token</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Review the requested permissions, then click <b>Authorize Application</b>. Confirm the authorization when prompted.
+</cmd>
+        <info>
+          <note type="important">
+            <p>Assign only the scopes that the token holder needs. Treat <b>Administer Organization</b>, <b>Super User Access</b>, and <b>Administer User</b> as high-trust permissions.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Copy and store the access token secret.
+</cmd>
+        <info>
+          <note type="important">
+            <p>This is the only opportunity to copy the token secret. Red Hat Quay does not show the full secret again after you leave the page.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Confirm that the new token appears on the <b>API Access Tokens</b> page for the application. The list can include the token name, creator, scopes, expiration, and last-used information when those columns are available.</li>
+        <li>Optional. Call an API endpoint with the token to confirm that it works. For example:
+<codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/user/" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

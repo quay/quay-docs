@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-envvar-worker-count">
+  <title>Worker process counts</title>
+  <shortdesc>Use worker count environment variables to set how many parallel processes handle registry, web UI, and security scanning requests in Red Hat Quay.</shortdesc>
+  <refbody>
+    <section>
+      <p>If not explicitly set, Red Hat Quay calculates the number of worker processes automatically based on the number of available CPU cores. While this dynamic scaling can optimize performance on larger machines, it might also lead to unnecessary resource usage in smaller environments.</p>
+      <p>In Red Hat Quay on OpenShift Container Platform deployments, the Operator sets the following default values:</p>
+      <ul>
+        <li><codeph>WORKER_COUNT_REGISTRY</codeph>: 8</li>
+        <li><codeph>WORKER_COUNT_WEB</codeph>: 4</li>
+        <li><codeph>WORKER_COUNT_SECSCAN</codeph>: 2</li>
+      </ul>
+      <table>
+        <title>Worker count variables</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Variable</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_COUNT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>Generic override for number of processes</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_COUNT_REGISTRY</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>Specifies the number of processes to handle Registry requests within the <codeph>Quay</codeph> container. <b>Values:</b> Integer between <codeph>8</codeph> and <codeph>64</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_COUNT_WEB</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>Specifies the number of processes to handle UI/Web requests within the container. <b>Values:</b> Integer between <codeph>2</codeph> and <codeph>32</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>WORKER_COUNT_SECSCAN</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>Specifies the number of processes to handle Security Scanning (e.g. Clair) integration within the container. <b>Values:</b> Integer. Because the Operator specifies 2 vCPUs for resource requests and limits, setting this value between <codeph>2</codeph> and <codeph>4</codeph> is safe. However, users can run more, for example, <codeph>16</codeph>, if warranted.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Worker count configuration for standalone Red Hat Quay deployments</b>
+      </p>
+      <codeblock outputclass="language-yaml">WORKER_COUNT: 10
+WORKER_COUNT_REGISTRY: 16
+WORKER_COUNT_WEB: 8
+WORKER_COUNT_SECSCAN: 4</codeblock>
+      <p outputclass="title">
+        <b>Worker count configuration for Red Hat Quay on OpenShift Container Platform</b>
+      </p>
+      <codeblock outputclass="language-yaml">env:
+  - name: WORKER_COUNT
+    value: "10"
+  - name: WORKER_COUNT_REGISTRY
+    value: "16"
+  - name: WORKER_COUNT_WEB
+    value: "8"
+  - name: WORKER_COUNT_SECSCAN
+    value: "4"</codeblock>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="clair-ephemeral-storage-overrides">
+  <title>Configuring ephemeral storage for managed Clair</title>
+  <shortdesc>To increase Clair scratch space for image layer extraction on Red Hat Quay, you can set <codeph>volumeSize</codeph> and <codeph>storageClassName</codeph> overrides on the managed <codeph>clair</codeph> component in the <codeph>QuayRegistry</codeph> custom resource.</shortdesc>
+  <taskbody>
+    <context>
+      <p>When you deploy managed Clair, the Operator provisions an ephemeral volume named <codeph>indexer-layer-storage</codeph> for temporary image layer extraction during vulnerability scanning. If your registry scans large images, this scratch space can fill and cause Clair pods to fail.</p>
+      <p>By default, the ephemeral volume requests <codeph>20Gi</codeph> of storage and uses the cluster default storage class. You can override the capacity and storage class without adding new fields to the <codeph>QuayRegistry</codeph> CR. The Operator applies these values to the ephemeral volume mounted at <codeph>/var/tmp</codeph>.</p>
+      <note type="note">
+        <p>These overrides apply to Clair scratch storage at <codeph>/var/tmp</codeph>, not to the managed Clair PostgreSQL database. To resize the Clair database volume, configure overrides on the <codeph>clairpostgres</codeph> component.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Edit your <codeph>QuayRegistry</codeph> custom resource. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc edit quayregistry &lt;registry_name&gt; -n &lt;namespace&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Under <codeph>spec.components</codeph>, add <codeph>overrides.volumeSize</codeph> and, optionally, <codeph>overrides.storageClassName</codeph> to the managed <codeph>clair</codeph> component. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">spec:
+  components:
+    - kind: clair
+      managed: true
+      overrides:
+        volumeSize: 50Gi
+        storageClassName: fast-ssd</codeblock>
+          <p>When no overrides are specified, the Operator preserves the default <codeph>20Gi</codeph> request and does not set a storage class.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Save the changes and wait for the Operator to reconcile the Clair deployment.</cmd>
+      </step>
+      <step>
+        <cmd>Verify that the Clair deployment includes the updated ephemeral volume claim template. Confirm that the <codeph>storage</codeph> and <codeph>storageClassName</codeph> values match your overrides:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get deploy -n &lt;namespace&gt; &lt;registry_name&gt;-clair-app \
+  -o jsonpath='{.spec.template.spec.volumes[?(@.name=="indexer-layer-storage")].ephemeral.volumeClaimTemplate.spec}{"\n"}'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"50Gi"}},"storageClassName":"fast-ssd","volumeMode":"Filesystem"}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-namespace-repository-management">
+  <title>Namespace and repository management configuration fields</title>
+  <shortdesc>The following configuration fields govern how Red Hat Quay manages namespaces and repositories, including behavior during automated image pushes, visibility defaults, and rate limiting exceptions.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>Namespace and repository management configuration fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>DEFAULT_NAMESPACE_MAXIMUM_BUILD_COUNT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>The default maximum number of builds that can be queued in a namespace.</p>
+                <p><b>Default:</b> None</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>CREATE_PRIVATE_REPO_ON_PUSH</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether new repositories created by push are set to private visibility</p>
+                <p><b>Default:</b> True</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>CREATE_NAMESPACE_ON_PUSH</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether new push to a non-existent organization creates it</p>
+                <p><b>Default:</b> False</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>PUBLIC_NAMESPACES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>If a namespace is defined in the public namespace list, then it will appear on <b>all</b> users' repository list pages, regardless of whether the user is a member of the namespace. Typically, this is used by an enterprise customer in configuring a set of "well-known" namespaces.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>NON_RATE_LIMITED_NAMESPACES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>If rate limiting has been enabled using <codeph>FEATURE_RATE_LIMITS</codeph>,  you can override it for specific namespace that require unlimited access.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>DISABLE_PUSHES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Disables pushes of new content to the registry while retaining all other functionality. Differs from <codeph>read-only</codeph> mode because database is not set as <codeph>read-only</codeph>. When <codeph>DISABLE_PUSHES</codeph> is set to <codeph>True</codeph>, the Red Hat Quay garbage collector is disabled. As a result, when <codeph>PERMANENTLY_DELETE_TAGS</codeph> is enabled, using the Red Hat Quay UI to permanently delete a tag does not result in the immediate deletion of a tag. Instead, the image stays in the backend storage until <codeph>DISABLE_PUSHES</codeph> is set to <codeph>False</codeph>, which re-enables the garbage collector. Red Hat Quay administrators should be aware of this caveat when using <codeph>DISABLE_PUSHES</codeph> and <codeph>PERMANENTLY_DELETE_TAGS</codeph> together.</p>
+                <p><b>Default:</b> False</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Namespace and repository management example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+DEFAULT_NAMESPACE_MAXIMUM_BUILD_COUNT: 10
+CREATE_PRIVATE_REPO_ON_PUSH: true
+CREATE_NAMESPACE_ON_PUSH: false
+PUBLIC_NAMESPACES:
+  - redhat
+  - opensource
+  - infra-tools
+NON_RATE_LIMITED_NAMESPACES:
+  - ci-pipeline
+  - trusted-partners
+DISABLE_PUSHES: false
+# ...</codeblock>
+    </section>
+  </refbody>
+</reference>

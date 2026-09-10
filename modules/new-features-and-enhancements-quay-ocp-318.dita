@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="new-features-and-enhancements-quay-ocp-318">
+  <title>Red Hat Quay on OpenShift Container Platform new features and enhancements</title>
+  <shortdesc>You can review new features and enhancements for Red Hat Quay on OpenShift Container Platform in 3.18, including TLS security profile inheritance, Redis and Clair resource overrides, and Operator-managed PostgreSQL TLS.</shortdesc>
+  <refbody>
+    <section id="ocp-tls-security-profile-inheritance">
+      <title>OpenShift Container Platform cluster TLS security profile inheritance &amp; Post-Quantum Cryptography (PQC) readiness</title>
+      <p>When the <codeph>tls</codeph> component is set to <codeph>unmanaged</codeph>, the Red Hat Quay Operator inherits the cluster’s TLS security profile from the <codeph>APIServer</codeph> configuration when neither <codeph>SSL_PROTOCOLS</codeph> nor <codeph>SSL_CIPHERS</codeph> is configured in the <codeph>configBundleSecret</codeph> resource. This helps align Red Hat Quay with the platform TLS policy and supports Post-Quantum Cryptography (PQC) readiness when the cluster profile requires TLS 1.3.</p>
+      <p>To fully override or preserve TLS behavior, set both <codeph>SSL_PROTOCOLS</codeph> and <codeph>SSL_CIPHERS</codeph> in the <codeph>configBundleSecret</codeph> resource. Setting either field disables cluster-profile inheritance for both fields; partial configuration is not supported. Supported profile types are <codeph>Old</codeph>, <codeph>Intermediate</codeph>, <codeph>Modern</codeph>, and <codeph>Custom</codeph>. If the cluster has no profile set, the Operator defaults to the <codeph>Intermediate</codeph> profile (TLS 1.2 and TLS 1.3).</p>
+      <table>
+        <title>TLS security profile inheritance by TLS mode</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="25*"/>
+          <colspec colname="col_2" colwidth="37.5*"/>
+          <colspec colname="col_3" colwidth="37.5*"/>
+          <thead>
+            <row>
+              <entry>TLS mode</entry>
+              <entry>Before this release</entry>
+              <entry>After this release</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>Managed TLS (Operator-managed route)</p>
+              </entry>
+              <entry>
+                <p>OpenShift Container Platform Route enforces the cluster TLS profile</p>
+              </entry>
+              <entry>
+                <p>No change</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>Unmanaged TLS (<codeph>tls</codeph> component set to <codeph>unmanaged</codeph>)</p>
+              </entry>
+              <entry>
+                <p>Red Hat Quay used built-in TLS defaults</p>
+              </entry>
+              <entry>
+                <p>Red Hat Quay inherits the cluster TLS security profile when neither <codeph>SSL_PROTOCOLS</codeph> nor <codeph>SSL_CIPHERS</codeph> is configured</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <note type="important">
+        <p>If you use unmanaged TLS and require specific TLS settings that differ from the cluster default, set both <codeph>SSL_PROTOCOLS</codeph> and <codeph>SSL_CIPHERS</codeph> in your <codeph>configBundleSecret</codeph> resource before upgrading. Setting only one field disables cluster-profile inheritance for both fields. For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/upgrade_red_hat_quay/index#preserving-tls-settings-operator-upgrade_upgrade_red_hat_quay_on_openshift_container_platform" format="html" scope="external">Preserving TLS settings before upgrading Red Hat Quay on OpenShift Container Platform</xref>.</p>
+      </note>
+      <p>On Kubernetes clusters without the <codeph>config.openshift.io</codeph> API, the Operator does not inject TLS settings and Red Hat Quay uses its built-in defaults.</p>
+      <p>For more information about SSL/TLS configuration fields, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#config-fields-ssl" format="html" scope="external">SSL/TLS configuration fields</xref>.</p>
+      <p>For information about custom certificates and the config bundle, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#operator-custom-ssl-certs-config-bundle" format="html" scope="external">Configuring custom SSL/TLS certificates for Red Hat Quay on OpenShift Container Platform</xref>. For information about TLS protocol and cipher inheritance, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#operator-ocp-tls-security-profile" format="html" scope="external">OpenShift Container Platform cluster TLS security profile inheritance</xref>.</p>
+      <p>For more information about NIST post-quantum cryptography standards, see <xref href="https://csrc.nist.gov/projects/post-quantum-cryptography" format="html" scope="external">Post-Quantum Cryptography</xref>.</p>
+      <p>For the latest compliance information for OpenShift Container Platform, RHEL, and Red Hat Enterprise Linux CoreOS (RHCOS), see <xref href="https://access.redhat.com/articles/2918071" format="html" scope="external">Compliance Activities and Government Standards</xref>.</p>
+    </section>
+    <section id="redis-component-resource-overrides">
+      <title>Redis component resource overrides</title>
+      <p>With this release, you can override CPU and memory requests and limits for the Operator-managed <codeph>redis</codeph> component in the <codeph>QuayRegistry</codeph> custom resource. This brings <codeph>redis</codeph> in line with other managed components, such as <codeph>quay</codeph>, <codeph>clair</codeph>, <codeph>mirror</codeph>, and <codeph>postgres</codeph>, that already support resource overrides through <codeph>spec.components[].overrides.resources</codeph>.</p>
+      <p>When you do not set resource overrides for <codeph>redis</codeph>, the Operator uses the following defaults:</p>
+      <ul>
+        <li>Requests: <codeph>500m</codeph> CPU and <codeph>1Gi</codeph> memory</li>
+        <li>Limits: <codeph>4000m</codeph> CPU and <codeph>16Gi</codeph> memory</li>
+      </ul>
+      <p>For example, to tune Redis resources for a smaller cluster, add an entry like the following under <codeph>spec.components</codeph>:</p>
+      <codeblock outputclass="language-yaml">    - kind: redis
+      managed: true
+      overrides:
+        resources:
+          limits:
+            cpu: 400m
+            memory: 400Mi
+          requests:
+            cpu: 400m
+            memory: 400Mi</codeblock>
+      <p>For more information about configuring resource requests and limits, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#configuring-resources-managed-components" format="html" scope="external">Configuring QuayRegistry CR resources</xref>.</p>
+    </section>
+    <section id="clair-ephemeral-storage-overrides-rn">
+      <title>Clair ephemeral storage overrides</title>
+      <p>With this release, you can configure <codeph>volumeSize</codeph> and <codeph>storageClassName</codeph> overrides on the managed <codeph>clair</codeph> component in the <codeph>QuayRegistry</codeph> custom resource. These overrides customize the ephemeral volume that Clair uses for image layer extraction at <codeph>/var/tmp</codeph>.</p>
+      <p>When you do not set overrides, the Operator requests <codeph>20Gi</codeph> of ephemeral storage with no explicit storage class. Large or unexpected images can exhaust this scratch space and disrupt vulnerability scanning.</p>
+      <p>For example:</p>
+      <codeblock outputclass="language-yaml">    - kind: clair
+      managed: true
+      overrides:
+        volumeSize: 50Gi
+        storageClassName: fast-ssd</codeblock>
+      <p>These overrides apply to Clair scratch storage only. They do not resize the managed Clair PostgreSQL database.</p>
+      <p>For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/vulnerability_reporting_with_clair_on_red_hat_quay/index#clair-ephemeral-storage-overrides" format="html" scope="external">Configuring ephemeral storage for managed Clair</xref>.</p>
+    </section>
+    <section id="external-tls-secret-reference">
+      <title>External TLS Secret reference for the QuayRegistry CR</title>
+      <p>The Red Hat Quay Operator supports referencing an external <codeph>kubernetes.io/tls</codeph> Secret for registry HTTPS certificates through the <codeph>QuayRegistry</codeph> CR. This feature enables automated certificate rotation without embedding <codeph>ssl.cert</codeph> and <codeph>ssl.key</codeph> files in the <codeph>configBundleSecret</codeph> CR. Certificate sources can include cert-manager, HashiCorp Vault, or manually updated Secrets. When the referenced Secret changes, the Operator performs a rolling restart of Red Hat Quay pods.</p>
+      <p>The <codeph>QuayRegistry</codeph> status includes a <codeph>ComponentTLSReady</codeph> condition that reports whether TLS from the external Secret is valid and applied.</p>
+      <p>For configuration steps, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#operator-external-tls-secret-reference" format="html" scope="external">Referencing an external TLS Secret for Red Hat Quay on OpenShift Container Platform</xref>. For a cert-manager example, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#example-certificate-manager" format="html" scope="external">Example: Using cert-manager with an external TLS Secret</xref>.</p>
+    </section>
+    <section id="operator-managed-postgres-tls-rn">
+      <title>TLS encryption for Operator-managed PostgreSQL</title>
+      <p>With this release, you can enable TLS encryption for Operator-managed PostgreSQL databases used by Red Hat Quay and Clair. Set <codeph>overrides.tls.enabled: true</codeph> on the <codeph>postgres</codeph> and/or <codeph>clairpostgres</codeph> components in the <codeph>QuayRegistry</codeph> custom resource.</p>
+      <p>When TLS is enabled, the Operator configures PostgreSQL to accept encrypted connections and mounts the required TLS certificates. TLS is opt-in; existing deployments are unaffected until you enable it. After enablement, verify that PostgreSQL reports <codeph>ssl = on</codeph>. Optionally confirm client TLS sessions or an <codeph>sslmode</codeph> setting such as <codeph>verify-full</codeph> in the registry database configuration.</p>
+      <p>Certificate options include the following:</p>
+      <ul>
+        <li>On OpenShift Container Platform, the Operator uses the cluster Service CA when no custom Secret is provided.</li>
+        <li>On other Kubernetes platforms, the Operator generates ECDSA P-256 self-signed certificates.</li>
+        <li>You can supply your own certificates by referencing a Secret with <codeph>overrides.tls.secretRef.name</codeph>. This format is compatible with cert-manager.</li>
+      </ul>
+      <p>You can enable TLS independently for the <codeph>postgres</codeph> and <codeph>clairpostgres</codeph> components. This feature addresses encryption-in-transit requirements for Operator-managed databases without provisioning external PostgreSQL infrastructure.</p>
+      <note type="important">
+        <p>This feature configures transport encryption for Operator-managed PostgreSQL. Transport encryption is distinct from the managed <codeph>tls</codeph> component, which handles Red Hat Quay’s external HTTPS endpoint.</p>
+      </note>
+      <p>For configuration examples, certificate options, and verification steps, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#operator-managed-postgres-tls" format="html" scope="external">TLS encryption for Operator-managed PostgreSQL</xref>.</p>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-image-expiration-notification">
+  <title>Creating an image expiration notification</title>
+  <shortdesc>To create an image expiration notification in Red Hat Quay, you can use the v2 UI or the API. You set how many days before expiry to send the alert.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li><codeph>FEATURE_GARBAGE_COLLECTION: true</codeph> is set in your <codeph>config.yaml</codeph> file.</li>
+        <li>Optional. <codeph>FEATURE_AUTO_PRUNE: true</codeph> is set in your <codeph>config.yaml</codeph> file.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Triggers can work in conjunction with the auto-pruning feature. You can also create this notification by using the <codeph>createRepoNotification</codeph> API endpoint.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>On the Red Hat Quay v2 UI, click <b>Repositories</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Select the name of a repository.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Settings</b> → <b>Events and notifications</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Create notification</b>. The <b>Create notification</b> popup box appears.</cmd>
+      </step>
+      <step>
+        <cmd>Click the <b>Select event…​</b> box, then click <b>Image expiry trigger</b>.</cmd>
+      </step>
+      <step>
+        <cmd>In the <b>When the image is due to expiry in days</b> box, enter the number of days before the image’s expiration when you want to receive an alert. For example, use <codeph>1</codeph> for 1 day.</cmd>
+      </step>
+      <step>
+        <cmd>In the <b>Select method…​</b> box, click one of the following:
+</cmd>
+        <info>
+          <ul>
+            <li>E-mail</li>
+            <li>Webhook POST</li>
+            <li>Flowdock Team Notification</li>
+            <li>HipChat Room Notification</li>
+            <li>Slack Notification</li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Depending on which method you chose, include the necessary data. For example, if you chose <b>Webhook POST</b>, include the <codeph>Webhook URL</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>Optional. Provide a <b>POST JSON body template</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Optional. Provide a <b>Title</b> for your notification.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Submit</b>. You are returned to the <b>Events and notifications</b> page, and the notification now appears.</cmd>
+      </step>
+      <step>
+        <cmd>Optional. You can set the <codeph>NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES</codeph> variable in your config.yaml file. with this field set, if there are any expiring images notifications will be sent automatically. By default, this is set to <codeph>300</codeph>, or 5 hours, however it can be adjusted as warranted.
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES: 300</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>NOTIFICATION_TASK_RUN_MINIMUM_INTERVAL_MINUTES</codeph>
+              </dt>
+              <dd>Specifies that by default, this field is set to <codeph>300</codeph>, or 5 hours.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Click the menu kebab → <b>Test Notification</b>. The following message is returned:
+<codeblock outputclass="language-text">Test Notification Queued
+A test version of this notification has been queued and should appear shortly</codeblock></li>
+        <li>Depending on which method you chose, check your e-mail, webhook address, Slack channel, and so on. The information sent should look similar to the following example:
+<codeblock outputclass="language-json">{
+  "repository": "sample_org/busybox",
+  "namespace": "sample_org",
+  "name": "busybox",
+  "docker_url": "quay-server.example.com/sample_org/busybox",
+  "homepage": "http://quay-server.example.com/repository/sample_org/busybox",
+  "tags": [
+    "latest",
+    "v1"
+  ],
+  "expiring_in": "1 days"
+}</codeblock></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

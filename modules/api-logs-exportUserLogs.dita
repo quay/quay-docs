@@ -1,0 +1,216 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="exportuserlogs">
+  <title>exportUserLogs</title>
+  <shortdesc>Returns the aggregated logs for the current user.</shortdesc>
+  <refbody>
+    <section id="exportuserlogs-post">
+      <title>POST /api/v1/user/exportlogs</title>
+      <p><b>Authorizations: </b>oauth2_implicit (<b>user:admin</b>)</p>
+    </section>
+    <section id="exportuserlogs-query-parameters">
+      <title>Query parameters</title>
+      <table>
+        <tgroup cols="4">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <colspec colname="col_4" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Type</entry>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>query</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>endtime</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Latest time for logs. Format: "%m/%d/%Y" in UTC.</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>query</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>starttime</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Earliest time for logs. Format: "%m/%d/%Y" in UTC.</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="exportuserlogs-request-body-schema">
+      <title>Request body schema (application/json)</title>
+      <p>Configuration for an export logs operation</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>callback_url</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The callback URL to invoke with a link to the exported logs</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>callback_email</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The e-mail address at which to e-mail a link to the exported logs</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="exportuserlogs-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>201</p>
+              </entry>
+              <entry>
+                <p>Successful creation</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>400</p>
+              </entry>
+              <entry>
+                <p>Bad Request</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>404</p>
+              </entry>
+              <entry>
+                <p>Not found</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="exportuserlogs-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+        "starttime": "&lt;MM/DD/YYYY&gt;",
+        "endtime": "&lt;MM/DD/YYYY&gt;",
+        "callback_email": "your.email@example.com"
+      }' \
+  "http://&lt;quay-server.example.com&gt;/api/v1/user/exportlogs"</codeblock>
+    </section>
+  </refbody>
+</reference>

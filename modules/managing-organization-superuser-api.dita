@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="organization-manage-api">
+  <title>Managing organizations as a superuser with the Red Hat Quay API</title>
+  <shortdesc>To list, update, or delete organizations in Red Hat Quay, you can use the superuser organization API endpoints.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li>You are logged into your Red Hat Quay deployment as a superuser.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/superuser/organizations</codeph> endpoint to list all organizations:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -L -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://&lt;quay_server&gt;/api/v1/superuser/organizations?name=&lt;organization_name&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"organizations": [{"name": "fed_test", "email": "fe11fc59-bd09-459a-a21c-b57692d151c9", "avatar": {"name": "fed_test", "hash": "e2ce1fb42ec2e0602362beb64b5ebd1e6ad291b710a0355f9296c16157bef3cb", "color": "#ff7f0e", "kind": "org"}, "quotas": [{"id": 3, "limit_bytes": 10737418240, "limits": []}], "quota_report": {"quota_bytes": 0, "configured_quota": 10737418240, "running_backfill": "complete", "backfill_status": "complete"}}, {"name": "test", "email": "new-contact@test-org.com", "avatar": {"name": "test", "hash": "a15d479002b20f211568fd4419e76686d2b88a4980a5b4c4bc10420776c5f6fe", "color": "#aec7e8", "kind": "org"}, "quotas": [{"id": 2, "limit_bytes": 10737418240, "limits": [{"id": 1, "type": "Reject", "limit_percent": 90}]}], "quota_report": {"quota_bytes": 0, "configured_quota": 10737418240, "running_backfill": "complete", "backfill_status": "complete"}}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>PUT /api/v1/superuser/organizations/{name}</codeph> endpoint to change or update information for an organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "email": "&lt;contact_email&gt;",
+        "invoice_email": &lt;boolean_value&gt;,
+        "invoice_email_address": "&lt;invoice_email_address&gt;",
+        "tag_expiration_s": &lt;expiration_seconds&gt;
+      }' \
+  "https://&lt;quay_server&gt;/api/v1/superuser/organizations/&lt;organization_name&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"name": "test", "email": "new-contact@test-org.com", "avatar": {"name": "test", "hash": "a15d479002b20f211568fd4419e76686d2b88a4980a5b4c4bc10420776c5f6fe", "color": "#aec7e8", "kind": "org"}, "quotas": [{"id": 2, "limit_bytes": 10737418240, "limits": [{"id": 1, "type": "Reject", "limit_percent": 90}]}], "quota_report": {"quota_bytes": 0, "configured_quota": 10737418240, "running_backfill": "complete", "backfill_status": "complete"}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>DELETE /api/v1/superuser/organizations/{name}</codeph> endpoint to delete an organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://&lt;quay_server&gt;/api/v1/superuser/organizations/&lt;organization_name&gt;"</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

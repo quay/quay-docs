@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="quay-standalone-readonly">
+  <title>Configuring read-only mode for standalone Red Hat Quay</title>
+  <shortdesc>To put a standalone Red Hat Quay deployment into read-only mode, you can add the service key files and <codeph>REGISTRY_STATE</codeph> settings to your configuration bundle and restart Quay.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created the service keys and added them to your PostgreSQL database.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>After the service keys have been created and added to your PostgreSQL database, you must restart the <codeph>Quay</codeph> container on your standalone deployment.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Shut down all Red Hat Quay instances on all virtual machines. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman stop &lt;quay_container_name_on_virtual_machine_a&gt;</codeblock>
+          <codeblock outputclass="language-terminal">$ podman stop &lt;quay_container_name_on_virtual_machine_b&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to copy the contents of the <codeph>quay-readonly.kid</codeph> file and the <codeph>quay-readonly.pem</codeph> file to the directory that holds your Red Hat Quay configuration bundle:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cp quay-readonly.kid quay-readonly.pem $Quay/config</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to set file permissions on all files in your configuration bundle folder:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ setfacl -m user:1001:rw $Quay/config/*</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Modify your Red Hat Quay <codeph>config.yaml</codeph> file and add the following information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Distribute the new configuration bundle to all Red Hat Quay instances.</cmd>
+      </step>
+      <step>
+        <cmd>Start Red Hat Quay by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman run -d --rm -p 80:8080 -p 443:8443  \
+   --name=quay-main-app \
+   -v $QUAY/config:/conf/stack:Z \
+   -v $QUAY/storage:/datastorage:Z \
+   {productrepo}/{quayimage}:{productminv}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>After starting Red Hat Quay, a banner inside your instance informs users that Red Hat Quay is running in read-only mode. Pushes should be rejected and a 405 error should be logged. You can test this by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/quayadmin/busybox:test</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">613be09ab3c0: Preparing
+denied: System is currently read-only. Pulls will succeed but all write operations are currently suspended.</codeblock>
+          <p>With your Red Hat Quay deployment on read-only mode, you can safely manage your registry’s operations and perform such actions as backup and restore.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. After you finish with read-only mode, you can return to normal operations by removing the following information from your <codeph>config.yaml</codeph> file. Then, restart your Red Hat Quay deployment:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...</codeblock>
+          <codeblock outputclass="language-terminal">$ podman restart &lt;container_id&gt;</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-user-account-quay-api">
+  <title>Creating a user account by using the Red Hat Quay API</title>
+  <shortdesc>To create a user account in Red Hat Quay as a superuser, you can use the Red Hat Quay API.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You are logged into your Red Hat Quay deployment as a superuser.</li>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to create a new user by using the <codeph>POST /api/v1/superuser/users/</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST -H "Authorization: Bearer &lt;bearer_token&gt;" -H "Content-Type: application/json" -d '{
+  "username": "newuser",
+  "email": "newuser@example.com"
+}' "https://&lt;quay-server.example.com&gt;/api/v1/superuser/users/"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"username": "newuser", "email": "newuser@example.com", "password": "123456789", "encrypted_password": "&lt;example_encrypted_password&gt;/JKY9pnDcsw="}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Navigate to your Red Hat Quay registry endpoint, for example, <codeph>quay-server.example.com</codeph> and log in with the username and password generated from the API call. In this scenario, the username is <codeph>newuser</codeph> and the password is <codeph>123456789</codeph>. Alternatively, you can log in to the registry with the CLI. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman login &lt;quay-server.example.com&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">username: newuser
+password: 123456789</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. You can obtain a list of all users, including superusers, by using the <codeph>GET /api/v1/superuser/users/</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;bearer_token&gt;" "https://&lt;quay-server.example.com&gt;/api/v1/superuser/users/"</codeblock>
+          <note type="note">
+            <p>The <codeph>GET /api/v1/superuser/users/</codeph> endpoint only returns users and superusers if <codeph>AUTHENTICATION_TYPE: Database</codeph> is set in your <codeph>config.yaml</codeph> file. It does not work for <codeph>LDAP</codeph> authentication types.</p>
+          </note>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"users": [{"kind": "user", "name": "quayadmin", "username": "quayadmin", "email": "quay@quay.com", "verified": true, "avatar": {"name": "quayadmin", "hash": "b28d563a6dc76b4431fc7b0524bbff6b810387dac86d9303874871839859c7cc", "color": "#17becf", "kind": "user"}, "super_user": true, "enabled": true}, {"kind": "user", "name": "newuser", "username": "newuser", "email": "newuser@example.com", "verified": true, "avatar": {"name": "newuser", "hash": "f338a2c83bfdde84abe2d3348994d70c34185a234cfbf32f9e323e3578e7e771", "color": "#9edae5", "kind": "user"}, "super_user": false, "enabled": true}]}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

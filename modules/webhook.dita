@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="webhook">
+  <title>Webhook reference</title>
+  <shortdesc>The webhook reference provides the JSON payload format required to trigger builds in Red Hat Quay. You must <codeph>POST</codeph> a <codeph>JSON</codeph> payload with <codeph>commit</codeph>, <codeph>ref</codeph>, and <codeph>default_branch</codeph> fields to the webhook URL to automatically start a build.</shortdesc>
+  <refbody>
+    <section>
+      <note type="note">
+        <p>This request requires a <codeph>Content-Type</codeph> header containing
+<codeph>application/json</codeph> in order to be valid.</p>
+      </note>
+      <p outputclass="title">
+        <b>Example webhook</b>
+      </p>
+      <codeblock outputclass="language-json">{
+  "commit": "1c002dd",                                   // required
+  "ref": "refs/heads/master",                            // required
+  "default_branch": "master",                            // required
+  "commit_info": {                                       // optional
+    "url": "gitsoftware.com/repository/commits/1234567", // required
+    "message": "initial commit",                         // required
+    "date": "timestamp",                                 // required
+    "author": {                                          // optional
+      "username": "user",                                // required
+      "avatar_url": "gravatar.com/user.png",             // required
+      "url": "gitsoftware.com/users/user"                // required
+    },
+    "committer": {                                       // optional
+      "username": "user",                                // required
+      "avatar_url": "gravatar.com/user.png",             // required
+      "url": "gitsoftware.com/users/user"                // required
+    }
+  }
+}</codeblock>
+      <p>This can typically be accomplished with a <xref href="https://git-scm.com/docs/githooks#post-receive" format="html" scope="external"><codeph>post-receive</codeph> Git hook</xref>, however it does depend on your server setup.</p>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="updating-immutability-policy-api">
+  <title>Updating an immutability policy by using the Red Hat Quay API</title>
+  <shortdesc>To change the tag pattern or match rule of an existing policy, you can update an immutability policy for an organization or a repository in {product-title} by using the API. Send a <codeph>PUT</codeph> request with your bearer token and the policy UUID, and a JSON body with the new tag pattern and match rule.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li>You have set <codeph>FEATURE_IMMUTABLE_TAGS</codeph> to <codeph>True</codeph> in your <codeph>config.yaml</codeph> file.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Update an immutability policy for an organization by using the <codeph>PUT /api/v1/organization/{orgname}/immutabilitypolicy/{policy_uuid}/</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">curl -X PUT \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"tagPattern": ".*", "tagPatternMatches": true}' \
+  "https://&lt;quay-server.example.com&gt;/api/v1/organization/test/immutabilitypolicy/3aae3390-de53-4b82-a2b7-4da8fe5dbe11"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update an immutability policy for a repository by using the <codeph>PUT /api/v1/repository/{repository}/immutabilitypolicy/{policy_uuid}/</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT -H "Authorization: Bearer &lt;access_token&gt;" -H "Content-Type: application/json" -d '{"tagPattern": ".*", "tagPatternMatches": true}' http://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;repository_name&gt;/&lt;namespace&gt;/immutabilitypolicy/&lt;policy_uuid&gt;/</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

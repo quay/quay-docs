@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="setting-tag-expirations-v2-ui">
+  <title>Setting tag expirations</title>
+  <shortdesc>You can set image tags in Red Hat Quay to expire at a chosen date and time. Expired tags are deleted from the repository according to your time machine retention settings.</shortdesc>
+  <conbody>
+    <p>This feature includes the following characteristics:</p>
+    <ul>
+      <li>When an image tag expires, it is deleted from the repository. If it is the last tag for a specific image, the image is also set to be deleted.</li>
+      <li>Expiration is set on a per-tag basis. It is not set for a repository as a whole.</li>
+      <li>After a tag is expired or deleted, it is not immediately removed from the registry. This is contingent upon the allotted time designed in the <i>time machine</i> feature, which defines when the tag is permanently deleted, or garbage collected. By default, this value is set at <i>14 days</i>, however the administrator can adjust this time to one of multiple options. Up until the point that garbage collection occurs, tags changes can be reverted.</li>
+    </ul>
+    <p>Tag expiration can be set up in one of three ways:</p>
+    <ul>
+      <li>By setting the <codeph>quay.expires-after=</codeph> label in the Dockerfile when the image is created. This sets a time to expire from when the image is built. This label only works for image manifests.</li>
+      <li>By setting the <codeph>quay.expires-after=</codeph> annotation label in the Dockerfile when the image is created. <codeph>--annotation</codeph> can be passed in for both image manifests and image indexes.</li>
+      <li>By selecting an expiration date on the
+UI. For example:
+<p><image href="../images/tag-expires-ui.png" placement="inline"><alt>Change tag expiration under the Options icon or from the EXPIRES column</alt></image></p></li>
+    </ul>
+    <p>Setting tag expirations can help automate the cleanup of older or unused tags, helping to reduce storage space.</p>
+    <note type="note">
+      <p>Immutable tags are excluded from auto-pruning, but they can still expire. To retire a locked production tag, use per-tag expiration instead of an auto-prune policy.</p>
+    </note>
+  </conbody>
+</concept>

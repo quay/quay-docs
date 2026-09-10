@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="registry-deploy-console">
+  <title>Deploying the Red Hat Quay registry by using the OpenShift Container Platform web console</title>
+  <shortdesc>To deploy a basic Red Hat Quay registry instance, you can use the OpenShift Container Platform web console to create a <codeph>QuayRegistry</codeph> custom resource. You configure managed or unmanaged object storage during the deployment process.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have installed the Red Hat Quay Operator.</li>
+        <li>You have have administrative privileges to the cluster.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>On the OpenShift Container Platform web console, click <b>Operators</b> → <b>Installed Operators</b> → <b>Red Hat Quay</b>.</cmd>
+      </step>
+      <step>
+        <cmd>On the <b>Red Hat Quay</b> dashboard, click <b>Create instance</b>.</cmd>
+      </step>
+      <step>
+        <cmd>On the <b>Create QuayRegistry</b> page, review the default settings of the <codeph>QuayRegistry</codeph> custom resource (CR). Here, you decide whether to to use managed or unmanaged object storage.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>If you are using the Multicloud Object Gateway or Red Hat OpenShift Data Foundation as your object storage, keep the following settings:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml">    - kind: objectstorage
+      managed: true</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>If you are using a different storage provider, such as Google Cloud Platform, AWS S3, or Nutanix, set the <codeph>objectstorage</codeph> component as follows:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml">    - kind: objectstorage
+      managed: false</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Click <b>Create</b>. You are redirected to the <b>Quay Registry</b> tab on the Operator page.</cmd>
+      </step>
+      <step>
+        <cmd>Click the name of the Red Hat Quay registry that you created, then click <b>Events</b> to view the status of creation. If you used managed storage and leveraged the Multicloud Object Gateway, the registry completes creation. If you are using Red Hat OpenShift Data Foundation or an unmanaged storage backend provider, complete the following steps:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Click the <b>Details</b> page of the Red Hat Quay registry.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the name of the <b>Config Bundle Secret</b> resource, for example, <b>&lt;example_registry_name_config-bundle-secret-12345&gt;</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Actions</b> → <b>Edit Secret</b>, and pass in the following information from your backend storage provider:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml"># ...
+DISTRIBUTED_STORAGE_CONFIG:
+    &lt;storage_provider&gt;:
+        - &lt;storage_provider_name&gt;
+        - access_key: &lt;access_key&gt;
+          bucket_name: &lt;bucket_name&gt;
+          secret_key: &lt;secret_key&gt;
+          storage_path: /datastorage/registry
+# ...</codeblock>
+              <note type="note">
+                <p>Depending on your storage provider, different information is required. For more information, see see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#config-fields-storage" format="html" scope="external">Storage object configuration fields</xref>.</p>
+              </note>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Click <b>Save</b>, and then re-navigate to the <b>Events</b> page of the registry to ensure successful deployment.</cmd>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

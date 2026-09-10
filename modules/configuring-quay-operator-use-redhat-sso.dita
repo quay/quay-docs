@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-quay-operator-use-redhat-sso">
+  <title>Configuring the Red Hat Quay Operator to use Red Hat Single Sign-On</title>
+  <shortdesc>To enable Red Hat Single Sign-On authentication for an Operator-based Red Hat Quay deployment, you can add an <codeph>RHSSO_LOGIN_CONFIG</codeph> block to your config bundle and restart the registry.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have configured the Red Hat Single Sign-On Operator.</li>
+        <li>You have configured SSL/TLS for your Red Hat Quay on OpenShift Container Platform deployment <i>and</i> for Red Hat Single Sign-On.</li>
+        <li>You have generated a single Certificate Authority (CA) and uploaded it to your Red Hat Single Sign-On Operator <i>and</i> to your Red Hat Quay configuration.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Edit your Red Hat Quay <codeph>config.yaml</codeph> file by navigating to <b>Operators</b> → <b>Installed Operators</b> → <b>Red Hat Quay</b> → <b>Quay Registry</b> → <b>Config Bundle Secret</b>. Then, click <b>Actions</b> → <b>Edit Secret</b>. Alternatively, you can update the <codeph>config.yaml</codeph> file locally.</cmd>
+      </step>
+      <step>
+        <cmd>Add the following information to your Red Hat Quay on OpenShift Container Platform <codeph>config.yaml</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+RHSSO_LOGIN_CONFIG:
+  CLIENT_ID: &lt;client_id&gt;
+  CLIENT_SECRET: &lt;client_secret&gt;
+  OIDC_SERVER: &lt;oidc_server_url&gt;
+  SERVICE_NAME: &lt;service_name&gt;
+  SERVICE_ICON: &lt;service_icon&gt;
+  VERIFIED_EMAIL_CLAIM_NAME: &lt;example_email_address&gt;
+  PREFERRED_USERNAME_CLAIM_NAME: &lt;preferred_username&gt;
+  LOGIN_SCOPES: [ 'openid', 'roles' ]
+  USE_PKCE: true
+  PKCE_METHOD: "S256"
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>RHSSO_LOGIN_CONFIG</codeph>
+              </dt>
+              <dd>Specifies the parent key that holds the OIDC configuration settings. In this example, the parent key used is <codeph>RHSSO_LOGIN_CONFIG</codeph>. The string can be replaced with any arbitrary string based on your specific needs, for example <codeph>ABC123</codeph>. However, the strings <codeph>GOOGLE</codeph> and <codeph>GITHUB</codeph> are not accepted. These strings are reserved for their respective identity platforms and require a specific <codeph>config.yaml</codeph> entry contingent upon which platform you are using.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>CLIENT_ID</codeph>
+              </dt>
+              <dd>Specifies the client ID of the application that is being registered with the identity provider. For example, <codeph>quay</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>CLIENT_SECRET</codeph>
+              </dt>
+              <dd>Specifies the client secret.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>OIDC_SERVER</codeph>
+              </dt>
+              <dd>Specifies the fully qualified domain name (FQDN) of the Red Hat Single Sign-On instance, appended with <codeph>/auth/realms/</codeph> and the Realm name. You must include the forward slash at the end, for example, <codeph>https://sso-redhat.example.com/auth/realms/&lt;your_realm_name&gt;/</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>SERVICE_NAME</codeph>
+              </dt>
+              <dd>Specifies the name that is displayed on the Red Hat Quay login page, for example, <codeph>Red Hat Single Sign-On</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>SERVICE_ICON</codeph>
+              </dt>
+              <dd>Specifies the icon on the login screen. For example, <codeph>/static/img/RedHat.svg</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>VERIFIED_EMAIL_CLAIM_NAME</codeph>
+              </dt>
+              <dd>Specifies the name of the claim that is used to verify the email address of the user.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>PREFERRED_USERNAME_CLAIM_NAME</codeph>
+              </dt>
+              <dd>Specifies the name of the claim that is used for the preferred username of the user.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGIN_SCOPES</codeph>
+              </dt>
+              <dd>Specifies the scopes to send to the OIDC provider when performing the login flow, for example, <codeph>openid</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>USE_PKCE</codeph>
+              </dt>
+              <dd>Specifies whether to enable Proof Key for Code Exchange (PKCE). Defaults to <codeph>false</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>PKCE_METHOD</codeph>
+              </dt>
+              <dd>Specifies the code challenge method used to generate the <codeph>code_challenge</codeph> sent in the initial authorization request. Defaults to <codeph>S256</codeph>.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay on OpenShift Container Platform deployment with Red Hat Single Sign-On enabled.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

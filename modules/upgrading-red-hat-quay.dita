@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="upgrading-red-hat-quay_{context}">
+  <title>Upgrading Red Hat Quay to version 3.18.0</title>
+  <shortdesc>To upgrade Red Hat Quay to the next version, change the Operator update channel in the OpenShift Container Platform Web Console and wait for the upgrade pods to complete. You can then verify the database images and access your registry.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>In the OpenShift Container Platform Web Console, navigate to <b>Operators</b> → <b>Installed Operators</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click on the Red Hat Quay Operator.</cmd>
+      </step>
+      <step>
+        <cmd>Navigate to the <b>Subscription</b> tab.</cmd>
+      </step>
+      <step>
+        <cmd>Under <b>Subscription details</b> click <b>Update channel</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Select <b>stable-3.18</b> → <b>Save</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Check the progress of the new installation under <b>Upgrade status</b>. Wait until the upgrade status changes to <b>1 installed</b> before proceeding.</cmd>
+      </step>
+      <step>
+        <cmd>In your OpenShift Container Platform cluster, navigate to <b>Workloads</b> → <b>Pods</b>. Existing pods should be terminated, or in the process of being terminated.</cmd>
+      </step>
+      <step>
+        <cmd>Wait for the following pods, which are responsible for upgrading the database and alembic migration of existing data, to spin up: <codeph>clair-postgres-upgrade</codeph>, <codeph>quay-postgres-upgrade</codeph>, and <codeph>quay-app-upgrade</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>After the <codeph>clair-postgres-upgrade</codeph>, <codeph>quay-postgres-upgrade</codeph>, and <codeph>quay-app-upgrade</codeph> pods are marked as <b>Completed</b>, the remaining pods for your Red Hat Quay deployment spin up. This takes approximately ten minutes.</cmd>
+      </step>
+      <step>
+        <cmd>Verify that the <codeph>quay-database</codeph> uses the <codeph>postgresql-13</codeph> image, and <codeph>clair-postgres</codeph> pods now uses the <codeph>postgresql-15</codeph> image.</cmd>
+      </step>
+      <step>
+        <cmd>After the <codeph>quay-app</codeph> pod is marked as <b>Running</b>, you can reach your Red Hat Quay registry.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

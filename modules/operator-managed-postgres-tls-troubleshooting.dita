@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="operator-managed-postgres-tls-troubleshooting">
+  <title>Troubleshooting Operator-managed PostgreSQL TLS configurations</title>
+  <shortdesc>If TLS configuration is invalid, the Operator sets a <codeph>RolloutBlocked</codeph> condition on the <codeph>QuayRegistry</codeph> and emits Kubernetes Events with details.</shortdesc>
+  <refbody>
+    <section>
+      <p>Common causes include:</p>
+      <ul>
+        <li>A referenced TLS Secret does not exist</li>
+        <li>The Secret is missing <codeph>ca.crt</codeph>, <codeph>tls.crt</codeph>, or <codeph>tls.key</codeph></li>
+        <li>The certificate and private key do not match</li>
+        <li>The certificate has expired</li>
+      </ul>
+      <p>On OpenShift Container Platform, if the Service CA serving certificate Secret has not yet been created, the Operator emits Events such as a PostgreSQL service CA error and retries until the Secret is available. A brief <codeph>RolloutBlocked</codeph> condition during that wait is expected.</p>
+      <p>If <codeph>SHOW ssl;</codeph> returns <codeph>on</codeph> but <codeph>pg_stat_ssl</codeph> shows no TLS client sessions, PostgreSQL is accepting encrypted connections, but Red Hat Quay or Clair might still be connecting without SSL. Check the registry configuration for an <codeph>sslmode</codeph> value on the database URI or connection arguments, and review Operator Events for certificate or CA problems.</p>
+      <p>For external PostgreSQL databases, continue to configure TLS through <codeph>DB_URI</codeph> and related configuration fields in the config bundle. For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#config-fields-db" format="html" scope="external">Database configuration fields</xref>.</p>
+    </section>
+  </refbody>
+</reference>

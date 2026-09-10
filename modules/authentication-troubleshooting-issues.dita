@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="authentication-troubleshooting-issues">
+  <title>Troubleshooting Red Hat Quay authentication and authorization issues for specific users</title>
+  <shortdesc>To troubleshoot Red Hat Quay authentication and authorization issues for specific users, you can exec into the Red Hat Quay pod or container and query the <codeph>federatedlogin</codeph> and <codeph>user</codeph> tables to verify user records.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Exec into the Red Hat Quay pod or container. For more information, see "Interacting with the Red Hat Quay database".</cmd>
+      </step>
+      <step>
+        <cmd>Enter the following command to show all users for external authentication:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">quay=# select * from federatedlogin;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">id | user_id | service_id |                service_ident                |               metadata_json
+----+---------+------------+---------------------------------------------+-------------------------------------------
+1 |       1 |          3 | testuser0                                   | {}
+2 |       1 |          8 | PK7Zpg2Yu2AnfUKG15hKNXqOXirqUog6G-oE7OgzSWc | {"service_username": "live.com#testuser0"}
+3 |       2 |          3 | testuser1                                    | {}
+4 |       2 |          4 | 110875797246250333431                       | {"service_username": "testuser1"}
+5 |       3 |          3 | testuser2                                    | {}
+6 |       3 |          1 | 26310880                                    | {"service_username": "testuser2"}
+(6 rows)</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Verify that the users are inserted into the <codeph>user</codeph> table:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">quay=# select username, email from "user";</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">username  |        email
+-----------+----------------------
+testuser0 | testuser0@outlook.com
+testuser1  | testuser1@gmail.com
+testuser2  | testuser2@redhat.com
+(3 rows)</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,350 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-dockerfile-build">
+  <title>Dockerfile build triggers fields</title>
+  <shortdesc>The following configuration fields are used to enable and manage automated builds in Red Hat Quay from Dockerfiles and source code repositories. These fields allow you to define build behavior, enable or disable support for GitHub, GitLab, and Bitbucket triggers, and provide OAuth credentials and endpoints for each SCM provider.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <title>Dockerfile build support</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_BUILD_SUPPORT</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to support Dockerfile build.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SUCCESSIVE_TRIGGER_FAILURE_DISABLE_THRESHOLD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>If not set to <codeph>None</codeph>, the number of successive failures that can occur before a build trigger is automatically disabled.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>100</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>SUCCESSIVE_TRIGGER_INTERNAL_ERROR_DISABLE_THRESHOLD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Number</p>
+              </entry>
+              <entry>
+                <p>If not set to <codeph>None</codeph>, the number of successive internal errors that can occur before a build trigger is automatically disabled</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>5</codeph>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Dockerfile build support example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_BUILD_SUPPORT: true
+SUCCESSIVE_TRIGGER_FAILURE_DISABLE_THRESHOLD: 100
+SUCCESSIVE_TRIGGER_INTERNAL_ERROR_DISABLE_THRESHOLD: 5
+# ...</codeblock>
+      <table>
+        <title>GitHub build triggers</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_GITHUB_BUILD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to support GitHub build triggers.</p>
+                <p>
+                  <b>Default:</b>
+                  <codeph>False</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>GITHUB_TRIGGER_CONFIG</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Configuration for using GitHub Enterprise for build triggers.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.GITHUB_ENDPOINT</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The endpoint for GitHub Enterprise. <b>Example:</b><codeph><xref href="https://github.com/" format="html" scope="external">https://github.com/</xref></codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.API_ENDPOINT</b></p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The endpoint of the GitHub Enterprise API to use. Must be overridden for <codeph>github.com</codeph>. <b>Example</b>: <codeph><xref href="https://api.github.com/" format="html" scope="external">https://api.github.com/</xref></codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CLIENT_ID</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client ID for this Red Hat Quay instance; this cannot be shared with <codeph>GITHUB_LOGIN_CONFIG</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CLIENT_SECRET</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client secret for this Red Hat Quay instance.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Github build triggers example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_GITHUB_BUILD: true
+GITHUB_TRIGGER_CONFIG:
+  GITHUB_ENDPOINT: https://github.com/
+  API_ENDPOINT: https://api.github.com/
+  CLIENT_ID: your-client-id
+  CLIENT_SECRET: your-client-secret
+# ...</codeblock>
+      <table>
+        <title>BitBucket build triggers</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_BITBUCKET_BUILD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to support Bitbucket build triggers.</p>
+                <p><b>Default:</b> False</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>BITBUCKET_TRIGGER_CONFIG</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Configuration for using BitBucket for build triggers.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CONSUMER_KEY</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered consumer key (client ID) for this Red Hat Quay instance.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CONSUMER_SECRET</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered consumer secret (client secret) for this  Red Hat Quay instance.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Bitbucket build triggers example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_BITBUCKET_BUILD: true
+BITBUCKET_TRIGGER_CONFIG:
+  CONSUMER_KEY: &lt;your_consumer_key&gt;
+  CONSUMER_SECRET: &lt;your-consumer-secret&gt;
+# ...</codeblock>
+      <table>
+        <title>GitLab build triggers</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>FEATURE_GITLAB_BUILD</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to support GitLab build triggers.</p>
+                <p><b>Default:</b> False</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>GITLAB_TRIGGER_CONFIG</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Configuration for using Gitlab for build triggers.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.GITLAB_ENDPOINT</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The endpoint at which Gitlab Enterprise is running.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CLIENT_ID</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client ID for this Red Hat Quay instance.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>   <b>.CLIENT_SECRET</b>    (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The registered client secret for this Red Hat Quay instance.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>GitLab build triggers example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+FEATURE_GITLAB_BUILD: true
+GITLAB_TRIGGER_CONFIG:
+  GITLAB_ENDPOINT: https://gitlab.example.com/
+  CLIENT_ID: &lt;your_gitlab_client_id&gt;
+  CLIENT_SECRET: &lt;your_gitlab_client_secret&gt;
+# ...</codeblock>
+    </section>
+  </refbody>
+</reference>

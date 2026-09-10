@@ -1,0 +1,138 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="bug-fixes-318">
+  <title>Red Hat Quay bug fixes</title>
+  <shortdesc>You can review bug fixes included in Red Hat Quay 3.18.</shortdesc>
+  <refbody>
+    <section>
+      <p>The following issues were fixed with Red Hat Quay 3.18.</p>
+      <note type="note">
+        <p>Not all bug fixes included in the <xref href="https://access.redhat.com/errata/RHSA-2026:48085" format="html" scope="external">RHSA-2026:48085</xref> advisory are documented here. Many of the bugs included in the advisory were found and resolved when testing new features included as part of this release.</p>
+      </note>
+      <ul>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10504" format="html" scope="external"><b>PROJQUAY-10504</b></xref>. Previously, deleting a manifest by digest could silently skip immutable tags and remove the underlying manifest, bypassing tag immutability protections that correctly blocked deletion by tag name.
+<p>With this release, digest-based manifest deletion respects immutable tags and blocks the operation when immutability applies.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11952" format="html" scope="external"><b>PROJQUAY-11952</b></xref>. Previously, session timeout and related settings such as <codeph>SESSION_TIMEOUT</codeph>, <codeph>FEATURE_PERMANENT_SESSIONS</codeph>, and <codeph>FRESH_LOGIN_TIMEOUT</codeph> were not applied correctly, so sessions could remain active longer than configured.
+<p>With this release, Red Hat Quay honors the configured session timeout values.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-8440" format="html" scope="external"><b>PROJQUAY-8440</b></xref>. Previously, pulling an image that was already present in the organization proxy cache still required the upstream registry to be reachable. If the upstream registry was unavailable, cached pulls could fail.
+<p>With this release, cached images can be served from the proxy cache without requiring upstream registry availability.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11119" format="html" scope="external"><b>PROJQUAY-11119</b></xref>. Previously, organization proxy cache configuration failed when <codeph>FEATURE_IMMUTABLE_TAGS</codeph> was not enabled, even though the default value of that feature is <codeph>false</codeph>.
+<p>With this release, organization proxy cache works when <codeph>FEATURE_IMMUTABLE_TAGS</codeph> is disabled.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10575" format="html" scope="external"><b>PROJQUAY-10575</b></xref>. Previously, canceling repository mirroring produced incomplete or null log messages.
+<p>With this release, canceling a repository mirror logs a clear result.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10798" format="html" scope="external"><b>PROJQUAY-10798</b></xref>. Previously, canceling an organization mirror sync could generate an endless stream of <codeph>Organization mirror sync failed - Sync cancelled</codeph> log messages.
+<p>With this release, canceling an organization mirror no longer floods logs with repeated cancellation messages.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11382" format="html" scope="external"><b>PROJQUAY-11382</b></xref>. Previously, deleting an organization mirror configuration left mirrored repositories stuck in the <codeph>ORG_MIRROR</codeph> state, which blocked pushes to those repositories.
+<p>With this release, deleting the organization mirror configuration restores repositories so that users can push again.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11891" format="html" scope="external"><b>PROJQUAY-11891</b></xref>. Previously, you could not delete an organization that was configured for organization mirroring because of a database error.
+<p>With this release, you can remove organizations that have organization mirror configurations.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11027" format="html" scope="external"><b>PROJQUAY-11027</b></xref>. Previously, using <b>Cancel Sync</b> for an organization mirror cleared the <b>Next Sync Date</b> value and prevented updating the mirror configuration to sync again.
+<p>With this release, canceling a sync preserves the schedule so that you can update the configuration and resume mirroring.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11347" format="html" scope="external"><b>PROJQUAY-11347</b></xref>. Previously, changing a repository mirror tag pattern required re-entering credentials for private upstream repositories. Saving without re-entering credentials could clear stored credentials and cause the next sync to fail with an authorization error.
+<p>With this release, updating the tag pattern retains existing credentials unless you explicitly change them.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11478" format="html" scope="external"><b>PROJQUAY-11478</b></xref>. Previously, the new UI blocked creating a proxy cache configuration even when organization mirroring was not enabled in <codeph>config.yaml</codeph>.
+<p>With this release, you can create proxy cache configurations when organization mirroring is disabled.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11515" format="html" scope="external"><b>PROJQUAY-11515</b></xref>. Previously, the API allowed creating a proxy cache configuration on an organization that was already managed by organization mirroring, even though the UI hid that option.
+<p>With this release, the API rejects proxy cache creation for organizations that are in the organization mirror state.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11077" format="html" scope="external"><b>PROJQUAY-11077</b></xref>. Previously, OIDC login redirects failed when Red Hat Quay was exposed on a non-standard HTTP or HTTPS port because nginx forwarded only the hostname without the port.
+<p>With this release, OIDC redirects include the configured port and complete successfully.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11319" format="html" scope="external"><b>PROJQUAY-11319</b></xref>. Previously, OCI images with no history entries in the image config caused an <codeph>AttributeError</codeph> in layer processing, so the manifest API returned <codeph>404</codeph> and tag sizes were missing in the UI.
+<p>With this release, OCI images without history are handled correctly.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11637" format="html" scope="external"><b>PROJQUAY-11637</b></xref>. Previously, lazy loading of OCI indexes failed when the index included Docker v2 schema 2 images, which the OCI specification allows.
+<p>With this release, OCI indexes that contain Docker v2 schema 2 manifests load successfully.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10934" format="html" scope="external"><b>PROJQUAY-10934</b></xref>. Previously, repository cache entries were not invalidated when a repository was deleted, which could leave stale cache data.
+<p>With this release, deleting a repository invalidates the related cache entries.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11288" format="html" scope="external"><b>PROJQUAY-11288</b></xref>. Previously, nginx returned HTTP <codeph>404</codeph> instead of <codeph>502</codeph> when the backend was unavailable because a custom <codeph>502</codeph> error page was missing.
+<p>With this release, unavailable backends return the expected <codeph>502</codeph> response.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11331" format="html" scope="external"><b>PROJQUAY-11331</b></xref>. Previously, a malformed struct tag on <codeph>DistributedStorageArgs.Signature</codeph> in the config tool broke storage configuration serialization.
+<p>With this release, storage configuration that uses signature settings serializes correctly.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11486" format="html" scope="external"><b>PROJQUAY-11486</b></xref>. Previously, the configuration validator did not properly validate S3 URLs.
+<p>With this release, invalid S3 URLs are rejected during configuration validation.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11524" format="html" scope="external"><b>PROJQUAY-11524</b></xref>. Previously, a race condition during initial database setup could cause intermittent startup failures.
+<p>With this release, initial database setup completes reliably.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11851" format="html" scope="external"><b>PROJQUAY-11851</b></xref>. Previously, an RBAC denial on <codeph>apiservers.config.openshift.io</codeph> could block the entire Red Hat Quay Operator deployment on OpenShift Container Platform.
+<p>With this release, the Operator no longer requires that permission to complete deployment.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11852" format="html" scope="external"><b>PROJQUAY-11852</b></xref>. Previously, the Operator could panic when processing an invalid configuration.
+<p>With this release, invalid configurations are handled without panicking.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11501" format="html" scope="external"><b>PROJQUAY-11501</b></xref>. Previously, the Operator rejected <codeph>PULL_METRICS_REDIS</codeph> in the config bundle secret when Redis was Operator-managed after the config-tool migration.
+<p>With this release, <codeph>PULL_METRICS_REDIS</codeph> is accepted in that configuration.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11549" format="html" scope="external"><b>PROJQUAY-11549</b></xref>. Previously, external TLS <codeph>secretRef</codeph> configuration did not validate that the certificate matched <codeph>SERVER_HOSTNAME</codeph>.
+<p>With this release, the Operator validates that the external TLS certificate covers <codeph>SERVER_HOSTNAME</codeph>.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-12322" format="html" scope="external"><b>PROJQUAY-12322</b></xref>. Previously, the Modern TLS profile could pass TLS 1.3 cipher suites to the nginx <codeph>ssl_ciphers</codeph> directive, which caused nginx to crash.
+<p>With this release, TLS 1.3 ciphers are not passed to <codeph>ssl_ciphers</codeph>, and nginx starts successfully with the Modern TLS profile.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-9157" format="html" scope="external"><b>PROJQUAY-9157</b></xref>. Previously, pods could fail with <codeph>MountVolume.SetUp failed for volume "config"</codeph> in some configuration mount scenarios.
+<p>With this release, the config volume mounts correctly.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-12230" format="html" scope="external"><b>PROJQUAY-12230</b></xref>. Previously, quota warning and error notifications failed with <codeph>TypeError: Decimal is not JSON serializable</codeph>, so quota notifications were silently dropped.
+<p>With this release, quota notification payloads serialize correctly and notifications are delivered.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-12233" format="html" scope="external"><b>PROJQUAY-12233</b></xref>. Previously, global readonly superusers were blocked from reading organization namespace notification GET endpoints when <codeph>FEATURE_SUPERUSERS_FULL_ACCESS</codeph> was enabled.
+<p>With this release, global readonly superusers can read namespace notifications.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11678" format="html" scope="external"><b>PROJQUAY-11678</b></xref>. Previously, the Superuser Build Logs page in the new UI returned HTTP <codeph>500</codeph> because of a logic error in <codeph>BuildTrigger.to_dict()</codeph>.
+<p>With this release, looking up build logs by UUID succeeds without a server error.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11930" format="html" scope="external"><b>PROJQUAY-11930</b></xref>. Previously, the Superuser Build Logs page in the new UI showed <b>No logs available</b> for archived builds that still had valid logs in object storage.
+<p>With this release, archived build logs display correctly in the new UI.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11158" format="html" scope="external"><b>PROJQUAY-11158</b></xref>. Previously, the <b>Auto-Prune Policies</b> tab was missing for user namespace organizations in the UI.
+<p>With this release, the <b>Auto-Prune Policies</b> tab is available for user organizations again.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-9695" format="html" scope="external"><b>PROJQUAY-9695</b></xref>. Previously, the log rotate worker stopped working after upgrading to Red Hat Quay 3.15.
+<p>With this release, the log rotate worker runs correctly after upgrade.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-12197" format="html" scope="external"><b>PROJQUAY-12197</b></xref>. Previously, Clair could fail to pull the upstream vulnerability database, which prevented vulnerability reports for scanned images.
+<p>With this release, Clair can update its vulnerability database from upstream sources.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-12221" format="html" scope="external"><b>PROJQUAY-12221</b></xref>. Previously, the Superuser <b>Change Log</b> page in the new UI failed to load and returned HTTP <codeph>502</codeph> because <codeph>CHANGELOG.md</codeph> was missing from the container image.
+<p>With this release, the Change Log page loads successfully.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11931" format="html" scope="external"><b>PROJQUAY-11931</b></xref>. Previously, the Superuser <b>Change Log</b> page in the new UI showed stale Red Hat Quay 3.11.0 content instead of notes for the current release.
+<p>With this release, the Change Log page displays content for the current release.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11577" format="html" scope="external"><b>PROJQUAY-11577</b></xref>. Previously, the usage logs chart legend in the new UI overlapped the chart area and made both the legend and chart hard to read.
+<p>With this release, the legend no longer overlaps the chart.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10605" format="html" scope="external"><b>PROJQUAY-10605</b></xref>. Previously, the <b>Repository</b> field in usage logs duplicated namespace information.
+<p>With this release, the <b>Repository</b> field shows the repository path without duplicated namespace text.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10795" format="html" scope="external"><b>PROJQUAY-10795</b></xref>. Previously, the <b>Load More Logs</b> button flashed repeatedly while usage logs were loading.
+<p>With this release, the <b>Load More Logs</b> control remains stable while logs load.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11079" format="html" scope="external"><b>PROJQUAY-11079</b></xref>. Previously, the <codeph>change_tag_immutability</codeph> action was missing from the usage logs chart in the new UI.
+<p>With this release, tag immutability changes appear in the usage logs chart.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11025" format="html" scope="external"><b>PROJQUAY-11025</b></xref>. Previously, the organization mirror <b>Schedule</b> or <b>Pending</b> state in the UI did not stay consistent with the related dropdown controls.
+<p>With this release, the organization mirror schedule state matches the dropdown selection.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11217" format="html" scope="external"><b>PROJQUAY-11217</b></xref>. Previously, searching for a repository that did not exist left a circular loading spinner on the page indefinitely.
+<p>With this release, a search for a missing repository completes and no longer spins forever.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11218" format="html" scope="external"><b>PROJQUAY-11218</b></xref>. Previously, selecting a permission in the permissions dropdown in Firefox navigated to a temporary site unavailable page.
+<p>With this release, selecting a permission in Firefox works without that navigation failure.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11219" format="html" scope="external"><b>PROJQUAY-11219</b></xref>. Previously, text entered in the repository filter could appear in unrelated places in the UI.
+<p>With this release, repository filter text remains in the filter field.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11257" format="html" scope="external"><b>PROJQUAY-11257</b></xref>. Previously, the branding logo on the new UI login page could be invisible.
+<p>With this release, the login page branding logo displays correctly.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-12151" format="html" scope="external"><b>PROJQUAY-12151</b></xref>. Previously, wizard panels could overflow their modal windows when creating a robot account, team, or build trigger.
+<p>With this release, those wizard panels fit within the modal.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-9246" format="html" scope="external"><b>PROJQUAY-9246</b></xref>. Previously, the new UI did not allow selecting all OAuth applications in bulk.
+<p>With this release, you can select all OAuth applications from the list.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-9256" format="html" scope="external"><b>PROJQUAY-9256</b></xref>. Previously, you could not clear the default <b>Skopeo timeout interval</b> value and enter a new value in the UI.
+<p>With this release, you can clear and replace the Skopeo timeout interval value.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-9883" format="html" scope="external"><b>PROJQUAY-9883</b></xref>. Previously, the filter on the Superuser <b>Service Keys</b> panel did not work.
+<p>With this release, filtering service keys works as expected.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11314" format="html" scope="external"><b>PROJQUAY-11314</b></xref>. Previously, the Quay mirror registry installer did not fail when the configured hostname did not meet DNS requirements, which could lead to a broken installation.
+<p>With this release, installation fails early when the hostname is not DNS-compliant.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-5075" format="html" scope="external"><b>PROJQUAY-5075</b></xref>. Previously, startup validation could fail when a non-preferred storage engine was unavailable, even if the preferred storage engine was healthy.
+<p>With this release, startup continues when the preferred storage engine is available.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10845" format="html" scope="external"><b>PROJQUAY-10845</b></xref>. Previously, Red Hat Quay could send non-image artifacts for vulnerability scanning.
+<p>With this release, non-image artifacts are not submitted for scanning.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11433" format="html" scope="external"><b>PROJQUAY-11433</b></xref>. Previously, repository <codeph>UPDATE</codeph> queries during namespace deletion could take many seconds and slow large deletions.
+<p>With this release, those database updates complete more efficiently during namespace deletion.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11691" format="html" scope="external"><b>PROJQUAY-11691</b></xref>. Previously, needless permission checks slowed critical UI API paths. On LDAP-backed installations this could delay or prevent the UI from loading.
+<p>With this release, UI permission checks are optimized so the interface loads reliably, including on LDAP-backed deployments.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-9668" format="html" scope="external"><b>PROJQUAY-9668</b></xref>. Previously, excessive LDAP queries during login could cause timeouts and prevent users from signing in.
+<p>With this release, LDAP login query volume is reduced so users can authenticate reliably.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10426" format="html" scope="external"><b>PROJQUAY-10426</b></xref>. Previously, Red Hat Quay executed an excessive number of LDAP binds against an empty registry during initial login and username confirmation.
+<p>With this release, LDAP bind volume during login is reduced.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10315" format="html" scope="external"><b>PROJQUAY-10315</b></xref>. Previously, pulling images from a proxy cache organization could fail with HTTP <codeph>404</codeph> even when the image should have been served from cache.
+<p>With this release, proxy cache pulls succeed when the cached image is available.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10625" format="html" scope="external"><b>PROJQUAY-10625</b></xref>. Previously, automatic redirects for repository and organization URLs worked in UI v1 but failed in UI v2.
+<p>With this release, repository and organization URL redirects work in the new UI.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-10844" format="html" scope="external"><b>PROJQUAY-10844</b></xref>. Previously, teams with more than 20 members could not paginate beyond the first 20 members in UI v2 because the next-page control stayed disabled.
+<p>With this release, team member pagination works for teams larger than 20 members.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11235" format="html" scope="external"><b>PROJQUAY-11235</b></xref>. Previously, the <b>Generate Access Token</b> page called external CDN resources and Google Fonts, which delayed the page in air-gapped environments.
+<p>With this release, generating an access token no longer depends on those external resources.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-11375" format="html" scope="external"><b>PROJQUAY-11375</b></xref>. Previously, the Operator continuously recreated the calculated config secret about once per minute even when configuration had not changed.
+<p>With this release, the Operator no longer recreates the config secret on every reconcile when nothing has changed.</p></li>
+        <li><xref href="https://issues.redhat.com/browse/PROJQUAY-1920" format="html" scope="external"><b>PROJQUAY-1920</b></xref>. Previously, a config-tool OIDC validation bug could prevent the registry from starting when a custom OIDC provider was configured.
+<p>With this release, OIDC validation no longer blocks registry startup for valid custom OIDC configurations.</p></li>
+      </ul>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="quota-limit-management-api">
+  <title>Setting quota limits for an organization by using the Red Hat Quay API</title>
+  <shortdesc>To return a warning or deny image pushes when an organization exceeds its quota in Red Hat Quay, you can create, list, update, and delete organization quota limits through the API.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/organization/{orgname}/quota/{quota_id}/limit</codeph> command to create a quota policy that rejects images if they exceed the allotted quota. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/quota/&lt;quota_id&gt;/limit" \
+     -H "Authorization: Bearer &lt;access_token&gt;" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "limit_bytes": 21474836480,
+           "type": "Reject",
+           "threshold_percent": 90
+         }'</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>type</codeph>
+              </dt>
+              <dd>Specifies one of <codeph>Reject</codeph> or <codeph>Warning</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>threshold_percent</codeph>
+              </dt>
+              <dd>
+                <p>Specifies the quota threshold, in percent of quota.</p>
+                <p outputclass="title">
+                  <b>Example output</b>
+                </p>
+                <codeblock outputclass="language-terminal">"Created"</codeblock>
+              </dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/organization/{orgname}/quota/{quota_id}/limit</codeph> command to obtain the ID of the quota limit. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/quota/&lt;quota_id&gt;/limit" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">[{"id": 2, "type": "Reject", "limit_percent": 90}]</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update the policy with the <codeph>PUT /api/v1/organization/{orgname}/quota/{quota_id}/limit/{limit_id}</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/quota/&lt;quota_id&gt;/limit/&lt;limit_id&gt;" \
+     -H "Authorization: Bearer &lt;access_token&gt;" \
+     -H "Content-Type: application/json" \
+     -d '{
+           "type": "&lt;type&gt;",
+           "threshold_percent": &lt;threshold_percent&gt;
+         }'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"id": 3, "limit_bytes": 10737418240, "limit": "10.0 GiB", "default_config": false, "limits": [{"id": 2, "type": "Warning", "limit_percent": 80}], "default_config_exists": false}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Delete the quota limit with the <codeph>DELETE /api/v1/organization/{orgname}/quota/{quota_id}/limit/{limit_id}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/quota/&lt;quota_id&gt;/limit/&lt;limit_id&gt;" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p>This command does not return output.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

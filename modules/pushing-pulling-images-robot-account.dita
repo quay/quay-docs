@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="pushing-pulling-images-robot-account">
+  <title>Pushing and pulling images</title>
+  <shortdesc>To verify federated robot account access in Red Hat Quay, you can log in with the robot token and pull images that the robot is allowed to access.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have exported the OAuth2 access token into a new robot account access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Log in to your Red Hat Quay registry by using the <codeph>fed_test+robot1</codeph> robot account and the <codeph>QUAY_TOKEN</codeph> access token. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman login &lt;quay-server.example.com&gt; -u fed_test+robot1 -p $QUAY_TOKEN</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Pull an image from a Red Hat Quay repository for which the robot account has the proper permissions. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman pull &lt;quay-server.example.com&gt;/&lt;repository_name&gt;/&lt;image_name&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Getting image source signatures
+Copying blob 900e6061671b done
+Copying config 8135583d97 done
+Writing manifest to image destination
+Storing signatures
+8135583d97feb82398909c9c97607159e6db2c4ca2c885c0b8f590ee0f9fe90d
+0.57user 0.11system 0:00.99elapsed 68%CPU (0avgtext+0avgdata 78716maxresident)k
+800inputs+15424outputs (18major+6528minor)pagefaults 0swaps</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Attempt to pull an image from a Red Hat Quay repository for which the robot account does <i>not</i> have the proper permissions. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman pull &lt;quay-server.example.com&gt;/&lt;different_repository_name&gt;/&lt;image_name&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Error: initializing source docker://quay-server.example.com/example_repository/busybox:latest: reading manifest in quay-server.example.com/example_repository/busybox: unauthorized: access to the requested resource is not authorized</codeblock>
+          <p>After one hour, the credentials for this robot account expire. Afterwards, you must generate a new access token for this robot account.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-entra-obo-oidc">
+  <title>Configuring On-Behalf-Of (OBO) flows</title>
+  <shortdesc>To allow an upstream service to call Red Hat Quay APIs on behalf of authenticated users, you can configure On-Behalf-Of (OBO) audiences and allowed clients in your Entra ID OIDC settings.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>In the Azure Portal, expose an API on the Red Hat Quay app registration and add a scope, for example <codeph>registry.access</codeph> under <codeph>api://quay-api</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>Create a second app registration for the upstream service and grant it permission to the Red Hat Quay API scope.</cmd>
+      </step>
+      <step>
+        <cmd>Add the exposed API identifier to <codeph>OIDC_AUDIENCES</codeph> in your Red Hat Quay configuration, for example <codeph>api://quay-api</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>Add the upstream application’s client ID to <codeph>OIDC_ALLOWED_CLIENTS</codeph>.
+</cmd>
+        <info>
+          <p>OBO tokens have <codeph>aud: api://quay-api</codeph> and <codeph>azp: &lt;upstream_client_id&gt;</codeph>. Red Hat Quay validates both claims.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="deleting-repository-api">
+  <title>Deleting a repository by using the Red Hat Quay API</title>
+  <shortdesc>To delete a repository from Red Hat Quay, you can use the API.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token" format="html" scope="external">Created an OAuth access token</xref>.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to delete a repository using the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#deleterepository" format="html" scope="external"><codeph>DELETE /api/v1/repository/{repository}</codeph></xref> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE   -H "Authorization: Bearer &lt;bearer_token&gt;" "&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>The CLI does not return information when deleting a repository from the CLI. To confirm deletion, you can check the Red Hat Quay UI, or you can enter the following <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#getrepo" format="html" scope="external"><codeph>GET /api/v1/repository/{repository}</codeph></xref> command to see if details are returned for the deleted repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;bearer_token&gt;" "&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;"</codeblock>
+          <p>Example output</p>
+          <codeblock outputclass="language-terminal">{"detail": "Not Found", "error_message": "Not Found", "error_type": "not_found", "title": "not_found", "type": "http://quay-server.example.com/api/v1/error/not_found", "status": 404}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="upgrading-geo-repl-quay-operator">
+  <title>Upgrading Operator geo-replication</title>
+  <shortdesc>To upgrade your geo-replicated Red Hat Quay on OpenShift Container Platform deployment, you must stop operations, scale down secondary systems, upgrade the primary system, then upgrade secondary systems. This ensures a safe upgrade process with minimal downtime across your geo-replicated registry.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="important">
+        <ul>
+          <li>When upgrading geo-replicated Red Hat Quay on OpenShift Container Platform deployment to the next y-stream release (for example, Red Hat Quay 3.17 → Red Hat Quay 3.18), you must stop operations before upgrading.</li>
+          <li>There is intermittent downtime down upgrading from one y-stream release to the next.</li>
+          <li>It is highly recommended to back up your Red Hat Quay on OpenShift Container Platform deployment before upgrading.</li>
+        </ul>
+      </note>
+      <p>The following procedure assumes that you are running the Red Hat Quay registry on three or more systems. For this procedure, three systems named <codeph>System A,</codeph><codeph>System B,</codeph> and <codeph>System C</codeph> are used. <codeph>System A</codeph> serves as the primary system in which the Red Hat Quay Operator is deployed.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>On System B and System C, scale down your Red Hat Quay registry. This is done by disabling auto scaling and overriding the replica county for Red Hat Quay, mirror workers, and Clair if it is managed. Note that you must keep the Red Hat Quay registry running on System A. Do not update the <codeph>quayregistry.yaml</codeph> file on System A.
+</cmd>
+        <info>
+          <p>Use the following <codeph>quayregistry.yaml</codeph> file as a reference:</p>
+          <codeblock outputclass="language-yaml">apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: false
+    - kind: quay
+      managed: true
+      overrides:
+        replicas: 0
+    - kind: clair
+      managed: true
+      overrides:
+        replicas: 0
+    - kind: mirror
+      managed: true
+      overrides:
+        replicas: 0
+    …</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>managed: false</codeph>
+              </dt>
+              <dd>Disables auto scaling of <codeph>Quay</codeph>, <codeph>Clair</codeph> and <codeph>Mirroring</codeph> workers</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>overrides</codeph>
+              </dt>
+              <dd>Sets the replica count to 0 for components accessing the database and objectstorage</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Wait for the <codeph>registry-quay-app</codeph>, <codeph>registry-quay-mirror</codeph>, and <codeph>registry-clair-app</codeph> pods to disappear. Enter the following command to check their status:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">oc get pods -n &lt;quay-namespace&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">quay-operator.v3.7.1-6f9d859bd-p5ftc               1/1     Running     0             12m
+quayregistry-clair-postgres-7487f5bd86-xnxpr       1/1     Running     1 (12m ago)   12m
+quayregistry-quay-app-upgrade-xq2v6                0/1     Completed   0             12m
+quayregistry-quay-redis-84f888776f-hhgms           1/1     Running     0             12m</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>On System A, initiate a Red Hat Quay upgrade to the latest y-stream version. This is a manual process. For more information about upgrading installed Operators, see <xref href="https://docs.openshift.com/container-platform/4.22/operators/admin/olm-upgrading-operators.html" format="html" scope="external">Upgrading installed Operators</xref>. For more information about Red Hat Quay upgrade paths, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/upgrade_red_hat_quay/index#operator-upgrade" format="html" scope="external">Upgrading the Red Hat Quay Operator</xref>.</cmd>
+      </step>
+      <step>
+        <cmd>After the new Red Hat Quay registry is installed, the necessary upgrades on the cluster are automatically completed. Afterwards, new Red Hat Quay pods are started with the latest y-stream version. Additionally, new <codeph>Quay</codeph> pods are scheduled and started.</cmd>
+      </step>
+      <step>
+        <cmd>Confirm that the update has properly worked by navigating to the Red Hat Quay UI:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>In the <b>OpenShift</b> console, navigate to <b>Operators</b> → <b>Installed Operators</b>, and click the <b>Registry Endpoint</b> link.
+</cmd>
+            <info>
+              <note type="important">
+                <p>Do not execute the following step until the Red Hat Quay UI is available. Do not upgrade the Red Hat Quay registry on System B and on System C until the UI is available on System A.</p>
+              </note>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Confirm that the update has properly worked on System A, initiate the Red Hat Quay upgrade on System B and on System C. The Operator upgrade results in an upgraded Red Hat Quay installation, and the pods are restarted.
+</cmd>
+        <info>
+          <note type="note">
+            <p>Because the database schema is correct for the new y-stream installation, the new pods on System B and on System C should quickly start.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>After updating, revert the changes made in step 1 of this procedure by removing <codeph>overrides</codeph> for the components. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: true
+    - kind: quay
+      managed: true
+    - kind: clair
+      managed: true
+    - kind: mirror
+      managed: true
+    …</codeblock>
+          <div>
+            <p>where:</p>
+            <p><codeph>kind: horizontalpodautoscaler::</codeph> Set this resource to <codeph>True</codeph> if the <codeph>horizontalpodautoscaler</codeph> resource was set to <codeph>True</codeph> before the upgrade procedure, or if you want Red Hat Quay to scale in case of a resource shortage.</p>
+          </div>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

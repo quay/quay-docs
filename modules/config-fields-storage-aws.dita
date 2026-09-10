@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="supported-aws-storage-backends">
+  <title>Amazon Web Services storage backends</title>
+  <shortdesc>You can configure Red Hat Quay to use AWS S3, STS, or CloudFront storage backends in <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph>. Use these examples to set credentials, regions, and distribution settings for each backend.</shortdesc>
+  <conbody>
+    <p>Red Hat Quay supports multiple Amazon Web Services (AWS) storage backends:</p>
+    <ul>
+      <li><b>S3 storage</b>: Standard support for AWS S3 buckets that uses AWS’s native object storage service.</li>
+      <li><b>STS S3 storage</b>: Support for AWS Security Token Service (STS) to assume IAM roles, allowing for more secure S3 operations.</li>
+      <li><b>CloudFront S3 storage</b>: Integrates with AWS CloudFront to enable high-availability distribution of content while still using AWS S3 as the origin.</li>
+    </ul>
+    <p>The following sections provide example YAML configurations and additional information about each AWS storage backend.</p>
+    <section id="config-fields-storage-aws">
+      <title>Amazon Web Services S3 storage</title>
+      <p>Red Hat Quay supports using AWS S3 as an object storage backend. AWS S3 is an object storage service designed for data availability, scalability, security, and performance. The following YAML shows an example configuration using AWS S3.</p>
+      <p outputclass="title">
+        <b>AWS S3 example</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+    - S3Storage
+    - host: s3.us-east-2.amazonaws.com
+      s3_access_key: ABCDEFGHIJKLMN
+      s3_secret_key: OL3ABCDEFGHIJKLMN
+      s3_bucket: quay_bucket
+      s3_region: &lt;region&gt;
+      storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+# ...</codeblock>
+      <p>where:</p>
+      <dl>
+        <dlentry>
+          <dt>
+            <codeph>DISTRIBUTED_STORAGE_CONFIG.default</codeph>
+          </dt>
+          <dd>Specifies the <codeph>S3Storage</codeph> storage driver for AWS S3 buckets. Note that this differs from general S3 access, where the RadosGW driver or other storage services can be used. For an example, see "Example B: Using RadosGW with general S3 access".</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>DISTRIBUTED_STORAGE_CONFIG.default.s3_region</codeph>
+          </dt>
+          <dd>Specifies the Amazon Web Services region. Defaults to <codeph>us-east-1</codeph>.</dd>
+        </dlentry>
+      </dl>
+    </section>
+    <section id="config-fields-storage-aws-sts">
+      <title>Amazon Web Services STS S3 storage</title>
+      <p>AWS Security Token Service (STS) provides temporary, limited-privilege credentials for accessing AWS resources, improving security by avoiding the need to store long-term access keys. This is useful in environments such as OpenShift Container Platform where credentials can be rotated or managed through IAM roles.</p>
+      <p>The following YAML shows an example configuration for using AWS STS with Red Hat Quay on OpenShift Container Platform configurations.</p>
+      <p outputclass="title">
+        <b>AWS STS S3 storage example</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - STSS3Storage
+    - sts_role_arn: &lt;role_arn&gt;
+      s3_bucket: &lt;s3_bucket_name&gt;
+      storage_path: &lt;storage_path&gt;
+      sts_user_access_key: &lt;s3_user_access_key&gt;
+      sts_user_secret_key: &lt;s3_user_secret_key&gt;
+      s3_region: &lt;region&gt;
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+# ...</codeblock>
+      <p>where:</p>
+      <dl>
+        <dlentry>
+          <dt>
+            <codeph>DISTRIBUTED_STORAGE_CONFIG.default.sts_role_arn</codeph>
+          </dt>
+          <dd>Specifies the unique Amazon Resource Name (ARN).</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>DISTRIBUTED_STORAGE_CONFIG.default.sts_user_access_key</codeph>
+          </dt>
+          <dd>Specifies the generated AWS S3 user access key.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>DISTRIBUTED_STORAGE_CONFIG.default.sts_user_secret_key</codeph>
+          </dt>
+          <dd>Specifies the generated AWS S3 user secret key.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>DISTRIBUTED_STORAGE_CONFIG.default.s3_region</codeph>
+          </dt>
+          <dd>Specifies the Amazon Web Services region. Defaults to <codeph>us-east-1</codeph>.</dd>
+        </dlentry>
+      </dl>
+    </section>
+    <section id="aws-cloudfront-storage-example">
+      <title>AWS CloudFront storage</title>
+      <p>AWS CloudFront is a content delivery network (CDN) service that caches and distributes content closer to users for improved performance and lower latency. Red Hat Quay supports CloudFront through the <codeph>CloudFrontedS3Storage</codeph> driver, which enables secure, signed access to S3 buckets via CloudFront distributions.</p>
+      <p>Use the following example when configuring AWS CloudFront for your Red Hat Quay deployment.</p>
+      <note type="note">
+        <ul>
+          <li>When configuring AWS CloudFront storage, the following conditions must be met for proper use with Red Hat Quay:
+<ul><li>You must set an <b>Origin path</b> that is consistent with Red Hat Quay’s storage path as defined in your <codeph>config.yaml</codeph> file. Failure to meet this requirement results in a <codeph>403</codeph> error when pulling an image.</li><li>You must configure a <b>Bucket policy</b> and a <b>Cross-origin resource sharing (CORS)</b> policy.</li></ul></li>
+        </ul>
+      </note>
+      <p outputclass="title">
+        <b>Cloudfront S3 example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml">DISTRIBUTED_STORAGE_CONFIG:
+    default:
+      - CloudFrontedS3Storage
+      - cloudfront_distribution_domain: &lt;CLOUDFRONT_DISTRIBUTION_DOMAIN&gt;
+        cloudfront_key_id: &lt;CLOUDFRONT_KEY_ID&gt;
+        cloudfront_privatekey_filename: &lt;CLOUDFRONT_PRIVATE_KEY_FILENAME&gt;
+        host: &lt;S3_HOST&gt;
+        s3_access_key: &lt;S3_ACCESS_KEY&gt;
+        s3_bucket: &lt;S3_BUCKET_NAME&gt;
+        s3_secret_key: &lt;S3_SECRET_KEY&gt;
+        storage_path: &lt;STORAGE_PATH&gt;
+        s3_region: &lt;S3_REGION&gt;
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+  - default
+DISTRIBUTED_STORAGE_PREFERENCE:
+  - default</codeblock>
+      <p outputclass="title">
+        <b>Bucket policy example</b>
+      </p>
+      <codeblock outputclass="language-json">{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::&lt;AWS_ACCOUNT_ID&gt;:user/CloudFront Origin Access Identity &lt;CLOUDFRONT_OAI_ID&gt;"
+            },
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::&lt;S3_BUCKET_NAME&gt;/*"
+        },
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::&lt;AWS_ACCOUNT_ID&gt;:user/CloudFront Origin Access Identity &lt;CLOUDFRONT_OAI_ID&gt;"
+            },
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::&lt;S3_BUCKET_NAME&gt;"
+        }
+    ]
+}</codeblock>
+      <ul>
+        <li><codeph>&lt;AWS_ACCOUNT_ID&gt;</codeph> is the identifier, or account ID, of the AWS account that owns the CloudFront OAI and S3 bucket.</li>
+        <li><codeph>&lt;CLOUDFRONT_OAI_ID&gt;</codeph> is the CloudFront Origin Access Identity (OAI) that accesses the S3 bucket.</li>
+        <li><codeph>arn:aws:s3:::&lt;S3_BUCKET_NAME&gt;</codeph> specifies that CloudFront can access the specified bucket in the S3 bucket.</li>
+      </ul>
+    </section>
+  </conbody>
+  <related-links>
+    <link href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/distribution-web-values-specify.html#DownloadDistValuesOriginPath" format="html" scope="external">
+      <linktext>Origin path</linktext>
+    </link>
+    <link href="https://docs.aws.amazon.com/whitepapers/latest/secure-content-delivery-amazon-cloudfront/s3-origin-with-cloudfront.html" format="html" scope="external">
+      <linktext>Bucket policy</linktext>
+    </link>
+    <link href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html" format="html" scope="external">
+      <linktext>Cross-origin resource sharing (CORS)</linktext>
+    </link>
+    <link href="quay_jtbd-configure.dita#config-fields-storage-rados">
+      <linktext>Example B: Using RadosGW with general S3 access</linktext>
+    </link>
+  </related-links>
+</concept>

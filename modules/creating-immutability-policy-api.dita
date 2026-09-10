@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-immutability-policy-api">
+  <title>Creating an immutability policy by using the Red Hat Quay API</title>
+  <shortdesc>To protect image tags from overwrite or deletion, you can create an immutability policy for an organization or a repository in Red Hat Quay by using the API. Send a <codeph>POST</codeph> request with your bearer token and a JSON body that includes the tag pattern and match rule.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li>You have set <codeph>FEATURE_IMMUTABLE_TAGS</codeph> to <codeph>True</codeph> in your <codeph>config.yaml</codeph> file.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Create an immutability policy for an organization by using the <codeph>POST /api/v1/organization/{orgname}/immutabilitypolicy/</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST -H "Authorization: Bearer &lt;access_token&gt;" -H "Content-Type: application/json" -d '{"tagPattern": ".*", "tagPatternMatches": true}' http://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/immutabilitypolicy/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create an immutability policy for an organization repository by using the <codeph>POST /api/v1/repository/{repository}/immutabilitypolicy/</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-text">$ curl -X POST -H "Authorization: Bearer &lt;access_token&gt;" -H "Content-Type: application/json" -d '{"tagPattern": ".*", "tagPatternMatches": true}' http://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/immutabilitypolicy/</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"uuid": "ce2bdcc0-ced2-4a1a-ac36-78a9c1bed8c7"}</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

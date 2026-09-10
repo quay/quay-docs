@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-red-hat-sso-using-config-tool">
+  <title>Configuring the Red Hat Single Sign-On Operator for use with the Red Hat Quay Operator</title>
+  <shortdesc>To prepare Red Hat Single Sign-On for Red Hat Quay on OpenShift Container Platform, you can create a confidential OIDC client in the RH-SSO Admin Console and copy the client secret.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have configured the Red Hat Single Sign-On Operator.</li>
+        <li>You have configured SSL/TLS for your Red Hat Quay on OpenShift Container Platform deployment <i>and</i> for Red Hat Single Sign-On.</li>
+        <li>You have generated a single Certificate Authority (CA) and uploaded it to your Red Hat Single Sign-On Operator <i>and</i> to your Red Hat Quay configuration.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Navigate to the Red Hat Single Sign-On <b>Admin Console</b>.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>On the OpenShift Container Platform <b>Web Console</b>, navigate to <b>Network</b> → <b>Route</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Select the <b>Red Hat Single Sign-On</b> project from the drop-down list.</cmd>
+          </substep>
+          <substep>
+            <cmd>Find the Red Hat Single Sign-On <b>Admin Console</b> in the <b>Routes</b> table.</cmd>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Select the Realm that you use to configure Red Hat Quay.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Clients</b> under the <b>Configure</b> section of the navigation panel, and then click <b>Create</b> to add a new OIDC client for Red Hat Quay.</cmd>
+      </step>
+      <step>
+        <cmd>Enter the following information:
+</cmd>
+        <info>
+          <ul>
+            <li>
+              <b>Client ID:</b>
+              <codeph>quay-enterprise</codeph>
+            </li>
+            <li>
+              <b>Client Protocol:</b>
+              <codeph>openid-connect</codeph>
+            </li>
+            <li>
+              <b>Root URL:</b>
+              <codeph>https://&lt;quay_endpoint&gt;/</codeph>
+            </li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Click <b>Save</b>. This results in a redirect to the <b>Clients</b> setting panel.</cmd>
+      </step>
+      <step>
+        <cmd>Navigate to <b>Access Type</b> and select <b>Confidential</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Navigate to <b>Valid Redirect URIs</b>. You must provide three redirect URIs. The value should be the fully qualified domain name of the Red Hat Quay registry appended with <codeph>/oauth2/redhatsso/callback</codeph>. For example:
+</cmd>
+        <info>
+          <ul>
+            <li>
+              <codeph>https://&lt;quay_endpoint&gt;/oauth2/redhatsso/callback</codeph>
+            </li>
+            <li>
+              <codeph>https://&lt;quay_endpoint&gt;/oauth2/redhatsso/callback/attach</codeph>
+            </li>
+            <li>
+              <codeph>https://&lt;quay_endpoint&gt;/oauth2/redhatsso/callback/cli</codeph>
+            </li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Click <b>Save</b> and navigate to the new <b>Credentials</b> setting.</cmd>
+      </step>
+      <step>
+        <cmd>Copy the value of the Secret.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

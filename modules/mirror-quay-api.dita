@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="quay-mirror-api">
+  <title>Using the API to mirror a repository</title>
+  <shortdesc>To mirror an external repository into Red Hat Quay, you can create and manage a repository mirror configuration through the API. You can also sync, cancel, or update the configuration.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have set <codeph>FEATURE_REPO_MIRROR: true</codeph> in your <codeph>config.yaml</codeph> file.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Create a new repository mirror configuration by using the <codeph>POST /api/v1/repository/{repository}/mirror</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repo&gt;/mirror" \
+    -H "Authorization: Bearer &lt;access_token&gt;" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "is_enabled": &lt;is_enabled&gt;,
+        "external_reference": "&lt;external_reference&gt;",
+        "external_registry_username": "&lt;external_registry_username&gt;",
+        "external_registry_password": "&lt;external_registry_password&gt;",
+        "sync_start_date": "&lt;sync_start_date&gt;",
+        "sync_interval": &lt;sync_interval&gt;,
+        "robot_username": "&lt;robot_username&gt;",
+        "skopeo_timeout_interval": 600,
+        "root_rule": {
+            "rule": "&lt;rule&gt;",
+            "rule_type": "&lt;rule_type&gt;"
+        }
+    }'</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Return information about the mirror configuration by using the <codeph>GET /api/v1/repository/{repository}/mirror</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repo&gt;/mirror" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"is_enabled": true, "mirror_type": "PULL", "external_reference": "https://quay.io/repository/argoproj/argocd", "external_registry_username": null, "external_registry_config": {}, "sync_interval": 86400, "sync_start_date": "2025-01-15T12:00:00Z", "sync_expiration_date": null, "sync_retries_remaining": 3, "sync_status": "NEVER_RUN", "root_rule": {"rule_kind": "tag_glob_csv", "rule_value": ["*.latest*"]}, "robot_username": "quayadmin+mirror_robot"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Sync the repositories by using the <codeph>POST /api/v1/repository/{repository}/mirror/sync-now</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repo&gt;/mirror/sync-now" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Cancel the sync with the <codeph>POST /api/v1/repository/{repository}/mirror/sync-cancel</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repo&gt;/mirror/sync-cancel" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>After creating a mirror configuration, make changes with the <codeph>PUT /api/v1/repository/{repository}/mirror</codeph> command. For example, you might choose to disable automatic synchronizations:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT "https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repo&gt;/mirror" \
+    -H "Authorization: Bearer &lt;access_token&gt;" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "is_enabled": &lt;false&gt;,
+        "external_reference": "&lt;external_reference&gt;",
+        "external_registry_username": "&lt;external_registry_username&gt;",
+        "external_registry_password": "&lt;external_registry_password&gt;",
+        "sync_start_date": "&lt;sync_start_date&gt;",
+        "sync_interval": &lt;sync_interval&gt;,
+        "robot_username": "&lt;robot_username&gt;",
+        "skopeo_timeout_interval": 600,
+        "root_rule": {
+            "rule": "&lt;rule&gt;",
+            "rule_type": "&lt;rule_type&gt;"
+        }
+    }'</codeblock>
+          <p>Where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>"is_enabled": &lt;false&gt;</codeph>
+              </dt>
+              <dd>Disables automatic synchronization.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

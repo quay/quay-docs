@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="operator-managed-postgres-tls">
+  <title>TLS encryption for Operator-managed PostgreSQL</title>
+  <shortdesc>You can enable TLS encryption for Operator-managed PostgreSQL databases used by Red Hat Quay and Clair. Configure TLS through the <codeph>overrides.tls</codeph> fields on the <codeph>postgres</codeph> and <codeph>clairpostgres</codeph> components in the <codeph>QuayRegistry</codeph> custom resource.</shortdesc>
+  <refbody>
+    <section>
+      <note type="important">
+        <p>This feature configures transport encryption for Operator-managed PostgreSQL connections. It is distinct from the managed <codeph>tls</codeph> component, which handles Red Hat Quay’s external HTTPS endpoint.</p>
+      </note>
+      <p>When TLS is enabled, the Operator configures PostgreSQL to accept encrypted connections and mounts the TLS certificates on the database pod. TLS is opt-in. Existing deployments continue to use unencrypted database connections until you explicitly enable it.</p>
+      <note type="note">
+        <p>After you enable TLS, confirm that PostgreSQL reports <codeph>ssl = on</codeph>. Optionally verify that Red Hat Quay or Clair client sessions appear in <codeph>pg_stat_ssl</codeph>, or that the registry database URI includes an <codeph>sslmode</codeph> setting such as <codeph>verify-full</codeph>, depending on your Operator version and configuration.</p>
+      </note>
+      <p>You can enable TLS independently for the <codeph>postgres</codeph> and <codeph>clairpostgres</codeph> components.</p>
+    </section>
+    <section id="operator-managed-postgres-tls-cert-options">
+      <title>Certificate options</title>
+      <table>
+        <title>Operator-managed PostgreSQL TLS certificate sources</title>
+        <tgroup cols="2">
+          <colspec colname="col_1" colwidth="40*"/>
+          <colspec colname="col_2" colwidth="60*"/>
+          <thead>
+            <row>
+              <entry>Option</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>OpenShift Container Platform Service CA (default on OpenShift Container Platform)</p>
+              </entry>
+              <entry>
+                <p>When you set <codeph>overrides.tls.enabled: true</codeph> without a <codeph>secretRef</codeph>, the Operator uses the OpenShift Container Platform Service CA on clusters that support Routes. The Operator annotates the PostgreSQL Service with <codeph>service.beta.openshift.io/serving-cert-secret-name</codeph> and mounts the generated serving certificate.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>Operator-generated self-signed certificates</p>
+              </entry>
+              <entry>
+                <p>On Kubernetes clusters without the OpenShift Container Platform Service CA, the Operator generates ECDSA P-256 certificates with a 10-year validity period when no <codeph>secretRef</codeph> is provided.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>User-provided or cert-manager certificates</p>
+              </entry>
+              <entry>
+                <p>Reference a Secret containing <codeph>ca.crt</codeph>, <codeph>tls.crt</codeph>, and <codeph>tls.key</codeph> by using <codeph>overrides.tls.secretRef.name</codeph>. This format is compatible with cert-manager output. When the referenced Secret changes, the Operator reconciles the deployment.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <note type="note">
+        <p>This feature does not provide mutual TLS (mTLS) or automatic certificate rotation. To integrate with enterprise PKI or automate rotation, use <codeph>secretRef</codeph> with cert-manager or your own certificate management process.</p>
+      </note>
+    </section>
+  </refbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/openshift_container_platform/4.22/html/security_and_compliance/cert-manager-operator-for-red-hat-openshift" format="html" scope="external">
+      <linktext>cert-manager Operator for Red Hat OpenShift</linktext>
+    </link>
+  </related-links>
+</reference>

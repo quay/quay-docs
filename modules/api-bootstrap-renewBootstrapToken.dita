@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="renewbootstraptoken">
+  <title>renewBootstrapToken</title>
+  <shortdesc>Rotate the programmatic bootstrap OAuth token.</shortdesc>
+  <refbody>
+    <section id="renewbootstraptoken-post">
+      <title>POST /api/v1/bootstrap/renew</title>
+      <p>Renew the bootstrap token and write the new token value to <codeph>BOOTSTRAP_TOKEN_PATH</codeph> or the configured Kubernetes Secret. The previous bootstrap token is invalidated immediately. The response does not include the new token value; read it from the configured storage location after renewal.</p>
+      <p>This endpoint is available only when <codeph>FEATURE_PROGRAMMATIC_BOOTSTRAP</codeph> is <codeph>true</codeph>.</p>
+      <p><b>Authorizations:</b> Bearer token (bootstrap token)</p>
+    </section>
+    <section id="renewbootstraptoken-request-body">
+      <title>Request body</title>
+      <p>No request body.</p>
+    </section>
+    <section id="renewbootstraptoken-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>200</p>
+              </entry>
+              <entry>
+                <p>Successful renewal</p>
+              </entry>
+              <entry>
+                <p>
+                  <codeph>{"status": "rotated"}</codeph>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Invalid, missing, or expired bootstrap token</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <note type="note">
+        <p>When the bootstrap token is expired, renewal is accepted only from localhost. On Kubernetes and OpenShift Container Platform, use port forwarding and ensure the request includes the <codeph>X-Quay-Bootstrap-Renewal-Location: local</codeph> header set by the ingress layer.</p>
+      </note>
+    </section>
+    <section id="renewbootstraptoken-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/bootstrap/renew" \
+  -H "Authorization: Bearer &lt;bootstrap_token&gt;"</codeblock>
+      <p outputclass="title">
+        <b>Example response</b>
+      </p>
+      <codeblock outputclass="language-json">{"status": "rotated"}</codeblock>
+    </section>
+  </refbody>
+</reference>

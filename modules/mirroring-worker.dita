@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="mirroring-worker">
+  <title>Creating a mirroring worker</title>
+  <shortdesc>To run repository mirroring in a standalone Red Hat Quay deployment, you can start a Podman container with the <codeph>repomirror</codeph> option.</shortdesc>
+  <taskbody>
+    <steps-unordered>
+      <step>
+        <cmd>If you have not configured TLS communications by using a <codeph>/root/ca.crt</codeph> certificate, enter the following command to start a mirroring worker:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman run -d --name mirroring-worker \
+  -v $QUAY/config:/conf/stack:Z \
+  registry.redhat.io/quay/quay-rhel9:v3.18.0 repomirror</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>If you have configured TLS communications by using a <codeph>/root/ca.crt</codeph> certificate, enter the following command to start the repository mirroring worker:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman run -d --name mirroring-worker \
+  -v $QUAY/config:/conf/stack:Z \
+  -v /root/ca.crt:/etc/pki/ca-trust/source/anchors/ca.crt:Z \
+  registry.redhat.io/quay/quay-rhel9:v3.18.0 repomirror</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

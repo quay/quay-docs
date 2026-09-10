@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="createorgrobotfederation">
+  <title>createOrgRobotFederation</title>
+  <shortdesc>Create a federation configuration for the specified organization robot.</shortdesc>
+  <refbody>
+    <section id="createorgrobotfederation-post">
+      <title>POST /api/v1/organization/{orgname}/robots/{robot_shortname}/federation</title>
+      <p>Create or replace the federation configuration for the specified organization robot.</p>
+      <p><b>Authorizations: </b>oauth2_implicit (<b>user:admin</b>)</p>
+    </section>
+    <section id="createorgrobotfederation-path-parameters">
+      <title>Path parameters</title>
+      <table>
+        <tgroup cols="4">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <colspec colname="col_4" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Type</entry>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>path</p>
+              </entry>
+              <entry>
+                <p><b>orgname</b> + <b>robot_shortname</b><i>required</i></p>
+              </entry>
+              <entry>
+                <p>The name of the organization and the short name for the robot, without any user or organization prefix</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createorgrobotfederation-request-body-schema">
+      <title>Request body schema (application/json)</title>
+      <p>Array of federation configuration entries for the robot.</p>
+      <note type="important">
+        <p>In Red Hat Quay 3.18, create and update requests persist <codeph>issuer</codeph> and <codeph>subject</codeph> only. The optional <codeph>audiences</codeph> field is not stored from API requests, and the Red Hat Quay v2 UI federation modal does not provide an <codeph>audiences</codeph> field. When <codeph>audiences</codeph> is present in stored federation configuration, Red Hat Quay validates the token audience during federated robot token exchange. When it is absent, audience validation is skipped and Red Hat Quay logs a deprecation warning.</p>
+      </note>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>issuer</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Issuer URL of the external OIDC provider for this federation entry</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>subject</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Subject (<codeph>sub</codeph> claim) of the external OIDC identity authorized for this robot</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>audiences</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>List of acceptable token audience (<codeph>aud</codeph> claim) values for this federation entry. Reserved for future API support; not persisted by create or update requests in Red Hat Quay 3.18.</p>
+              </entry>
+              <entry>
+                <p>array of strings</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Example request body</b>
+      </p>
+      <codeblock outputclass="language-json">[
+  {
+    "issuer": "https://login.microsoftonline.com/&lt;tenant-id&gt;/v2.0",
+    "subject": "&lt;user-object-id&gt;"
+  }
+]</codeblock>
+    </section>
+    <section id="createorgrobotfederation-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>201</p>
+              </entry>
+              <entry>
+                <p>Successful invocation</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>400</p>
+              </entry>
+              <entry>
+                <p>Bad Request</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createorgrobotfederation-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X POST "https://quay-server.example.com/api/v1/organization/{orgname}/robots/{robot_shortname}/federation" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "issuer": "https://keycloak-auth-realm.quayadmin.org/realms/quayrealm",
+      "subject": "449e14f8-9eb5-4d59-a63e-b7a77c75f770"
+    }
+  ]'</codeblock>
+    </section>
+  </refbody>
+</reference>

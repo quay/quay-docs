@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="operator-ocp-tls-security-profile">
+  <title>OpenShift Container Platform cluster TLS security profile inheritance</title>
+  <shortdesc>When you deploy Red Hat Quay on OpenShift Container Platform, the Red Hat Quay Operator can read the cluster-wide <codeph>tlsSecurityProfile</codeph> from the OpenShift Container Platform <codeph>APIServer</codeph> cluster resource and apply the corresponding <codeph>SSL_PROTOCOLS</codeph> and <codeph>SSL_CIPHERS</codeph> settings to the registry and mirror workers. This aligns Red Hat Quay with the platform TLS policy without manual configuration.</shortdesc>
+  <conbody>
+    <section id="how-tls-profile-inheritance-works">
+      <title>How TLS profile inheritance works</title>
+      <p>The Operator reads <codeph>spec.tlsSecurityProfile</codeph> from the <codeph>APIServer</codeph> cluster resource and translates the profile into Red Hat Quay <codeph>SSL_PROTOCOLS</codeph> and <codeph>SSL_CIPHERS</codeph> values in the generated <codeph>config.yaml</codeph>. Supported profile types are <codeph>Old</codeph>, <codeph>Intermediate</codeph>, <codeph>Modern</codeph>, and <codeph>Custom</codeph>. If the cluster has no profile set, the Operator defaults to the <codeph>Intermediate</codeph> profile (TLS 1.2 and TLS 1.3).</p>
+      <p>To fully override cluster-profile inheritance, set both <codeph>SSL_PROTOCOLS</codeph> and <codeph>SSL_CIPHERS</codeph> in the <codeph>configBundleSecret</codeph>. Setting either field disables inheritance for both fields. On Kubernetes clusters without the <codeph>config.openshift.io</codeph> API, the Operator does not inject TLS settings and Red Hat Quay uses its built-in defaults.</p>
+    </section>
+    <section id="managed-unmanaged-tls-profile-inheritance">
+      <title>Managed TLS and unmanaged TLS</title>
+      <p>How the cluster TLS security profile applies depends on whether the Operator or Red Hat Quay terminates TLS:</p>
+      <ul>
+        <li>When the <codeph>tls</codeph> component is set to <codeph>managed</codeph>, the OpenShift Container Platform Route enforces the cluster TLS profile. No additional TLS protocol or cipher configuration is required in the config bundle.</li>
+        <li>When the <codeph>tls</codeph> component is set to <codeph>unmanaged</codeph>, Red Hat Quay terminates TLS directly. When neither <codeph>SSL_PROTOCOLS</codeph> nor <codeph>SSL_CIPHERS</codeph> is set in the config bundle, Red Hat Quay inherits the cluster TLS security profile.</li>
+      </ul>
+    </section>
+  </conbody>
+  <related-links>
+    <link href="quay_jtbd-secure.dita#operator-custom-ssl-certs-config-bundle">
+      <linktext>Configuring custom SSL/TLS certificates for Red Hat Quay on OpenShift Container Platform</linktext>
+    </link>
+  </related-links>
+</concept>

@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="scaling-down-quay-deployment">
+  <title>Scaling down the Red Hat Quay deployment</title>
+  <shortdesc>To create a consistent backup of your Red Hat Quay deployment, you must scale down the deployment by disabling auto scaling and setting replica counts to zero. This ensures the registry is in a quiescent state before backing up.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="important">
+        <p>This step is needed to create a consistent backup of the state of your Red Hat Quay deployment. Do not omit this step, including in setups where PostgreSQL databases and/or S3-compatible object storage are provided by external services (unmanaged by the Red Hat Quay Operator).</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Scale down the Red Hat Quay deployment by disabling auto scaling and overriding the replica count for Red Hat Quay, mirror workers, and Clair (if managed). For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: registry
+  namespace: ns
+spec:
+  components:
+    …
+    - kind: horizontalpodautoscaler
+      managed: false
+    - kind: quay
+      managed: true
+      overrides:
+        replicas: 0
+    - kind: clair
+      managed: true
+      overrides:
+        replicas: 0
+    - kind: mirror
+      managed: true
+      overrides:
+        replicas: 0
+    …</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>managed: false</codeph>
+              </dt>
+              <dd>Disables auto scaling of Quay, Clair and Mirroring workers.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>overrides</codeph>
+              </dt>
+              <dd>Sets the replica count to 0 for components accessing the database and objectstorage.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Wait for the <codeph>registry-quay-app</codeph>, <codeph>registry-quay-mirror</codeph> and <codeph>registry-clair-app</codeph> pods (depending on which components you set to be managed by the Red Hat Quay Operator) to disappear. You can check their status by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get pods -n &lt;quay_namespace&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">$ oc get pod</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">quay-operator.v3.7.1-6f9d859bd-p5ftc               1/1     Running     0             12m
+quayregistry-clair-postgres-7487f5bd86-xnxpr       1/1     Running     1 (12m ago)   12m
+quayregistry-quay-app-upgrade-xq2v6                0/1     Completed   0             12m
+quayregistry-quay-database-859d5445ff-cqthr        1/1     Running     0             12m
+quayregistry-quay-redis-84f888776f-hhgms           1/1     Running     0             12m</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

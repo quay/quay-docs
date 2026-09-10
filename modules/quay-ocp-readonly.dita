@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="quay-ocp-readonly">
+  <title>Configuring read-only mode Red Hat Quay on OpenShift Container Platform</title>
+  <shortdesc>To enable read-only mode in Red Hat Quay and safely manage registry operations such as backup and restore, you can modify the configuration secret and restart the Quay container.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created the service keys and added them to your PostgreSQL database.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="important">
+        <p>Deploying Red Hat Quay on OpenShift Container Platform in read-only mode requires you to modify the secrets stored inside of your OpenShift Container Platform cluster. It is highly recommended that you create a backup of the secret prior to making changes to it.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Read the secret name of your Red Hat Quay on OpenShift Container Platform deployment by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get deployment -o yaml &lt;quay_main_app_deployment_name&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>base64</codeph> command to encode the <codeph>quay-readonly.kid</codeph> and <codeph>quay-readonly.pem</codeph> files by entering the following commands:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ base64 -w0 quay-readonly.kid</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">ZjUyNDFm...</codeblock>
+          <codeblock outputclass="language-terminal">$ base64 -w0 quay-readonly.pem</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">&lt;example_secret&gt;...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the current configuration bundle and secret by entering the following command. Save the output to a file called <codeph>config.yaml</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get secret quay-config-secret-name -o json | jq '.data."config.yaml"' | cut -d '"' -f2 | base64 -d -w0 &gt; config.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Edit the <codeph>config.yaml</codeph> file and add the following information to enable read-only mode:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Save the file and <codeph>base64</codeph> encode it by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ base64 -w0 quay-config.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Scale down the Red Hat Quay Operator pods to <codeph>0</codeph> by entering the following command. This ensures that the Operator does not reconcile the secret after editing it.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc scale --replicas=0 deployment quay-operator -n openshift-operators</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Edit the secret to include the new content by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc edit secret quay-config-secret-name -n quay-namespace</codeblock>
+          <codeblock outputclass="language-yaml"># ...
+data:
+  "quay-readonly.kid": "ZjUyNDFm..."
+  "quay-readonly.pem": "&lt;example_secret&gt;..."
+  "config.yaml": "QUNUSU9OX0xPR19..."
+# ...</codeblock>
+          <p>With your Red Hat Quay on OpenShift Container Platform deployment on read-only mode, you can safely manage your registry’s operations and perform such actions as backup and restore.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

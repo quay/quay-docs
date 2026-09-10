@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-v2-oauth-access-token">
+  <title>Creating an OCI referrers OAuth access token</title>
+  <shortdesc>To list OCI referrers of a manifest under a repository, you can create an OCI referrers OAuth access token by using basic authentication against the Red Hat Quay <codeph>v2/auth</codeph> endpoint.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Update your <codeph>config.yaml</codeph> file to include the <codeph>FEATURE_REFERRERS_API: true</codeph> field. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+FEATURE_REFERRERS_API: true
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to Base64 encode your credentials:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ echo -n '&lt;username&gt;:&lt;password&gt;' | base64</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">abcdeWFkbWluOjE5ODlraWROZXQxIQ==</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to use the Base64-encoded string and modify the URL endpoint to your Red Hat Quay server:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl --location '&lt;quay-server.example.com&gt;/v2/auth?service=&lt;quay-server.example.com&gt;&amp;scope=repository:quay/listocireferrs:pull,push' --header 'Authorization: Basic &lt;base64_username:password_encode_token&gt;' -k | jq</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{
+  "token": "&lt;example_secret&gt;"
+}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

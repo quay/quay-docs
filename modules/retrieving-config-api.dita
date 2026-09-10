@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="retrieving-config-file-api">
+  <title>Retrieving active configuration settings by using the API</title>
+  <shortdesc>To retrieve Red Hat Quay configuration settings from the command line, you can enable <codeph>FEATURE_SUPERUSER_CONFIGDUMP</codeph> and call the <codeph>v1/superuser/config</codeph> API endpoint with a superuser OAuth 2 access token. As a Red Hat Quay superuser, you can return all Flask configuration fields that are set, which you can use to show proof of compliance for various security policies, such as PCI-DSS 4.0.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have set <codeph>FEATURE_SUPERUSER_CONFIGDUMP: true</codeph> in your <codeph>config.yaml</codeph> file.</li>
+        <li>You have assigned the superuser role to a user in your <codeph>config.yaml</codeph> file.</li>
+        <li>You have generated an OAuth 2 access token for the superuser.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Retrieve configuration settings by using the <codeph>v1/superuser/config</codeph> API endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;bearer_token&gt;" "http://&lt;quay-server.example.com&gt;/api/v1/superuser/config" | jq -r .config</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">...
+  "TEAM_RESYNC_STALE_TIME": "30m",
+  "UI_DELAY_AFTER_WRITE_SECONDS": 3,
+  "UI_MODELCARD_ANNOTATION": {},
+  "UI_MODELCARD_ARTIFACT_TYPE": "application/x-mlmodel",
+  "UI_MODELCARD_LAYER_ANNOTATION": {
+    "org.opencontainers.image.title": "README.md"
+  }
+...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can pass in one of <codeph>.config</codeph>, <codeph>.env</codeph>, <codeph>.warning</codeph>, or <codeph>.schema</codeph> to return specific information. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;bearer_token&gt;" "http://&lt;quay-server.example.com&gt;/api/v1/superuser/config" | jq -r .warning</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">...
+  "BILLING_TYPE": "FakeStripe",
+  "BUILDLOGS_OPTIONS": [],
+  "BUILD_MANAGER": null,
+  "CDN_SPECIFIC_NAMESPACES": [],
+  "CHANNEL_COLORS": [
+  ]
+...</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

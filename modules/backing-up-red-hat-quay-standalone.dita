@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="backing-up-red-hat-quay-standalone">
+  <title>Backing up Red Hat Quay on standalone deployments</title>
+  <shortdesc>To back up a standalone Red Hat Quay deployment, you can archive configuration files, dump the PostgreSQL database, and sync object storage blobs.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Create a temporary backup directory, for example, <codeph>quay-backup</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir /tmp/quay-backup</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>The following example command denotes the local directory that the Red Hat Quay was started in, for example, <codeph>/opt/quay-install</codeph>:
+</cmd>
+        <info>
+          <codeblock>$ podman run --name quay-app \
+   -v /opt/quay-install/config:/conf/stack:Z \
+   -v /opt/quay-install/storage:/datastorage:Z \
+   registry.redhat.io/quay/quay-rhel9:v3.18.0</codeblock>
+          <p>Change into the directory that bind-mounts to <codeph>/conf/stack</codeph> inside of the container, for example, <codeph>/opt/quay-install</codeph>, by running the following command:</p>
+          <codeblock outputclass="language-terminal">$ cd /opt/quay-install</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Compress the contents of your Red Hat Quay deployment into an archive in the <codeph>quay-backup</codeph> directory by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ tar cvf /tmp/quay-backup/quay-backup.tar.gz *</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">config.yaml
+config.yaml.bak
+extra_ca_certs/
+extra_ca_certs/ca.crt
+ssl.cert
+ssl.key</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Back up the Quay container service by entering the following command:
+</cmd>
+        <info>
+          <codeblock>$ podman inspect quay-app | jq -r '.[0].Config.CreateCommand | .[]' | paste -s -d ' ' -
+
+  /usr/bin/podman run --name quay-app \
+  -v /opt/quay-install/config:/conf/stack:Z \
+  -v /opt/quay-install/storage:/datastorage:Z \
+  registry.redhat.io/quay/quay-rhel9:v3.18.0</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Redirect the contents of your <codeph>conf/stack/config.yaml</codeph> file to your temporary <codeph>quay-config.yaml</codeph> file by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman exec -it quay cat /conf/stack/config.yaml &gt; /tmp/quay-backup/quay-config.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the <codeph>DB_URI</codeph> located in your temporary <codeph>quay-config.yaml</codeph> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ grep DB_URI /tmp/quay-backup/quay-config.yaml</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>$ postgresql://&lt;username&gt;:test123@172.24.10.50/quay</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Extract the PostgreSQL contents to your temporary backup directory in a backup <codeph>.sql</codeph> file by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ pg_dump -h 172.24.10.50  -p 5432 -d quay  -U  &lt;username&gt;   -W -O &gt; /tmp/quay-backup/quay-backup.sql</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Print the contents of your <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - S3Storage
+    - s3_bucket: &lt;bucket_name&gt;
+      storage_path: /registry
+      s3_access_key: &lt;s3_access_key&gt;
+      s3_secret_key: &lt;s3_secret_key&gt;
+      host: &lt;host_name&gt;
+      s3_region: &lt;region&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Export the <codeph>AWS_ACCESS_KEY_ID</codeph> by using the <codeph>access_key</codeph> credential obtained in Step 7:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export AWS_ACCESS_KEY_ID=&lt;access_key&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Export the <codeph>AWS_SECRET_ACCESS_KEY</codeph> by using the <codeph>secret_key</codeph> obtained in Step 7:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export AWS_SECRET_ACCESS_KEY=&lt;secret_key&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Sync the <codeph>quay</codeph> bucket to the <codeph>/tmp/quay-backup/blob-backup/</codeph> directory from the <codeph>hostname</codeph> of your <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ aws s3 sync s3://&lt;bucket_name&gt;  /tmp/quay-backup/blob-backup/ --source-region us-east-2</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>download: s3://&lt;user_name&gt;/registry/sha256/9c/9c3181779a868e09698b567a3c42f3744584ddb1398efe2c4ba569a99b823f7a to registry/sha256/9c/9c3181779a868e09698b567a3c42f3744584ddb1398efe2c4ba569a99b823f7a
+download: s3://&lt;user_name&gt;/registry/sha256/e9/e9c5463f15f0fd62df3898b36ace8d15386a6813ffb470f332698ecb34af5b0d to registry/sha256/e9/e9c5463f15f0fd62df3898b36ace8d15386a6813ffb470f332698ecb34af5b0d</codeblock>
+          <note type="note">
+            <p>Delete the <codeph>quay-config.yaml</codeph> file after syncing the <codeph>quay</codeph> bucket because that file contains sensitive information. The <codeph>quay-config.yaml</codeph> file remains available in the <codeph>quay-backup.tar.gz</codeph> archive.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

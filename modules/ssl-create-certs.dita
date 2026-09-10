@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-a-certificate-authority">
+  <title>Creating a Certificate Authority</title>
+  <shortdesc>To secure your Red Hat Quay deployment with self-signed certificates, you can create a root certificate authority and generate a server certificate for your registry hostname. You can use OpenSSL to create the CA key, signing request, and certificate files.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Generate the root CA key by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ openssl genrsa -out rootCA.key 2048</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Generate the root CA certificate by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 1024 -out rootCA.pem</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the information to incorporate into your certificate request, including the server hostname, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">Country Name (2 letter code) [XX]:IE
+State or Province Name (full name) []:GALWAY
+Locality Name (eg, city) [Default City]:GALWAY
+Organization Name (eg, company) [Default Company Ltd]:QUAY
+Organizational Unit Name (eg, section) []:DOCS
+Common Name (eg, your name or your server's hostname) []:quay-server.example.com</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Generate the server key by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ openssl genrsa -out ssl.key 2048</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Generate a signing request by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ openssl req -new -key ssl.key -out ssl.csr</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the information to incorporate into your certificate request, including the server hostname, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">Country Name (2 letter code) [XX]:IE
+State or Province Name (full name) []:GALWAY
+Locality Name (eg, city) [Default City]:GALWAY
+Organization Name (eg, company) [Default Company Ltd]:QUAY
+Organizational Unit Name (eg, section) []:DOCS
+Common Name (eg, your name or your server's hostname) []:quay-server.example.com
+Email Address []:</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a configuration file <codeph>openssl.cnf</codeph>, specifying the server hostname, for example:
+</cmd>
+        <info>
+          <p outputclass="title">
+            <b>Example <codeph>openssl.cnf</codeph> file</b>
+          </p>
+          <codeblock outputclass="language-terminal">[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = &lt;quay-server.example.com&gt;
+IP.1 = 192.168.1.112</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the configuration file to generate the certificate <codeph>ssl.cert</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ openssl x509 -req -in ssl.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out ssl.cert -days 356 -extensions v3_req -extfile openssl.cnf</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Confirm your created certificates and files by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ ls /path/to/certificates</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">rootCA.key ssl-bundle.cert ssl.key custom-ssl-config-bundle-secret.yaml rootCA.pem ssl.cert
+openssl.cnf rootCA.srl  ssl.csr</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

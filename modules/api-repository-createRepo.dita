@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="createrepo">
+  <title>createRepo</title>
+  <shortdesc>Create a new repository.</shortdesc>
+  <refbody>
+    <section id="createrepo-post">
+      <title>POST /api/v1/repository</title>
+      <p><b>Authorizations: </b>oauth2_implicit (<b>repo:create</b>)</p>
+    </section>
+    <section id="createrepo-request-body-schema">
+      <title>Request body schema (application/json)</title>
+      <p>Description of a new repository</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>repository</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Repository name</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>visibility</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Visibility which the repository will start with</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>namespace</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Namespace in which the repository should be created. If omitted, the username of the caller is used</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>description</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Markdown encoded description for the repository</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>repo_kind</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The kind of repository</p>
+              </entry>
+              <entry/>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createrepo-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>201</p>
+              </entry>
+              <entry>
+                <p>Successful creation</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>400</p>
+              </entry>
+              <entry>
+                <p>Bad Request</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>404</p>
+              </entry>
+              <entry>
+                <p>Not found</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createrepo-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "repository": "&lt;new_repository_name&gt;",
+    "visibility": "&lt;public&gt;",
+    "description": "&lt;This is a description of the new repository&gt;."
+  }' \
+  "https://quay-server.example.com/api/v1/repository"</codeblock>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="api-global-messages">
+  <title>Managing global messages by using the API</title>
+  <shortdesc>To create, list, or delete global messages in Red Hat Quay, you can use the messages API endpoints with an OAuth 2 access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth 2 access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Create a message by using the <codeph>POST /api/v1/message</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/messages" \
+    -H "Authorization: Bearer &lt;access_token&gt;" \
+    -H "Content-Type: application/json" \
+    -d '{
+        "message": {
+            "content": "Hi",
+            "media_type": "text/plain",
+            "severity": "info"
+        }
+    }'</codeblock>
+          <p>This command does not return output.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/messages</codeph> command to return the list of global messages:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/messages" \
+    -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"messages": [{"uuid": "ecababd4-3451-4458-b5db-801684137444", "content": "Hi", "severity": "info", "media_type": "text/plain"}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Delete the global message by using the <codeph>DELETE /api/v1/message/{uuid}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE "https://&lt;quay-server.example.com&gt;/api/v1/message/&lt;uuid&gt;" \
+    -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+          <p>This command does not return output.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="config-ui-mirroring-organization">
+  <title>Creating a mirroring organization by using the UI</title>
+  <shortdesc>To automatically synchronize container images between registries, you can use the Red Hat Quay UI to create a mirroring organization.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have a Red Hat Quay organization with sufficient permissions.</li>
+        <li>You have created a robot account.</li>
+        <li>You have access to a source Harbor instance.
+<ul><li>You have Harbor credentials, such as a username and a password or an API token.</li></ul></li>
+        <li>You have set <codeph>FEATURE_ORG_MIRROR: true</codeph> in your <codeph>config.yaml</codeph> file.</li>
+        <li>You have set <codeph>FEATURE_PROXY_CACHE: true</codeph> in your <codeph>config.yaml</codeph> file.</li>
+        <li>You have set <codeph>FEATURE_REPO_MIRROR: true</codeph> in your <codeph>config.yaml</codeph> file.</li>
+        <li>For standalone Red Hat Quay deployments, you have created a mirroring worker.</li>
+        <li>If you are using an OAuth token to mirror from Quay to Quay, your token must have the following permissions:
+<ul><li><b>Administer Repositories</b></li><li><b>View all visible repositories</b></li><li><b>Read/Write to any accessible repositories</b></li><li><b>Administer User</b></li></ul></li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <p>Organization-level mirroring cannot be configured on an existing organization that already contains repositories. A dedicated organization must be created specifically to serve as a mirror target, with all repositories within the organization managed exclusively by the mirroring configuration.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>On the Red Hat Quay v2 UI, click <b>Organizations</b> in the navigation pane.</cmd>
+      </step>
+      <step>
+        <cmd>Find your organization listed under the <b>Name</b> column and then click the name of the organization.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Settings</b> → <b>Organization state</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click the <b>Mirror</b> radio button to set the organization state to mirroring.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Submit</b>. Completion of this step takes you to the <b>Mirroring</b> tab.</cmd>
+      </step>
+      <step>
+        <cmd>Under the <b>Source Registry</b> section, complete the following settings:
+</cmd>
+        <info>
+          <ul>
+            <li>For <b>Source Registry Type</b>, select <b>Quay</b> or <b>Harbor</b>.</li>
+            <li>In the <b>Source Registry URL</b> field, enter a valid URL, for example, <codeph><xref href="https://registry.example.com" format="html" scope="external">https://registry.example.com</xref></codeph>.</li>
+            <li>For <b>Source Namespace</b>, enter the namespace or project name on the source registry. For example, <codeph>my-project</codeph>.</li>
+            <li>Select <b>Private</b> or <b>Public</b> for <b>Repository Visibility</b>.</li>
+            <li>For <b>Start Date</b>, set the date in <codeph>yyyy-mm-dd</codeph> format and set the time.</li>
+            <li>Set the <b>Sync interval</b>. Set the integer in the box and select <b>seconds</b>, <b>minutes</b>, <b>hours</b>, <b>days</b>, or <b>weeks</b> from the drop-down menu.</li>
+            <li>Set the <b>Skopeo Timeout</b> value for Skopeo operations.</li>
+            <li>Select a <b>Robot User</b> from the drop-down menu.</li>
+            <li>Set any desired <b>Filter Patterns</b>.</li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>In the <b>Credentials</b> section, do one of the following actions:
+</cmd>
+        <info>
+          <ul>
+            <li>If you specified <b>Harbor</b> for <b>Source Registry Type</b>, enter your username and password for the source registry.</li>
+            <li>If you specified <b>Quay</b> for <b>Source Registry Type</b>, enter <codeph>$oauthtoken</codeph> for the <b>Username</b> field and your OAuth token for the <b>Password</b> field.</li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional: In <b>Advanced Settings</b>, complete any of the following options:
+</cmd>
+        <info>
+          <ul>
+            <li>For <b>Verify TLS</b>, select the checkbox to verify certificates.</li>
+            <li>Set an <b>HTTP Proxy</b> URL.</li>
+            <li>Set an <b>HTTPS Proxy</b> URL.</li>
+            <li>Set a <b>No Proxy</b> URL.</li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>When you have configured the desired settings, click <b>Enable Organization Mirror</b>.</cmd>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>On the Red Hat Quay web console, click <b>Organizations</b> → the organization name → <b>Mirroring</b>.</li>
+        <li>Scroll to the <b>Status</b> section to view the status and verify the connection.</li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

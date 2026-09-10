@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-email-routing-contact-email">
+  <title>Configuring email routing with organization contact email</title>
+  <shortdesc>To route quota notification emails to a shared organization contact address in Red Hat Quay, you can set the organization contact email with the API. You can list and test notifications for organizations and user namespaces.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Set the organization contact email by entering a command similar to the following example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Content-Type: application/json" \
+--data '{
+    "email": "ops-team@example.com"
+}' \
+https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;</codeblock>
+          <note type="note">
+            <p>Setting the organization contact email requires organization administrator permissions (<codeph>org:admin</codeph> scope). If a contact email is not set, quota notifications default to sending to organization administrator email addresses.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>List all notifications for an organization by entering a command similar to the following example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Accept: application/json" \
+https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/notifications</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-json">{
+"notifications": [
+    {
+    "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "title": null,
+    "event": "quota_warning",
+    "method": "email",
+    "config": {},
+    "event_config": {},
+    "number_of_failures": 0
+    }
+]
+}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>List all notifications for your user namespace by entering a command similar to the following example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Accept: application/json" \
+https://&lt;quay-server.example.com&gt;/api/v1/user/namespacenotifications</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To test a notification, enter a command similar to the following example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/notifications/&lt;uuid&gt;/test</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{}</codeblock>
+          <note type="note">
+            <p>For <b>email</b> notifications, if an organization contact email is set, the test notification is routed to that address. Otherwise, email notifications default to organization administrators. For Slack, webhook, and other methods, routing follows the notification <codeph>config</codeph>.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

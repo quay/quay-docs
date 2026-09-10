@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="operator-hpa-overview">
+  <title>Managing Horizontal Pod Autoscaling</title>
+  <shortdesc>To customize scaling thresholds or replica limits for your Red Hat Quay registry, you can set the <codeph>horizontalpodautoscaler</codeph> component to unmanaged in the <codeph>QuayRegistry</codeph> custom resource. You can then explicitly set replica counts for the <codeph>quay</codeph>, <codeph>clair</codeph>, and <codeph>mirror</codeph> components.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>The following procedure uses the OpenShift Container Platform web console to configure the Red Hat Quay registry to use an external PostgreSQL database. For most users, use the web console is simpler.</p>
+        <p>This procedure can also be done by using the <codeph>oc</codeph> CLI and following the instructions in "Modifying the QuayRegistry CR by using the CLI" and " Modifying the configuration file by using the CLI".</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Edit your <codeph>QuayRegistry</codeph> CR:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc edit quayregistry &lt;quay_registry_name&gt; -n &lt;quay_namespace&gt;</codeblock>
+          <codeblock outputclass="language-yaml">apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: quay-registry
+  namespace: quay-enterprise
+spec:
+  components:
+    - kind: horizontalpodautoscaler
+      managed: false
+    - kind: quay
+      managed: true
+      overrides:
+        replicas: null
+    - kind: clair
+      managed: true
+      overrides:
+        replicas: null
+    - kind: mirror
+      managed: true
+      overrides:
+        replicas: null
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a custom <codeph>HorizontalPodAutoscaler</codeph> resource with your desired configuration, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+metadata:
+  name: quay-registry-quay-app
+  namespace: quay-enterprise
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: quay-registry-quay-app
+    apiVersion: apps/v1
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 90
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 90</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Apply the new HPA configuration to your cluster:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc apply -f &lt;custom_hpa&gt;.yaml</codeblock>
+          <codeblock outputclass="language-terminal">horizontalpodautoscaler.autoscaling/quay-registry-quay-app created</codeblock>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Verify that your Red Hat Quay application pods are running:
+<codeblock outputclass="language-terminal">$ oc get pod | grep quay-app</codeblock><codeblock outputclass="language-terminal">quay-registry-quay-app-5b8fd49d6b-7wvbk         1/1     Running     0          34m
+quay-registry-quay-app-5b8fd49d6b-jslq9         1/1     Running     0          3m42s
+quay-registry-quay-app-5b8fd49d6b-pskpz         1/1     Running     0          43m</codeblock></li>
+        <li>Verify that your custom HPA is active:
+<codeblock outputclass="language-terminal">$ oc get hpa</codeblock><codeblock outputclass="language-terminal">NAME                     REFERENCE                           TARGETS            MINPODS   MAXPODS   REPLICAS   AGE
+quay-registry-quay-app   Deployment/quay-registry-quay-app   67%/90%, 54%/90%   3         20        3          51m</codeblock></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

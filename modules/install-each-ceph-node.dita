@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="install-each-ceph-node">
+  <title>Installing each Ceph node</title>
+  <shortdesc>To prepare Ceph nodes for a Red Hat Quay deployment, you can verify prerequisites, configure OSD storage, install RHEL, and create an Ansible administration user on each node.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Review prerequisites for setting up Ceph nodes in <i>Additional resources</i>. In particular:
+</cmd>
+        <info>
+          <ul>
+            <li>Decide if you want to use RAID controllers on OSD nodes.</li>
+            <li>Decide if you want a separate cluster network for your Ceph network configuration.</li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Prepare OSD storage (ceph01, ceph02, and ceph03 only). Set up the OSD storage
+on the three OSD nodes (ceph01, ceph02, and ceph03). See OSD Ansible Settings
+in <i>Additional resources</i> for details on supported storage types that you will enter into your Ansible
+configuration later.  For this example, a single, unformatted block device
+(<codeph>/dev/sdb</codeph>), that is separate from the operating system, is configured on each
+of the OSD nodes. If you are installing on metal, you might want to add an extra hard drive to the machine for this purpose.</cmd>
+      </step>
+      <step>
+        <cmd>Install Red Hat Enterprise Linux Server edition, as described in <i>Additional resources</i>.</cmd>
+      </step>
+      <step>
+        <cmd>Register and subscribe each Ceph node as described in <i>Additional resources</i>. Here is how to subscribe to the necessary repos:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal"># subscription-manager repos --disable=*
+# subscription-manager repos --enable=rhel-7-server-rpms
+# subscription-manager repos --enable=rhel-7-server-extras-rpms
+# subscription-manager repos --enable=rhel-7-server-rhceph-3-mon-rpms
+# subscription-manager repos --enable=rhel-7-server-rhceph-3-osd-rpms
+# subscription-manager repos --enable=rhel-7-server-rhceph-3-tools-rpms</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create an ansible user with root privilege on each node. Choose any name you like. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal"># USER_NAME=ansibleadmin
+# useradd $USER_NAME -c "Ansible administrator"
+# passwd $USER_NAME
+New password: *********
+Retype new password: *********
+# cat &lt;&lt; EOF &gt;/etc/sudoers.d/admin
+admin ALL = (root) NOPASSWD:ALL
+EOF
+# chmod 0440 /etc/sudoers.d/$USER_NAME</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+  <related-links>
+    <link href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#requirements-for-installing-rhcs" format="html" scope="external">
+      <linktext>Requirements for Installing Red Hat Ceph Storage</linktext>
+    </link>
+    <link href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#considerations-for-using-a-raid-controller-with-osd-nodes" format="html" scope="external">
+      <linktext>Considerations for using a RAID controller with OSD nodes</linktext>
+    </link>
+    <link href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#verifying-the-network-configuration-for-red-hat-ceph-storage" format="html" scope="external">
+      <linktext>Verifying the network configuration for Red Hat Ceph Storage</linktext>
+    </link>
+    <link href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/index#installing-a-red-hat-ceph-storage-cluster" format="html" scope="external">
+      <linktext>Installing a Red Hat Ceph Storage cluster</linktext>
+    </link>
+    <link href="https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html-single/installation_guide/" format="html" scope="external">
+      <linktext>Red Hat Enterprise Linux 7 Installation Guide</linktext>
+    </link>
+    <link href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/3/html-single/installation_guide_for_red_hat_enterprise_linux/#registering-red-hat-ceph-storage-nodes-to-cdn-and-attaching-subscriptions" format="html" scope="external">
+      <linktext>Registering Red Hat Ceph Storage Nodes</linktext>
+    </link>
+  </related-links>
+</task>

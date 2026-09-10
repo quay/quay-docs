@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="search-api">
+  <title>Searching against registry context</title>
+  <shortdesc>To find repositories, entities, and other registry resources in Red Hat Quay, you can use the search API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/find/repositories</codeph> endpoint to get a list of apps and repositories that match the specified query:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://quay-server.example.com/api/v1/find/repositories?query=&lt;repo_name&gt;&amp;page=1&amp;includeUsage=true" \
+  -H "Authorization: Bearer &lt;bearer_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"results": [], "has_additional": false, "page": 2, "page_size": 10, "start_index": 10}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/find/all</codeph> endpoint to get a list of entities and resources that match the specified query:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://quay-server.example.com/api/v1/find/all?query=&lt;mysearchterm&gt;" \
+  -H "Authorization: Bearer &lt;bearer_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"results": [{"kind": "repository", "title": "repo", "namespace": {"title": "user", "kind": "user", "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}, "name": "quayadmin", "score": 1, "href": "/user/quayadmin"}, "name": "busybox", "description": null, "is_public": false, "score": 4.0, "href": "/repository/quayadmin/busybox"}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/entities/{prefix}</codeph> endpoint to get a list of entities that match the specified prefix.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://quay-server.example.com/api/v1/entities/&lt;prefix&gt;?includeOrgs=&lt;true_or_false&gt;&amp;includeTeams=&lt;true_or_false&gt;&amp;namespace=&lt;namespace&gt;" \
+  -H "Authorization: Bearer &lt;bearer_token&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"results": [{"name": "quayadmin", "kind": "user", "is_robot": false, "avatar": {"name": "quayadmin", "hash": "6d640d802fe23b93779b987c187a4b7a4d8fbcbd4febe7009bdff58d84498fba", "color": "#f7b6d2", "kind": "user"}}]}</codeblock>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

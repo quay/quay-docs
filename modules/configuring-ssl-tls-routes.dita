@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="configuring-ssl-tls-routes">
+  <title>Configuring SSL/TLS and routes</title>
+  <shortdesc>Configuring SSL/TLS and routes for Red Hat Quay lets you control how TLS termination and route management work together. The <codeph>tls</codeph> component provides support for OpenShift Container Platform edge termination routes and enables independent control of route management and TLS certificate handling.</shortdesc>
+  <conbody>
+    <p><codeph>EXTERNAL_TLS_TERMINATION: true</codeph> is the default, opinionated setting, which assumes the cluster manages TLS termination.</p>
+    <note type="note">
+      <ul>
+        <li>When <codeph>tls</codeph> is <b>managed</b>, the cluster’s default wildcard certificate is used.</li>
+        <li>When <codeph>tls</codeph> is <b>unmanaged</b>, you must supply your own SSL/TLS certificate and key pair.</li>
+      </ul>
+    </note>
+    <p>Multiple valid configurations are possible, as shown in the following table:</p>
+    <table>
+      <title>Valid configuration options for TLS and routes</title>
+      <tgroup cols="5">
+        <colspec colname="col_1" colwidth="*"/>
+        <colspec colname="col_2" colwidth="*"/>
+        <colspec colname="col_3" colwidth="*"/>
+        <colspec colname="col_4" colwidth="*"/>
+        <colspec colname="col_5" colwidth="*"/>
+        <thead>
+          <row>
+            <entry>Option</entry>
+            <entry>Route</entry>
+            <entry>TLS</entry>
+            <entry>Certs provided</entry>
+            <entry>Result</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <p>My own load balancer handles TLS</p>
+            </entry>
+            <entry>
+              <p>Managed</p>
+            </entry>
+            <entry>
+              <p>Managed</p>
+            </entry>
+            <entry>
+              <p>No</p>
+            </entry>
+            <entry>
+              <p>Edge route using default cluster wildcard certificate</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Red Hat Quay handles TLS</p>
+            </entry>
+            <entry>
+              <p>Managed</p>
+            </entry>
+            <entry>
+              <p>Unmanaged</p>
+            </entry>
+            <entry>
+              <p>Yes</p>
+            </entry>
+            <entry>
+              <p>Passthrough route with certificates mounted in the Red Hat Quay pod</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Red Hat Quay handles TLS</p>
+            </entry>
+            <entry>
+              <p>Unmanaged</p>
+            </entry>
+            <entry>
+              <p>Unmanaged</p>
+            </entry>
+            <entry>
+              <p>Yes</p>
+            </entry>
+            <entry>
+              <p>Certificates set inside the Red Hat Quay pod; user must manually create a route</p>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </conbody>
+</concept>

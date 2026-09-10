@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="mirroring-versus-georepl">
+  <title>Mirroring compared to geo-replication</title>
+  <shortdesc>Mirroring and geo-replication solve different distribution needs in Red Hat Quay. Mirroring syncs selected repositories between separate registries; geo-replication shares one database and replicates blob storage across regions.</shortdesc>
+  <conbody>
+    <p>For example, a geo-replicated Red Hat Quay registry can use two different blob storage endpoints.</p>
+    <p>The primary use cases for geo-replication include the following:</p>
+    <ul>
+      <li>Speeding up access to the binary blobs for geographically dispersed setups</li>
+      <li>Guaranteeing that the image content is the same across regions</li>
+    </ul>
+    <p>Mirroring synchronizes selected repositories, or subsets of repositories, from one registry to another. The registries are distinct, with each registry having a separate database and separate image storage.</p>
+    <p>The primary use cases for mirroring include the following:</p>
+    <ul>
+      <li>Independent registry deployments in different data centers or regions, where a certain subset of the overall content is supposed to be shared across the data centers and regions</li>
+      <li>Automatic synchronization or mirroring of selected (allowlisted) upstream repositories from external registries into a local Red Hat Quay deployment</li>
+    </ul>
+    <note type="note">
+      <p>Mirroring and geo-replication can be used simultaneously.</p>
+    </note>
+    <table>
+      <title>Red Hat Quay mirroring and geo-replication comparison</title>
+      <tgroup cols="3">
+        <colspec colname="col_1" colwidth="*"/>
+        <colspec colname="col_2" colwidth="*"/>
+        <colspec colname="col_3" colwidth="*"/>
+        <thead>
+          <row>
+            <entry>Feature / Capability</entry>
+            <entry>Geo-replication</entry>
+            <entry>Mirroring</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <p>What is the feature designed to do?</p>
+            </entry>
+            <entry>
+              <p>A shared, global registry</p>
+            </entry>
+            <entry>
+              <p>Distinct, different registries</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>What happens if replication or mirroring has not been completed yet?</p>
+            </entry>
+            <entry>
+              <p>The remote copy is used (slower)</p>
+            </entry>
+            <entry>
+              <p>No image is served</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Is access to all storage backends in both regions required?</p>
+            </entry>
+            <entry>
+              <p>Yes (all Red Hat Quay nodes)</p>
+            </entry>
+            <entry>
+              <p>No (distinct storage)</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Can users push images from both sites to the same repository or organization?</p>
+            </entry>
+            <entry>
+              <p>Yes</p>
+            </entry>
+            <entry>
+              <p>No</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Is all registry content and configuration identical across all regions (shared database)?</p>
+            </entry>
+            <entry>
+              <p>Yes</p>
+            </entry>
+            <entry>
+              <p>No</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Can users select individual namespaces or repositories to be mirrored?</p>
+            </entry>
+            <entry>
+              <p>No</p>
+            </entry>
+            <entry>
+              <p>Yes</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Can users apply filters to synchronization rules?</p>
+            </entry>
+            <entry>
+              <p>No</p>
+            </entry>
+            <entry>
+              <p>Yes</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p>Are individual / different role-based access control configurations allowed in each region</p>
+            </entry>
+            <entry>
+              <p>No</p>
+            </entry>
+            <entry>
+              <p>Yes</p>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </conbody>
+</concept>

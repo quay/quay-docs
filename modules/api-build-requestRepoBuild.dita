@@ -1,0 +1,268 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="requestrepobuild">
+  <title>requestRepoBuild</title>
+  <shortdesc>Request that a repository be built and pushed from the specified input.</shortdesc>
+  <refbody>
+    <section id="requestrepobuild-post">
+      <title>POST /api/v1/repository/{repository}/build/</title>
+      <p><b>Authorizations: </b>oauth2_implicit (<b>repo:write</b>)</p>
+    </section>
+    <section id="requestrepobuild-path-parameters">
+      <title>Path parameters</title>
+      <table>
+        <tgroup cols="4">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <colspec colname="col_4" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Type</entry>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>path</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>repository</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The full path of the repository. e.g. namespace/name</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="requestrepobuild-request-body-schema">
+      <title>Request body schema (application/json)</title>
+      <p>Description of a new repository build.</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>file_id</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The file id that was generated when the build spec was uploaded</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>archive_url</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The URL of the .tar.gz to build. Must start with "http" or "https".</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>subdirectory</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Subdirectory in which the Dockerfile can be found. You can only specify this or dockerfile_path</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>dockerfile_path</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Path to a dockerfile. You can only specify this or subdirectory.</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>context</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Pass in the context for the dockerfile. This is optional.</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>pull_robot</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Username of a Quay robot account to use as pull credentials</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>tags</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The tags to which the built images will be pushed. If none specified, "latest" is used.</p>
+              </entry>
+              <entry>
+                <p>array of string</p>
+                <p>
+                  <codeph>non-empty</codeph>
+                  <codeph>unique</codeph>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="requestrepobuild-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>201</p>
+              </entry>
+              <entry>
+                <p>Successful creation</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>400</p>
+              </entry>
+              <entry>
+                <p>Bad Request</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>404</p>
+              </entry>
+              <entry>
+                <p>Not found</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+  </refbody>
+</reference>

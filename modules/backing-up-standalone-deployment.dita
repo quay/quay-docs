@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="backing-up-standalone-deployment">
+  <title>Backing up a standalone deployment of Red Hat Quay</title>
+  <shortdesc>To back up a standalone Red Hat Quay deployment before Operator migration, you can copy <codeph>config.yaml</codeph>, dump the database, and sync object storage blobs.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Back up the <codeph>config.yaml</codeph> of your standalone Red Hat Quay deployment:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir /tmp/quay-backup
+$ cp /path/to/Quay/config/directory/config.yaml /tmp/quay-backup</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a backup of the database that your standalone Red Hat Quay deployment is using:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ pg_dump -h DB_HOST -p 5432 -d QUAY_DATABASE_NAME -U QUAY_DATABASE_USER -W -O &gt; /tmp/quay-backup/quay-database-backup.sql</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Install the AWS CLI if you do not have it already.</cmd>
+      </step>
+      <step>
+        <cmd>Create an <codeph>~/.aws/</codeph> directory:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir ~/.aws/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the <codeph>access_key</codeph> and <codeph>secret_key</codeph> from the <codeph>config.yaml</codeph> of your standalone deployment:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ grep -i DISTRIBUTED_STORAGE_CONFIG -A10 /tmp/quay-backup/config.yaml</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-yaml">DISTRIBUTED_STORAGE_CONFIG:
+    minio-1:
+        - RadosGWStorage
+        - access_key: ##########
+          bucket_name: quay
+          hostname: 172.24.10.50
+          is_secure: false
+          port: "9000"
+          secret_key: ##########
+          storage_path: /datastorage/registry</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Store the <codeph>access_key</codeph> and <codeph>secret_key</codeph> from the <codeph>config.yaml</codeph> file in your <codeph>~/.aws</codeph> directory:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ touch ~/.aws/credentials</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional: Check that your <codeph>access_key</codeph> and <codeph>secret_key</codeph> are stored:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cat &gt; ~/.aws/credentials &lt;&lt; EOF
+[default]
+aws_access_key_id = ACCESS_KEY_FROM_QUAY_CONFIG
+aws_secret_access_key = SECRET_KEY_FROM_QUAY_CONFIG
+EOF</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">aws_access_key_id = ACCESS_KEY_FROM_QUAY_CONFIG
+aws_secret_access_key = SECRET_KEY_FROM_QUAY_CONFIG</codeblock>
+          <note type="note">
+            <p>If the AWS CLI does not automatically collect the <codeph>access_key</codeph> and <codeph>secret_key</codeph> from the <codeph>~/.aws/credentials</codeph> file, you can configure these by running <codeph>aws configure</codeph> and manually entering the credentials.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>In your <codeph>quay-backup</codeph> directory, create a <codeph>bucket_backup</codeph> directory:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir /tmp/quay-backup/bucket-backup</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Back up all blobs from the S3 storage:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ aws s3 sync --no-verify-ssl --endpoint-url https://PUBLIC_S3_ENDPOINT:PORT s3://QUAY_BUCKET/ /tmp/quay-backup/bucket-backup/</codeblock>
+          <note type="note">
+            <p>The <codeph>PUBLIC_S3_ENDPOINT</codeph> can be read from the Red Hat Quay <codeph>config.yaml</codeph> file under <codeph>hostname</codeph> in the <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph>. If the endpoint is insecure, use <codeph>http</codeph> instead of <codeph>https</codeph> in the endpoint URL.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

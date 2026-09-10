@@ -1,0 +1,301 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="builders-virtual-environment">
+  <title>Configuring virtual builds for Red Hat Quay on OpenShift Container Platform</title>
+  <shortdesc>To configure virtual builds for Red Hat Quay on OpenShift Container Platform with Red Hat Quay, you can create a build project, configure service accounts, and update your configuration file.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have an OpenShift Container Platform cluster provisioned with the Red Hat Quay Operator running.</li>
+        <li>You have set the <codeph>tls</codeph> component to <codeph>unmanaged</codeph> and uploaded custom SSL/TLS certificates to the Red Hat Quay Operator. For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#ssl-tls-quay-overview" format="html" scope="external">SSL and TLS for Red Hat Quay</xref>.</li>
+        <li>You have configured the OpenShift Container Platform TLS component for builds.</li>
+        <li>You are logged into OpenShift Container Platform as a cluster administrator.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <ul>
+          <li>If you are using Amazon Web Service (AWS) S3 storage, you must modify your storage bucket in the AWS console, prior to running builders. See "Modifying your AWS S3 storage bucket" in the following section for the required parameters.</li>
+          <li>If you are using a Google Cloud Platform (GCP) object bucket, you must configure cross-origin resource sharing (CORS) to enable <i>virtual builds</i>.</li>
+        </ul>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Create a new project where your virtual builders will be run, for example, <codeph>virtual-builders</codeph>, by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc new-project virtual-builders</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a <codeph>ServiceAccount</codeph> in the project that will be used to run <i>builds</i> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create sa -n virtual-builders quay-builder</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">serviceaccount/quay-builder created</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Provide the created service account with editing permissions so that it can run a <i>build</i>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc adm policy -n virtual-builders add-role-to-user edit system:serviceaccount:virtual-builders:quay-builder</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">clusterrole.rbac.authorization.k8s.io/edit added: "system:serviceaccount:virtual-builders:quay-builder"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Grant the <i>builder</i> worker <codeph>anyuid scc</codeph> permissions by entering the following command. This requires cluster administrator privileges, which is required because <i>builders</i> must run as the Podman user for unprivileged or rootless builds to work.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc adm policy -n virtual-builders add-scc-to-user anyuid -z quay-builder</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">clusterrole.rbac.authorization.k8s.io/system:openshift:scc:anyuid added: "quay-builder"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the token for the <i>builder</i> service account by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create token quay-builder -n virtual-builders</codeblock>
+          <note type="note">
+            <p>When the token expires you will need to request a new token. Optionally, you can also add a custom expiration. For example, specify <codeph>--duration 20160m</codeph> to retain the token for two weeks.</p>
+          </note>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">eyJhbGciOiJSUzI1NiIsImtpZCI6IldfQUJkaDVmb3ltTHZ0dGZMYjhIWnYxZTQzN2dJVEJxcDJscldSdEUtYWsifQ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Determine the <i>builder</i> route by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get route -n quay-enterprise</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">NAME: example-registry-quay-builder
+HOST/PORT: example-registry-quay-builder-quay-enterprise.apps.stevsmit-cluster-new.gcp.quaydev.org
+PATH:
+SERVICES: example-registry-quay-app
+PORT: grpc
+TERMINATION: passthrough/Redirect
+WILDCARD: None</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Generate a self-signed SSL/TLS certificate with the <codeph>.crt</codeph> extension by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc extract cm/kube-root-ca.crt -n openshift-apiserver</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">ca.crt</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Rename the <codeph>ca.crt</codeph> file to <codeph>build-cluster.crt</codeph> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mv ca.crt build-cluster.crt</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update the <codeph>config.yaml</codeph> file of your Red Hat Quay on OpenShift Container Platform deployment to include an appropriate <i>virtual builds</i> configuration by using the OpenShift Container Platform web console.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Click <b>Operators</b> → <b>Installed Operators</b> → <b>Red Hat Quay</b> → <b>Quay Registry</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click the name of your registry, for example, <b>example-registry</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Under <b>Config Bundle Secret</b>, click the name of your configuration bundle, for example, <b>extra-ca-certificate-config-bundle-secret</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Click <b>Actions</b> → <b>Edit Secret</b>.</cmd>
+          </substep>
+          <substep>
+            <cmd>Add an appropriate <i>virtual builds</i> configuration using the following as a reference:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml">FEATURE_USER_INITIALIZE: true
+BROWSER_API_CALLS_XHR_ONLY: false
+SUPER_USERS:
+- &lt;superusername&gt;
+FEATURE_USER_CREATION: false
+FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_BUILD_SUPPORT: True
+BUILDMAN_HOSTNAME: &lt;sample_build_route&gt;
+BUILD_MANAGER:
+  - ephemeral
+  - ALLOWED_WORKER_COUNT: 1
+    ORCHESTRATOR_PREFIX: buildman/production/
+    JOB_REGISTRATION_TIMEOUT: 3600
+    ORCHESTRATOR:
+      REDIS_HOST: &lt;sample_redis_hostname&gt;
+      REDIS_PASSWORD: ""
+      REDIS_SSL: false
+      REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+    EXECUTORS:
+      - EXECUTOR: kubernetesPodman
+        NAME: openshift
+        BUILDER_NAMESPACE: &lt;sample_builder_namespace&gt;
+        SETUP_TIME: 180
+        MINIMUM_RETRY_THRESHOLD: 0
+        BUILDER_CONTAINER_IMAGE: quay.io/projectquay/quay-builder:{producty}
+        # Kubernetes resource options
+        K8S_API_SERVER: &lt;sample_k8s_api_server&gt;
+        K8S_API_TLS_CA: &lt;sample_crt_file&gt;
+        VOLUME_SIZE: 8G
+        KUBERNETES_DISTRIBUTION: openshift
+        CONTAINER_MEMORY_LIMITS: 1G
+        CONTAINER_CPU_LIMITS: 300m
+        CONTAINER_MEMORY_REQUEST: 1G
+        CONTAINER_CPU_REQUEST: 300m
+        NODE_SELECTOR_LABEL_KEY: ""
+        NODE_SELECTOR_LABEL_VALUE: ""
+        SERVICE_ACCOUNT_NAME: &lt;sample_service_account_name&gt;
+        SERVICE_ACCOUNT_TOKEN: &lt;sample_account_token&gt;
+        HTTP_PROXY: &lt;http://10.0.0.1:80&gt;
+        HTTPS_PROXY: &lt;http://10.0.0.1:80&gt;
+        NO_PROXY: &lt;hostname.example.com&gt;</codeblock>
+              <div>
+                <p>where:</p>
+                <dl>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILDMAN_HOSTNAME</codeph>
+                    </dt>
+                    <dd>Specifies that the build route is obtained by running <codeph>$ oc get route -n</codeph> with the namespace of your Red Hat Quay on OpenShift Container Platform deployment. A port must be provided at the end of the route, and it should use the following format: <codeph>[quayregistry-cr-name]-quay-builder-[ocp-namespace].[ocp-domain-name]:443</codeph>.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.JOB_REGISTRATION_TIMEOUT</codeph>
+                    </dt>
+                    <dd>Specifies that you might receive the following error when set too low: <codeph>failed to register job to build manager: rpc error: code = Unauthenticated desc = Invalid build token: Signature has expired</codeph>. This parameter should be set to at least <codeph>240</codeph>.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.ORCHESTRATOR.REDIS_HOST</codeph>
+                    </dt>
+                    <dd>Specifies that you must update this field accordingly if your Redis host has a password or SSL/TLS certificates.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.EXECUTORS.BUILDER_NAMESPACE</codeph>
+                    </dt>
+                    <dd>Specifies the name of your <i>virtual builds</i> namespace. This example used <codeph>virtual-builders</codeph>.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.EXECUTORS.K8S_API_SERVER</codeph>
+                    </dt>
+                    <dd>Specifies the value obtained by running <codeph>$ oc cluster-info</codeph>.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.EXECUTORS.K8S_API_TLS_CA</codeph>
+                    </dt>
+                    <dd>Specifies that you must manually create and add your custom CA cert, for example, <codeph>K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build-cluster.crt</codeph>.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.EXECUTORS.CONTAINER_MEMORY_LIMITS</codeph>
+                    </dt>
+                    <dd>Specifies the memory limit. Defaults to <codeph>5120Mi</codeph> if left unspecified.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.EXECUTORS.CONTAINER_CPU_LIMITS</codeph>
+                    </dt>
+                    <dd>Specifies that for <i>virtual builds</i>, you must ensure that there are enough resources in your cluster. Defaults to <codeph>1000m</codeph> if left unspecified.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.EXECUTORS.CONTAINER_MEMORY_REQUEST</codeph>
+                    </dt>
+                    <dd>Specifies the memory request. Defaults to <codeph>3968Mi</codeph> if left unspecified.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.EXECUTORS.CONTAINER_CPU_REQUEST</codeph>
+                    </dt>
+                    <dd>Specifies the CPU request. Defaults to <codeph>500m</codeph> if left unspecified.</dd>
+                  </dlentry>
+                  <dlentry>
+                    <dt>
+                      <codeph>BUILD_MANAGER.EXECUTORS.SERVICE_ACCOUNT_TOKEN</codeph>
+                    </dt>
+                    <dd>Specifies the token obtained when running <codeph>$ oc create sa</codeph>.</dd>
+                  </dlentry>
+                </dl>
+              </div>
+              <p outputclass="title">
+                <b>Example <i>virtual builds</i> configuration</b>
+              </p>
+              <codeblock outputclass="language-yaml">FEATURE_USER_INITIALIZE: true
+BROWSER_API_CALLS_XHR_ONLY: false
+SUPER_USERS:
+- quayadmin
+FEATURE_USER_CREATION: false
+FEATURE_QUOTA_MANAGEMENT: true
+FEATURE_BUILD_SUPPORT: True
+BUILDMAN_HOSTNAME: example-registry-quay-builder-quay-enterprise.apps.docs.quayteam.org:443
+BUILD_MANAGER:
+  - ephemeral
+  - ALLOWED_WORKER_COUNT: 1
+    ORCHESTRATOR_PREFIX: buildman/production/
+    JOB_REGISTRATION_TIMEOUT: 3600
+    ORCHESTRATOR:
+      REDIS_HOST: example-registry-quay-redis
+      REDIS_PASSWORD: ""
+      REDIS_SSL: false
+      REDIS_SKIP_KEYSPACE_EVENT_SETUP: false
+    EXECUTORS:
+      - EXECUTOR: kubernetesPodman
+        NAME: openshift
+        BUILDER_NAMESPACE: virtual-builders
+        SETUP_TIME: 180
+        MINIMUM_RETRY_THRESHOLD: 0
+        BUILDER_CONTAINER_IMAGE: quay.io/projectquay/quay-builder:{producty}
+        # Kubernetes resource options
+        K8S_API_SERVER: api.docs.quayteam.org:6443
+        K8S_API_TLS_CA: /conf/stack/extra_ca_certs/build-cluster.crt
+        VOLUME_SIZE: 8G
+        KUBERNETES_DISTRIBUTION: openshift
+        CONTAINER_MEMORY_LIMITS: 1G
+        CONTAINER_CPU_LIMITS: 300m
+        CONTAINER_MEMORY_REQUEST: 1G
+        CONTAINER_CPU_REQUEST: 300m
+        NODE_SELECTOR_LABEL_KEY: ""
+        NODE_SELECTOR_LABEL_VALUE: ""
+        SERVICE_ACCOUNT_NAME: quay-builder
+        SERVICE_ACCOUNT_TOKEN: "eyJhbGciOiJSUzI1NiIsImtpZCI6IldfQUJkaDVmb3ltTHZ0dGZMYjhIWnYxZTQzN2dJVEJxcDJscldSdEUtYWsifQ"
+        HTTP_PROXY: &lt;http://10.0.0.1:80&gt;
+        HTTPS_PROXY: &lt;http://10.0.0.1:80&gt;
+        NO_PROXY: &lt;hostname.example.com&gt;</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Click <b>Save</b> on the <b>Edit Secret</b> page.</cmd>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay on OpenShift Container Platform registry with the new configuration.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

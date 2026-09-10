@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="ldap-restricted-users-enabling">
+  <title>Enabling the LDAP_RESTRICTED_USER_FILTER configuration field</title>
+  <shortdesc>To mark selected LDAP users as restricted in Red Hat Quay, you can set <codeph>FEATURE_RESTRICTED_USERS</codeph> and <codeph>LDAP_RESTRICTED_USER_FILTER</codeph> in your <codeph>config.yaml</codeph> file and restart the registry.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>Your Red Hat Quay deployment uses LDAP as its authentication provider.</li>
+        <li>You have configured the <codeph>LDAP_USER_FILTER</codeph> field in your <codeph>config.yaml</codeph> file.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>The <codeph>LDAP_RESTRICTED_USER_FILTER</codeph> configuration field is a subset of the <codeph>LDAP_USER_FILTER</codeph> configuration field. When configured, this option allows Red Hat Quay administrators to configure LDAP users as restricted users when Red Hat Quay uses LDAP as its authentication provider.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>In your deployment’s <codeph>config.yaml</codeph> file, add the <codeph>LDAP_RESTRICTED_USER_FILTER</codeph> parameter and specify the group of restricted users, for example, <codeph>members</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+AUTHENTICATION_TYPE: LDAP
+# ...
+FEATURE_RESTRICTED_USERS: true
+# ...
+LDAP_ADMIN_DN: uid=&lt;name&gt;,ou=Users,o=&lt;organization_id&gt;,dc=&lt;example_domain_component&gt;,dc=com
+LDAP_ADMIN_PASSWD: ABC123
+LDAP_ALLOW_INSECURE_FALLBACK: false
+LDAP_BASE_DN:
+    - o=&lt;organization_id&gt;
+    - dc=&lt;example_domain_component&gt;
+    - dc=com
+LDAP_EMAIL_ATTR: mail
+LDAP_UID_ATTR: uid
+LDAP_URI: ldap://&lt;example_url&gt;.com
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,o=&lt;example_organization_unit&gt;,dc=&lt;example_domain_component&gt;,dc=com)
+LDAP_RESTRICTED_USER_FILTER: (&lt;filterField&gt;=&lt;value&gt;)
+LDAP_USER_RDN:
+    - ou=&lt;example_organization_unit&gt;
+    - o=&lt;organization_id&gt;
+    - dc=&lt;example_domain_component&gt;
+    - dc=com
+FEATURE_LDAP_CACHING: true
+LDAP_CACHE_TTL: 10
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>FEATURE_RESTRICTED_USERS</codeph>
+              </dt>
+              <dd>Specifies whether restricted users are enabled. Must be set to <codeph>true</codeph> when configuring an LDAP restricted user.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_RESTRICTED_USER_FILTER</codeph>
+              </dt>
+              <dd>Specifies the filter that configures selected users as restricted users.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Start, or restart, your Red Hat Quay deployment.</cmd>
+      </step>
+    </steps>
+    <result>
+      <ul>
+        <li>After enabling the <codeph>LDAP_RESTRICTED_USER_FILTER</codeph> feature, your LDAP Red Hat Quay users are restricted from reading and writing content, and creating organizations.</li>
+      </ul>
+    </result>
+  </taskbody>
+</task>

@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="tag-api">
+  <title>Managing tags with the Red Hat Quay API</title>
+  <shortdesc>To change, restore, list, or delete repository tags in Red Hat Quay, you can use the tag API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>PUT /api/v1/repository/{repository}/tag/{tag}</codeph> endpoint to change which image a tag points to or create a new tag:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repo_name&gt;/tag/&lt;tag_name&gt;" \
+  -H "Authorization: Bearer &lt;ACCESS_TOKEN&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"manifest_digest": "&lt;MANIFEST_DIGEST&gt;"}'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">"Updated"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>POST /api/v1/repository/{repository}/tag/{tag}/restore</codeph> endpoint to restore a repository tag back to a previous image in the repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repo_name&gt;/tag/&lt;tag_name&gt;/restore" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"manifest_digest": "sha256:&lt;your_manifest_digest&gt;"}'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/repository/{repository}/tag/</codeph> endpoint to obtain a list of repository tags:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repo_name&gt;/tag/" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;" \
+  -H "Content-Type: application/json"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"tags": [{"name": "test", "reversion": true, "start_ts": 1740496373, "manifest_digest": "sha256:d08334991a3dba62307016833083d6433f489ab0f7d36d0a4771a20b4569b2f6", "is_manifest_list": false, "size": 2280303, "last_modified": "Tue, 25 Feb 2025 15:12:53 -0000"}, {"name": "test", "reversion": false, "start_ts": 1740495442, "end_ts": 1740496373, "manifest_digest": "sha256:d08334991a3dba62307016833083d6433f489ab0f7d36d0a4771a20b4569b2f6", "is_manifest_list": false, "size": 2280303, "last_modified": "Tue, 25 Feb 2025 14:57:22 -0000", "expiration": "Tue, 25 Feb 2025 15:12:53 -0000"}, {"name": "test", "reversion": false, "start_ts": 1740495408, "end_ts": 1740495442, "manifest_digest": "sha256:d08334991a3dba62307016833083d6433f489ab0f7d36d0a4771a20b4569b2f6", "is_manifest_list": false, "size": 2280303, "last_modified": "Tue, 25 Feb 2025 14:56:48 -0000", "expiration": "Tue, 25 Feb 2025 14:57:22 -0000"}], "page": 1, "has_additional": false}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>DELETE /api/v1/repository/{repository}/tag/{tag}</codeph> endpoint to delete a tag from a repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repo_name&gt;/tag/&lt;tag_name&gt;" \
+  -H "Authorization: Bearer &lt;your_access_token&gt;"</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

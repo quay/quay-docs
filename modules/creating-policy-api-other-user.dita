@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-policy-api-other-user">
+  <title>Creating an auto-prune policy on a repository for a user with the API</title>
+  <shortdesc>To manage auto-prune policies on another user repository in Red Hat Quay, you can use the repository autoprunepolicy API endpoints when you have admin privileges.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li>You have logged into Red Hat Quay.</li>
+        <li>You have <codeph>admin</codeph> privileges on the repository that you are creating the policy for.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following <codeph>POST /api/v1/repository/&lt;user_account&gt;/&lt;user_repository&gt;/autoprunepolicy/</codeph> command to create a new policy that limits the number of tags for the user:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST -H "Authorization: Bearer &lt;access_token&gt;" -H "Content-Type: application/json" -d '{"method": "number_of_tags","value": 2}' https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;user_account&gt;/&lt;user_repository&gt;/autoprunepolicy/</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"uuid": "7726f79c-cbc7-490e-98dd-becdc6fefce7"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. You can add an additional policy for the current user and pass in the <codeph>tagPattern</codeph> and <codeph>tagPatternMatches</codeph> fields to prune only tags that match the given regex pattern. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "creation_date",
+    "value": "7d",
+    "tagPattern": "^v*",
+    "tagPatternMatches": true
+  }' \
+  "http://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;user_account&gt;/&lt;user_repository&gt;/autoprunepolicy/"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"uuid": "b3797bcd-de72-4b71-9b1e-726dabc971be"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can update your policy for the current user by using the <codeph>PUT /api/v1/repository/&lt;user_account&gt;/&lt;user_repository&gt;/autoprunepolicy/&lt;policy_uuid&gt;</codeph> command. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT   -H "Authorization: Bearer &lt;bearer_token&gt;"   -H "Content-Type: application/json"   -d '{
+    "method": "creation_date",
+    "value": "4d",
+    "tagPattern": "^test.",
+    "tagPatternMatches": true
+  }'   "https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;user_account&gt;/&lt;user_repository&gt;/autoprunepolicy/&lt;policy_uuid&gt;"</codeblock>
+          <p>Updating a policy does not return output in the CLI.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Check your auto-prune policy by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;user_account&gt;/&lt;user_repository&gt;/autoprunepolicy/</codeblock>
+          <p>Alternatively, you can include the UUID:</p>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;user_account&gt;/&lt;user_repository&gt;/autoprunepolicy/7726f79c-cbc7-490e-98dd-becdc6fefce7</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"uuid": "81ee77ec-496a-4a0a-9241-eca49437d15b", "method": "creation_date", "value": "7d", "tagPattern": "^v*", "tagPatternMatches": true}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can delete the auto-prune policy by entering the following command. Note that deleting the policy requires the UUID.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;user_account&gt;/&lt;user_repository&gt;/autoprunepolicy/&lt;policy_uuid&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"uuid": "7726f79c-cbc7-490e-98dd-becdc6fefce7"}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,167 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="attaching-referrers-image-tag">
+  <title>Attaching referrers to an image tag</title>
+  <shortdesc>To attach referrers to an image tag in Red Hat Quay, you can use the oras CLI with OCI distribution spec 1.1 referrers schemas.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have downloaded the <codeph>oras</codeph> CLI.</li>
+        <li>You have access to an OCI media artifact.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>This procedure shows you how to attach referrers to an image tag using different schemas supported by the OCI distribution spec 1.1 using the <codeph>oras</codeph> CLI. This is useful for attaching and managing additional metadata like referrers to container images.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Tag an OCI media artifact by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman tag &lt;myartifact_image&gt; &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/&lt;repository&gt;/&lt;image_name&gt;:&lt;tag&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Push the artifact to your Red Hat Quay registry. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman push &lt;myartifact_image&gt; &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/&lt;repository&gt;/&lt;image_name&gt;:&lt;tag&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to attach a manifest using the OCI 1.1  referrers <codeph>API</codeph> schema with <codeph>oras</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oras attach --artifact-type &lt;MIME_type&gt; --distribution-spec v1.1-referrers-api &lt;myartifact_image&gt; \
+&lt;quay-server.example.com&gt;/&lt;organization_name&gt;/&lt;repository&gt;/&lt;image_name&gt;:&lt;tag&gt; \
+&lt;example_file&gt;.txt</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">-spec v1.1-referrers-api quay.io/testorg3/myartifact-image:v1.0 hi.txt
+✓ Exists    hi.txt                                                               3/3  B 100.00%     0s
+  └─ sha256:98ea6e4f216f2fb4b69fff9b3a44842c38686ca685f3f55dc48c5d3fb1107be4
+✓ Exists    application/vnd.oci.empty.v1+json                                    2/2  B 100.00%     0s
+  └─ sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+✓ Uploaded  application/vnd.oci.image.manifest.v1+json                       723/723  B 100.00%  677ms
+  └─ sha256:31c38e6adcc59a3cfbd2ef971792aaf124cbde8118e25133e9f9c9c4cd1d00c6
+Attached to [registry] quay.io/testorg3/myartifact-image@sha256:db440c57edfad40c682f9186ab1c1075707ce7a6fdda24a89cb8c10eaad424da
+Digest: sha256:31c38e6adcc59a3cfbd2ef971792aaf124cbde8118e25133e9f9c9c4cd1d00c6</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to attach a manifest using the OCI 1.1 referrers <codeph>tag</codeph> schema:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oras attach --artifact-type &lt;MIME_type&gt; --distribution-spec v1.1-referrers-tag \
+&lt;myartifact_image&gt; &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/&lt;repository&gt;/&lt;image_name&gt;:&lt;tag&gt; \
+&lt;example_file&gt;.txt</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">✓ Exists    hi.txt                                                             3/3  B 100.00%     0s
+  └─ sha256:98ea6e4f216f2fb4b69fff9b3a44842c38686ca685f3f55dc48c5d3fb1107be4
+✓ Exists    application/vnd.oci.empty.v1+json                                  2/2  B 100.00%     0s
+  └─ sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+✓ Uploaded  application/vnd.oci.image.manifest.v1+json                     723/723  B 100.00%  465ms
+  └─ sha256:2d4b54201c8b134711ab051389f5ba24c75c2e6b0f0ff157fce8ffdfe104f383
+Attached to [registry] quay.io/testorg3/myartifact-image@sha256:db440c57edfad40c682f9186ab1c1075707ce7a6fdda24a89cb8c10eaad424da
+Digest: sha256:2d4b54201c8b134711ab051389f5ba24c75c2e6b0f0ff157fce8ffdfe104f383</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to discoverer referrers of the artifact using the <codeph>tag</codeph> schema:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oras discover --insecure --distribution-spec v1.1-referrers-tag \
+&lt;quay-server.example.com&gt;/&lt;organization_name&gt;/&lt;repository&gt;/&lt;image_name&gt;:&lt;tag&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">quay.io/testorg3/myartifact-image@sha256:db440c57edfad40c682f9186ab1c1075707ce7a6fdda24a89cb8c10eaad424da
+└── doc/example
+    └── sha256:2d4b54201c8b134711ab051389f5ba24c75c2e6b0f0ff157fce8ffdfe104f383</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to discoverer referrers of the artifact using the <codeph>API</codeph> schema:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oras discover --distribution-spec v1.1-referrers-api \
+&lt;quay-server.example.com&gt;/&lt;organization_name&gt;/&lt;repository&gt;/&lt;image_name&gt;:&lt;tag&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">Discovered 3 artifacts referencing v1.0
+Digest: sha256:db440c57edfad40c682f9186ab1c1075707ce7a6fdda24a89cb8c10eaad424da
+
+Artifact Type   Digest
+                sha256:2d4b54201c8b134711ab051389f5ba24c75c2e6b0f0ff157fce8ffdfe104f383
+                sha256:22b7e167793808f83db66f7d35fbe0088b34560f34f8ead36019a4cc48fd346b
+                sha256:bb2b7e7c3a58fd9ba60349473b3a746f9fe78995a88cb329fc2fd1fd892ea4e4</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. You can also discover referrers by using the <codeph>/v2/&lt;organization_name&gt;/&lt;repository_name&gt;/referrers/&lt;sha256_digest&gt;</codeph> endpoint. For this to work, you must generate a v2 API token and set <codeph>FEATURE_REFERRERS_API: true</codeph> in your <codeph>config.yaml</codeph> file.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Update your <codeph>config.yaml</codeph> file to include the <codeph>FEATURE_REFERRERS_API</codeph> field. For example:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml"># ...
+FEATURE_REFERRERS_API: true
+# ...</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to Base64 encode your credentials:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ echo -n '&lt;username&gt;:&lt;password&gt;' | base64</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">abcdeWFkbWluOjE5ODlraWROZXQxIQ==</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to use the base64 encoded token and modify the URL endpoint to your Red Hat Quay server:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ curl --location '&lt;quay-server.example.com&gt;/v2/auth?service=&lt;quay-server.example.com&gt;&amp;scope=repository:quay/listocireferrs:pull,push' --header 'Authorization: Basic &lt;base64_username:password_encode_token&gt;' -k | jq</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-terminal">{
+  "token": "&lt;example_token_output&gt;..."
+}</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Enter the following command, using the v2 API token, to list OCI referrers of a manifest under a repository:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ GET https://&lt;quay-server.example.com&gt;/v2/&lt;organization_name&gt;/&lt;repository_name&gt;/referrers/sha256:0de63ba2d98ab328218a1b6373def69ec0d0e7535866f50589111285f2bf3fb8
+--header 'Authorization: Bearer &lt;v2_bearer_token&gt; -k | jq</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "manifests": [
+    {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "digest": "sha256:2d4b54201c8b134711ab051389f5ba24c75c2e6b0f0ff157fce8ffdfe104f383",
+      "size": 793
+    },
+  ]
+}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

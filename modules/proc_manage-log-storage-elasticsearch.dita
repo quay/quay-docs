@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="proc_manage-log-storage-elasticsearch">
+  <title>Configure action log storage for Elasticsearch</title>
+  <shortdesc>To store Red Hat Quay action logs in Elasticsearch, you can update the <codeph>LOGS_MODEL</codeph> settings in your <codeph>config.yaml</codeph> file and restart the registry. Usage logs remain available in the web UI for repositories and organizations.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>To configure action log storage for Elasticsearch, you must provide your own Elasticsearch stack; Red Hat Quay does not include Elasticsearch as a customizable component.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Obtain an Elasticsearch account.</cmd>
+      </step>
+      <step>
+        <cmd>Update your Red Hat Quay <codeph>config.yaml</codeph> file to include the following information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+LOGS_MODEL: elasticsearch
+LOGS_MODEL_CONFIG:
+    producer: elasticsearch
+    elasticsearch_config:
+        host: http://&lt;host.elasticsearch.example&gt;:&lt;port&gt;
+        port: 9200
+        access_key: &lt;access_key&gt;
+        secret_key: &lt;secret_key&gt;
+        use_ssl: True
+        index_prefix: &lt;logentry&gt;
+        aws_region: &lt;us-east-1&gt;
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>LOGS_MODEL</codeph>
+              </dt>
+              <dd>Specifies the method for handling log data.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGS_MODEL_CONFIG.producer</codeph>
+              </dt>
+              <dd>Specifies either Elasticsearch or Kinesis to direct logs to an intermediate Kinesis stream on AWS. You need to configure your own pipeline to send logs from Kinesis to Elasticsearch, for example, Logstash.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGS_MODEL_CONFIG.elasticsearch_config.host</codeph>
+              </dt>
+              <dd>Specifies the hostname or IP address of the system providing the Elasticsearch service.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGS_MODEL_CONFIG.elasticsearch_config.port</codeph>
+              </dt>
+              <dd>Specifies the port number providing the Elasticsearch service on the host you just entered. Note that the port must be accessible from all systems running the Red Hat Quay registry. The default is TCP port <codeph>9200</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGS_MODEL_CONFIG.elasticsearch_config.access_key</codeph>
+              </dt>
+              <dd>Specifies the access key needed to gain access to the Elasticsearch service, if required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGS_MODEL_CONFIG.elasticsearch_config.secret_key</codeph>
+              </dt>
+              <dd>Specifies the secret key needed to gain access to the Elasticsearch service, if required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGS_MODEL_CONFIG.elasticsearch_config.use_ssl</codeph>
+              </dt>
+              <dd>Specifies whether to use SSL/TLS for Elasticsearch. Defaults to <codeph>True</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGS_MODEL_CONFIG.elasticsearch_config.index_prefix</codeph>
+              </dt>
+              <dd>Specifies a prefix to attach to log entries.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LOGS_MODEL_CONFIG.elasticsearch_config.aws_region</codeph>
+              </dt>
+              <dd>Specifies the AWS region if you are running on AWS. Otherwise, leave it blank.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. If you are using Kinesis as your logs producer, you must include the following fields in your <codeph>config.yaml</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">    kinesis_stream_config:
+        stream_name: &lt;kinesis_stream_name&gt;
+        access_key: &lt;aws_access_key&gt;
+        secret_key: &lt;aws_secret_key&gt;
+        aws_region: &lt;aws_region&gt;</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>kinesis_stream_config.stream_name</codeph>
+              </dt>
+              <dd>Specifies the name of the Kinesis stream.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>kinesis_stream_config.access_key</codeph>
+              </dt>
+              <dd>Specifies the name of the AWS access key needed to gain access to the Kinesis stream, if required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>kinesis_stream_config.secret_key</codeph>
+              </dt>
+              <dd>Specifies the name of the AWS secret key needed to gain access to the Kinesis stream, if required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>kinesis_stream_config.aws_region</codeph>
+              </dt>
+              <dd>Specifies the Amazon Web Services (AWS) region.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Save your <codeph>config.yaml</codeph> file and restart your Red Hat Quay deployment.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

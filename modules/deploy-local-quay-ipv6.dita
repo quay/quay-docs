@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="deploy-local-quay-ipv6">
+  <title>Deploying a local instance of Red Hat Quay in IPv6</title>
+  <shortdesc>To deploy a local Red Hat Quay instance over IPv6, you can set <codeph>FEATURE_LISTEN_IP_VERSION</codeph> in <codeph>config.yaml</codeph> and start the registry container with explicit IPv6 port mappings.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have configured Redis, your PostgreSQL database, local image storage, and creating a <codeph>config.yaml</codeph> file with the desired settings.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>After you have created a new dual-stack container network, you can deploy a local instance of Red Hat Quay.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>In your Red Hat Quay <codeph>config.yaml</codeph> file, set the <codeph>FEATURE_LISTEN_IP_VERSION</codeph> field to <codeph>IPv6</codeph>. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+FEATURE_LISTEN_IP_VERSION: dual-stack
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to start the <codeph>Quay</codeph> registry container, specifying the appropriate volumes for configuration data and local storage for image data. Note that if you are using dual-stack, you must specify explicit IPv6 port mapping when starting the container.
+</cmd>
+        <info>
+          <codeblock>$ sudo podman run -d --rm -p "[::]:80:8080" -p "[::]:443:8443"  \
+   --name=quay \
+   -v $QUAY/config:/conf/stack:Z \
+   -v $QUAY/storage:/datastorage:Z \
+   registry.redhat.io/quay/quay-rhel9:v3.18.0</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

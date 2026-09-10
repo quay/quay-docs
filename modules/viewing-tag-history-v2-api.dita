@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="viewing-tag-history-v2-api">
+  <title>Viewing Red Hat Quay tag history by using the API</title>
+  <shortdesc>To review the history of image tags in a Red Hat Quay repository, you can use the API.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token" format="html" scope="external">Created an OAuth access token</xref>.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to view tag history by using the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#listrepotags" format="html" scope="external"><codeph>GET /api/v1/repository/{repository}/tag/</codeph></xref> command and passing in one of the following queries:
+</cmd>
+        <info>
+          <ul>
+            <li><b>onlyActiveTags=&lt;true/false&gt;</b>: Filters to only include active tags.</li>
+            <li><b>page=&lt;number&gt;</b>: Specifies the page number of results to retrieve.</li>
+            <li><b>limit=&lt;number&gt;</b>: Limits the number of results per page.</li>
+            <li><b>specificTag=&lt;tag_name&gt;</b>: Filters the tags to include only the tag with the specified name.
+<codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  "https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/tag/?onlyActiveTags=true&amp;page=1&amp;limit=10"</codeblock><p outputclass="title"><b>Example output</b></p><codeblock outputclass="language-terminal">{"tags": [{"name": "test-two", "reversion": false, "start_ts": 1717680780, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Thu, 06 Jun 2024 13:33:00 -0000"}, {"name": "tag-test", "reversion": false, "start_ts": 1717680378, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Thu, 06 Jun 2024 13:26:18 -0000"}, {"name": "example", "reversion": false, "start_ts": 1715698131, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 14 May 2024 14:48:51 -0000"}], "page": 1, "has_additional": false}</codeblock></li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>By using the <codeph>specificTag=&lt;tag_name&gt;</codeph> query, you can filter results for a specific tag. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET   -H "Authorization: Bearer &lt;bearer_token&gt;"   -H "Accept: application/json"   "&lt;quay-server.example.com&gt;/api/v1/repository/quayadmin/busybox/tag/?onlyActiveTags=true&amp;page=1&amp;limit=20&amp;specificTag=test-two"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"tags": [{"name": "test-two", "reversion": true, "start_ts": 1718737153, "manifest_digest": "sha256:57583a1b9c0a7509d3417387b4f43acf80d08cdcf5266ac87987be3f8f919d5d", "is_manifest_list": false, "size": 2275314, "last_modified": "Tue, 18 Jun 2024 18:59:13 -0000"}], "page": 1, "has_additional": false}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

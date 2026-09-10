@@ -1,0 +1,253 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="createorganizationapplicationtoken">
+  <title>createOrganizationApplicationToken</title>
+  <shortdesc>Create a new OAuth API token for the specified organization application.</shortdesc>
+  <refbody>
+    <section id="createorganizationapplicationtoken-post">
+      <title>POST /api/v1/organization/{orgname}/applications/{client_id}/tokens</title>
+      <p>Create a scoped OAuth API token for automation workflows. The bearer token secret is returned only in this response.</p>
+      <p><b>Authorizations:</b> oauth2_implicit (<b>org:admin</b>)</p>
+    </section>
+    <section id="createorganizationapplicationtoken-path-parameters">
+      <title>Path parameters</title>
+      <table>
+        <tgroup cols="4">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <colspec colname="col_4" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Type</entry>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>path</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>orgname</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The name of the organization</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>path</p>
+              </entry>
+              <entry>
+                <p>
+                  <b>client_id</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The OAuth client ID of the organization application</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createorganizationapplicationtoken-request-body-schema">
+      <title>Request body schema (application/json)</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>name</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>User-facing token name. Leading and trailing whitespace is trimmed before storage.</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>scope</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Space- or comma-separated OAuth scope string, for example <codeph>repo:read repo:write</codeph></p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>expiration</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Token lifetime in seconds. Defaults to approximately 10 years when omitted.</p>
+              </entry>
+              <entry>
+                <p>integer</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Example request body</b>
+      </p>
+      <codeblock outputclass="language-json">{
+  "name": "ci-job-token",
+  "scope": "repo:read,repo:write",
+  "expiration": 2592000
+}</codeblock>
+    </section>
+    <section id="createorganizationapplicationtoken-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>200</p>
+              </entry>
+              <entry>
+                <p>Successful creation</p>
+              </entry>
+              <entry>
+                <p>OAuth application token object including <codeph>token</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>400</p>
+              </entry>
+              <entry>
+                <p>Bad Request</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>404</p>
+              </entry>
+              <entry>
+                <p>Not found</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createorganizationapplicationtoken-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X POST "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/applications/&lt;client_id&gt;/tokens" \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "ci-job-token",
+    "scope": "repo:read repo:write",
+    "expiration": 2592000
+  }'</codeblock>
+      <p outputclass="title">
+        <b>Example response</b>
+      </p>
+      <codeblock outputclass="language-json">{
+  "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "ci-job-token",
+  "scope": "repo:read repo:write",
+  "expires_at": "2026-08-14T10:00:00Z",
+  "created": "2026-07-15T10:00:00Z",
+  "created_by": "quayadmin",
+  "last_accessed": null,
+  "token": "string..."
+}</codeblock>
+    </section>
+  </refbody>
+</reference>

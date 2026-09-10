@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-envvar-dbpool">
+  <title>Database connection pooling</title>
+  <shortdesc>Use the <codeph>DB_CONNECTION_POOLING</codeph> environment variable and <codeph>DB_CONNECTION_ARGS</codeph> settings to control whether Red Hat Quay pools database connections and the maximum pool size per process.</shortdesc>
+  <refbody>
+    <section>
+      <p>Database connection pooling is enabled by default, and each process that interacts with the database contains a connection pool. These per-process connection pools are configured to maintain a maximum of 20 connections. Under heavy load, it is possible to fill the connection pool for every process within a Red Hat Quay container. Under certain deployments and loads, this might require analysis to ensure that Red Hat Quay does not exceed the configured database’s maximum connection count.</p>
+      <p>Overtime, the connection pools release idle connections. To release all connections immediately, Red Hat Quay requires a restart.</p>
+      <table>
+        <title>Database connection pooling configuration</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Variable</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>DB_CONNECTION_POOLING</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Whether to enable or disable database connection pooling. Defaults to true. Accepted values are <codeph>"true"</codeph> or <codeph>"false"</codeph></p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p>If database connection pooling is enabled, it is possible to change the maximum size of the connection pool. This can be done through the following <codeph>config.yaml</codeph> option:</p>
+      <p outputclass="title">
+        <b>Database connection pooling example YAML</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+DB_CONNECTION_ARGS:
+  max_connections: 10
+# ...</codeblock>
+    </section>
+    <section id="disabling-database-pooling-standalone">
+      <title>Disabling database pooling in standalone deployments</title>
+      <p>For standalone Red Hat Quay deployments, database connection pooling can be toggled off when starting your deployment. For example:</p>
+      <codeblock outputclass="language-terminal">$ sudo podman run -d --rm -p 80:8080 -p 443:8443  \
+   --name=quay \
+   -v $QUAY/config:/conf/stack:Z \
+   -v $QUAY/storage:/datastorage:Z \
+   -e DB_CONNECTION_POOLING=false
+   registry.redhat.io/quay/quay-rhel8:v3.12.1</codeblock>
+    </section>
+    <section id="disabling-database-pooling-quay-ocp">
+      <title>Disabling database pooling for Red Hat Quay on OpenShift Container Platform</title>
+      <p>For Red Hat Quay on OpenShift Container Platform, database connection pooling can be configured by modifying the <codeph>QuayRegistry</codeph> custom resource definition (CRD). For example:</p>
+      <p outputclass="title">
+        <b>Example QuayRegistry CRD</b>
+      </p>
+      <codeblock outputclass="language-yaml">spec:
+  components:
+  - kind: quay
+    managed: true
+    overrides:
+      env:
+      - name: DB_CONNECTION_POOLING
+        value: "false"</codeblock>
+    </section>
+  </refbody>
+</reference>

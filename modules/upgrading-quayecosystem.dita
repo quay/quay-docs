@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="upgrading-quayecosystem_{context}">
+  <title>Migrating QuayEcosystem to QuayRegistry</title>
+  <shortdesc>To migrate an existing <codeph>QuayEcosystem</codeph> to a <codeph>QuayRegistry</codeph> managed by the Red Hat Quay Operator, add the <codeph>migration</codeph> label to the <codeph>QuayEcosystem</codeph> custom resource and wait for the new <codeph>QuayRegistry</codeph> to start. You can then verify the migration and delete the old <codeph>QuayEcosystem</codeph>.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Add <codeph>"quay-operator/migrate": "true"</codeph> to the <codeph>metadata.labels</codeph> of the <codeph>QuayEcosystem</codeph>.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc edit quayecosystem &lt;quayecosystem_name&gt;</codeblock>
+          <codeblock outputclass="language-yaml">metadata:
+  labels:
+    quay-operator/migrate: "true"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Wait for a <codeph>QuayRegistry</codeph> CR to be created with the same <codeph>metadata.name</codeph> as your <codeph>QuayEcosystem</codeph>. The <codeph>QuayEcosystem</codeph> CR is marked with the label <codeph>"quay-operator/migration-complete": "true"</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>After the <codeph>status.registryEndpoint</codeph> of the new <codeph>QuayRegistry</codeph> is set, access Red Hat Quay and confirm that all data and settings were migrated successfully.</cmd>
+      </step>
+      <step>
+        <cmd>If everything works correctly, you can delete the <codeph>QuayEcosystem</codeph>. Kubernetes garbage collection cleans up all old resources.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="mirroring-metrics-health">
+  <title>Monitoring repository mirroring</title>
+  <shortdesc>Red Hat Quay exposes Prometheus metrics and a health API endpoint for repository mirroring. Use these tools to monitor synchronization progress, detect failures, and configure alerts in Prometheus or Grafana.</shortdesc>
+  <refbody>
+    <section>
+      <p>Metrics are published from the mirror worker process through the existing Prometheus push gateway (typically port <codeph>9091</codeph>). The health API endpoint reads repository state from the database and, when available, worker metrics from the in-process Prometheus registry.</p>
+    </section>
+    <section id="repository-mirror-prometheus-metrics">
+      <title>Repository mirror Prometheus metrics</title>
+      <p>The following table describes the primary repository mirroring metrics added in Red Hat Quay 3.18.</p>
+      <table>
+        <title>Repository mirror metrics</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="33.3333*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="50.0001*"/>
+          <thead>
+            <row>
+              <entry>Metric</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <codeph>quay_repository_mirror_pending_tags</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Gauge</p>
+              </entry>
+              <entry>
+                <p>Number of tags pending synchronization. Labels: <codeph>namespace</codeph>, <codeph>repository</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>quay_repository_mirror_last_sync_status</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Gauge</p>
+              </entry>
+              <entry>
+                <p>Status of the last synchronization attempt. Labels: <codeph>namespace</codeph>, <codeph>repository</codeph>, <codeph>last_error_reason</codeph>. Values: <codeph>0</codeph> (failed), <codeph>1</codeph> (success), <codeph>2</codeph> (in progress). Use <codeph>last_error_reason=""</codeph> for per-repository counts.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>quay_repository_mirror_sync_complete</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Gauge</p>
+              </entry>
+              <entry>
+                <p>Whether all tags synchronized in the last run. Labels: <codeph>namespace</codeph>, <codeph>repository</codeph>. Values: <codeph>0</codeph> (incomplete), <codeph>1</codeph> (complete).</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>quay_repository_mirror_sync_failures_total</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Counter</p>
+              </entry>
+              <entry>
+                <p>Cumulative synchronization failures. Labels: <codeph>namespace</codeph>, <codeph>reason</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>quay_repository_mirror_workers_active</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Gauge</p>
+              </entry>
+              <entry>
+                <p>Set to <codeph>1</codeph> while a mirror worker process is running. Sum across worker targets for total active workers.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>quay_repository_mirror_last_sync_timestamp</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Gauge</p>
+              </entry>
+              <entry>
+                <p>Unix timestamp when the last sync attempt started. Labels: <codeph>namespace</codeph>, <codeph>repository</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>quay_repository_mirror_sync_duration_seconds</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Histogram</p>
+              </entry>
+              <entry>
+                <p>Sync operation duration aggregated by namespace.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>quay_repository_rows_unmirrored</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Gauge</p>
+              </entry>
+              <entry>
+                <p>Number of repositories not yet mirrored. Maintained for backward compatibility.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="example-prometheus-queries-mirror">
+      <title>Example Prometheus queries</title>
+      <p>Use the following example queries to monitor repository mirroring:</p>
+      <p outputclass="title">
+        <b>Failing repositories</b>
+      </p>
+      <codeblock outputclass="language-terminal">quay_repository_mirror_last_sync_status{last_error_reason=""} == 0</codeblock>
+      <p outputclass="title">
+        <b>Repositories that have not synced in over one hour</b>
+      </p>
+      <codeblock outputclass="language-terminal">(time() - quay_repository_mirror_last_sync_timestamp) &gt; 3600</codeblock>
+      <p outputclass="title">
+        <b>Failure rate per namespace over five minutes</b>
+      </p>
+      <codeblock outputclass="language-terminal">rate(quay_repository_mirror_sync_failures_total[5m])</codeblock>
+    </section>
+    <section id="repository-mirror-health-endpoint">
+      <title>Repository mirror health endpoint</title>
+      <p>Red Hat Quay exposes two health endpoints for repository mirroring:</p>
+      <ul>
+        <li><codeph>GET /api/v1/repository/mirror/health</codeph> — namespace-scoped or global health. Without <codeph>namespace</codeph>, the caller must be a superuser with full access. With <codeph>namespace</codeph>, organization members can query their organization, and user-namespace owners or user administrators can query that namespace.</li>
+        <li><codeph>GET /api/v1/superuser/mirror/health</codeph> — global summary for superusers, without repository-identifying issue samples.</li>
+      </ul>
+      <p>Both endpoints require a fresh login. A validated OAuth or SSO token satisfies the check. A password-based browser session must be within <codeph>FRESH_LOGIN_TIMEOUT</codeph> (default: <codeph>10m</codeph>).</p>
+      <p>The responses include overall health, worker status, repository counts, pending tags, and any detected issues. HTTP <codeph>200</codeph> means healthy; HTTP <codeph>503</codeph> means unhealthy.</p>
+      <p>Optional query parameters for <codeph>GET /api/v1/repository/mirror/health</codeph>:</p>
+      <ul>
+        <li><codeph>namespace</codeph> — limit results to one namespace</li>
+        <li><codeph>detailed</codeph> — include per-repository details</li>
+        <li><codeph>limit</codeph> and <codeph>offset</codeph> — paginate detailed results</li>
+      </ul>
+      <p outputclass="title">
+        <b>Example: namespace health with details</b>
+      </p>
+      <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/repository/mirror/health?namespace=&lt;orgname&gt;&amp;detailed=true" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+      <p outputclass="title">
+        <b>Example: global superuser summary</b>
+      </p>
+      <codeblock outputclass="language-terminal">$ curl -X GET "https://&lt;quay-server.example.com&gt;/api/v1/superuser/mirror/health" \
+     -H "Authorization: Bearer &lt;access_token&gt;"</codeblock>
+      <p>For endpoint parameters, response schema, and authorization requirements, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#getrepositorymirrorhealth" format="html" scope="external">getRepositoryMirrorHealth</xref> and <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#getsuperuserrepositorymirrorhealth" format="html" scope="external">getSuperUserRepositoryMirrorHealth</xref>.</p>
+    </section>
+  </refbody>
+  <related-links>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-unmanaged-monitoring" format="html" scope="external">
+      <linktext>Enabling monitoring when the Red Hat Quay Operator is installed in a single namespace</linktext>
+    </link>
+    <link href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/release_notes/index#repository-mirror-metrics-health" format="html" scope="external">
+      <linktext>Repository mirror metrics and health monitoring</linktext>
+    </link>
+  </related-links>
+</reference>

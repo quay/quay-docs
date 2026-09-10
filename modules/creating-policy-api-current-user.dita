@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-policy-api-current-user">
+  <title>Creating an auto-prune policy for a namespace for the current user by using the API</title>
+  <shortdesc>To manage auto-prune policies for your own user namespace in Red Hat Quay, you can use the <codeph>/api/v1/user/autoprunepolicy/</codeph> API endpoints.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+        <li>You have logged into Red Hat Quay.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <p>The use of <codeph>/user/</codeph> in the following commands represents the user that is currently logged into Red Hat Quay.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Enter the following <codeph>POST</codeph> command to create a new policy that limits the number of tags for the current user:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST -H "Authorization: Bearer &lt;access_token&gt;" -H "Content-Type: application/json" -d '{"method": "number_of_tags", "value": 10}' http://&lt;quay-server.example.com&gt;/api/v1/user/autoprunepolicy/</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Check your auto-prune policy by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/user/autoprunepolicy/</codeblock>
+          <p>Alternatively, you can include the UUID:</p>
+          <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/user/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"policies": [{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859", "method": "number_of_tags", "value": 10}]}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can delete the auto-prune policy by entering the following command. Note that deleting the policy requires the UUID.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE -H "Authorization: Bearer &lt;access_token&gt;" http://&lt;quay-server.example.com&gt;/api/v1/user/autoprunepolicy/8c03f995-ca6f-4928-b98d-d75ed8c14859</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"uuid": "8c03f995-ca6f-4928-b98d-d75ed8c14859"}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

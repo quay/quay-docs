@@ -1,0 +1,218 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="config-fields-db">
+  <title>Database configuration fields</title>
+  <shortdesc>You must configure database connectivity for Red Hat Quay by setting the <codeph>DB_URI</codeph> field. You can optionally define connection settings such as SSL/TLS behavior by using <codeph>DB_CONNECTION_ARGS</codeph>.</shortdesc>
+  <conbody>
+    <section id="database-uri">
+      <title>Database URI</title>
+      <p>You configure the database connection for Red Hat Quay by setting the required <codeph>DB_URI</codeph> field.</p>
+      <p>The following table describes the <codeph>DB_URI</codeph> configuration field:</p>
+      <table>
+        <title>Database URI</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p><b>DB_URI</b> (Required)</p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>The URI for accessing the database, including any credentials.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Database URI example</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+DB_URI: postgresql://quayuser:quaypass@quay-server.example.com:5432/quay
+# ...</codeblock>
+    </section>
+    <section id="database-connection-arguments">
+      <title>Database connection arguments</title>
+      <p>You can define optional connection arguments by using the <codeph>DB_CONNECTION_ARGS</codeph> parameter. Some of the key-value pairs under <codeph>DB_CONNECTION_ARGS</codeph> are generic, while others are database specific.</p>
+      <table>
+        <title>Database connection arguments</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>DB_CONNECTION_ARGS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Optional connection arguments for the database, such as timeouts and SSL/TLS.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.autorollback</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to use thread-local connections. Should <b>always</b> be <codeph>True</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.threadlocals</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to use auto-rollback connections. Should <b>always</b> be <codeph>True</codeph>.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p outputclass="title">
+        <b>Database connection arguments example</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+DB_URI: postgresql://quayuser:quaypass@quay-server.example.com:5432/quay
+DB_CONNECTION_ARGS:
+  autorollback: true
+  threadlocals: true
+# ...</codeblock>
+    </section>
+    <section id="config-fields-postgres">
+      <title>SSL/TLS connection arguments</title>
+      <p>With SSL/TLS, configuration depends on the database you are deploying.</p>
+      <p>The <codeph>sslmode</codeph> option determines whether Red Hat Quay negotiates a secure SSL/TLS TCP/IP connection with the server, and with what priority. The following modes are available:</p>
+      <table>
+        <title><codeph>sslmode</codeph> options</title>
+        <tgroup cols="2">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="50*"/>
+          <thead>
+            <row>
+              <entry>Mode</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>sslmode</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Determines whether, or with, what priority a secure SSL/TLS or TCP/IP connection is negotiated with the server.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>    *: disable</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Your configuration only tries non-SSL/TLS connections.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>    *: allow</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Your configuration first tries a non-SSL/TLS connection. Upon failure, tries an SSL/TLS connection.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p><b>    *: prefer</b>     (Default)</p>
+              </entry>
+              <entry>
+                <p>Your configuration first tries an SSL/TLS connection. Upon failure, tries a non-SSL/TLS connection.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>    *: require</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Your configuration only tries an SSL/TLS connection. If a root CA file is present, it verifies the certificate in the same way as if verify-ca was specified.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>    *: verify-ca</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Your configuration only tries an SSL/TLS connection, and verifies that the server certificate is issued by a trusted certificate authority (CA).</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>    *: verify-full</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Only tries an SSL/TLS connection, and verifies that the server certificate is issued by a trusted CA and that the requested server hostname matches that in the certificate.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p>For more information on the valid arguments for PostgreSQL, see <i>Database Connection Control Functions</i> in Additional resources.</p>
+      <p outputclass="title">
+        <b>PostgreSQL SSL/TLS configuration</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+DB_CONNECTION_ARGS:
+  sslmode: &lt;value&gt;
+  sslrootcert: path/to/.postgresql/root.crt
+# ...</codeblock>
+    </section>
+  </conbody>
+  <related-links>
+    <link href="https://www.postgresql.org/docs/current/libpq-connect.html" format="html" scope="external">
+      <linktext>Database Connection Control Functions</linktext>
+    </link>
+  </related-links>
+</concept>

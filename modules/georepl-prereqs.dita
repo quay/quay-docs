@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="arch-georepl-prereqs">
+  <title>Geo-replication requirements and constraints</title>
+  <shortdesc>Red Hat Quay geo-replication requires shared storage, database, Redis, network access between regions, and a global load balancer. Review these constraints before you deploy.</shortdesc>
+  <refbody>
+    <section>
+      <p>The following are the requirements and constraints for geo-replication:</p>
+      <ul>
+        <li>In geo-replicated setups, Red Hat Quay requires that all regions are able to read and write to all other regions' object storage. Object storage must be geographically accessible by all other regions.</li>
+        <li>Red Hat Quay has no internal awareness of object storage health. Plan a global load balancer that monitors site and storage health and redirects clients when a site must be taken offline.</li>
+        <li>Geo-replication does not automatically fail over object storage. If one site’s storage is unavailable, you must shut down that site’s Red Hat Quay deployment so the load balancer can send clients to healthy sites. Otherwise, clients experience pull and push failures.</li>
+        <li>Geo-replication is asynchronous. Permanent loss of a site can lose blobs that were stored there but not yet replicated.</li>
+        <li>A single database, and therefore all metadata and Red Hat Quay configuration, is shared across all regions. Geo-replication does not replicate the database and does not fail over to another database.</li>
+        <li>A single Redis cache is shared across the entire Red Hat Quay setup and must be accessible by all Red Hat Quay pods.</li>
+        <li>Use the same configuration across regions, except for the preferred storage backend per region.</li>
+        <li>Geo-replication requires object storage in each region. It does not work with local storage.</li>
+        <li>Each region must be able to access every storage engine in each region, which requires a network path. A storage proxy is an alternative when direct paths are not practical.</li>
+        <li>The entire storage backend, for example, all blobs, is replicated. Repository mirroring, by contrast, can be limited to a repository or an image.</li>
+        <li>All Red Hat Quay instances must share the same entrypoint, typically through a load balancer.</li>
+        <li>All Red Hat Quay instances must have the same set of superusers, as they are defined inside the common configuration file.</li>
+        <li>For Operator-based geo-replication, plan a shared Clair database (typically an unmanaged Clair database) so every region uses the same vulnerability data store.</li>
+        <li>Geo-replication requires SSL/TLS certificates and keys.</li>
+      </ul>
+      <p>If the above requirements cannot be met, you should instead use two or more distinct Red Hat Quay deployments and take advantage of repository mirroring functions.</p>
+    </section>
+  </refbody>
+</reference>

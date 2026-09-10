@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="reassigning-oauth-access-token">
+  <title>Reassigning an OAuth access token</title>
+  <shortdesc>To keep audit logs accurate when another user needs an OAuth API token, you can reassign token creation to that user from an organization OAuth application.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You are logged in as a user with organization administrative privileges, which allows you to assign an OAuth API token.
+<note type="note"><p>OAuth API tokens are used for authentication and not authorization. For example, the user that you are assigning the OAuth token to must have the <codeph>Admin</codeph> team role to use administrative API endpoints.</p></note></li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Organization administrators can assign OAuth API tokens to be created by other users with specific permissions. Audit logs then reflect the user who uses the token, even when that user does not have organization administrative permissions to create an OAuth API token.</p>
+      <note type="note">
+        <p>This procedure works only on the current Red Hat Quay UI. The Red Hat Quay v2 UI does not currently support this procedure.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Optional. If not already, update your Red Hat Quay <codeph>config.yaml</codeph> file to include the <codeph>FEATURE_ASSIGN_OAUTH_TOKEN: true</codeph> field:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+FEATURE_ASSIGN_OAUTH_TOKEN: true
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. Restart your Red Hat Quay registry.</cmd>
+      </step>
+      <step>
+        <cmd>Log in to your Red Hat Quay registry as an organization administrator.</cmd>
+      </step>
+      <step>
+        <cmd>Click the name of the organization in which you created the OAuth token.</cmd>
+      </step>
+      <step>
+        <cmd>In the navigation pane, click <b>OAuth Applications</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click the proper application name.</cmd>
+      </step>
+      <step>
+        <cmd>In the navigation pane, click <b>API Access Tokens</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Generate New Token</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Assign another user</b> and enter the name of the user who takes over the OAuth token.</cmd>
+      </step>
+      <step>
+        <cmd>Check the boxes for the desired permissions that you want the new user to have. For example, if you only want the new user to be able to create repositories, click <b>Create Repositories</b>.
+</cmd>
+        <info>
+          <note type="important">
+            <p>The team role within an organization defines permission control and must be configured regardless of the options selected here. For example, the user that you are assigning the OAuth token to must have the <codeph>Admin</codeph> team role to use administrative API endpoints.</p>
+            <p>Solely checking the <b>Super User Access</b> box does not actually grant the user this permission. Superusers must be configured by using the <codeph>config.yaml</codeph> file <i>and</i> the box must be checked here.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Click <b>Assign token</b>. A popup box appears that confirms authorization with the following message and shows you the approved permissions:
+</cmd>
+        <info>
+          <codeblock outputclass="language-text">This will prompt user &lt;username&gt; to generate a token with the following permissions:
+repo:create</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Click <b>Assign token</b> in the popup box. You are redirected to a new page that displays the following message:
+</cmd>
+        <info>
+          <codeblock outputclass="language-text">Token assigned successfully</codeblock>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>After reassigning an OAuth token, the assigned user must accept the token to receive the bearer token, which is required to use API endpoints. Ask the assigned user to log in to the Red Hat Quay registry.</li>
+        <li>After the assigned user has logged in, ask them to click their username under <b>Users and Organizations</b>.</li>
+        <li>In the navigation pane, ask them to click <b>External Logins And Applications</b>.</li>
+        <li>Under <b>Authorized Applications</b>, ask them to confirm the application by clicking <b>Authorize Application</b>. They are directed to a new page where they must reconfirm by clicking <b>Authorize Application</b>.</li>
+        <li>They are redirected to a new page that reveals their bearer token. Ask them to save this bearer token, because it cannot be viewed again.</li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

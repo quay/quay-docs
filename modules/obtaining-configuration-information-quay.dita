@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="obtaining-configuration-information-quay">
+  <title>Reading the configuration file from an Operator deployment by using the OpenShift CLI</title>
+  <shortdesc>To obtain configuration information for your Red Hat Quay deployment and troubleshoot issues, you can use <codeph>oc exec</codeph>, <codeph>oc cp</codeph>, or <codeph>oc rsync</codeph> for Operator deployments, or <codeph>podmobtaining-configuration-information-quay-standalonean cp</codeph> or <codeph>podman exec</codeph> for standalone deployments. You can then update your <codeph>config.yaml</codeph> file, search the Red Hat Knowledgebase, or file a support ticket.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>To obtain configuration information on Red Hat Quay Operator deployments, you can use <codeph>oc exec</codeph>, <codeph>oc cp</codeph>, or <codeph>oc rsync</codeph>.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>To use the <codeph>oc exec</codeph> command, enter the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc exec -it &lt;quay_pod_name&gt; -- cat /conf/stack/config.yaml</codeblock>
+              <p>This command returns your <codeph>config.yaml</codeph> file directly to your terminal.</p>
+            </info>
+          </substep>
+          <substep>
+            <cmd>To use the <codeph>oc copy</codeph> command, enter the following commands:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc cp &lt;quay_pod_name&gt;:/conf/stack/config.yaml /tmp/config.yaml</codeblock>
+              <p>To display this information in your terminal, enter the following command:</p>
+              <codeblock outputclass="language-terminal">$ cat /tmp/config.yaml</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>To use the <codeph>oc rsync</codeph> command, enter the following commands:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">oc rsync &lt;quay_pod_name&gt;:/conf/stack/ /tmp/local_directory/</codeblock>
+              <p>To display this information in your terminal, enter the following command:</p>
+              <codeblock outputclass="language-terminal">$ cat /tmp/local_directory/config.yaml</codeblock>
+              <p outputclass="title">
+                <b>Example output</b>
+              </p>
+              <codeblock outputclass="language-yaml">DISTRIBUTED_STORAGE_CONFIG:
+local_us:
+- RHOCSStorage
+- access_key: redacted
+  bucket_name: lht-quay-datastore-68fff7b8-1b5e-46aa-8110-c4b7ead781f5
+  hostname: s3.openshift-storage.svc.cluster.local
+  is_secure: true
+  port: 443
+  secret_key: redacted
+  storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+- local_us
+DISTRIBUTED_STORAGE_PREFERENCE:
+- local_us</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

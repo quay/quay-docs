@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="ldap-considerations">
+  <title>Considerations when enabling LDAP</title>
+  <shortdesc>Before you enable LDAP for Red Hat Quay, review how existing local usernames interact with directory accounts and how <codeph>FEATURE_USER_CREATION</codeph> affects first login.</shortdesc>
+  <conbody>
+    <p>
+      <b>Existing Red Hat Quay deployments</b>
+    </p>
+    <p>Conflicts between usernames can arise when you enable LDAP for an existing Red Hat Quay deployment that already has users configured. For example, one user, <codeph>alice</codeph>, was manually created in Red Hat Quay prior to enabling LDAP. If the username <codeph>alice</codeph> also exists in the LDAP directory, Red Hat Quay automatically creates a new user, <codeph>alice-1</codeph>, when <codeph>alice</codeph> logs in for the first time using LDAP. Red Hat Quay then automatically maps the LDAP credentials to the <codeph>alice</codeph> account. For consistency reasons, this might be erroneous for your Red Hat Quay deployment. Remove any potentially conflicting local account names from Red Hat Quay prior to enabling LDAP.</p>
+    <p>
+      <b>Manual user creation and LDAP authentication</b>
+    </p>
+    <p>When Red Hat Quay is configured for LDAP, LDAP-authenticated users are automatically created in the Red Hat Quay database on first log in, if the configuration option <codeph>FEATURE_USER_CREATION</codeph> is set to <codeph>true</codeph>. If this option is set to <codeph>false</codeph>, the automatic user creation for LDAP users fails, and the user is not allowed to log in. In this scenario, the superuser needs to create the desired user account first. Conversely, if <codeph>FEATURE_USER_CREATION</codeph> is set to <codeph>true</codeph>, a user can still create an account from the Red Hat Quay login screen, even if an equivalent user exists in LDAP.</p>
+  </conbody>
+</concept>

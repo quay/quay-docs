@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="config-fields-required-general">
+  <title>General required configuration fields</title>
+  <shortdesc>General required fields must be present in every Red Hat Quay configuration to start the registry. Use this reference to confirm values for authentication, URL settings, and secret keys.</shortdesc>
+  <conbody>
+    <table>
+      <title>General required fields</title>
+      <tgroup cols="3">
+        <colspec colname="col_1" colwidth="50*"/>
+        <colspec colname="col_2" colwidth="16.6666*"/>
+        <colspec colname="col_3" colwidth="33.3334*"/>
+        <thead>
+          <row>
+            <entry>Field</entry>
+            <entry>Type</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>
+              <p><b>AUTHENTICATION_TYPE</b> (Required)</p>
+            </entry>
+            <entry>
+              <p>String</p>
+            </entry>
+            <entry>
+              <p>The authentication engine to use for credential authentication. <b>Values:</b> One of <codeph>Database</codeph>, <codeph>LDAP</codeph>, <codeph>JWT</codeph>, <codeph>Keystone</codeph>, <codeph>OIDC</codeph>. <b>Default:</b><codeph>Database</codeph>.</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p><b>PREFERRED_URL_SCHEME</b> (Required)</p>
+            </entry>
+            <entry>
+              <p>String</p>
+            </entry>
+            <entry>
+              <p>The URL scheme to use when accessing Red Hat Quay. <b>Values:</b> One of <codeph>http</codeph>, <codeph>https</codeph>. <b>Default:</b><codeph>http</codeph>.</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p><b>SERVER_HOSTNAME</b> (Required)</p>
+            </entry>
+            <entry>
+              <p>String</p>
+            </entry>
+            <entry>
+              <p>The URL at which Red Hat Quay is accessible, without the scheme. <b>Example:</b><codeph>quay-server.example.com</codeph>.</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p><b>DATABASE_SECRET_KEY</b> (Required)</p>
+            </entry>
+            <entry>
+              <p>String</p>
+            </entry>
+            <entry>
+              <p>Key used to encrypt sensitive fields within the database. This value should never be changed once set, otherwise all reliant fields, for example, repository mirror username and password configurations, are invalidated. This value is set automatically by the Red Hat Quay Operator for Operator-based deployments. For standalone deployments, administrators can provide their own key using Open SSL or a similar tool. Key length should not exceed 63 characters.</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p><b>SECRET_KEY</b> (Required)</p>
+            </entry>
+            <entry>
+              <p>String</p>
+            </entry>
+            <entry>
+              <p>Key used to encrypt the session cookie and the CSRF token needed for correct interpretation of the user session. The value should not be changed when set. The value should be persistent across all Red Hat Quay instances. If the value is not persistent across all instances, login failures and other errors related to session persistence might occur.</p>
+            </entry>
+          </row>
+          <row>
+            <entry>
+              <p><b>SETUP_COMPLETE</b> (Required)</p>
+            </entry>
+            <entry>
+              <p>Boolean</p>
+            </entry>
+            <entry>
+              <p>This is an artifact left over from earlier versions of the software and currently it <b>must</b> be specified with a value of <codeph>True</codeph>.</p>
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <p outputclass="title">
+      <b>General required fields example</b>
+    </p>
+    <codeblock outputclass="language-yaml">AUTHENTICATION_TYPE: Database
+PREFERRED_URL_SCHEME: https
+SERVER_HOSTNAME: &lt;quay-server.example.com&gt;
+SECRET_KEY: &lt;secret_key_value&gt;
+DATABASE_SECRET_KEY: &lt;database_secret_key_value&gt;
+SETUP_COMPLETE: true
+# ...</codeblock>
+  </conbody>
+</concept>

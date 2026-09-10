@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="metrics-queue-items">
+  <title>Queue items</title>
+  <shortdesc>Use these queue items metrics to monitor the work queues that Red Hat Quay uses for exports, garbage collection, notifications, builds, and storage replication.</shortdesc>
+  <refbody>
+    <section>
+      <table>
+        <tgroup cols="2">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="50*"/>
+          <thead>
+            <row>
+              <entry>Metric name</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>quay_queue_items_available</p>
+              </entry>
+              <entry>
+                <p>Number of items in a specific queue</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>quay_queue_items_locked</p>
+              </entry>
+              <entry>
+                <p>Number of items that are running</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>quay_queue_items_available_unlocked</p>
+              </entry>
+              <entry>
+                <p>Number of items that are waiting to be processed</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p>Metric labels:</p>
+      <dl>
+        <dlentry>
+          <dt>
+            <codeph>queue_name</codeph>
+          </dt>
+          <dd>
+            <p>The name of the queue. One of:</p>
+            <div>
+              <dl>
+                <dlentry>
+                  <dt>
+                    <codeph>exportactionlogs</codeph>
+                  </dt>
+                  <dd>Queued requests to export action logs. These logs are then processed and put in storage. A link is then sent to the requester by email.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>namespacegc</codeph>
+                  </dt>
+                  <dd>Queued namespaces to be garbage collected.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>notification</codeph>
+                  </dt>
+                  <dd>Queue for repository notifications to be sent out.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>repositorygc</codeph>
+                  </dt>
+                  <dd>Queued repositories to be garbage collected.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>secscanv4</codeph>
+                  </dt>
+                  <dd>Notification queue specific for Clair V4.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>dockerfilebuild</codeph>
+                  </dt>
+                  <dd>Queue for Red Hat Quay container image builds.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>imagestoragereplication</codeph>
+                  </dt>
+                  <dd>Queued blob to be replicated across multiple storages.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>chunk_cleanup</codeph>
+                  </dt>
+                  <dd>Queued blob segments that need to be deleted. This is only used by some storage implementations, for example, Swift.</dd>
+                </dlentry>
+              </dl>
+            </div>
+          </dd>
+        </dlentry>
+      </dl>
+      <p>For example, the queue labeled <codeph>repositorygc</codeph> contains the repositories marked for deletion by the repository garbage collection worker. For metrics with a <codeph>queue_name</codeph> label of <codeph>repositorygc</codeph>:</p>
+      <ul>
+        <li><codeph>quay_queue_items_locked</codeph> is the number of repositories currently being deleted.</li>
+        <li><codeph>quay_queue_items_available_unlocked</codeph> is the number of repositories waiting to get processed by the worker.</li>
+      </ul>
+      <p outputclass="title">
+        <b>Sample metrics output</b>
+      </p>
+      <codeblock outputclass="language-terminal"># HELP quay_queue_items_available number of queue items that have not expired
+# TYPE quay_queue_items_available gauge
+quay_queue_items_available{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="63",process_name="exportactionlogsworker.py",queue_name="exportactionlogs"} 0
+...
+
+# HELP quay_queue_items_available_unlocked number of queue items that have not expired and are not locked
+# TYPE quay_queue_items_available_unlocked gauge
+quay_queue_items_available_unlocked{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="63",process_name="exportactionlogsworker.py",queue_name="exportactionlogs"} 0
+...
+
+# HELP quay_queue_items_locked number of queue items that have been acquired
+# TYPE quay_queue_items_locked gauge
+quay_queue_items_locked{host="example-registry-quay-app-6df87f7b66-9tfn6",instance="",job="quay",pid="63",process_name="exportactionlogsworker.py",queue_name="exportactionlogs"} 0</codeblock>
+    </section>
+  </refbody>
+</reference>

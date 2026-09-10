@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="understanding-configuration-file">
+  <title>Understanding the Red Hat Quay configuration file</title>
+  <shortdesc>The Red Hat Quay <codeph>config.yaml</codeph> file defines registry behavior. The <codeph>config.yaml</codeph> file must include all required configuration fields for the registry to start. Red Hat Quay administrators can also define optional parameters that customize their registry, such as authentication parameters, storage parameters, proxy cache parameters, and so on.</shortdesc>
+  <refbody>
+    <section>
+      <p>The <codeph>config.yaml</codeph> file must be written using valid YAML ("YAML Ain’t Markup Language") syntax, and Red Hat Quay cannot start if the file itself contains any formatting errors or missing required fields. Regardless of deployment type, whether on-premises or Red Hat Quay on OpenShift Container Platform with the Operator, the YAML principles stay the same, even if the required configuration fields are slightly different.</p>
+      <p>The following section outlines basic YAML syntax relevant to creating and editing the Red Hat Quay <codeph>config.yaml</codeph> file. For a more complete overview of YAML, see "What is YAML?".</p>
+    </section>
+    <section id="key-value-pairs">
+      <title>Key-value pairs</title>
+      <p>Configuration fields within a <codeph>config.yaml</codeph> file are written as key-value pairs in the following form:</p>
+      <codeblock outputclass="language-yaml"># ...
+EXAMPLE_FIELD_NAME: &lt;value&gt;
+# ...</codeblock>
+      <p>The <codeph># …​</codeph> comment denotes fields before and after this specific field. Note that by supplying the <codeph>#</codeph>, or hash symbol, comments can be provided within the YAML file.</p>
+      <p>Each line within a <codeph>config.yaml</codeph> file contains a field name, followed by a colon, a space, and then an appropriate value that matches with the key. The following example shows you how the <codeph>AUTHENTICATION_TYPE</codeph> configuration field must be formatted in your <codeph>config.yaml</codeph> file.</p>
+      <codeblock outputclass="language-yaml">AUTHENTICATION_TYPE: Database
+# ...</codeblock>
+      <dl>
+        <dlentry>
+          <dt>
+            <codeph>AUTHENTICATION_TYPE</codeph>
+          </dt>
+          <dd>Specifies the authentication engine to use for credential authentication.</dd>
+        </dlentry>
+      </dl>
+      <p>In the previous example, the <codeph>AUTHENTICATION_TYPE</codeph> is set to <codeph>Database</codeph>, however, different deployment types require a different value. The following example shows you how your <codeph>config.yaml</codeph> file might look if <codeph>LDAP</codeph>, or Lightweight Directory Access Protocol, was used for authentication:</p>
+      <codeblock outputclass="language-yaml">AUTHENTICATION_TYPE: LDAP
+# ...</codeblock>
+    </section>
+    <section id="indentation-nesting">
+      <title>Indentation and nesting</title>
+      <p>Many Red Hat Quay configuration fields require indentation to indicate nested structures. Indentation must be done by using <i>white spaces</i>, or literal space characters; tab characters are not allowed by design. Indentation must be consistent across the file. The following YAML snippet shows you how the <codeph>BUILDLOGS_REDIS</codeph> field uses indentation for the required <codeph>host</codeph>, <codeph>password,</codeph> and <codeph>port</codeph> fields:</p>
+      <codeblock outputclass="language-yaml"># ...
+BUILDLOGS_REDIS:
+    host: quay-server.example.com
+    password: example-password
+    port: 6379
+# ...</codeblock>
+    </section>
+    <section id="lists">
+      <title>Lists</title>
+      <p>In some cases, the Red Hat Quay configuration field relies on lists to define certain values. You format lists by using a hyphen (<codeph>-</codeph>) followed by a space. The following example shows you how the <codeph>SUPER_USERS</codeph> configuration field uses a list to define superusers:</p>
+      <codeblock outputclass="language-yaml"># ...
+SUPER_USERS:
+- quayadmin
+# ...</codeblock>
+    </section>
+    <section id="quoted-values">
+      <title>Quoted values</title>
+      <p>Some Red Hat Quay configuration fields require the use of quotation marks (<codeph>""</codeph>) to properly define a variable. This is generally not required. The following examples shows you how the <codeph>FOOTER_LINKS</codeph> configuration field uses quotation marks to define the <codeph>TERMS_OF_SERVICE_URL</codeph>, <codeph>PRIVACY_POLICY_URL</codeph>, <codeph>SECURITY_URL</codeph>, and <codeph>ABOUT_URL</codeph>:</p>
+      <codeblock outputclass="language-yaml">FOOTER_LINKS:
+  "TERMS_OF_SERVICE_URL": "https://www.index.hr"
+  "PRIVACY_POLICY_URL": "https://www.jutarnji.hr"
+  "SECURITY_URL": "https://www.bug.hr"
+  "ABOUT_URL": "https://www.zagreb.hr"</codeblock>
+    </section>
+    <section id="comments">
+      <title>Comments</title>
+      <p>The hash symbol, or <codeph>#</codeph>, can be placed at the beginning of a line to add comments or to temporarily disable a configuration field. The configuration parser ignores them, so they do not affect registry behavior. For example:</p>
+      <codeblock outputclass="language-yaml"># ...
+# FEATURE_UI_V2: true
+# ...</codeblock>
+      <p>In this example, the configuration parser ignores the <codeph>FEATURE_UI_V2</codeph> configuration, meaning that the option to use the v2 UI is disabled. Using the <codeph>#</codeph> symbol on a required configuration field results in failure for the registry to start.</p>
+    </section>
+  </refbody>
+</reference>

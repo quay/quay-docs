@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="proc_splunk-audit-log-ui-display">
+  <title>Displaying Splunk audit logs in the Red Hat Quay UI</title>
+  <shortdesc>To view Splunk audit logs in the Red Hat Quay UI, you can configure Splunk or Splunk HEC credentials in your <codeph>config.yaml</codeph> file and restart the registry. Then open the Logs panel for an organization, repository, or superuser view.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an <codeph>hec_token</codeph>.
+<note type="note"><p>For the HEC producer, two tokens are required: <codeph>hec_token</codeph> for writing logs and <codeph>search_token</codeph> for reading logs in the UI. The <codeph>search_token</codeph> is a bearer token (the same type you create when generating a Splunk bearer token). HEC tokens are ingest-only and cannot run searches.</p></note></li>
+        <li>You have configured Red Hat Quay to forward action logs to Splunk.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Update your <codeph>config.yaml</codeph> file:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>To display Splunk SDK audit logs on the Red Hat Quay UI, use the following reference:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml">LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  producer: splunk
+  splunk_config:
+    host: &lt;splunk.example.com&gt;
+    port: 8089
+    bearer_token: &lt;your_bearer_token&gt;
+    url_scheme: https
+    verify_ssl: false
+    index_prefix: quay_logs
+    search_timeout: 60
+    max_results: 10000
+    export_batch_size: 5000</codeblock>
+              <p>where:</p>
+              <dl>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.host</codeph>
+                  </dt>
+                  <dd>Specifies the host name of your Splunk instance.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.bearer_token</codeph>
+                  </dt>
+                  <dd>Specifies the bearer token you generated for Splunk.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_config.index_prefix</codeph>
+                  </dt>
+                  <dd>Specifies the Splunk index prefix.</dd>
+                </dlentry>
+              </dl>
+            </info>
+          </substep>
+          <substep>
+            <cmd>To display Splunk HEC logs on the Red Hat Quay UI, include the generated <codeph>search_token</codeph> and <codeph>hec_token</codeph>. For example:
+</cmd>
+            <info>
+              <codeblock outputclass="language-yaml">LOGS_MODEL: splunk
+LOGS_MODEL_CONFIG:
+  producer: splunk_hec
+  splunk_hec_config:
+    host: &lt;splunk.example.com&gt;
+    port: 8088
+    hec_token: &lt;your_hec_token&gt;
+    search_token: &lt;your_bearer_token&gt;
+    url_scheme: https
+    verify_ssl: true
+    ssl_ca_path: conf/stack/ca.pem
+    index: quay_logs
+    splunk_host: &lt;quay-server.example.com&gt;
+    splunk_sourcetype: access_combined
+    timeout: 10
+    search_host: &lt;splunk.example.com&gt;
+    search_port: 8089
+    search_timeout: 60
+    max_results: 10000
+    export_batch_size: 5000</codeblock>
+              <p>where:</p>
+              <dl>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.host</codeph>
+                  </dt>
+                  <dd>Specifies the host name of your Splunk instance (used for both the HEC endpoint and the search API).</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.port</codeph>
+                  </dt>
+                  <dd>Specifies the port number for the Splunk HEC endpoint.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.hec_token</codeph>
+                  </dt>
+                  <dd>Specifies the HEC token you generated for Splunk.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.search_token</codeph>
+                  </dt>
+                  <dd>Specifies the bearer token you generated for Splunk search. This field is optional.</dd>
+                </dlentry>
+                <dlentry>
+                  <dt>
+                    <codeph>LOGS_MODEL_CONFIG.splunk_hec_config.splunk_host</codeph>
+                  </dt>
+                  <dd>Specifies the host name of your Red Hat Quay instance.</dd>
+                </dlentry>
+              </dl>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Restart your Red Hat Quay instance to apply the changes.</cmd>
+      </step>
+      <step>
+        <cmd>Push an example image to your Red Hat Quay instance to generate an audit log by entering the following command. Note that you can push to an organization or a repository.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman push &lt;quay-server.example.com&gt;/&lt;organization_name&gt;/busybox:test</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>On the Red Hat Quay UI, open the Logs view in one of these places:
+</cmd>
+        <info>
+          <ul>
+            <li><b>Organizations</b> → <b>&lt;organization_name&gt;</b> → <b>Logs</b></li>
+            <li><b>Repositories</b> → <b>&lt;organization_name&gt;</b> / <b>&lt;repository_name&gt;</b> → <b>Logs</b></li>
+            <li><b>Superuser</b> → <b>Usage Logs</b></li>
+          </ul>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ul>
+        <li>The <codeph>busybox:test</codeph> Splunk audit is available.</li>
+      </ul>
+    </result>
+  </taskbody>
+</task>

@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="setup-ldap-configuration">
+  <title>Configuring LDAP for Red Hat Quay</title>
+  <shortdesc>To configure LDAP authentication for Red Hat Quay, you can update your <codeph>config.yaml</codeph> file with the required LDAP fields and restart the registry.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Update your <codeph>config.yaml</codeph> file directly to include the following relevant information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+AUTHENTICATION_TYPE: LDAP
+# ...
+LDAP_ADMIN_DN: uid=&lt;name&gt;,ou=Users,o=&lt;organization_id&gt;,dc=&lt;example_domain_component&gt;,dc=com
+LDAP_ADMIN_PASSWD: ABC123
+LDAP_ALLOW_INSECURE_FALLBACK: false
+LDAP_BASE_DN:
+  - dc=example
+  - dc=com
+LDAP_EMAIL_ATTR: mail
+LDAP_UID_ATTR: uid
+LDAP_URI: ldap://&lt;example_url&gt;.com
+LDAP_USER_FILTER: (memberof=cn=developers,ou=Users,dc=&lt;domain_name&gt;,dc=com)
+LDAP_USER_RDN:
+  - ou=people
+LDAP_SECONDARY_USER_RDNS:
+    - ou=&lt;example_organization_unit_one&gt;
+    - ou=&lt;example_organization_unit_two&gt;
+    - ou=&lt;example_organization_unit_three&gt;
+    - ou=&lt;example_organization_unit_four&gt;
+FEATURE_LDAP_CACHING: true
+LDAP_CACHE_TTL: 10
+# ...</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>AUTHENTICATION_TYPE</codeph>
+              </dt>
+              <dd>Specifies the authentication type. This field is required and must be set to <codeph>LDAP</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_ADMIN_DN</codeph>
+              </dt>
+              <dd>Specifies the admin DN for LDAP authentication. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_ADMIN_PASSWD</codeph>
+              </dt>
+              <dd>Specifies the admin password for LDAP authentication. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_ALLOW_INSECURE_FALLBACK</codeph>
+              </dt>
+              <dd>Specifies whether to allow SSL/TLS insecure fallback for LDAP authentication. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_BASE_DN</codeph>
+              </dt>
+              <dd>Specifies the base DN for LDAP authentication. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_EMAIL_ATTR</codeph>
+              </dt>
+              <dd>Specifies the email attribute for LDAP authentication. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_UID_ATTR</codeph>
+              </dt>
+              <dd>Specifies the UID attribute for LDAP authentication. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_URI</codeph>
+              </dt>
+              <dd>Specifies the LDAP URI. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_USER_FILTER</codeph>
+              </dt>
+              <dd>Specifies the user filter for LDAP authentication. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_USER_RDN</codeph>
+              </dt>
+              <dd>Specifies the user RDN for LDAP authentication. This field is required.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_SECONDARY_USER_RDNS</codeph>
+              </dt>
+              <dd>Optional. Specifies secondary user relative DNs when user objects are located in multiple organizational units.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>FEATURE_LDAP_CACHING</codeph>
+              </dt>
+              <dd>Optional. Specifies whether to enable in-memory caching for LDAP permission check results (superuser, restricted user). Caching reduces LDAP server load. Defaults to <codeph>false</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>LDAP_CACHE_TTL</codeph>
+              </dt>
+              <dd>Specifies the time-to-live, in seconds, for cached LDAP permission results. Defaults to <codeph>60</codeph>.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>After you have added all required LDAP fields, save the changes and restart your Red Hat Quay deployment.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

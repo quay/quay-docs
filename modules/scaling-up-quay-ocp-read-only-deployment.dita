@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="scaling-up-quay-ocp-read-only-deployment">
+  <title>Scaling up the Red Hat Quay from a read-only deployment</title>
+  <shortdesc>To exit read-only mode and restore normal operations in Red Hat Quay, you can remove the read-only settings from the <codeph>config.yaml</codeph> file and scale the Operator deployment back up.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>Depending on your needs, you might wait to scale up the Red Hat Quay deployment after backing up and restoring your regisry.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Edit the <codeph>config.yaml</codeph> file and remove the following information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Scale the Red Hat Quay Operator back up by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc scale --replicas=1 deployment quay-operator -n openshift-operators</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

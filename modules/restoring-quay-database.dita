@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="restoring-quay-database">
+  <title>Restoring your Red Hat Quay database</title>
+  <shortdesc>To restore your Red Hat Quay database from a backup, you can identify the <codeph>database</codeph> pod, upload the backup file, drop the existing database, and restore from the backup using psql. This procedure restores your database to a previous state using a backup SQL file.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Identify your <codeph>Quay</codeph> database pod by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get pod -l quay-component=postgres -n  &lt;quay_namespace&gt; -o jsonpath='{.items[0].metadata.name}'</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>quayregistry-quay-database-59f54bb7-58xs7</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Upload the backup by copying it from the local environment and into the pod by entering the following command:
+</cmd>
+        <info>
+          <codeblock>$ oc cp ./backup.sql -n &lt;quay_namespace&gt; registry-quay-database-66969cd859-n2ssm:/tmp/backup.sql</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Open a remote terminal to the database by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc rsh -n &lt;quay_namespace&gt; registry-quay-database-66969cd859-n2ssm</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter psql by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">bash-4.4$ psql</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>You can list the database by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">postgres=# \l</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">                                                  List of databases
+           Name            |           Owner            | Encoding |  Collate   |   Ctype    |   Access privileges
+----------------------------+----------------------------+----------+------------+------------+-----------------------
+postgres                   | postgres                   | UTF8     | en_US.utf8 | en_US.utf8 |
+quayregistry-quay-database | quayregistry-quay-database | UTF8     | en_US.utf8 | en_US.utf8 |</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Drop the existing database by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">postgres=# DROP DATABASE "quayregistry-quay-database";</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">DROP DATABASE</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Exit the postgres CLI by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">\q</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Redirect your PostgreSQL database to your backup database by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">sh-4.4$ psql &lt; /tmp/backup.sql</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Exit bash by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">sh-4.4$ exit</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

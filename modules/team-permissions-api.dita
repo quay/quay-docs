@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="repo-manage-team-permissions">
+  <title>Managing team permissions by using the Red Hat Quay API</title>
+  <shortdesc>To view, change, or remove a team role on a repository in Red Hat Quay, you can call the repository team permissions API endpoints with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Return permissions for a specified team by using the <codeph>GET /api/v1/repository/{repository}/permissions/team/{teamname}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/permissions/team/&lt;teamname&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"role": "write"}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Return permissions for all teams with the <codeph>GET /api/v1/repository/{repository}/permissions/team/</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/permissions/team/"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"permissions": {"ironmanteam": {"role": "read", "name": "ironmanteam", "avatar": {"name": "ironmanteam", "hash": "8045b2361613622183e87f33a7bfc54e100a41bca41094abb64320df29ef458d", "color": "#969696", "kind": "team"}}, "sillyteam": {"role": "read", "name": "sillyteam", "avatar": {"name": "sillyteam", "hash": "f275d39bdee2766d2404e2c6dbff28fe290969242e9fcf1ffb2cde36b83448ff", "color": "#17becf", "kind": "team"}}}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Change permissions for a specified team by using the <codeph>PUT /api/v1/repository/{repository}/permissions/team/{teamname}</codeph> command. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "&lt;role&gt;"}' \
+  "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/permissions/team/&lt;teamname&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"role": "admin", "name": "superteam", "avatar": {"name": "superteam", "hash": "48cb6d114200039fed5c601480653ae7371d5a8849521d4c3bf2418ea013fc0f", "color": "#9467bd", "kind": "team"}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Delete team permissions with the <codeph>DELETE /api/v1/repository/{repository}/permissions/team/{teamname}</codeph> command. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  "https://quay-server.example.com/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/permissions/team/&lt;teamname&gt;"</codeblock>
+          <p>This command does not return output in the CLI.</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

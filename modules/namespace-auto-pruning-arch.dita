@@ -1,0 +1,180 @@
+<?xml version="1.0"?>
+<!DOCTYPE concept PUBLIC "-//OASIS//DTD DITA Concept//EN" "concept.dtd">
+<concept id="namespace-auto-pruning-arch">
+  <title>Namespace auto-pruning architecture</title>
+  <shortdesc>Red Hat Quay namespace auto-pruning uses database tables for policies and task status and an auto-prune worker that runs configured policies. You can use this overview to understand how policies are stored and executed.</shortdesc>
+  <conbody>
+    <p>For the namespace auto-pruning feature, two distinct database tables within a database schema were created: one for <codeph>namespaceautoprunepolicy</codeph> and another for <codeph>autoprunetaskstatus</codeph>. An auto-prune worker carries out the configured policies.</p>
+    <section id="namespaceautoprunepolicy-database-table">
+      <title>Namespace auto prune policy database table</title>
+      <p>The <codeph>namespaceautoprunepolicy</codeph> database table holds the policy configuration for a single namespace. There is only one entry per namespace, but there is support for multiple rows per <codeph>namespace_id</codeph>. The <codeph>policy</codeph> field holds the policy details, such as <codeph>{method: "creation_date", olderThan: "2w"}</codeph> or <codeph>{method: "number_of_tags",  numTags: 100}</codeph>.</p>
+      <table>
+        <title><codeph>namespaceautoprunepolicy</codeph> database table</title>
+        <tgroup cols="4">
+          <colspec colname="col_1" colwidth="25*"/>
+          <colspec colname="col_2" colwidth="25*"/>
+          <colspec colname="col_3" colwidth="25*"/>
+          <colspec colname="col_4" colwidth="25*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Attributes</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <codeph>uuid</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>character varying (225)</p>
+              </entry>
+              <entry>
+                <p>Unique, indexed</p>
+              </entry>
+              <entry>
+                <p>Unique identifier for this policy</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>namespace_id</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Foreign Key</p>
+              </entry>
+              <entry>
+                <p>Namespace that the policy falls under</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>policy</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>text</p>
+              </entry>
+              <entry>
+                <p>JSON</p>
+              </entry>
+              <entry>
+                <p>Policy configuration</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="autoprunetaskstatus-database-table">
+      <title>Auto-prune task status database table</title>
+      <p>The <codeph>autoprunetaskstatus</codeph> table registers tasks to be executed by the auto-prune worker. Tasks are executed within the context of a single namespace. Only one task per namespace exists.</p>
+      <table>
+        <title><codeph>autoprunetaskstatus</codeph> database table</title>
+        <tgroup cols="4">
+          <colspec colname="col_1" colwidth="25*"/>
+          <colspec colname="col_2" colwidth="25*"/>
+          <colspec colname="col_3" colwidth="25*"/>
+          <colspec colname="col_4" colwidth="25*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Attributes</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <codeph>namespace_id</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Foreign Key</p>
+              </entry>
+              <entry>
+                <p>Namespace that this task belongs to</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>last_ran_ms</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Big Integer (bigint)</p>
+              </entry>
+              <entry>
+                <p>Nullable, indexed</p>
+              </entry>
+              <entry>
+                <p>Last time that the worker executed the policies for this namespace</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>status</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>text</p>
+              </entry>
+              <entry>
+                <p>Nullable</p>
+              </entry>
+              <entry>
+                <p>Details from the last execution task</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="auto-prune-worker">
+      <title>Auto-prune worker</title>
+      <p>The following sections detail information about the auto-prune worker.</p>
+      <dl>
+        <dlentry>
+          <dt>Auto-prune task creation</dt>
+          <dd>When a new policy is created in the <codeph>namespaceautoprunepolicy</codeph> database table, a row is also created in the <codeph>autoprunetask</codeph> table. This is done in the same transaction. The auto-prune worker uses the entry in the <codeph>autoprunetask</codeph> table to identify which namespace it should execute policies for.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>Auto-prune worker execution</dt>
+          <dd>The auto-pruning worker is an asynchronous job that executes configured policies. Its workflow is based on values in the <codeph>autoprunetask</codeph> table. When a task begins, the following occurs:</dd>
+        </dlentry>
+      </dl>
+      <p>The auto-pruning worker is an asynchronous job that executes configured policies. Its workflow is based on values in the <codeph>autoprunetask</codeph> table. When a task begins, the following occurs:</p>
+      <ol>
+        <li>The auto-prune worker starts on a set interval, which defaults at 30 seconds.</li>
+        <li>The auto-prune worker selects a row from <codeph>autoprunetask</codeph> with the least, or null, <codeph>last_ran_ms</codeph> and <codeph>FOR UPDATE SKIP LOCKED</codeph>.
+<ul><li>A null <codeph>last_ran_ms</codeph> indicates that the task was never ran.</li><li>A task that has not run for the longest amount of time, or has never been run at all, is prioritized.</li></ul></li>
+        <li>The auto-prune worker obtains the policy configuration from the <codeph>namespaceautoprunepolicy</codeph> table.
+<ul><li>If no policy configuration exists, the entry from <codeph>autoprunetask</codeph> is deleted for this namespace and the procedure stops immediately.</li></ul></li>
+        <li>The auto-prune worker begins a paginated loop of all repositories under the organization.
+<ul><li>The auto-prune worker determines much pruning method to use based on <codeph>policy.method</codeph>.</li></ul></li>
+        <li>The auto-prune worker executes the pruning method with the policy configuration retrieved earlier.
+<ul><li>For pruning by the number of tags: the auto-pruner worker gets the number of currently active tags sorted by creation date, and deletes the older tags to the configured number.</li><li>For pruning by date: the auto-pruner worker gets the active tags older than the specified time span and any tags returned are deleted.</li></ul></li>
+        <li>The auto-prune worker adds audit logs of the tags deleted.</li>
+        <li>The <codeph>last_ran_ms</codeph> gets updated after a row from <codeph>autoprunetask</codeph> is selected.</li>
+        <li>The auto-prune worker ends.</li>
+      </ol>
+    </section>
+  </conbody>
+</concept>

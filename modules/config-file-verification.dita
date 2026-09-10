@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="config-file-verification">
+  <title>Troubleshooting the configuration file for standalone deployments</title>
+  <shortdesc>To identify configuration errors that prevent your on-premises Red Hat Quay registry from starting, you can deploy the <codeph>quay-registry</codeph> container interactively and review the validation output.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created a minimal configuration file.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Failure to add all of the required configuration field, or to provide the proper information for some parameters, might result in the <codeph>quay-registry</codeph> container failing to deploy. Use the following procedure to view and troubleshoot a failed on-premises deployment type.</p>
+    </context>
+    <steps-unordered>
+      <step>
+        <cmd>Attempt to deploy the <codeph>quay-registry</codeph> container by entering the following command. Note that this command uses the <codeph>-it</codeph>, which shows you debugging information:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman run -it --rm -p 80:8080 -p 443:8443 --name=quay -v /home/&lt;username&gt;/&lt;quay-deployment-directory&gt;/config:/conf/stack:Z    -v /home/&lt;username&gt;/&lt;quay-deployment-directory&gt;/storage:/datastorage:Z 33f1c3dc86be</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">---
++------------------------+-------+--------+
+| LDAP                   | -     | X      |
++------------------------+-------+--------+
+| LDAP_ADMIN_DN is required      | X      |
++-----------------------------------------+
+| LDAP_ADMIN_PSSWD is required   | X      |
++-----------------------------------------+
+| . . . Connection refused       | X      |
++-----------------------------------------+
+---</codeblock>
+          <p>In this example, the <codeph>quay-registry</codeph> container failed to deploy because improper LDAP credentials were provided.</p>
+        </info>
+      </step>
+    </steps-unordered>
+  </taskbody>
+</task>

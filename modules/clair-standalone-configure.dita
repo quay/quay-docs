@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="clair-standalone-configure">
+  <title>Setting up Clair on standalone Red Hat Quay deployments</title>
+  <shortdesc>To configure Clair on a standalone Red Hat Quay deployment, you can deploy a Clair PostgreSQL database, enable security scanning in the configuration tool, and start the Clair container.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>In your Red Hat Quay installation directory, create a new directory for the Clair database data:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir /home/&lt;user-name&gt;/quay-poc/postgres-clairv4</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Set the appropriate permissions for the <codeph>postgres-clairv4</codeph> file by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ setfacl -m u:26:-wx /home/&lt;user-name&gt;/quay-poc/postgres-clairv4</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Deploy a Clair PostgreSQL database by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman run -d --name postgresql-clairv4 \
+  -e POSTGRESQL_USER=clairuser \
+  -e POSTGRESQL_PASSWORD=clairpass \
+  -e POSTGRESQL_DATABASE=clair \
+  -e POSTGRESQL_ADMIN_PASSWORD=adminpass \
+  -p 5433:5432 \
+  -v /home/&lt;user-name&gt;/quay-poc/postgres-clairv4:/var/lib/pgsql/data:Z \
+  registry.redhat.io/rhel8/postgresql-15</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Install the PostgreSQL <codeph>uuid-ossp</codeph> module for your Clair deployment:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman exec -it postgresql-clairv4 /bin/bash -c 'echo "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"" | psql -d clair -U postgres'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">CREATE EXTENSION</codeblock>
+          <note type="note">
+            <p>Clair requires the <codeph>uuid-ossp</codeph> extension to be added to its PostgreSQL database. For users with proper privileges, Clair automatically adds the extension. If users do not have the proper privileges, the extension must be added before you start Clair.</p>
+            <p>If the extension is not present, the following error is displayed when Clair attempts to start: <codeph>ERROR: Please load the "uuid-ossp" extension. (SQLSTATE 42501)</codeph>.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Stop the <codeph>Quay</codeph> container if the container is running and restart it in configuration mode, loading the existing configuration as a volume:
+</cmd>
+        <info>
+          <codeblock>$ sudo podman run --rm -it --name quay_config \
+  -p 80:8080 -p 443:8443 \
+  -v $QUAY/config:/conf/stack:Z \
+  registry.redhat.io/quay/quay-rhel9:v3.18.0 config secret</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Log in to the configuration tool and click <b>Enable Security Scanning</b> in the <b>Security Scanner</b> section of the UI.</cmd>
+      </step>
+      <step>
+        <cmd>Set the HTTP endpoint for Clair using a port that is not already in use on the <codeph>quay-server</codeph> system, for example, <codeph>8081</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>Create a pre-shared key (PSK) using the <b>Generate PSK</b> button.
+</cmd>
+        <info>
+          <p>The following image shows the Security Scanner UI:</p>
+          <p>
+            <image href="../images/poc-quay-scanner-config.png" placement="inline">
+              <alt>Security Scanner</alt>
+            </image>
+          </p>
+        </info>
+      </step>
+      <step>
+        <cmd>Validate and download the <codeph>config.yaml</codeph> file for Red Hat Quay, and then stop the <codeph>Quay</codeph> container that is running the configuration editor.</cmd>
+      </step>
+      <step>
+        <cmd>Extract the new configuration bundle into your Red Hat Quay installation directory, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ tar xvf quay-config.tar.gz -d /home/&lt;user-name&gt;/quay-poc/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a folder for your Clair configuration file, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir /etc/opt/clairv4/config/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Change into the Clair configuration folder:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cd /etc/opt/clairv4/config/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a Clair configuration file, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">http_listen_addr: :8081
+introspection_addr: :8088
+log_level: debug
+indexer:
+  connstring: host=quay-server.example.com port=5433 dbname=clair user=clairuser password=clairpass sslmode=disable
+  scanlock_retry: 10
+  layer_scan_concurrency: 5
+  migrations: true
+matcher:
+  connstring: host=quay-server.example.com port=5433 dbname=clair user=clairuser password=clairpass sslmode=disable
+  max_conn_pool: 100
+  migrations: true
+  indexer_addr: clair-indexer
+notifier:
+  connstring: host=quay-server.example.com port=5433 dbname=clair user=clairuser password=clairpass sslmode=disable
+  delivery_interval: 1m
+  poll_interval: 5m
+  migrations: true
+auth:
+  psk:
+    key: "MTU5YzA4Y2ZkNzJoMQ=="
+    iss: ["quay"]
+# tracing and metrics
+trace:
+  name: "jaeger"
+  probability: 1
+  jaeger:
+    agent:
+      endpoint: "localhost:6831"
+    service_name: "clair"
+metrics:
+  name: "prometheus"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Start Clair by using the container image, mounting in the configuration from the file you created:
+</cmd>
+        <info>
+          <codeblock>$ sudo podman run -d --name clairv4 \
+-p 8081:8081 -p 8088:8088 \
+-e CLAIR_CONF=/clair/config.yaml \
+-e CLAIR_MODE=combo \
+-v /etc/opt/clairv4/config:/clair:Z \
+registry.redhat.io/quay/clair-rhel9:v3.18.0</codeblock>
+          <note type="note">
+            <p>Running multiple Clair containers is also possible, but for deployment scenarios beyond a single container the use of a container orchestrator like Kubernetes or OpenShift Container Platform is strongly recommended.</p>
+          </note>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

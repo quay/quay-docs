@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-a-build-trigger">
+  <title>Creating a build trigger</title>
+  <shortdesc>To automate container image builds from your Git repositories, you can create a custom Git build trigger in Red Hat Quay. Build triggers automatically build and push images when you push code to your Git repository.</shortdesc>
+  <taskbody>
+    <context>
+      <p>The following steps can be replicated to create a <i>build trigger</i> using Github, Gitlab, or Bitbucket, however, you must configure the credentials for these services in your <codeph>config.yaml</codeph> file.</p>
+      <note type="note">
+        <ul>
+          <li>If you want to use Github to create a <i>build trigger</i>, you must configure Github to be used with Red Hat Quay by creating an OAuth application. For more information, see "Creating an OAuth application Github".</li>
+        </ul>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Log in to your Red Hat Quay registry.</cmd>
+      </step>
+      <step>
+        <cmd>In the navigation pane, click <b>Repositories</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Create Repository</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click the <b>Builds</b> tab.</cmd>
+      </step>
+      <step>
+        <cmd>On the <b>Builds</b> page, click <b>Create Build Trigger</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Select the desired platform, for example, <b>Github</b>, <b>Bitbucket</b>, <b>Gitlab</b>, or use a custom Git repository. For this example, click <b>Custom Git Repository Push</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Enter a custom Git repository name, for example, <codeph>git@github.com:&lt;username&gt;/&lt;repo&gt;.git</codeph>. Then, click <b>Next</b>.</cmd>
+      </step>
+      <step>
+        <cmd>When prompted, configure the tagging options by selecting one of, or both of, the following options:
+</cmd>
+        <info>
+          <ul>
+            <li><b>Tag manifest with the branch or tag name</b>. When selecting this option, the built manifest the name of the branch or tag for the git commit are tagged.</li>
+            <li><b>Add <codeph>latest</codeph> tag if on default branch</b>. When selecting this option, the built manifest with latest if the build occurred on the default branch for the repository are tagged.
+<p>Optionally, you can add a custom tagging template. There are multiple tag templates that you can enter here, including using short SHA IDs, timestamps, author names, committer, and branch names from the commit as tags. For more information, see "Tag naming for build triggers".</p><p>After you have configured tagging, click <b>Next</b>.</p></li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>When prompted, select the location of the Dockerfile to be built when the trigger is invoked. If the Dockerfile is located at the root of the git repository and named Dockerfile, enter <b>/Dockerfile</b> as the Dockerfile path. Then, click <b>Next</b>.</cmd>
+      </step>
+      <step>
+        <cmd>When prompted, select the context for the Docker build. If the Dockerfile is located at the root of the Git repository, enter <codeph>/</codeph> as the build context directory. Then, click <b>Next</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Optional. Choose an optional robot account. This allows you to pull a private base image during the build process. If you know that a private base image is not used, you can skip this step.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Next</b>. Check for any verification warnings. If necessary, fix the issues before clicking <b>Finish</b>.</cmd>
+      </step>
+      <step>
+        <cmd>You are alerted that the trigger has been successfully activated. Note that using this trigger requires the following actions:
+</cmd>
+        <info>
+          <ul>
+            <li>You must give the following public key read access to the git repository.</li>
+            <li>You must set your repository to <codeph>POST</codeph> to the following URL to trigger a build.
+<p>Save the SSH Public Key, then click <b>Return to &lt;organization_name&gt;/&lt;repository_name&gt;</b>. You are redirected to the <b>Builds</b> page of your repository.</p></li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>On the <b>Builds</b> page, you now have a <i>build trigger</i>. For example:
+</cmd>
+        <info>
+          <p>
+            <image href="../images/build-trigger-example.png" placement="inline">
+              <alt>Example Build trigger</alt>
+            </image>
+          </p>
+          <p>After you have created a custom Git trigger, additional steps are required. Continue on to "Setting up a custom Git trigger".</p>
+          <p>If you are setting up a <i>build trigger</i> for Github, Gitlab, or Bitbucket, continue on to "Manually triggering a build".</p>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

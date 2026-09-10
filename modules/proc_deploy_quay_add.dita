@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="deploying-quay-ha">
+  <title>Deploying Red Hat Quay registry nodes</title>
+  <shortdesc>To deploy Red Hat Quay in a high availability cluster, you can start the registry container on each node with the shared <codeph>config.yaml</codeph> bundle and verify access through the load balancer.</shortdesc>
+  <taskbody>
+    <context>
+      <p>For a basic setup, you can deploy on a single node. For high availability, deploy three or more nodes, for example <codeph>quay01</codeph>, <codeph>quay02</codeph>, and <codeph>quay03</codeph>.</p>
+      <note type="note">
+        <p>The resulting Red Hat Quay service listens on port <codeph>8080</codeph> for HTTP and port <codeph>8443</codeph> for HTTPS.
+This differs from earlier releases, which listened on ports <codeph>80</codeph> and <codeph>443</codeph> respectively.
+This guide maps <codeph>8080</codeph> and <codeph>8443</codeph> to standard ports <codeph>80</codeph> and <codeph>443</codeph> on the host.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>On each Red Hat Quay node, confirm that <codeph>/mnt/quay/config</codeph> contains <codeph>config.yaml</codeph> and any required TLS certificate files from <xref href="#configuring-quay-ha" format="html" scope="external">Configuring Red Hat Quay</xref>.</cmd>
+      </step>
+      <step>
+        <cmd>Deploy Red Hat Quay on the node. After you authenticate to <codeph>registry.redhat.io</codeph> (see <i>Additional resources</i>), run the following command:
+</cmd>
+        <info>
+          <note type="note">
+            <p>Add <codeph>-e DEBUGLOG=true</codeph> to the <codeph>podman run</codeph> command line for the <codeph>Quay</codeph> container to enable debug-level logging.
+Add <codeph>-e IGNORE_VALIDATION=true</codeph> to bypass validation during the startup process.</p>
+          </note>
+          <codeblock># sudo podman run --restart=always -p 443:8443 -p 80:8080 \
+   --sysctl net.core.somaxconn=4096 \
+   --privileged=true \
+   -v /mnt/quay/config:/conf/stack:Z \
+   -v /mnt/quay/storage:/datastorage:Z \
+   -d registry.redhat.io/quay/quay-rhel9:v3.18.0</codeblock>
+          <note type="note">
+            <p>Create <codeph>/mnt/quay/storage</codeph> on each node before running the registry container. Image blobs are stored in Ceph Object Gateway for this high availability example, but Red Hat Quay still uses <codeph>/datastorage</codeph> for the <codeph>storage_path</codeph> defined in <codeph>config.yaml</codeph>.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Open a browser to the URL of the node running the <codeph>Quay</codeph> container.</cmd>
+      </step>
+      <step>
+        <cmd>Log in to Red Hat Quay with the superuser account defined in <codeph>config.yaml</codeph> and confirm that the registry is working.</cmd>
+      </step>
+      <step>
+        <cmd>Repeat the deployment on the remaining Red Hat Quay nodes in the cluster.</cmd>
+      </step>
+      <step>
+        <cmd>Optional. To add Clair image scanning or repository mirroring, continue with the following sections.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

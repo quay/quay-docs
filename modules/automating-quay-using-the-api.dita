@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="automating-quay-using-the-api">
+  <title>Automating Red Hat Quay processes by using the API</title>
+  <shortdesc>To automate repetitive Red Hat Quay tasks such as repository management or image pruning, you can call the API from scripts and schedule them with cron.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have access to the Red Hat Quay API, which entails having already created an OAuth 2 access token.</li>
+        <li>You have installed the Python <codeph>requests</codeph> library.</li>
+        <li>You have enabled cron jobs on your machine.</li>
+        <li>You have created several organization applications, including one that you do not want to delete.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>With the API, Red Hat Quay administrators and users with access to the API can automate repetitive tasks such as repository management or image pruning.</p>
+      <p>The following example shows you how you might use a Python script and a cron job to automate the deletion of OAuth 2 applications <i>except</i> the administrator’s token. This might be useful if you want to ensure an application associated with an OAuth 2 access token is cycled after a certain period of time.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Create a Python script that executes an API command. The following example deletes organization applications by using the <codeph>DELETE /api/v1/organization/{orgname}/applications/{client_id}</codeph> API endpoint.
+</cmd>
+        <info>
+          <p>Create the following <codeph>example.py</codeph> file:</p>
+          <codeblock outputclass="language-python">import requests
+
+# Hard-coded values
+API_BASE_URL = "http://&lt;quay-server.example.com&gt;/api/v1"
+ACCESS_TOKEN = "&lt;access_token&gt;"
+ORG_NAME = "&lt;organization_name&gt;"
+
+def get_all_organization_applications():
+    url = f"{API_BASE_URL}/organization/{ORG_NAME}/applications"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        try:
+            applications = response.json()
+            # Print the raw response for debugging
+            print("Raw response:", applications)
+
+            # Adjust parsing logic based on the response structure
+            if isinstance(applications, dict) and 'applications' in applications:
+                applications = applications['applications']
+
+            if isinstance(applications, list):
+                print("Organization applications retrieved successfully:")
+                for app in applications:
+                    # Updated key from 'title' to 'name'
+                    print(f"Name: {app['name']}, Client ID: {app['client_id']}")
+                return applications
+            else:
+                print("Unexpected response format.")
+                return []
+        except requests.exceptions.JSONDecodeError:
+            print("Error decoding JSON response:", response.text)
+            return []
+    else:
+        print(f"Failed to retrieve applications. Status code: {response.status_code}, Response: {response.text}")
+        return []
+
+def delete_organization_application(client_id):
+    url = f"{API_BASE_URL}/organization/{ORG_NAME}/applications/{client_id}"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}"
+    }
+
+    response = requests.delete(url, headers=headers)
+
+    if response.status_code == 204:
+        print(f"Application {client_id} deleted successfully.")
+    else:
+        print(f"Failed to delete application {client_id}. Status code: {response.status_code}, Response: {response.text}")
+
+def main():
+    applications = get_all_organization_applications()
+    for app in applications:
+        if app['name'] != "&lt;admin_token_app&gt;":  # Skip the "admin-token-app"
+            delete_organization_application(app['client_id'])
+        else:
+            print(f"Skipping deletion of application: {app['name']}")
+
+# Execute the main function
+main()</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>import requests</codeph>
+              </dt>
+              <dd>Specifies that the <codeph>requests</codeph> library is included in your Python code.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>API_BASE_URL</codeph>
+              </dt>
+              <dd>Specifies the URL of your registry appended with <codeph>/api/v1</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ACCESS_TOKEN</codeph>
+              </dt>
+              <dd>Specifies your OAuth 2 access token.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ORG_NAME</codeph>
+              </dt>
+              <dd>Specifies the organization that holds the application.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>"&lt;admin_token_app&gt;"</codeph>
+              </dt>
+              <dd>Specifies the name of the application token to remain.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Save the script as <codeph>prune_applications.py</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>Create a cron job that automatically runs the script:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Open the crontab editor by running the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ crontab -e</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>In the editor, add the cron job for running the script. The following example runs the script once per month:
+</cmd>
+            <info>
+              <codeblock outputclass="language-text">0 0 1 * * sudo python /path/to/prune_images.py &gt;&gt; /var/log/prune_images.log 2&gt;&amp;1</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

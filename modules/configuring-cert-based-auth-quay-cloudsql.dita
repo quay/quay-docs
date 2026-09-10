@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="configuring-cert-based-auth-quay-sql">
+  <title>Configuring certificate-based authentication with SQL</title>
+  <shortdesc>To connect Red Hat Quay to an SQL database with client-side certificates, you can create a <codeph>configBundleSecret</codeph> that includes TLS certificate files and update <codeph>DB_CONNECTION_ARGS</codeph> and <codeph>DB_URI</codeph> in the <codeph>config.yaml</codeph> file.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have generated custom Certificate Authorities (CAs) and your SSL/TLS certificates and keys are available in <codeph>PEM</codeph> format that will be used to generate an SSL connection with your CloudSQL database. For more information, see <xref href="quay_jtbd-secure.dita#ssl-tls-quay-overview">SSL and TLS for Red Hat Quay</xref>.</li>
+        <li>You have <codeph>base64 decoded</codeph> the original config bundle into a <codeph>config.yaml</codeph> file. For more information, see <xref href="quay_jtbd-configure.dita#operator-config-cli-download">Downloading the existing configuration</xref>.</li>
+        <li>You are using an externally managed PostgreSQL or CloudSQL database. For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-unmanaged-postgres" format="html" scope="external">Using and existing PostgreSQL database</xref> with the <codeph>DB_URI</codeph> variable set.</li>
+        <li>Your externally managed PostgreSQL or CloudSQL database is configured for SSL/TLS.</li>
+        <li>The <codeph>postgres</codeph> component of your <codeph>QuayRegistry</codeph> CRD is set to <codeph>managed: false</codeph>, and your CloudSQL database is set with the <codeph>DB_URI</codeph> configuration variable. The following procedure uses <codeph>postgresql://&lt;cloudsql_username&gt;:&lt;dbpassword&gt;@&lt;database_host&gt;:&lt;port&gt;/&lt;database_name&gt;</codeph>.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>This procedure uses CloudSQL as an example and also applies to PostgreSQL and other supported databases.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>After you have generated the CAs and SSL/TLS certificates and keys for your CloudSQL database and ensured that they are in <codeph>.pem</codeph> format, test the SSL connection to your CloudSQL server:
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Initiate a connection to your CloudSQL server by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ psql "sslmode=verify-ca sslrootcert=&lt;ssl_server_certificate_authority&gt;.pem sslcert=&lt;ssl_client_certificate&gt;.pem sslkey=&lt;ssl_client_key&gt;.pem hostaddr=&lt;database_host&gt; port=&lt;5432&gt; user=&lt;cloudsql_username&gt; dbname=&lt;cloudsql_database_name&gt;"</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>In your Red Hat Quay directory, create a new YAML file, for example, <codeph>quay-config-bundle.yaml</codeph>, by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ touch quay-config-bundle.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a <codeph>postgresql-client-certs</codeph> resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc -n &lt;quay_namespace&gt; create secret generic postgresql-client-certs \
+--from-file config.yaml=&lt;path/to/config.yaml&gt; \
+--from-file=tls.crt=&lt;path/to/ssl_client_certificate.pem&gt; \
+--from-file=tls.key=&lt;path/to/ssl_client_key.pem&gt; \
+--from-file=ca.crt=&lt;path/to/ssl_server_certificate.pem&gt;</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>config.yaml=&lt;path/to/config.yaml&gt;</codeph>
+              </dt>
+              <dd>Specifies your base64 decoded <codeph>config.yaml</codeph> file.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>tls.crt=&lt;path/to/ssl_client_certificate.pem&gt;</codeph>
+              </dt>
+              <dd>Specifies your SSL certificate in <codeph>.pem</codeph> format.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>tls.key=&lt;path/to/ssl_client_key.pem&gt;</codeph>
+              </dt>
+              <dd>Specifies your SSL key in <codeph>.pem</codeph> format.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>ca.crt=&lt;path/to/ssl_server_certificate.pem&gt;</codeph>
+              </dt>
+              <dd>Specifies your SSL root CA in <codeph>.pem</codeph> format.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Edit your <codeph>`quay-config-bundle.yaml</codeph> file to include the following database connection settings:
+</cmd>
+        <info>
+          <note type="important">
+            <ul>
+              <li>The information included in the <codeph>DB_CONNECTION_ARGS</codeph> variable, for example, <codeph>sslmode</codeph>, <codeph>sslrootcert</codeph>, <codeph>sslcert</codeph>, and <codeph>sslkey</codeph><b>must</b> match the information appended to the <codeph>DB_URI</codeph> variable. Failure to match might result in a failed connection.</li>
+              <li>You cannot specify custom filenames or paths. Certificate file paths for <codeph>sslrootcert</codeph>, <codeph>sslcert</codeph>, and <codeph>sslkey</codeph> are hardcoded defaults and mounted into the <codeph>Quay</codeph> pod from the Kubernetes secret. You must adhere to the following naming conventions or it will result in a failed connection.</li>
+            </ul>
+          </note>
+          <codeblock outputclass="language-yaml">DB_CONNECTION_ARGS:
+    autorollback: true
+    sslmode: verify-ca
+    sslrootcert: /.postgresql/root.crt
+    sslcert: /.postgresql/postgresql.crt
+    sslkey: /.postgresql/postgresql.key
+    threadlocals: true
+DB_URI: postgresql://&lt;dbusername&gt;:&lt;dbpassword&gt;@&lt;database_host&gt;:&lt;port&gt;/&lt;database_name&gt;?sslmode=verify-full&amp;sslrootcert=/.postgresql/root.crt&amp;sslcert=/.postgresql/postgresql.crt&amp;sslkey=/.postgresql/postgresql.key</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>DB_CONNECTION_ARGS.sslmode</codeph>
+              </dt>
+              <dd>Specifies <codeph>verify-ca</codeph>, which ensures that the database connection uses SSL/TLS and verifies the server certificate against a trusted CA. This can work with both trusted CA and self-signed CA certificates. However, this mode does not verify the hostname of the server. For full hostname and certificate verification, use <codeph>verify-full</codeph>. For more information about the configuration options available, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#config-fields-postgres" format="html" scope="external">PostgreSQL SSL/TLS connection arguments</xref>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DB_CONNECTION_ARGS.sslrootcert</codeph>
+              </dt>
+              <dd>Specifies the <codeph>root.crt</codeph> file that contains the root certificate used to verify the SSL/TLS connection with your CloudSQL database. This file is mounted in the <codeph>Quay</codeph> pod from the Kubernetes secret.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DB_CONNECTION_ARGS.sslcert</codeph>
+              </dt>
+              <dd>Specifies the <codeph>postgresql.crt</codeph> file that contains the client certificate used to authenticate the connection to your CloudSQL database. This file is mounted in the <codeph>Quay</codeph> pod from the Kubernetes secret.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DB_CONNECTION_ARGS.sslkey</codeph>
+              </dt>
+              <dd>Specifies the <codeph>postgresql.key</codeph> file that contains the private key associated with the client certificate. This file is mounted in the <codeph>Quay</codeph> pod from the Kubernetes secret.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DB_CONNECTION_ARGS.threadlocals</codeph>
+              </dt>
+              <dd>Specifies auto-rollback for connections.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>DB_URI</codeph>
+              </dt>
+              <dd>Specifies the URI that accesses your CloudSQL database. Must be appended with the <codeph>sslmode</codeph> type, your <codeph>root.crt</codeph>, <codeph>postgresql.crt</codeph>, and <codeph>postgresql.key</codeph> files. The SSL/TLS information included in <codeph>DB_URI</codeph> must match the information provided in <codeph>DB_CONNECTION_ARGS</codeph>. If you are using CloudSQL, you must include your database username and password in this variable.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Create the <codeph>configBundleSecret</codeph> resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create -n &lt;namespace&gt; -f quay-config-bundle.yaml</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">secret/quay-config-bundle created</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update the <codeph>QuayRegistry</codeph> YAML file to reference the <codeph>quay-config-bundle</codeph> object by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc patch quayregistry &lt;registry_name&gt; -n &lt;namespace&gt; --type=merge -p '{"spec":{"configBundleSecret":"quay-config-bundle"}}'</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">quayregistry.quay.redhat.com/example-registry patched</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Ensure that your <codeph>QuayRegistry</codeph> YAML file has been updated to use the extra CA certificate <codeph>configBundleSecret</codeph> resource by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get quayregistry &lt;registry_name&gt; -n &lt;namespace&gt; -o yaml</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal"># ...
+  configBundleSecret: quay-config-bundle
+# ...</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

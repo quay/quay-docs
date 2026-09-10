@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="org-delete-api">
+  <title>Deleting an organization by using the Red Hat Quay API</title>
+  <shortdesc>To delete an organization in Red Hat Quay, you can call the organization API endpoint with an OAuth access token.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to delete an organization by using the <codeph>DELETE /api/v1/organization/{orgname}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>The CLI does not return information when you delete an organization. To confirm deletion, you can check the Red Hat Quay UI, or you can enter the <codeph>GET /api/v1/organization/{orgname}</codeph> command to see if details are returned for the deleted organization:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"detail": "Not Found", "error_message": "Not Found", "error_type": "not_found", "title": "not_found", "type": "http://&lt;quay-server.example.com&gt;/api/v1/error/not_found", "status": 404}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

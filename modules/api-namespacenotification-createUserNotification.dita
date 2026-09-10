@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="createusernotification">
+  <title>createUserNotification</title>
+  <shortdesc>Create User Notification.</shortdesc>
+  <refbody>
+    <section id="createusernotification-post">
+      <title>POST /api/v1/user/namespacenotifications</title>
+      <p><b>Authorizations: </b>oauth2_implicit (<b>user:admin</b>)</p>
+    </section>
+    <section id="createusernotification-request-body-schema">
+      <title>Request body schema (application/json)</title>
+      <p>Create a notification for a user namespace</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>Name</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>event</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The event that triggers this notification. Options include <codeph>quota_warning</codeph> and
+<codeph>quota_error</codeph>. Warning-type quota limits trigger <codeph>quota_warning</codeph> notifications. Reject-type limits trigger <codeph>quota_error</codeph> notifications. Deleting a quota configuration automatically removes all associated <codeph>quota_warning</codeph> and <codeph>quota_error</codeph> notification rules for that namespace to prevent orphaned settings. Recreating a quota requires setting up new notification rules.</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>method</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>The notification delivery method. Options include <codeph>email</codeph>, <codeph>slack</codeph>, <codeph>webhook</codeph>,
+<codeph>quay_notification</codeph>, <codeph>flowdock</codeph>, and <codeph>hipchat</codeph>.</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>config</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>JSON configuration for the notification method. Configuration varies by method
+type. For the <codeph>email</codeph> method on a user namespace, providing an empty object (<codeph>"config": {}</codeph>) is valid because recipient routing is handled server-side and notifications are sent to the user account email address.</p>
+              </entry>
+              <entry>
+                <p>object</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>eventConfig</b>
+                </p>
+                <p>
+                  <i>required</i>
+                </p>
+              </entry>
+              <entry>
+                <p>JSON configuration for filtering which events trigger the notification.</p>
+              </entry>
+              <entry>
+                <p>object</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>title</b>
+                </p>
+                <p>
+                  <i>optional</i>
+                </p>
+              </entry>
+              <entry>
+                <p>Optional user-friendly title for the notification.</p>
+              </entry>
+              <entry>
+                <p>string</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createusernotification-responses">
+      <title>Responses</title>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="*"/>
+          <colspec colname="col_2" colwidth="*"/>
+          <colspec colname="col_3" colwidth="*"/>
+          <thead>
+            <row>
+              <entry>HTTP Code</entry>
+              <entry>Description</entry>
+              <entry>Schema</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>201</p>
+              </entry>
+              <entry>
+                <p>Successful creation</p>
+              </entry>
+              <entry/>
+            </row>
+            <row>
+              <entry>
+                <p>400</p>
+              </entry>
+              <entry>
+                <p>Bad Request</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>401</p>
+              </entry>
+              <entry>
+                <p>Session required</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>403</p>
+              </entry>
+              <entry>
+                <p>Unauthorized access</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>404</p>
+              </entry>
+              <entry>
+                <p>Not found</p>
+              </entry>
+              <entry>
+                <p>
+                  <xref href="#_apierror">ApiError</xref>
+                </p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="createusernotification-example-command">
+      <title>Example command</title>
+      <codeblock outputclass="language-terminal">$ curl -X POST \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Content-Type: application/json" \
+--data '{
+    "event": "quota_warning",
+    "method": "email",
+    "config": {},
+    "eventConfig": {}
+}' \
+https://&lt;quay-server.example.com&gt;/api/v1/user/namespacenotifications</codeblock>
+    </section>
+  </refbody>
+</reference>

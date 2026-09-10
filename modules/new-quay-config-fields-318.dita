@@ -1,0 +1,279 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="new-quay-config-fields-318">
+  <title>Red Hat Quay configuration fields updates and changes</title>
+  <shortdesc>You can review configuration fields that are new or changed in Red Hat Quay 3.18, including OIDC multi-issuer settings, QuayRegistry TLS fields, and programmatic bootstrap options.</shortdesc>
+  <refbody>
+    <section id="ssl-protocols-ciphers-operator-inheritance">
+      <title>SSL_PROTOCOLS and SSL_CIPHERS Operator inheritance on OpenShift Container Platform</title>
+      <p>When you deploy Red Hat Quay on OpenShift Container Platform, the Operator can populate the existing <codeph>SSL_PROTOCOLS</codeph> and <codeph>SSL_CIPHERS</codeph> fields from the cluster-wide OpenShift Container Platform <codeph>tlsSecurityProfile</codeph> when neither field is set in the <codeph>configBundleSecret</codeph> resource. To fully override or preserve TLS behavior, set both fields. Setting either field disables cluster-profile inheritance for both fields.</p>
+      <p>For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#operator-ocp-tls-security-profile" format="html" scope="external">OpenShift Container Platform cluster TLS security profile inheritance</xref> and <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/upgrade_red_hat_quay/index#preserving-tls-settings-operator-upgrade_upgrade_red_hat_quay_on_openshift_container_platform" format="html" scope="external">Preserving TLS settings before upgrading Red Hat Quay on OpenShift Container Platform</xref>.</p>
+    </section>
+    <section id="oidc-multi-issuer-config-fields-318">
+      <title>OIDC multi-issuer and multi-audience fields</title>
+      <p>The following optional fields were added to <codeph>*_LOGIN_CONFIG</codeph> blocks in Red Hat Quay 3.18:</p>
+      <table>
+        <title>OIDC multi-issuer fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>   .OIDC_ISSUERS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>Accepted issuer URLs for the provider. When set, Red Hat Quay accepts tokens whose <codeph>iss</codeph> claim matches any entry. If not set, Red Hat Quay uses the existing <codeph>OIDC_ISSUER</codeph> value.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .OIDC_AUDIENCES</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>Accepted audience values for bearer token and On-Behalf-Of (OBO) flows. When set, Red Hat Quay validates the token <codeph>aud</codeph> claim against this list. <codeph>CLIENT_ID</codeph> is always implicitly included. If not set, audience validation defaults to <codeph>CLIENT_ID</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>   .OIDC_ALLOWED_CLIENTS</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Array of String</p>
+              </entry>
+              <entry>
+                <p>Optional whitelist of authorized party (<codeph>azp</codeph>) client IDs. When set, only tokens from these client applications are accepted. If not set, all clients are accepted.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p>If both <codeph>OIDC_ISSUER</codeph> and <codeph>OIDC_ISSUERS</codeph> are set, <codeph>OIDC_ISSUERS</codeph> takes precedence and Red Hat Quay logs a warning.</p>
+      <p>For field reference details, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#oidc-config-fields" format="html" scope="external">OIDC configuration fields</xref>. For configuration examples, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/manage_red_hat_quay/index#configuring-entra-v2-multi-issuer-oidc" format="html" scope="external">Configuring Microsoft Entra ID v2 and multi-issuer OIDC</xref>.
+The following configuration fields have been added to Red Hat Quay 3.18.</p>
+    </section>
+    <section id="quayregistry-tls-secretref">
+      <title>QuayRegistry TLS component fields</title>
+      <p>The following fields apply to the <codeph>tls</codeph> entry in <codeph>spec.components</codeph> of the <codeph>QuayRegistry</codeph> CR when deploying Red Hat Quay on OpenShift Container Platform.</p>
+      <table>
+        <title>QuayRegistry TLS component fields</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="40*"/>
+          <colspec colname="col_2" colwidth="20*"/>
+          <colspec colname="col_3" colwidth="40*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <codeph>secretRef</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>References an external TLS Secret in the same namespace as the <codeph>QuayRegistry</codeph> CRD. Valid only when <codeph>managed</codeph> is <codeph>false</codeph>. The Secret must be of type <codeph>kubernetes.io/tls</codeph> and contain <codeph>tls.crt</codeph> and <codeph>tls.key</codeph> data keys. The Operator watches the Secret and triggers a rolling restart of Red Hat Quay pods when certificate data changes. Do not use with <codeph>ssl.cert</codeph> and <codeph>ssl.key</codeph> files in the <codeph>configBundleSecret</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>secretRef.name</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Name of the Kubernetes Secret that stores the TLS certificate and private key.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table>
+        <title>QuayRegistry TLS status condition</title>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="40*"/>
+          <colspec colname="col_2" colwidth="20*"/>
+          <colspec colname="col_3" colwidth="40*"/>
+          <thead>
+            <row>
+              <entry>Condition</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <codeph>ComponentTLSReady</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Status</p>
+              </entry>
+              <entry>
+                <p>Reports whether TLS from the configured source (external Secret or config bundle) is valid and applied to the registry deployment.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p>For procedures and examples, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#operator-external-tls-secret-reference" format="html" scope="external">Referencing an external TLS Secret for Red Hat Quay on OpenShift Container Platform</xref>.</p>
+    </section>
+    <section id="programmatic-bootstrap-config-fields-318">
+      <title>Programmatic bootstrap configuration fields</title>
+      <p>Red Hat Quay 3.18 adds configuration fields for Tech Preview programmatic bootstrap OAuth token provisioning:</p>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="33.3333*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="50.0001*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <codeph>FEATURE_PROGRAMMATIC_BOOTSTRAP</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Enables bootstrap token auto-generation on startup. Default: <codeph>false</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>BOOTSTRAP_TOKEN_OWNER</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Superuser that owns the bootstrap OAuth application and token. Required when the feature flag is enabled.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>BOOTSTRAP_TOKEN_PATH</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Local filesystem path for the bootstrap token JSON. Default: <codeph>/var/lib/quay/quay-machine-token.json</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>BOOTSTRAP_TOKEN_EXPIRATION</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Bootstrap token lifetime in seconds. Default: <codeph>3600</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>BOOTSTRAP_TOKEN_SCOPE</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Space-separated OAuth scopes for the bootstrap token.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>PROGRAMMATIC_TOKEN_K8S_SECRET</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Kubernetes Secret name for bootstrap token storage.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>PROGRAMMATIC_TOKEN_K8S_KEY</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Secret data key for the bootstrap token JSON. Default: <codeph>token.json</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <codeph>PROGRAMMATIC_TOKEN_K8S_NAMESPACE</codeph>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Namespace for the bootstrap token Secret.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <p>For descriptions and YAML examples, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#config-fields-programmatic-bootstrap" format="html" scope="external">Programmatic bootstrap configuration fields</xref>.</p>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="exchanging-oauth2-robot-account-token">
+  <title>Exchanging an OAuth2 access token for a Red Hat Quay robot account token</title>
+  <shortdesc>To authenticate with a federated robot account in Red Hat Quay, you can exchange an OAuth2 access token for a short-lived robot token by using a Python script.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have the <codeph>python3</codeph> CLI tool installed.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <p>The following example uses a Python script to exchange the OAuth2 access token for a Red Hat Quay robot account token.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Save the following Python script in a <codeph>.py</codeph> file, for example, <codeph>robot_fed_token_auth.py</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-python">import requests
+import os
+
+TOKEN=os.environ.get('TOKEN')
+robot_user = "fed-test+robot1"
+
+def get_quay_robot_token(fed_token):
+    URL = "https://&lt;quay-server.example.com&gt;/oauth2/federation/robot/token"
+    response = requests.get(URL, auth=(robot_user,fed_token))
+    print(response)
+    print(response.text)
+
+if __name__ == "__main__":
+    get_quay_robot_token(TOKEN)</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>response = requests.get(URL, auth=(robot_user,fed_token))</codeph>
+              </dt>
+              <dd>Specifies the request that retrieves the robot token. If your Red Hat Quay deployment is using custom SSL/TLS certificates, the response must be <codeph>response = requests.get(URL,auth=(robot_user,fed_token),verify=False)</codeph>, which includes the <codeph>verify=False</codeph> flag.</dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Export the OAuth2 access token as <codeph>TOKEN</codeph>. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export TOKEN=&lt;export_token&gt;...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Run the <codeph>robot_fed_token_auth.py</codeph> script by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ python3 robot_fed_token_auth.py</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">&lt;Response [200]&gt;
+{"token": "string..."}</codeblock>
+          <note type="important">
+            <p>This token expires after one hour. After one hour, you must generate a new token.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Export the robot account access token as <codeph>QUAY_TOKEN</codeph>. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export QUAY_TOKEN=&lt;quay_token&gt;</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

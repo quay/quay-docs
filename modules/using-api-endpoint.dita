@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="using-api-endpoint">
+  <title>Using a Red Hat Quay API endpoint</title>
+  <shortdesc>To use an API endpoint, you pass in your access token and then include the appropriate fields depending on your needs.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have access to the Red Hat Quay API, which entails having already created an OAuth 2 access token.</li>
+      </ul>
+    </prereq>
+    <steps-unordered>
+      <step>
+        <cmd>Create a user application by entering the <codeph>POST /api/v1/user/apptoken</codeph> API call:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X POST \
+  -H "Authorization: Bearer &lt;access_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "MyAppToken"
+  }' \
+  "http://quay-server.example.com/api/v1/user/apptoken"</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>&lt;access_token&gt;</codeph>
+              </dt>
+              <dd>Specifies the OAuth access token.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>"MyAppToken"</codeph>
+              </dt>
+              <dd>Specifies the name of your application token.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>
+                  <xref href="http://quay-server.example.com/api/v1/user/apptoken" format="html" scope="external">http://quay-server.example.com/api/v1/user/apptoken</xref>
+                </codeph>
+              </dt>
+              <dd>
+                <p>Specifies your Red Hat Quay deployment appended with the <codeph>/api/v1/user/apptoken</codeph> endpoint.</p>
+                <p outputclass="title">
+                  <b>Example output</b>
+                </p>
+                <codeblock outputclass="language-terminal">{"token": {"uuid": "6b5aa827-cee5-4fbe-a434-4b7b8a245ca7", "title": "MyAppToken", "last_accessed": null, "created": "Wed, 08 Jan 2025 19:32:48 -0000", "expiration": null, "token_code": "string"}}</codeblock>
+              </dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+    </steps-unordered>
+    <result>
+      <ul>
+        <li>On the Red Hat Quay UI, click your username in the navigation pane → <b>Account Settings</b>. The name of your application appears under the <b>Docker CLI and other Application Tokens</b> heading. For example:
+<image href="../images/application-token.png" placement="break"><alt>Application token</alt></image></li>
+      </ul>
+    </result>
+  </taskbody>
+</task>

@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="creating-policy-v2-ui">
+  <title>Creating an auto-prune policy for an organization by using the UI</title>
+  <shortdesc>To create an organization auto-prune policy in Red Hat Quay, you can configure Auto-Prune Policies on the organization Settings page in the v2 UI.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have enabled the <codeph>FEATURE_AUTO_PRUNE</codeph> feature.</li>
+        <li>Your organization has image tags that have been pushed to it.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>On the Red Hat Quay v2 UI, click <b>Organizations</b> in the navigation pane.</cmd>
+      </step>
+      <step>
+        <cmd>Select the name of an organization to which you apply the auto-pruning feature, for example, <codeph>test_organization</codeph>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Settings</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Auto-Prune Policies</b>. For example:
+</cmd>
+        <info>
+          <p>
+            <image href="../images/auto-prune-policies-page.png" placement="inline">
+              <alt>Auto-Prune Policies page</alt>
+            </image>
+          </p>
+        </info>
+      </step>
+      <step>
+        <cmd>Click the drop-down menu and select the desired policy, for example, <b>By number of tags</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Select the desired number of tags to keep. By default, this is set at <b>20</b> tags. For this example, the number of tags to keep is set at <b>3</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Optional. With the introduction of <i>regular expressions</i>, you are provided the following options to fine-tune your auto-pruning policy:
+</cmd>
+        <info>
+          <ul>
+            <li><b>Match</b>: When selecting this option, the auto-pruner prunes all tags that match the given <i>regex</i> pattern.</li>
+            <li><b>Does not match</b>: When selecting this option, the auto-pruner prunes all tags that <i>do not</i> match the <i>regex</i> pattern.
+<p>If you do not select an option, the auto-pruner defaults to pruning all image tags.</p><p>For this example, click the <b>Tag pattern</b> box and select <b>match</b>. In the regex box, enter a pattern to match tags against. For example, to automatically prune all <codeph>test</codeph> tags, enter <codeph>^test.*</codeph>.</p></li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. You can create a second auto-prune policy by clicking <b>Add Policy</b> and entering the required information.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Save</b>. A notification that your auto-prune policy has been updated appears.
+</cmd>
+        <info>
+          <p>With this example, the organization is configured to keep the three latest tags that are named <codeph>^test.*</codeph>.</p>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ul>
+        <li>Navigate to the <b>Tags</b> page of your Organization’s repository. After a few minutes, the auto-pruner worker removes tags that no longer fit within the established criteria. In this example, it removes the <codeph>busybox:test</codeph> tag, and keeps the <codeph>busybox:test2</codeph>, <codeph>busybox:test3</codeph>, and <codeph>busybox:test4</codeph> tag.
+<p>After tags are automatically pruned, they go into the Red Hat Quay time machine, or the amount of time after a tag is deleted that the tag is accessible before being garbage collected. The expiration time of an image tag depends on your organization’s settings.</p></li>
+      </ul>
+    </result>
+  </taskbody>
+</task>

@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="running-operator-debug-mode">
+  <title>Running the Red Hat Quay Operator in debug mode</title>
+  <shortdesc>To run the Red Hat Quay Operator in debug mode and get verbose logging for troubleshooting, you can edit the <codeph>QuayRegistry</codeph> custom resource and add <codeph>DEBUGLOG=true</codeph> to the env overrides. After the Operator restarts, try pulling an image or dump logs from Quay pods for more information.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Enter the following command to edit the <codeph>QuayRegistry</codeph> custom resource definition:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc edit quayregistry &lt;quay_registry_name&gt; -n &lt;quay_namespace&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Update the <codeph>QuayRegistry</codeph> to add the following parameters:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">spec:
+  - kind: quay
+    managed: true
+    overrides:
+      env:
+      - name: DEBUGLOG
+        value: "true"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>After the Red Hat Quay Operator has restarted with debugging enabled, try pulling an image from the registry. If the pull is still slow, dump all logs from all <codeph>Quay</codeph> pods to a file, and check the files for more information.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

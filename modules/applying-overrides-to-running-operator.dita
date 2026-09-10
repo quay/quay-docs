@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="applying-overrides-to-running-operator">
+  <title>Applying overrides to a running Operator</title>
+  <shortdesc>To override container images for a running Red Hat Quay Operator, you can modify the <codeph>ClusterServiceVersion</codeph> object to add environment variables that point to your custom images. This applies the overrides at the Operator level, so all <codeph>QuayRegistry</codeph> instances use the same custom images.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>The <codeph>ClusterServiceVersion</codeph> object is Operator Lifecycle Manager’s representation of a running Operator in the cluster. Find the Red Hat Quay Operator’s <codeph>ClusterServiceVersion</codeph> by using a Kubernetes UI or the <codeph>kubectl</codeph>/<codeph>oc</codeph> CLI tool. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get clusterserviceversions -n &lt;namespace&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Using the UI, <codeph>oc edit</codeph>, or another method, modify the <codeph>ClusterServiceVersion</codeph> object to include the environment variables outlined above to point to the override images:
+</cmd>
+        <info>
+          <p><b>JSONPath</b>: <codeph>spec.install.spec.deployments[0].spec.template.spec.containers[0].env</codeph></p>
+          <codeblock outputclass="language-yaml">- name: RELATED_IMAGE_COMPONENT_QUAY
+  value: quay.io/projectquay/quay@sha256:c35f5af964431673f4ff5c9e90bdf45f19e38b8742b5903d41c10cc7f6339a6d
+- name: RELATED_IMAGE_COMPONENT_CLAIR
+  value: quay.io/projectquay/clair@sha256:70c99feceb4c0973540d22e740659cd8d616775d3ad1c1698ddf71d0221f3ce6
+- name: RELATED_IMAGE_COMPONENT_POSTGRES
+  value: centos/postgresql-10-centos7@sha256:de1560cb35e5ec643e7b3a772ebaac8e3a7a2a8e8271d9e91ff023539b4dfb33
+- name: RELATED_IMAGE_COMPONENT_REDIS
+  value: centos/redis-32-centos7@sha256:06dbb609484330ec6be6090109f1fa16e936afcf975d1cbc5fff3e6c7cae7542</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

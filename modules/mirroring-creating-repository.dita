@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="mirroring-creating-repository">
+  <title>Creating a mirrored repository by using the UI</title>
+  <shortdesc>To mirror a repository from an external registry into Red Hat Quay, you can create a private repository and configure mirroring settings in the UI.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have set <codeph>FEATURE_REPO_MIRROR: true</codeph> in your <codeph>config.yaml</codeph> file.</li>
+        <li>For standalone Red Hat Quay deployments, you have created a mirroring worker.</li>
+        <li>You have created a robot account.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>When mirroring a repository from an external container registry, you must create a new private repository. Typically, the same name is used as the target repository, for example, <codeph>quay-rhel9</codeph>.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Navigate to the <b>Repositories</b> page of your registry and click the name of a repository, for example, <b>test-mirror</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Settings</b> → <b>Repository state</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Mirror</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click the <b>Mirroring</b> tab and enter the details for connecting to the external registry, along with the tags, scheduling, and access information.</cmd>
+      </step>
+      <step>
+        <cmd>Enter the details as required in the following fields:
+</cmd>
+        <info>
+          <ul>
+            <li><b>Registry Location:</b> The external repository you want to mirror, for example, <codeph>registry.redhat.io/quay/quay-rhel8</codeph>.</li>
+            <li><b>Tags:</b> Enter a comma-separated list of individual tags or tag patterns. You can use Unix shell-style wildcards.</li>
+            <li><b>Architecture Filter:</b> Select the architectures that you want to mirror. For example, select <codeph>AMD64 (x86_64)</codeph> to mirror only the <codeph>x86_64</codeph> architecture. By default, all architectures are mirrored.</li>
+            <li><b>Start Date:</b> The date on which mirroring begins. By default, the current date and time are used.</li>
+            <li><b>Sync Interval:</b> Defaults to syncing every 24 hours. You can change that based on hours or days.</li>
+            <li><b>Skopeo timeout interval:</b> Defaults to <codeph>300</codeph> seconds (5 minutes). The maximum timeout length is <codeph>43200</codeph> seconds (12 hours).</li>
+            <li><b>Robot User:</b> Create a new robot account or choose an existing robot account to do the mirroring.</li>
+            <li><b>Username:</b> The username for accessing the external registry holding the repository you are mirroring.</li>
+            <li><b>Password:</b> The password associated with the username. Note that the password cannot include characters that require an escape character (<codeph>\</codeph>).</li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>In the <b>Advanced Settings</b> section, you can optionally configure SSL/TLS and proxy with the following options:
+</cmd>
+        <info>
+          <ul>
+            <li><b>Verify TLS:</b> Select this option if you want to require HTTPS and to verify certificates when communicating with the target remote registry.</li>
+            <li><b>Accept Unsigned Images:</b> Selecting this option allows unsigned images to be mirrored.</li>
+            <li><b>HTTP Proxy:</b> Identify the HTTP proxy server needed to access the remote site, if a proxy server is needed.</li>
+            <li><b>HTTPS Proxy:</b> Identify the HTTPS proxy server needed to access the remote site, if a proxy server is needed.</li>
+            <li><b>No Proxy:</b> List of locations that do not require a proxy.</li>
+          </ul>
+        </info>
+      </step>
+      <step>
+        <cmd>After filling out all information, click <b>Enable Mirror</b>.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

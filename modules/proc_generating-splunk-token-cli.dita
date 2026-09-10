@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="proc_generating-splunk-token-cli">
+  <title>Generating a Splunk bearer token using the CLI</title>
+  <shortdesc>To create a Splunk bearer token for Red Hat Quay from the CLI, you can enable token authentication and request a token with curl.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have installed Splunk and created a username.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>In your CLI, enter the following <codeph>CURL</codeph> command to enable token authentication, passing in your Splunk username and password:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -k -u &lt;username&gt;:&lt;password&gt; -X POST &lt;scheme&gt;://&lt;host&gt;:&lt;port&gt;/services/admin/token-auth/tokens_auth -d disabled=false</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a token by entering the following <codeph>CURL</codeph> command, passing in your Splunk username and password.
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -k -u &lt;username&gt;:&lt;password&gt; -X POST &lt;scheme&gt;://&lt;host&gt;:&lt;port&gt;/services/authorization/tokens?output_mode=json --data name=&lt;username&gt; --data audience=Users --data-urlencode expires_on=+30d</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Save the generated bearer token.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

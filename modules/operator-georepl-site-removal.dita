@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="operator-georepl-site-removal">
+  <title>Removing a geo-replicated site from your Red Hat Quay on OpenShift Container Platform deployment</title>
+  <shortdesc>To remove a geo-replicated site from a Red Hat Quay on OpenShift Container Platform deployment, you can sync blobs between sites, update storage configuration, and run the <codeph>removelocation</codeph> utility.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You are logged into OpenShift Container Platform.</li>
+        <li>You have configured Red Hat Quay geo-replication with at least two sites, for example, <codeph>usstorage</codeph> and <codeph>eustorage</codeph>.</li>
+        <li>Each site has its own Organization, Repository, and image tags.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Sync the blobs between all of your defined sites by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ python -m util.backfillreplication</codeblock>
+          <note type="warning">
+            <p>Prior to removing storage engines from your Red Hat Quay <codeph>config.yaml</codeph> file, you <b>must</b> ensure that all blobs are synced between all defined sites.</p>
+            <p>When running this command, replication jobs are created which are picked up by the replication worker. If blobs need to be replicated, the script returns UUIDs of blobs that are replicated. If you run this command multiple times, and the output from the return script is empty, it does not mean that the replication process is done; it means that no more blobs remain to be queued for replication. Customers should use appropriate judgement before proceeding, as the allotted time replication takes depends on the number of blobs detected.</p>
+            <p>Alternatively, you could use a third party cloud tool, such as Microsoft Azure, to check the synchronization status.</p>
+            <p>This step must be completed before proceeding.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>In your Red Hat Quay <codeph>config.yaml</codeph> file for site <codeph>usstorage</codeph>, remove the <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> entry for the <codeph>eustorage</codeph> site.</cmd>
+      </step>
+      <step>
+        <cmd>Identify your Red Hat Quay application pods by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get pod -n &lt;quay_namespace&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">quay390usstorage-quay-app-5779ddc886-2drh2
+quay390eustorage-quay-app-66969cd859-n2ssm</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Open an interactive shell session in the <codeph>usstorage</codeph> pod by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc rsh quay390usstorage-quay-app-5779ddc886-2drh2</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Permanently remove the <codeph>eustorage</codeph> site by entering the following command:
+</cmd>
+        <info>
+          <note type="important">
+            <p>The following action cannot be undone. Use with caution.</p>
+          </note>
+          <codeblock outputclass="language-terminal">sh-4.4$ python -m util.removelocation eustorage</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">WARNING: This is a destructive operation. Are you sure you want to remove eustorage from your storage locations? [y/n] y
+Deleted placement 30
+Deleted placement 31
+Deleted placement 32
+Deleted placement 33
+Deleted location eustorage</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

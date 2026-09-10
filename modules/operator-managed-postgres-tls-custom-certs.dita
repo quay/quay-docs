@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="operator-managed-postgres-tls-custom-certs">
+  <title>Providing custom TLS certificates</title>
+  <shortdesc>To use your own certificates instead of Operator-generated or Service CA certificates, create a Secret and reference it from the component override.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>TLS is enabled on the target component (<codeph>overrides.tls.enabled: true</codeph>).</li>
+        <li>You have a Secret containing PEM-encoded <codeph>ca.crt</codeph>, <codeph>tls.crt</codeph>, and <codeph>tls.key</codeph> entries.</li>
+        <li>Your TLS certificate includes Subject Alternative Name (SAN) entries that match the PostgreSQL Service DNS names. For the <codeph>postgres</codeph> component, include the following names:
+<codeblock outputclass="language-text">&lt;registry_name&gt;-quay-database
+&lt;registry_name&gt;-quay-database.&lt;namespace&gt;
+&lt;registry_name&gt;-quay-database.&lt;namespace&gt;.svc
+&lt;registry_name&gt;-quay-database.&lt;namespace&gt;.svc.cluster.local
+localhost</codeblock><p>For the <codeph>clairpostgres</codeph> component, include the following names:</p><codeblock outputclass="language-text">&lt;registry_name&gt;-clair-postgres
+&lt;registry_name&gt;-clair-postgres.&lt;namespace&gt;
+&lt;registry_name&gt;-clair-postgres.&lt;namespace&gt;.svc
+&lt;registry_name&gt;-clair-postgres.&lt;namespace&gt;.svc.cluster.local
+localhost</codeblock></li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Create a Secret in the same namespace as your <codeph>QuayRegistry</codeph> custom resource. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">apiVersion: v1
+kind: Secret
+metadata:
+  name: &lt;postgres_or_clairpostgres_name&gt;-tls
+  namespace: &lt;namespace&gt;
+type: Opaque
+stringData:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    ...
+    -----END CERTIFICATE-----
+  tls.crt: |
+    -----BEGIN CERTIFICATE-----
+    ...
+    -----END CERTIFICATE-----
+  tls.key: |
+    -----BEGIN EC PRIVATE KEY-----
+    ...
+    -----END EC PRIVATE KEY-----</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Reference the Secret from the PostgreSQL component override:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">    - kind: postgres
+      managed: true
+      overrides:
+        tls:
+          enabled: true
+          secretRef:
+            name: &lt;postgres_or_clairpostgres_name&gt;-tls</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Save the <codeph>QuayRegistry</codeph> and wait for reconciliation.</cmd>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Connect to the Red Hat Quay PostgreSQL pod and check that SSL is enabled:
+<codeblock outputclass="language-terminal">$ oc exec -n &lt;namespace&gt; deploy/&lt;registry&gt;-quay-database -c postgres -- bash -lc 'psql -U "$POSTGRESQL_USER" -d "$POSTGRESQL_DATABASE" -tAc "SHOW ssl;"'</codeblock><p>The command should return <codeph>on</codeph>.</p></li>
+        <li>Optional: Confirm that client connections use SSL:
+<codeblock outputclass="language-terminal">$ oc exec -n &lt;namespace&gt; deploy/&lt;registry_name&gt;-quay-database -c postgres -- \
+  bash -lc 'psql -U "$POSTGRESQL_USER" -d "$POSTGRESQL_DATABASE" -tAc "SELECT count(*) FROM pg_stat_ssl s JOIN pg_stat_activity a ON s.pid = a.pid WHERE s.ssl = true AND a.client_addr IS NOT NULL;"'</codeblock><p>A count greater than <codeph>0</codeph> indicates active TLS client connections. If the count remains <codeph>0</codeph>, PostgreSQL still has TLS enabled on the server, but clients might not yet be connecting with SSL. Check the registry database URI or connection arguments for an <codeph>sslmode</codeph> value such as <codeph>verify-full</codeph>, and review Operator Events for certificate or CA errors.</p></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

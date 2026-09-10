@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="proxy-cache-architecture">
+  <title>Proxy cache architecture</title>
+  <shortdesc>The Red Hat Quay proxy cache architecture shows how image pulls are served from cache or fetched from an upstream registry. Cache behavior depends on whether the image exists, is stale, or differs from upstream.</shortdesc>
+  <refbody>
+    <section>
+      <p>The following image shows the expected design flow and architecture of the proxy cache feature.</p>
+      <p>
+        <image href="../images/cache-proxy-overview.png" placement="inline">
+          <alt>Proxy cache overview</alt>
+        </image>
+      </p>
+      <p>When a user pulls an image, for example, <codeph>postgres:14</codeph>, from an upstream repository on Red Hat Quay, the repository checks to see if an image is present. If the image does not exist, a fresh pull is initiated. After being pulled, the image layers are saved to cache and server to the user in parallel. The following image depicts an architectural overview of this scenario:</p>
+      <p>
+        <image href="../images/cache-proxy-pulled-image.png" placement="inline">
+          <alt>Pulled image overview</alt>
+        </image>
+      </p>
+      <p>If the image in the cache exists, users can rely on Quay’s cache to stay up-to-date with the upstream source so that newer images from the cache are automatically pulled. This happens when tags of the original image have been overwritten in the upstream registry. The following image depicts an architectural overview of what happens when the upstream image and cached version of the image are different:</p>
+      <p>
+        <image href="../images/updated-layers-in-cache.png" placement="inline">
+          <alt>Updating opposing layers overview</alt>
+        </image>
+      </p>
+      <p>If the upstream image and cached version are the same, no layers are pulled and the cached image is delivered to the user.</p>
+      <p>In some cases, users initiate pulls when the upstream registry is down. If this happens with the configured staleness period, the image stored in cache is delivered. If the pull happens after the configured staleness period, the error is propagated to the user. The following image depicts an architectural overview when a pull happens after the configured staleness period:</p>
+      <p>
+        <image href="../images/cache-proxy-staleness-pull.png" placement="inline">
+          <alt>Staleness pull overview</alt>
+        </image>
+      </p>
+      <p>Quay administrators can leverage the configurable size limit of an organization to limit cache size so that backend storage consumption remains predictable. This is achieved by discarding images from the cache according to the frequency in which an image is used. The following image depicts an architectural overview of this scenario:</p>
+    </section>
+  </refbody>
+</reference>

@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="registry-deploy-cli">
+  <title>Deploying the Red Hat Quay registry by using the CLI</title>
+  <shortdesc>To deploy a basic Red Hat Quay registry instance, you can use the <codeph>oc</codeph> CLI to create a <codeph>QuayRegistry</codeph> custom resource. You configure managed or unmanaged object storage during the deployment process.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have logged into OpenShift Container Platform using the CLI.</li>
+      </ul>
+    </prereq>
+    <context>
+      <note type="note">
+        <p>The following <codeph>config.yaml</codeph> file includes automation configuration options. Collectively, these options streamline using the CLI with your registry, helping reduce dependency on the UI. Adding these fields to your <codeph>config.yaml</codeph> file is optional if you plan to use the UI, but recommended if you plan to use the CLI.</p>
+        <p>For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#config-preconfigure-automation-intro" format="html" scope="external">Automation configuration options</xref>.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Create a namespace, for example, <codeph>quay-enterprise</codeph>, by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc new-project quay-enterprise</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create the <codeph>QuayRegistry</codeph> custom resource (CR).
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>If the <codeph>objectstorage</codeph> component is set to <codeph>managed: true</codeph>, complete the following steps:
+</cmd>
+            <info>
+              <ol>
+                <li>Create the <codeph>QuayRegistry</codeph> CR by entering the following command:
+<codeblock outputclass="language-terminal">$ cat &lt;&lt;EOF | oc create -n quay-enterprise -f -
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+  namespace: quay-enterprise
+EOF</codeblock></li>
+              </ol>
+            </info>
+          </substep>
+          <substep>
+            <cmd>If the <codeph>objectstorage</codeph> component is set to <codeph>managed: false</codeph>, complete the following steps:
+</cmd>
+            <info>
+              <ol>
+                <li>Create the <codeph>config.yaml</codeph> file for Red Hat Quay by entering the following command. You must include the information required for your backend storage provider. During this step, you can enable additional Red Hat Quay features. The following example is for a minimal configuration that includes the configuration options for automating early setup tasks:
+<codeblock outputclass="language-yaml">$ cat &lt;&lt;EOF &gt; config.yaml
+ALLOW_PULLS_WITHOUT_STRICT_LOGGING: false
+AUTHENTICATION_TYPE: Database
+DEFAULT_TAG_EXPIRATION: 2w
+FEATURE_USER_INITIALIZE: true
+SUPER_USERS:
+     -  &lt;username&gt;
+BROWSER_API_CALLS_XHR_ONLY: false
+FEATURE_USER_CREATION: false
+DISTRIBUTED_STORAGE_CONFIG:
+    &lt;storage_provider&gt;:
+        - &lt;storage_provider_name&gt;
+        - access_key: &lt;access_key&gt;
+          bucket_name: &lt;bucket_name&gt;
+          secret_key: &lt;secret_key&gt;
+          storage_path: /datastorage/registry
+ENTERPRISE_LOGO_URL: /static/img/RH_Logo_Quay_Black_UX-horizontal.svg
+FEATURE_BUILD_SUPPORT: false
+FEATURE_DIRECT_LOGIN: true
+FEATURE_MAILING: false
+REGISTRY_TITLE: Red Hat Quay
+REGISTRY_TITLE_SHORT: Red Hat Quay
+SETUP_COMPLETE: true
+TAG_EXPIRATION_OPTIONS:
+- 2w
+TEAM_RESYNC_STALE_TIME: 60m
+TESTING: false
+EOF</codeblock><ul><li><codeph>FEATURE_USER_INITIALIZE</codeph>: Set this field to <codeph>true</codeph> if you plan to create the first user by using API.</li><li><codeph>SUPER_USERS</codeph>: Include this field and the username that you plan to leverage as a Red Hat Quay administrator.</li><li><codeph>BROWSER_API_CALLS_XHR_ONLY</codeph>: Set this field to <codeph>false</codeph> to allow general browser-based access to the API.</li><li><codeph>FEATURE_USER_CREATION</codeph>: Set this field to <codeph>false</codeph> to relegate the creation of new users to only superusers.</li></ul></li>
+              </ol>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Create a secret for the configuration by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc create secret generic &lt;quay_config_bundle_name&gt; \
+  --from-file=config.yaml=&lt;/path/to/config.yaml&gt; \
+  -n quay-enterprise \
+  --dry-run=client -o yaml | oc apply -f -</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Create the <codeph>QuayRegistry</codeph> CR by entering the following command:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ cat &lt;&lt;EOF | oc create -n quay-enterprise -f -
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: example-registry
+  namespace: quay-enterprise
+spec:
+  configBundleSecret: &lt;quay_config_bundle_name&gt;
+  components:
+    - kind: clair
+      managed: true
+    - kind: objectstorage
+      managed: false
+    - kind: mirror
+      managed: true
+    - kind: monitoring
+      managed: true
+EOF</codeblock>
+              <p><codeph>objectstorage</codeph>: Set this field to <codeph>false</codeph> when providing your own storage backend.</p>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Check the status of your registry by entering the following command:
+<codeblock outputclass="language-terminal">$ oc describe quayregistry &lt;registry_name&gt; -n quay-enterprise</codeblock><codeblock outputclass="language-terminal">...
+Events:
+  Type    Reason                     Age                   From                     Message
+  ----    ------                     ----                  ----                     -------
+  Normal  ComponentsCreationSuccess  23s (x2458 over 42h)  quayregistry-controller  All objects created/updated successfully</codeblock></li>
+        <li>Alternatively, you can check pod statuses for your registry deployment by entering the following command:</li>
+        <li>Enter the following command to view the deployed components:
+<codeblock outputclass="language-terminal">$ oc get pods -n quay-enterprise</codeblock><codeblock outputclass="language-terminal">NAME                                                   READY   STATUS      RESTARTS   AGE
+example-registry-clair-app-5ffc9f77d6-jwr9s            1/1     Running     0          3m42s
+example-registry-clair-app-5ffc9f77d6-wgp7d            1/1     Running     0          3m41s
+example-registry-clair-postgres-54956d6d9c-rgs8l       1/1     Running     0          3m5s
+example-registry-quay-app-79c6b86c7b-8qnr2             1/1     Running     4          3m42s
+example-registry-quay-app-79c6b86c7b-xk85f             1/1     Running     4          3m41s
+example-registry-quay-app-upgrade-5kl5r                0/1     Completed   4          3m50s
+example-registry-quay-database-b466fc4d7-tfrnx         1/1     Running     2          3m42s
+example-registry-quay-mirror-6d9bd78756-6lj6p          1/1     Running     0          2m58s
+example-registry-quay-mirror-6d9bd78756-bv6gq          1/1     Running     0          2m58s
+example-registry-quay-postgres-init-dzbmx              0/1     Completed   0          3m43s
+example-registry-quay-redis-8bd67b647-skgqx            1/1     Running     0          3m42s</codeblock></li>
+      </ol>
+    </result>
+  </taskbody>
+  <related-links>
+    <link href="quay_jtbd-install.dita#operator-monitor-deploy-cli">
+      <linktext>Monitoring and debugging the deployment process</linktext>
+    </link>
+  </related-links>
+</task>

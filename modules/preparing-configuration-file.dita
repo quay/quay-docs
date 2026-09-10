@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="preparing-configuration-file">
+  <title>Preparing the YAML configuration file by using the CLI</title>
+  <shortdesc>To prepare your proof of concept Red Hat Quay deployment for launch, you can create a <codeph>config.yaml</codeph> file with database, Redis, and storage settings and copy it to your configuration directory. You can use the CLI to build the configuration bundle that the registry container reads at startup.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Enter the following command to create a minimal <codeph>config.yaml</codeph> file that is used to deploy the Red Hat Quay container:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ touch config.yaml</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Copy and paste the following YAML configuration into the <codeph>config.yaml</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">BUILDLOGS_REDIS:
+    host: quay-server.example.com
+    password: strongpassword
+    port: 6379
+CREATE_NAMESPACE_ON_PUSH: true
+DATABASE_SECRET_KEY: a8c2744b-7004-4af2-bcee-e417e7bdd235
+DB_URI: postgresql://quayuser:quaypass@quay-server.example.com:5432/quay
+DISTRIBUTED_STORAGE_CONFIG:
+    default:
+        - LocalStorage
+        - storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS: []
+DISTRIBUTED_STORAGE_PREFERENCE:
+    - default
+FEATURE_MAILING: false
+SECRET_KEY: e9bd34f4-900c-436a-979e-7530e5d74ac8
+SERVER_HOSTNAME: quay-server.example.com
+SETUP_COMPLETE: true
+USER_EVENTS_REDIS:
+    host: quay-server.example.com
+    password: strongpassword
+    port: 6379</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a directory to copy the Red Hat Quay configuration bundle to:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir $QUAY/config</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Copy the Red Hat Quay configuration file to the directory:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cp -v config.yaml $QUAY/config</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="using-the-api">
+  <title>Using the Red Hat Quay API</title>
+  <shortdesc>To invoke Red Hat Quay API endpoints from the CLI, you can pass an OAuth 2 access token in a <codeph>curl</codeph> request. You can use <codeph>GET</codeph>, <codeph>PUT</codeph>, <codeph>POST</codeph>, or <codeph>DELETE</codeph> methods against the documented endpoints.</shortdesc>
+  <refbody>
+    <section>
+      <p>After you have created an application and generated an OAuth 2 access token with the desired settings, you can pass in the access token to <codeph>GET</codeph>, <codeph>PUT</codeph>, <codeph>POST</codeph>, or <codeph>DELETE</codeph> settings by using the API from the CLI. Generally, a Red Hat Quay API command looks similar to the following example:</p>
+      <codeblock outputclass="language-terminal">$ curl -X GET -H "Authorization: Bearer &lt;your_access_token&gt;" \
+    https://&lt;quay-server.example.com&gt;/api/v1/&lt;example&gt;/&lt;endpoint&gt;/</codeblock>
+      <p>where:</p>
+      <dl>
+        <dlentry>
+          <dt>
+            <codeph>&lt;your_access_token&gt;</codeph>
+          </dt>
+          <dd>Specifies the OAuth 2 access token that was generated through the Red Hat Quay UI.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>https://&lt;quay-server.example.com&gt;/api/v1/&lt;example&gt;/&lt;endpoint&gt;/</codeph>
+          </dt>
+          <dd>Specifies your Red Hat Quay deployment and the desired API endpoint.</dd>
+        </dlentry>
+      </dl>
+      <p>All Red Hat Quay APIs are documented in the Application Programming Interface (API) chapter. Understanding how they are documented is crucial to successful invocation. Take, for example, the following entry for the <codeph>createAppToken</codeph> API endpoint:</p>
+      <codeblock outputclass="language-text">*createAppToken*
+Create a new app specific token for user.
+
+*POST /api/v1/user/apptoken*
+
+**Authorizations: **oauth2_implicit (**user:admin**)
+
+ Request body schema (application/json)
+
+*Path parameters*
+
+Name: **title**
+Description: Friendly name to help identify the token.
+Schema: string
+
+*Responses*
+
+|HTTP Code|Description             |Schema
+|201      |Successful creation     |
+|400      |Bad Request             |&amp;lt;&amp;lt;_apierror,ApiError&amp;gt;&amp;gt;
+|401      |Session required        |&amp;lt;&amp;lt;_apierror,ApiError&amp;gt;&amp;gt;
+|403      |Unauthorized access     |&amp;lt;&amp;lt;_apierror,ApiError&amp;gt;&amp;gt;
+|404      |Not found               |&amp;lt;&amp;lt;_apierror,ApiError&amp;gt;&amp;gt;
+|===</codeblock>
+      <p>where:</p>
+      <dl>
+        <dlentry>
+          <dt>
+            <codeph>createAppToken</codeph>
+          </dt>
+          <dd>Specifies the name of the API endpoint.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>Create a new app specific token for user.</codeph>
+          </dt>
+          <dd>Specifies a brief description of the API endpoint.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>POST /api/v1/user/apptoken</codeph>
+          </dt>
+          <dd>Specifies the API endpoint used for invocation.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>Authorizations</codeph>
+          </dt>
+          <dd>Specifies the authorizations required to use the API endpoint.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>Path parameters</codeph>
+          </dt>
+          <dd>Specifies the available paths to be used with the API endpoint. In this example, <codeph>title</codeph> is the only path to be used with the <codeph>POST /api/v1/user/apptoken</codeph> endpoint.</dd>
+        </dlentry>
+        <dlentry>
+          <dt>
+            <codeph>Responses</codeph>
+          </dt>
+          <dd>Specifies the API responses for this endpoint.</dd>
+        </dlentry>
+      </dl>
+    </section>
+  </refbody>
+</reference>

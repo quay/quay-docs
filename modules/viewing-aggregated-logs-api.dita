@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="viewing-aggregated-logs-api">
+  <title>Viewing aggregated logs</title>
+  <shortdesc>To review grouped activity for a user, organization, or repository in Red Hat Quay, you can retrieve aggregated logs through the API. You can filter results by performer and date range.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>GET /api/v1/user/aggregatelogs</codeph> API endpoint to return the aggregated (or grouped) logs for the current user:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  "https://&lt;quay-server.example.com&gt;/api/v1/user/aggregatelogs"</codeblock>
+          <p>The following example shows aggregated log output:</p>
+          <codeblock outputclass="language-terminal">{"aggregated": [{"kind": "create_tag", "count": 1, "datetime": "Tue, 18 Jun 2024 00:00:00 -0000"}, {"kind": "manifest_label_add", "count": 1, "datetime": "Tue, 18 Jun 2024 00:00:00 -0000"}, {"kind": "push_repo", "count": 2, "datetime": "Tue, 18 Jun 2024 00:00:00 -0000"}, {"kind": "revert_tag", "count": 1, "datetime": "Tue, 18 Jun 2024 00:00:00 -0000"}]}</codeblock>
+          <p>You can also pass in the <codeph>performer</codeph> and <codeph>starttime/endtime</codeph> queries to obtain aggregated logs for a specific user between a specific time period. For example:</p>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  "&lt;quay-server.example.com&gt;/api/v1/user/aggregatelogs?performer=&lt;username&gt;&amp;starttime=&lt;MM/DD/YYYY&gt;&amp;endtime=&lt;MM/DD/YYYY&gt;"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>View aggregated logs by organization by using the <codeph>GET /api/v1/organization/{orgname}/aggregatelogs</codeph> endpoint. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  "&lt;quay-server.example.com&gt;/api/v1/organization/{orgname}/aggregatelogs"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>View aggregated logs by repository by using the <codeph>GET /api/v1/repository/{repository}/aggregatelogs</codeph> endpoint. The following example includes the <codeph>starttime/endtime</codeph> fields:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  "&lt;quay-server.example.com&gt;/api/v1/repository/&lt;repository_name&gt;/&lt;namespace&gt;/aggregatelogs?starttime=2024-01-01&amp;endtime=2024-06-18""</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="adjust-access-user-repo-api">
+  <title>Adjusting access settings for a repository by using the API</title>
+  <shortdesc>To change or remove access for a user or robot account on a repository, you can use the Red Hat Quay API. You can grant Read, Write, or Admin permissions, or delete an existing permission.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created a user account or robot account.</li>
+        <li>You have <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_guide/index#creating-oauth-access-token" format="html" scope="external">Created an OAuth access token</xref>.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#changeuserpermissions" format="html" scope="external"><codeph>PUT /api/v1/repository/{repository}/permissions/user/{username}</codeph></xref> command to change the permissions of a user:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "admin"}' \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/permissions/user/&lt;username&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"role": "admin", "name": "quayadmin+test", "is_robot": true, "avatar": {"name": "quayadmin+test", "hash": "ca9afae0a9d3ca322fc8a7a866e8476dd6c98de543decd186ae090e420a88feb", "color": "#8c564b", "kind": "robot"}}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>To delete the current permission, you can enter the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#deleteuserpermissions" format="html" scope="external"><codeph>DELETE /api/v1/repository/{repository}/permissions/user/{username}</codeph></xref> command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/permissions/user/&lt;username&gt;</codeblock>
+          <p>This command does not return any output in the CLI. Instead, you can confirm deletion by entering the <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/red_hat_quay_api_reference/index#listrepouserpermissions" format="html" scope="external"><codeph>GET /api/v1/repository/{repository}/permissions/user/</codeph></xref> command:</p>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Accept: application/json" \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository&gt;/permissions/user/&lt;username&gt;/</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"message":"User does not have permission for repo."}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

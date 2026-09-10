@@ -1,0 +1,171 @@
+<?xml version="1.0"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DITA Reference//EN" "reference.dtd">
+<reference id="config-fields-clair-matcher">
+  <title>Clair matcher configuration fields</title>
+  <shortdesc>You can use the Clair matcher configuration fields to control database connections, update periods, and indexer addresses for Clair in Red Hat Quay.</shortdesc>
+  <refbody>
+    <section>
+      <note type="note">
+        <p>Differs from <codeph>matchers</codeph> configuration fields.</p>
+      </note>
+      <table>
+        <tgroup cols="3">
+          <colspec colname="col_1" colwidth="50*"/>
+          <colspec colname="col_2" colwidth="16.6666*"/>
+          <colspec colname="col_3" colwidth="33.3334*"/>
+          <thead>
+            <row>
+              <entry>Field</entry>
+              <entry>Type</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>
+                <p>
+                  <b>matcher</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Object</p>
+              </entry>
+              <entry>
+                <p>Provides Clair matcher node configuration.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.cache_age</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Controls how long users should be hinted to cache responses for.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.connstring</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>A Postgres connection string. Accepts format as a URL or libpq connection string.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.max_conn_pool</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Limits the database connection pool size.</p>
+                <p>Clair allows for a custom connection pool size. This number directly sets how many active database connections are allowed concurrently.</p>
+                <p>This parameter will be ignored in a future version. Users should configure this through the connection string.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.indexer_addr</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>A matcher contacts an indexer to create a vulnerability report. The location of this indexer is required.</p>
+                <p>Defaults to <codeph>30m</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.migrations</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether matcher nodes handle migrations to their databases.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.period</b>
+                </p>
+              </entry>
+              <entry>
+                <p>String</p>
+              </entry>
+              <entry>
+                <p>Determines how often updates for new security advisories take place.</p>
+                <p>Defaults to <codeph>6h</codeph>.</p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.disable_updaters</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Boolean</p>
+              </entry>
+              <entry>
+                <p>Whether to run background updates or not.</p>
+                <p>Default: <codeph>False</codeph></p>
+              </entry>
+            </row>
+            <row>
+              <entry>
+                <p>
+                  <b>.update_retention</b>
+                </p>
+              </entry>
+              <entry>
+                <p>Integer</p>
+              </entry>
+              <entry>
+                <p>Sets the number of update operations to retain between garbage collection cycles. This should be set to a safe MAX value based on database size constraints.</p>
+                <p>Defaults to <codeph>10m</codeph>.</p>
+                <p>If a value of less than <codeph>0</codeph> is provided, garbage collection is disabled. <codeph>2</codeph> is the minimum value to ensure updates can be compared to notifications.</p>
+              </entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </section>
+    <section id="_example_matcher_configuration">
+      <title>Example matcher configuration</title>
+      <p outputclass="title">
+        <b>Example matcher configuration</b>
+      </p>
+      <codeblock outputclass="language-yaml"># ...
+matcher:
+  connstring: &gt;-
+    host=&lt;DB_HOST&gt; port=5432 dbname=&lt;matcher&gt; user=&lt;DB_USER&gt; password=D&lt;B_PASS&gt;
+    sslmode=verify-ca sslcert=/etc/clair/ssl/cert.pem sslkey=/etc/clair/ssl/key.pem
+    sslrootcert=/etc/clair/ssl/ca.pem
+  indexer_addr: http://clair-v4/
+  disable_updaters: false
+  migrations: true
+  period: 6h
+  update_retention: 2
+# ...</codeblock>
+    </section>
+  </refbody>
+</reference>

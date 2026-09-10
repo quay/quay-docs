@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="making-tag-immutable-api">
+  <title>Managing tag immutability by using the Red Hat Quay API</title>
+  <shortdesc>To prevent a tag from being changed or deleted, you can manage its immutability by using the Red Hat Quay API. Use the <codeph>PUT /api/v1/repository/{repository}/tag/{tag}</codeph> endpoint to set or remove immutability for a tag.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have logged into Red Hat Quay.</li>
+        <li>You have set <codeph>FEATURE_IMMUTABLE_TAGS</codeph> to <codeph>True</codeph> in your <codeph>config.yaml</codeph> file.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Use the <codeph>PUT /api/v1/repository/{repository}/tag/{tag}</codeph> endpoint to set immutability for a tag. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "immutable": true
+  }' \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/tag/&lt;tag&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">"Updated"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Use the <codeph>PUT /api/v1/repository/{repository}/tag/{tag}</codeph> endpoint to remove immutability for a tag. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X PUT \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "immutable": false
+  }' \
+  https://&lt;quay-server.example.com&gt;/api/v1/repository/&lt;namespace&gt;/&lt;repository_name&gt;/tag/&lt;tag&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">"Updated"</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

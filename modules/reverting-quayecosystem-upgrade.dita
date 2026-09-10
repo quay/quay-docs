@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="reverting-quayecosystem-upgrade_{context}">
+  <title>Reverting QuayEcosystem migration</title>
+  <shortdesc>To revert to the <codeph>QuayEcosystem</codeph> when migration to <codeph>QuayRegistry</codeph> fails or causes issues, delete the <codeph>QuayRegistry</codeph> and restore the <codeph>Route</codeph> to the original <codeph>Service</codeph>. You can then use the Red Hat Quay deployment managed by the <codeph>QuayEcosystem</codeph>.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>If your <codeph>QuayEcosystem</codeph> was managing the PostgreSQL database, the migration process moves your data to a new PostgreSQL database managed by the Operator. Your old database is not changed or removed but Red Hat Quay will no longer use it once the migration is complete. If there are issues during the data migration, the migration process exits and it is recommended that you continue with your database as an unmanaged component.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Delete the <codeph>QuayRegistry</codeph> using either the UI or <codeph>kubectl</codeph>:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ kubectl delete -n &lt;namespace&gt; quayregistry &lt;quayecosystem-name&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>If external access was provided using a <codeph>Route</codeph>, change the <codeph>Route</codeph> to point back to the original <codeph>Service</codeph> using the UI or <codeph>kubectl</codeph>.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

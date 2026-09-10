@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="annotation-parsing-oras">
+  <title>Annotation parsing</title>
+  <shortdesc>Some OCI media types do not include labels for metadata such as expiration. You can use ORAS annotations with Red Hat Quay to embed that metadata in artifacts.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have downloaded the <codeph>oras</codeph> CLI.</li>
+        <li>You have pushed an OCI media artifact to your Red Hat Quay repository.</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>Tools such as ORAS (OCI Registry as Storage) can now be used to embed information with artifact types to help ensure that images operate properly, for example, to expire.</p>
+      <p>The following procedure uses ORAS to add an expiration date to an OCI media artifact.</p>
+      <note type="important">
+        <p>If you pushed an image with <codeph>podman push</codeph>, and then add an annotation with <codeph>oras</codeph>, the MIME type is changed. Consequently, you will not be able to pull the same image with <codeph>podman pull</codeph> because Podman does not recognize that MIME type.</p>
+      </note>
+    </context>
+    <steps-unordered>
+      <step>
+        <cmd>By default, some OCI media types, like <codeph>application/vnd.oci.image.manifest.v1+json</codeph>, do not use certain labels, like expiration timestamps. You can use a CLI tool like ORAS (<codeph>oras</codeph>) to add annotations to OCI media types. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oras push --annotation "quay.expires-after=2d" \
+--annotation "expiration = 2d" \
+quay.io/&lt;organization_name&gt;/&lt;repository&gt;/&lt;image_name&gt;:&lt;tag&gt;</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>--annotation "quay.expires-after=2d"</codeph>
+              </dt>
+              <dd>Specifies that the expiration time is set for 2 days, indicated by <codeph>2d</codeph>.</dd>
+            </dlentry>
+            <dlentry>
+              <dt>
+                <codeph>--annotation "expiration = 2d"</codeph>
+              </dt>
+              <dd>
+                <p>Specifies that the expiration label is added.</p>
+                <p outputclass="title">
+                  <b>Example output</b>
+                </p>
+                <codeblock outputclass="language-terminal">✓ Exists    application/vnd.oci.empty.v1+json                                                                                   2/2  B 100.00%     0s
+  └─ sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+✓ Uploaded  application/vnd.oci.image.manifest.v1+json                                                                      561/561  B 100.00%  511ms
+  └─ sha256:9b4f2d43b62534423894d077f0ff0e9e496540ec8b52b568ea8b757fc9e7996b
+Pushed [registry] quay.io/stevsmit/testorg3/oci-image:v1
+ArtifactType: application/vnd.unknown.artifact.v1
+Digest: sha256:9b4f2d43b62534423894d077f0ff0e9e496540ec8b52b568ea8b757fc9e7996b</codeblock>
+              </dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+    </steps-unordered>
+    <result>
+      <ol>
+        <li>Pull the image with <codeph>oras</codeph>. For example:
+<codeblock outputclass="language-terminal">$ oras pull quay.io/&lt;organization_name&gt;/&lt;repository&gt;/&lt;image_name&gt;:&lt;tag&gt;</codeblock></li>
+        <li>Inspect the changes using <codeph>oras</codeph>. For example:
+<codeblock outputclass="language-terminal">$ oras manifest fetch quay.io/&lt;organization_name&gt;/&lt;repository&gt;/&lt;image_name&gt;:&lt;tag&gt;</codeblock><p outputclass="title"><b>Example output</b></p><codeblock outputclass="language-terminal">{"schemaVersion":2,"mediaType":"application/vnd.oci.image.manifest.v1+json","artifactType":"application/vnd.unknown.artifact.v1","config":{"mediaType":"application/vnd.oci.empty.v1+json","digest":"sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a","size":2,"data":"e30="},"layers":[{"mediaType":"application/vnd.oci.empty.v1+json","digest":"sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a","size":2,"data":"e30="}],"annotations":{"org.opencontainers.image.created":"2024-07-11T15:22:42Z","version ":" 8.11"}}</codeblock></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

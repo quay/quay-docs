@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="deleting-robot-account-api">
+  <title>Deleting a robot account by using the Red Hat Quay API</title>
+  <shortdesc>To remove a robot account that you no longer need, you can delete it by using the Red Hat Quay API. You can delete robot accounts that belong to an organization or to your own user account.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created an OAuth access token.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to delete a robot account for an organization by using the <codeph>DELETE /api/v1/organization/{orgname}/robots/{robot_shortname}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/robots/&lt;robot_shortname&gt;"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>The CLI does not return information when deleting a robot account with the API. To confirm deletion, you can check the Red Hat Quay UI, or you can enter the following <codeph>GET /api/v1/organization/{orgname}/robots</codeph> command to see if details are returned for the robot account:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET   -H "Authorization: Bearer &lt;bearer_token&gt;"   "https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;organization_name&gt;/robots"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"robots": []}</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter the following command to delete a robot account for the current user with the <codeph>DELETE /api/v1/user/robots/{robot_shortname}</codeph> endpoint:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "&lt;quay-server.example.com&gt;/api/v1/user/robots/&lt;robot_shortname&gt;"</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>The CLI does not return information when deleting a robot account for the current user with the API. To confirm deletion, you can check the Red Hat Quay UI, or you can enter the following <codeph>GET /api/v1/user/robots/{robot_shortname}</codeph> command to see if details are returned for the robot account:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X GET \
+  -H "Authorization: Bearer &lt;bearer_token&gt;" \
+  "&lt;quay-server.example.com&gt;/api/v1/user/robots/&lt;robot_shortname&gt;"</codeblock>
+          <p outputclass="title">
+            <b>Example output</b>
+          </p>
+          <codeblock outputclass="language-terminal">{"message":"Could not find robot with specified username"}</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="preserving-tls-settings-operator-upgrade_{context}">
+  <title>Preserving TLS settings before upgrading Red Hat Quay on OpenShift Container Platform</title>
+  <shortdesc>Starting with Red Hat Quay 3.18, the Red Hat Quay Operator inherits the cluster-wide TLS security profile from the OpenShift <codeph>APIServer</codeph> configuration when neither <codeph>SSL_PROTOCOLS</codeph> nor <codeph>SSL_CIPHERS</codeph> is set in the <codeph>configBundleSecret</codeph> resource. Before upgrading to 3.18, review your cluster profile and, if needed, set both fields explicitly to preserve your current TLS behavior.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have cluster administrator access to review the OpenShift Container Platform <codeph>APIServer</codeph> configuration.</li>
+        <li>You can edit the <codeph>configBundleSecret</codeph> referenced by your <codeph>QuayRegistry</codeph> custom resource (CR).</li>
+      </ul>
+    </prereq>
+    <context>
+      <p>When the <codeph>tls</codeph> component is set to <codeph>managed</codeph>, the OpenShift Route already enforces the cluster TLS profile and no action is required. When the <codeph>tls</codeph> component is set to <codeph>unmanaged</codeph>, Red Hat Quay terminates TLS directly and inherits the cluster profile after upgrade unless you override it in the config bundle. If you use unmanaged TLS and have already set both <codeph>SSL_PROTOCOLS</codeph> and <codeph>SSL_CIPHERS</codeph> in the config bundle, no additional TLS configuration is required before upgrading. Setting only one of these fields disables cluster-profile inheritance for both fields.</p>
+    </context>
+    <steps>
+      <step>
+        <cmd>Review the cluster TLS security profile:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc get apiserver cluster -o jsonpath='{.spec.tlsSecurityProfile}{"\n"}'</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>If you must preserve your current TLS settings, add <codeph>SSL_PROTOCOLS</codeph> and <codeph>SSL_CIPHERS</codeph> to the <codeph>config.yaml</codeph> file in your <codeph>configBundleSecret</codeph> before upgrading. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml"># ...
+SSL_PROTOCOLS:
+  - TLSv1.2
+  - TLSv1.3
+SSL_CIPHERS:
+  - ECDHE-RSA-AES128-GCM-SHA256
+  - ECDHE-ECDSA-AES128-GCM-SHA256
+  - ECDHE-RSA-AES256-GCM-SHA384
+  - ECDHE-ECDSA-AES256-GCM-SHA384
+  # Add other required ciphers
+# ...</codeblock>
+          <note type="note">
+            <p>Include every cipher suite your clients require. To fully override cluster-profile inheritance, set both <codeph>SSL_PROTOCOLS</codeph> and <codeph>SSL_CIPHERS</codeph>. Setting either field disables inheritance for both fields.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Update the <codeph>configBundleSecret</codeph> with the modified <codeph>config.yaml</codeph> file. You can edit the secret in the OpenShift Container Platform web console or recreate it from a local file. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc create secret generic &lt;config_bundle_secret_name&gt; \
+  --from-file config.yaml=./config.yaml \
+  --dry-run=client -o yaml | oc apply -f -</codeblock>
+          <p>For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#modifying-configuration-file-ocp" format="html" scope="external">Modifying the configuration file by using the OpenShift Container Platform web console</xref> and <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#operator-ocp-tls-security-profile" format="html" scope="external">Overriding the cluster TLS security profile</xref>.</p>
+        </info>
+      </step>
+      <step>
+        <cmd>Proceed with the Red Hat Quay Operator upgrade. If the cluster TLS profile is acceptable and neither <codeph>SSL_PROTOCOLS</codeph> nor <codeph>SSL_CIPHERS</codeph> is set, no additional TLS configuration is required.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

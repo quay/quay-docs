@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="integrating-external-postgresql-db">
+  <title>Configuring an external PostgreSQL connection</title>
+  <shortdesc>To integrate an existing PostgreSQL database with your Red Hat Quay registry, you can set the <codeph>postgres</codeph> component to unmanaged and configure the DB_URI in the <codeph>configBundleSecret</codeph>. This lets you leverage your current database infrastructure instead of using the Operator-managed database.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>The following procedure uses the OpenShift Container Platform web console to configure the Red Hat Quay registry to use an external PostgreSQL database. For most users, use the web console is simpler.</p>
+        <p>This procedure can also be done by using the <codeph>oc</codeph> CLI and following the instructions in "Modifying the QuayRegistry CR by using the CLI" and " Modifying the configuration file by using the CLI".</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>On the OpenShift Container Platform web console, click <b>Operators</b> → <b>Installed Operators</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Red Hat Quay</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Quay Registry</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click the name of your Red Hat Quay registry, for example, <b>example-registry</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>YAML</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Set the <codeph>postgres</codeph> field of the <codeph>QuayRegistry</codeph> CR to <codeph>managed: false</codeph>. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">    - kind: postgres
+      managed: false</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Click <b>Save</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Details</b> → the name of your <codeph>Config Bundle Secret</codeph> resource.</cmd>
+      </step>
+      <step>
+        <cmd>On the <b>Secret Details</b> page, click <b>Actions</b> → <b>Edit Secret</b>.</cmd>
+      </step>
+      <step>
+        <cmd>Add the <codeph>DB_URI</codeph> field to your <codeph>config.yaml</codeph> file. For example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">DB_URI: postgresql://test-quay-database:postgres@test-quay-database:5432/test-quay-database</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional: Add additional database configuration fields, such as <codeph>DB_CONNECTION_ARGS</codeph> or SSL/TLS connection arguments. For more information, see <xref href="https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/configure_red_hat_quay/index#config-fields-db" format="html" scope="external">Database connection arguments</xref>.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Save</b>.</cmd>
+      </step>
+    </steps>
+  </taskbody>
+</task>

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="troubleshooting-openshift-kubernetes-builds">
+  <title>Troubleshooting OpenShift Container Platform and Kubernetes Builds</title>
+  <shortdesc>To troubleshoot OpenShift Container Platform and Kubernetes builds in Red Hat Quay, you can create a port forwarding tunnel to the builder pod and access it via SSH. Check the quay-builder service logs to diagnose build issues.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Create a port forwarding tunnel between your local machine and a pod running with either an OpenShift Container Platform cluster or a Kubernetes cluster by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ oc port-forward &lt;builder_pod&gt; 9999:2222</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Establish an SSH connection to the remote host using a specified SSH key and port, for example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ ssh -i /path/to/ssh/key/set/in/ssh_authorized_keys -p 9999 core@localhost</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Obtain the <codeph>quay-builder</codeph> service logs by entering the following commands:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ systemctl status quay-builder</codeblock>
+          <codeblock outputclass="language-terminal">$ journalctl -f -u quay-builder</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

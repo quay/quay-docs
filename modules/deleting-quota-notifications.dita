@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="deleting-quota-notifications">
+  <title>Deleting quota notifications</title>
+  <shortdesc>To stop tracking storage thresholds or remove an inactive alerting endpoint in Red Hat Quay, you can delete quota notifications from organization or user namespaces.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="note">
+        <p>Deleting a namespace quota also automatically deletes associated <codeph>quota_warning</codeph> and <codeph>quota_error</codeph> notification rules for that namespace. After you recreate a quota, you must create new notification rules.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Delete an organization notification by entering a command similar to the following example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/notifications/&lt;uuid&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Delete a user notification by entering a command similar to the following example:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ curl -X DELETE \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+https://&lt;quay-server.example.com&gt;/api/v1/user/namespacenotifications/&lt;uuid&gt;</codeblock>
+        </info>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>Verify that the notification was deleted. List notifications with the following command:
+<codeblock outputclass="language-terminal">$ curl -X GET \
+-H "Authorization: Bearer &lt;bearer_token&gt;" \
+-H "Accept: application/json" \
+https://&lt;quay-server.example.com&gt;/api/v1/organization/&lt;orgname&gt;/notifications</codeblock><p outputclass="title"><b>Example output</b></p><codeblock outputclass="language-terminal">{"notifications": []}</codeblock></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

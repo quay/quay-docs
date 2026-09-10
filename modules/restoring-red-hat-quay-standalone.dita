@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="restoring-red-hat-quay-standalone">
+  <title>Restoring Red Hat Quay on standalone deployments</title>
+  <shortdesc>To restore a standalone Red Hat Quay deployment from backup, you can restore configuration files, recreate the PostgreSQL database, and sync blobs to object storage.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have backed up your Red Hat Quay deployment.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Create a new directory that bind-mounts to <codeph>/conf/stack</codeph> inside of the Red Hat Quay container:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ mkdir /opt/new-quay-install</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Copy the contents of your temporary backup directory created in the backup procedure to the <codeph>new-quay-install</codeph> directory created in Step 1:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cp /tmp/quay-backup/quay-backup.tar.gz /opt/new-quay-install/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Change into the <codeph>new-quay-install</codeph> directory by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cd /opt/new-quay-install/</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Extract the contents of your Red Hat Quay directory:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ tar xvf /tmp/quay-backup/quay-backup.tar.gz *</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>config.yaml
+config.yaml.bak
+extra_ca_certs/
+extra_ca_certs/ca.crt
+ssl.cert
+ssl.key</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Recall the <codeph>DB_URI</codeph> from your backed-up <codeph>config.yaml</codeph> file by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ grep DB_URI config.yaml</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-yaml">postgresql://&lt;username&gt;:test123@172.24.10.50/quay</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Run the following command to enter the PostgreSQL database server:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo postgres</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Enter psql and create a new database in 172.24.10.50 to restore the quay databases, for example, <codeph>example_restore_registry_quay_database</codeph>, by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ psql "host=172.24.10.50  port=5432 dbname=postgres user=&lt;username&gt;  password=test123"
+postgres=&gt; CREATE DATABASE example_restore_registry_quay_database;</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>CREATE DATABASE</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Connect to the database by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">postgres=# \c "example-restore-registry-quay-database";</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">You are now connected to database "example-restore-registry-quay-database" as user "postgres".</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a <codeph>pg_trgm</codeph> extension of your Quay database by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">example_restore_registry_quay_database=&gt; CREATE EXTENSION IF NOT EXISTS pg_trgm;</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">CREATE EXTENSION</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Exit the postgres CLI by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">\q</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Import the database backup to your new database by running the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ psql "host=172.24.10.50 port=5432 dbname=example_restore_registry_quay_database user=&lt;username&gt; password=test123"  -W &lt;  /tmp/quay-backup/quay-backup.sql</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock>SET
+SET
+SET
+SET
+SET</codeblock>
+          <p>Update the value of <codeph>DB_URI</codeph> in your <codeph>config.yaml</codeph> from <codeph>postgresql://&lt;username&gt;:test123@172.24.10.50/quay</codeph> to <codeph>postgresql://&lt;username&gt;:test123@172.24.10.50/example-restore-registry-quay-database</codeph> before restarting the Red Hat Quay deployment.</p>
+          <note type="note">
+            <p>The DB_URI format is <codeph>DB_URI postgresql://&lt;login_user_name&gt;:&lt;login_user_password&gt;@&lt;postgresql_host&gt;/&lt;quay_database&gt;</codeph>. If you are moving from one PostgreSQL server to another PostgreSQL server, update the value of <codeph>&lt;login_user_name&gt;</codeph>, <codeph>&lt;login_user_password&gt;</codeph> and <codeph>&lt;postgresql_host&gt;</codeph> at the same time.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>In the <codeph>/opt/new-quay-install</codeph> directory, print the contents of your <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> bundle:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ cat config.yaml | grep DISTRIBUTED_STORAGE_CONFIG -A10</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-yaml">DISTRIBUTED_STORAGE_CONFIG:
+   default:
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - S3Storage
+    - s3_bucket: &lt;bucket_name&gt;
+      storage_path: /registry
+      s3_access_key: &lt;s3_access_key&gt;
+      s3_region: &lt;region&gt;
+      s3_secret_key: &lt;s3_secret_key&gt;
+      host: &lt;host_name&gt;</codeblock>
+          <note type="note">
+            <p>Your <codeph>DISTRIBUTED_STORAGE_CONFIG</codeph> in <codeph>/opt/new-quay-install</codeph> must be updated before restarting your Red Hat Quay deployment.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Export the <codeph>AWS_ACCESS_KEY_ID</codeph> by using the <codeph>access_key</codeph> credential obtained in Step 13:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export AWS_ACCESS_KEY_ID=&lt;access_key&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Export the <codeph>AWS_SECRET_ACCESS_KEY</codeph> by using the <codeph>secret_key</codeph> obtained in Step 13:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ export AWS_SECRET_ACCESS_KEY=&lt;secret_key&gt;</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Create a new s3 bucket by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ aws s3 mb s3://&lt;new_bucket_name&gt;  --region us-east-2</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">$ make_bucket: quay</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Upload all blobs to the new s3 bucket by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ aws s3 sync --no-verify-ssl \
+--endpoint-url &lt;example_endpoint_url&gt;
+/tmp/quay-backup/blob-backup/. s3://quay/</codeblock>
+          <p>where:</p>
+          <dl>
+            <dlentry>
+              <dt>
+                <codeph>&lt;example_endpoint_url&gt;</codeph>
+              </dt>
+              <dd>
+                <p>Specifies the Red Hat Quay registry endpoint. The endpoint must be the same before backup and after restore.</p>
+                <p outputclass="title">
+                  <b>Example output:</b>
+                </p>
+                <codeblock outputclass="language-terminal">upload: ../../tmp/quay-backup/blob-backup/datastorage/registry/sha256/50/505edb46ea5d32b5cbe275eb766d960842a52ee77ac225e4dc8abb12f409a30d to s3://quay/datastorage/registry/sha256/50/505edb46ea5d32b5cbe275eb766d960842a52ee77ac225e4dc8abb12f409a30d
+upload: ../../tmp/quay-backup/blob-backup/datastorage/registry/sha256/27/27930dc06c2ee27ac6f543ba0e93640dd21eea458eac47355e8e5989dea087d0 to s3://quay/datastorage/registry/sha256/27/27930dc06c2ee27ac6f543ba0e93640dd21eea458eac47355e8e5989dea087d0
+upload: ../../tmp/quay-backup/blob-backup/datastorage/registry/sha256/8c/8c7daf5e20eee45ffe4b36761c4bb6729fb3ee60d4f588f712989939323110ec to s3://quay/datastorage/registry/sha256/8c/8c7daf5e20eee45ffe4b36761c4bb6729fb3ee60d4f588f712989939323110ec
+...</codeblock>
+              </dd>
+            </dlentry>
+          </dl>
+        </info>
+      </step>
+      <step>
+        <cmd>Before restarting your Red Hat Quay deployment, update the storage settings in your <codeph>config.yaml</codeph> file:
+</cmd>
+        <info>
+          <codeblock outputclass="language-yaml">DISTRIBUTED_STORAGE_CONFIG:
+   default:
+DISTRIBUTED_STORAGE_CONFIG:
+   default:
+    - S3Storage
+    - s3_bucket: &lt;new_bucket_name&gt;
+      storage_path: /registry
+      s3_access_key: &lt;s3_access_key&gt;
+      s3_secret_key: &lt;s3_secret_key&gt;
+      s3_region: &lt;region&gt;
+      host: &lt;host_name&gt;</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>

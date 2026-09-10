@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="red-hat-quay-proxy-cache-procedure">
+  <title>Using Red Hat Quay to proxy a remote registry</title>
+  <shortdesc>To proxy a remote registry with Red Hat Quay, you can configure an organization as a cache and pull images through it. You set the remote registry, optional credentials, and expiration on the UI.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li><codeph>FEATURE_PROXY_CACHE</codeph> in your config.yaml is set to <codeph>True</codeph>.</li>
+        <li>Assigned the <b>Member</b> team role. For more information about team roles, see <xref href="quay_jtbd-administer.dita#set-team-role">Setting a team role by using the UI</xref>.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>On the Red Hat Quay v2 UI, click the name of an organization, for example, <b>cache-org</b>.</cmd>
+      </step>
+      <step>
+        <cmd>In the navigation pane, click <b>Settings</b>.</cmd>
+      </step>
+      <step>
+        <cmd>In the <b>Remote Registry</b> box, enter the name of the remote registry to be cached, for example, <codeph>quay.io</codeph>, and click <b>Save</b>.
+</cmd>
+        <info>
+          <note type="note">
+            <p>By adding a namespace to the <b>Remote Registry</b>, for example, <codeph>quay.io/&lt;namespace&gt;</codeph>, users in your organization will only be able to proxy from that namespace.</p>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. In the Remote Registry username box, enter the username for authenticating into the remote registry specified in the previous step. If you leave this empty, Quay will attempt to pull content anonymously from the upstream registry.</cmd>
+      </step>
+      <step>
+        <cmd>Optional. In the Remote registry password box, enter the password for authenticating into the remote registry. If you leave this empty, Quay will attempt to pull content anonymously from the upstream registry.</cmd>
+      </step>
+      <step>
+        <cmd>Optional. Set a time in the <b>Expiration</b> field.
+</cmd>
+        <info>
+          <note type="note">
+            <ul>
+              <li>The default tag <b>Expiration</b> field for cached images in a proxy organization is set to 86400 seconds. In the proxy organization, the tag expiration is refreshed to the value set in the UI’s <b>Expiration</b> field every time the tag is pulled. This feature is different than Quay’s default <xref href="quay_jtbd-administer.dita#setting-tag-expiration-using-ui">individual tag expiration</xref> feature. In a proxy organization, it is possible to override the individual tag feature. When this happens, the individual tag’s expiration is reset according to the <b>Expiration</b> field of the proxy organization.</li>
+              <li>Expired images will disappear after the allotted time, but are still stored in Red Hat Quay. The time in which an image is completely deleted, or  collected, depends on the <b>Time Machine</b> setting of your organization. The default time for garbage collection is 14 days unless otherwise specified.</li>
+            </ul>
+          </note>
+        </info>
+      </step>
+      <step>
+        <cmd>Optional. Check the <b>http</b> box if you want an unsecure protocol used. If not checked, https is used to request the remote registry.</cmd>
+      </step>
+      <step>
+        <cmd>Click <b>Save</b>.</cmd>
+      </step>
+    </steps>
+    <result>
+      <ol>
+        <li>On the CLI, pull a public image from the remote registry that was specified, for example, <codeph>quay.io</codeph>, acting as a proxy cache:
+<codeblock>$ podman pull &lt;registry_url&gt;/&lt;organization_name&gt;/&lt;quayio_namespace&gt;/&lt;image_name&gt;</codeblock><note type="important"><p>If your organization is set up to pull from a single namespace in the remote registry, the remote registry namespace must be omitted from the URL. For example, <codeph>podman pull &lt;registry_url&gt;/&lt;organization_name&gt;/&lt;image_name&gt;</codeph>.</p></note></li>
+      </ol>
+    </result>
+  </taskbody>
+</task>

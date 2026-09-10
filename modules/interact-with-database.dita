@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="interact-with-database">
+  <title>Interacting with the Red Hat Quay database</title>
+  <shortdesc>To interact with the Red Hat Quay PostgreSQL database and troubleshoot authorization or authentication issues, you can exec into the database using <codeph>oc exec</codeph> for Red Hat Quay on OpenShift Container Platform or <codeph>podman exec</codeph> for standalone, then enter the PostgreSQL shell with <codeph>psql</codeph>.</shortdesc>
+  <taskbody>
+    <context>
+      <note type="warning">
+        <p>Interacting with the PostgreSQL database is potentially destructive. Red Hat recommends that you perform the following procedure with a Red Hat Quay Support Specialist.</p>
+      </note>
+      <note type="note">
+        <p>Interacting with the PostgreSQL database can also be used to troubleshoot authorization and authentication issues.</p>
+      </note>
+    </context>
+    <steps>
+      <step>
+        <cmd>Exec into the Red Hat Quay database.
+</cmd>
+        <substeps>
+          <substep>
+            <cmd>Enter the following commands to exec into the Red Hat Quay database pod on OpenShift Container Platform:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc exec -it &lt;quay_database_pod&gt; -- psql</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>Enter the following command to exec into the Red Hat Quay database on a standalone deployment:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ sudo podman exec -it &lt;quay_container_name&gt; /bin/bash</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+      <step>
+        <cmd>Enter the PostgreSQL shell.
+</cmd>
+        <info>
+          <note type="warning">
+            <p>Interacting with the PostgreSQL database is potentially destructive. Red Hat recommends that you perform the following procedure with a Red Hat Quay Support Specialist.</p>
+          </note>
+        </info>
+        <substeps>
+          <substep>
+            <cmd>If you are using the Red Hat Quay Operator, enter the following command to enter the PostgreSQL shell:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">$ oc rsh &lt;quay_pod_name&gt; psql -U your_username -d your_database_name</codeblock>
+            </info>
+          </substep>
+          <substep>
+            <cmd>If you are on a standalone Red Hat Quay deployment, enter the following command to enter the PostgreSQL shell:
+</cmd>
+            <info>
+              <codeblock outputclass="language-terminal">bash-4.4$ psql -U your_username -d your_database_name</codeblock>
+            </info>
+          </substep>
+        </substeps>
+      </step>
+    </steps>
+  </taskbody>
+</task>

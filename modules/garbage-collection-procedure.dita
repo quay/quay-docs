@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="garbage-collection-procedure">
+  <title>Checking garbage collection in practice</title>
+  <shortdesc>To verify that Red Hat Quay garbage collection is running, you can review registry logs after you delete an image tag.</shortdesc>
+  <taskbody>
+    <steps>
+      <step>
+        <cmd>Enter the following command to ensure that garbage collection is properly working:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ sudo podman logs &lt;container_id&gt;</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">gcworker stdout | 2022-11-14 18:46:52,458 [63] [INFO] [apscheduler.executors.default] Job "GarbageCollectionWorker._garbage_collection_repos (trigger: interval[0:00:30], next run at: 2022-11-14 18:47:22 UTC)" executed successfully</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Delete an image tag.</cmd>
+      </step>
+      <step>
+        <cmd>Enter the following command to ensure that the tag was deleted:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman logs quay-app</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">gunicorn-web stdout | 2022-11-14 19:23:44,574 [233] [INFO] [gunicorn.access] 192.168.0.38 - - [14/Nov/2022:19:23:44 +0000] "DELETE /api/v1/repository/quayadmin/busybox/tag/test HTTP/1.0" 204 0 "http://quay-server.example.com/repository/quayadmin/busybox?tab=tags" "Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0"</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>
