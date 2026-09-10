@@ -16,7 +16,22 @@ Category order and module placement come from `JTBD draft 11.pre-gapfill.xlsx`.
 
 == Product navigation MAP
 
-The AEM migration root ditamap is `quay-3-18-navigation.adoc` at the repository root. It includes all 17 category MAPs (`quay_jtbd/*/master.adoc`) at `leveloffset=+1` in the same order as `welcome.adoc`.
+The AEM migration root ditamap follows the MicroShift layout:
+
+* `maps/quay/navigation.adoc` — product MAP
+* `maps/quay/<category>.adoc` — category MAPs (hyphenated names)
+* `maps/jobs/<job>.adoc` — job files (symlinks into `quay_jtbd/<category>/` until jobs are converted to MAP type)
+
+`quay-3-18-navigation.adoc` at the repository root includes `maps/quay/navigation.adoc` so existing xrefs keep working.
+
+From the repository root:
+
+----
+mkdir -p logs
+adconvert -Cr -p _attributes/attributes.adoc maps/quay/navigation.adoc 2>&1 | tee logs/conversion.log | grep -v 'Possible invalid'
+----
+
+Conversion output (`*.html`, `*.dita`, `logs/`) is gitignored under `maps/`. Do not add those files to the repository.
 
 After `build_docs` or `build_docs_preview` runs, the unified navigation preview is:
 
