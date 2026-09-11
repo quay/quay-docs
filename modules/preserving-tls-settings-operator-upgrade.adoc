@@ -3,9 +3,15 @@
 = Preserving TLS settings before upgrading {productname-ocp}
 
 [role="_abstract"]
-Starting with {productname} {producty}, the {productname} Operator inherits the cluster-wide TLS security profile from the OpenShift `APIServer` configuration when neither `SSL_PROTOCOLS` nor `SSL_CIPHERS` is set in the `configBundleSecret` resource. Before upgrading to {producty}, review your cluster profile and, if needed, set both fields explicitly to preserve your current TLS behavior.
+[role="_abstract"]
+The {productname} Operator can inherit the cluster-wide TLS security profile. Before upgrading, review your cluster profile and set `SSL_PROTOCOLS` and `SSL_CIPHERS` if you need to preserve your current TLS behavior.
 
-When the `tls` component is set to `managed`, the OpenShift Route already enforces the cluster TLS profile and no action is required. When the `tls` component is set to `unmanaged`, {productname} terminates TLS directly and inherits the cluster profile after upgrade unless you override it in the config bundle. If you use unmanaged TLS and have already set both `SSL_PROTOCOLS` and `SSL_CIPHERS` in the config bundle, no additional TLS configuration is required before upgrading. Setting only one of these fields disables cluster-profile inheritance for both fields.
+The Operator inherits the cluster-wide TLS security profile from the OpenShift `APIServer` configuration when neither `SSL_PROTOCOLS` nor `SSL_CIPHERS` is set in the `configBundleSecret` resource.
+
+When the `tls` component is set to `managed`, the OpenShift Route already enforces the cluster TLS profile, and no action is required.
+
+When the `tls` component is set to `unmanaged`, {productname} terminates TLS directly and inherits the cluster profile after the upgrade unless you override it in the config bundle. If you have already set both `SSL_PROTOCOLS` and `SSL_CIPHERS`, no additional TLS configuration is required before upgrading. Setting only one field disables cluster-profile inheritance for both fields.
+
 
 .Prerequisites
 
