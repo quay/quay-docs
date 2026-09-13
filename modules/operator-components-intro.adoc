@@ -4,3 +4,22 @@
 
 [role="_abstract"]
 When deploying {productname-ocp}, the registry configuration is managed declaratively through two primary mechanisms: the `QuayRegistry` custom resource (CR) and the `configBundleSecret` resource. You use these mechanisms to configure and manage your registry deployment.
+
+[IMPORTANT]
+====
+By default, Redis instances deployed by the {productname} Operator do not use password authentication.
+If you require password authentication, set the `REDIS_PASSWORD` environment variable by using a `redis` component override in your `QuayRegistry` custom resource.
+====
+
+.Example `redis` component override with a password
+[source,yaml]
+----
+spec:
+  components:
+  - kind: redis
+    managed: true
+    overrides:
+      env:
+      - name: "REDIS_PASSWORD"
+        value: "password_here"
+----
