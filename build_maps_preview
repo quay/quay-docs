@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# Build maps/quay/navigation.adoc to dist/maps for GitHub Pages.
+# Asset paths are relative so the site works at /quay-docs/maps/ (project Pages).
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$REPO_ROOT"
+
+OUT="${REPO_ROOT}/dist/maps"
+
+inject_preview_chrome() {
+  python3 - "$1" <<'PY'
+import html
+import pathlib
+import re
+import sys
+
+path = pathlib.Path(sys.argv[1])
+text = path.read_text()
+if "preview-banner" in text:
+    sys.exit(0)
+
+title_match = re.search(r"<h1>(.*?)</h1>", text, re.S)
+title = html.escape(re.sub(r"<[^>]+>", "", title_match.group(1)).strip()) if title_match else "Red Hat Quay"
+
+head_extra = (
+    '<link rel="stylesheet" href="assets/css/preview.css">\n'
+    '<script src="assets/js/jquery.min.js"></script>\n'
+    '<script src="assets/js/toc-collapse.js" defer></script>\n'
+)
+text = text.replace("</head>", head_extra + "</head>", 1)
+
+body_match = re.search(r"<body([^>]*)>", text)
+if body_match:
+    insert = (
+        f'<body{body_match.group(1)}>\n'
+        '<div class="preview-banner surge-preview-banner" role="status">'
+        "GitHub Pages preview — not docs.redhat.com"
+        " · <a href=\"../api-v2/\" style=\"color:#fff;text-decoration:underline\">Generated API reference</a>"
+        "</div>\n"
+        f'<div class="paragraph navbar"><p><a href="index.html"><span class="image">'
+        f'<img src="assets/img/logo.svg" alt="Home" width="30"></span> | {title}</a></p></div>'
+    )
+    text = text.replace(body_match.group(0), insert, 1)
+
+path.write_text(text)
+PY
+}
+
+rm -rf "$OUT"
+mkdir -p "$OUT/assets/css" "$OUT/images"
+
+cp -a preview/assets/. "$OUT/assets/"
+cp preview/surge-preview.css "$OUT/assets/css/preview.css"
+cp -a images/. "$OUT/images/"
+touch "$OUT/.nojekyll"
+
+echo "=== Building maps/quay/navigation.adoc -> ${OUT}/index.html ==="
+asciidoctor \
+  -a productname="Red Hat Quay" \
+  -a toc=left \
+  -a toclevels=4 \
+  -d book \
+  -a linkcss \
+  -a stylesheet=redhat.css \
+  -a stylesdir=assets/css \
+  -a imagesdir=images \
+  -a icons=font \
+  maps/quay/navigation.adoc \
+  -D "$OUT" \
+  -o index.html
+
+inject_preview_chrome "$OUT/index.html"
+
+echo "=== Maps preview build complete: ${OUT}/ ==="
+echo "Serve locally with: python3 -m http.server -d dist/maps 8000"
+echo "Pages URL after deploy: https://stevsmit.github.io/quay-docs/maps/"
