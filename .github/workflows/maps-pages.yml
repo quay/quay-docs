@@ -1,0 +1,55 @@
+# Build maps/quay/navigation.adoc and publish it to GitHub Pages at /maps/.
+# Deploy is limited to the fork so quay.github.io keeps the existing MkDocs API site
+# until that cutover is intentional.
+name: Maps GitHub Pages preview
+
+on:
+  push:
+    branches: [master, maps-github-pages-preview]
+    paths:
+      - "maps/**"
+      - "modules/**"
+      - "images/**"
+      - "preview/**"
+      - "_attributes/**"
+      - "quay_jtbd/**"
+      - "build_maps_preview"
+      - ".github/workflows/maps-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: maps-pages-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.repository == 'stevsmit/quay-docs'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: false
+
+      - name: Install Asciidoctor
+        run: gem install asciidoctor
+
+      - name: Build maps preview
+        run: ./build_maps_preview
+
+      - name: Deploy /maps/ to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist/maps
+          destination_dir: maps
+          keep_files: true
+          enable_jekyll: false
+          commit_message: "Publish maps preview from ${{ github.sha }}"
