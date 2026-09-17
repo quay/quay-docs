@@ -1,0 +1,29 @@
+:_mod-docs-content-type: CONCEPT
+[id="core-prereqs-clair-indexer-storage"]
+= Clair indexer storage
+
+[role="_abstract"]
+When you use managed Clair with {productname} on {ocp}, the StorageClass for the Clair indexer scratch volume must support the Linux `O_TMPFILE` flag.
+
+The {productname} Operator provisions an ephemeral volume named `indexer-layer-storage` and mounts it at `/var/tmp` in the Clair indexer. Clair uses that path as scratch space while it extracts image layers for vulnerability scanning. Claircore creates and removes those temporary files with the `O_TMPFILE` `open(2)` flag.
+
+If the filesystem does not support `O_TMPFILE`, leftover files can fill the volume, or scans can fail with errors such as `open /tmp: operation not supported`.
+
+Unless you set a `storageClassName` override on the managed `clair` component, the volume uses the cluster default StorageClass.
+
+.StorageClass requirements
+* Use a StorageClass backed by a filesystem that supports `O_TMPFILE`, typically XFS or ext4 on block storage.
+* Do not use overlayFS, NFS, CephFS, or similar network or shared filesystems for this volume.
+
+If the cluster default StorageClass does not meet this requirement, set `overrides.storageClassName` on the managed `clair` component in the `QuayRegistry` custom resource. Replace `<storage_class_name>` with a StorageClass in your cluster that supports `O_TMPFILE`. You can also set `overrides.volumeSize` if the default `20Gi` request is too small for your scanning workload. For example:
+
+[source,yaml]
+----
+spec:
+  components:
+  - kind: clair
+    managed: true
+    overrides:
+      volumeSize: 50Gi
+      storageClassName: <storage_class_name>
+----
