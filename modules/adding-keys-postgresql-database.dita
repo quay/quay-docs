@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE task PUBLIC "-//OASIS//DTD DITA Task//EN" "task.dtd">
+<task id="adding-keys-postgresql-database">
+  <title>Adding keys to the PostgreSQL database</title>
+  <shortdesc>To register read-only service keys with Red Hat Quay, you can insert the key and approval records into the PostgreSQL database.</shortdesc>
+  <taskbody>
+    <prereq>
+      <ul>
+        <li>You have created the service keys.</li>
+      </ul>
+    </prereq>
+    <steps>
+      <step>
+        <cmd>Enter the following command to enter your Red Hat Quay database environment:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">$ podman exec -it postgresql-quay psql -U postgres -d quay</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Display the approval types and associated notes of the <codeph>servicekeyapproval</codeph> by entering the following command:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">quay=# select * from servicekeyapproval;</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal"> id | approver_id |          approval_type           |       approved_date        | notes
+----+-------------+----------------------------------+----------------------------+-------
+  1 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:47:48.181347 |
+  2 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:47:55.808087 |
+  3 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:49:04.27095  |
+  4 |             | ServiceKeyApprovalType.AUTOMATIC | 2024-05-07 03:49:05.46235  |
+  5 |           1 | ServiceKeyApprovalType.SUPERUSER | 2024-05-07 04:05:10.296796 |
+...</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Add the service key to your Red Hat Quay database by entering the following query:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">quay=# INSERT INTO servicekey
+  (name, service, metadata, kid, jwk, created_date, expiration_date)
+  VALUES ('quay-readonly',
+           'quay',
+           '{}',
+           '&lt;contents_of_.kid_file&gt;',
+           '&lt;contents_of_.jwk_file&gt;',
+           '&lt;created_date_of_read-only&gt;',
+           '&lt;expiration_date_of_read-only&gt;');</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">INSERT 0 1</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Next, add the key approval with the following query:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">quay=# INSERT INTO servicekeyapproval ('approval_type', 'approved_date', 'notes')
+  VALUES ("ServiceKeyApprovalType.SUPERUSER", "CURRENT_DATE",
+           &lt;include_notes_here_on_why_this_is_being_added&gt;);</codeblock>
+          <p outputclass="title">
+            <b>Example output:</b>
+          </p>
+          <codeblock outputclass="language-terminal">INSERT 0 1</codeblock>
+        </info>
+      </step>
+      <step>
+        <cmd>Set the <codeph>approval_id</codeph> field on the created service key row to the <codeph>id</codeph> field from the created service key approval. You can use the following <codeph>SELECT</codeph> statements to get the necessary IDs:
+</cmd>
+        <info>
+          <codeblock outputclass="language-terminal">UPDATE servicekey
+SET approval_id = (SELECT id FROM servicekeyapproval WHERE approval_type = 'ServiceKeyApprovalType.SUPERUSER')
+WHERE name = 'quay-readonly';</codeblock>
+          <codeblock outputclass="language-terminal">UPDATE 1</codeblock>
+        </info>
+      </step>
+    </steps>
+  </taskbody>
+</task>
