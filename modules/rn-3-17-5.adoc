@@ -1,0 +1,83 @@
+:_mod-docs-content-type: REFERENCE
+[id="rn-3-17-5"]
+= RHSA-2026:74511 - {productname} 3.17.5 release
+
+Issued 2026-10-01
+
+[role="_abstract"]
+{productname} release 3.17.5 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHSA-2026:74511[RHSA-2026:74511] advisory.
+
+[id="bug-fixes-317-5"]
+== {productname} 3.17.5 bug fixes
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12812[*PROJQUAY-12812*]. Previously, Clair could retry vulnerability scanning of the same image without a defined upper limit, which could delay scanning work for other images.
++
+With this release, Clair scanning attempts for an image are limited to a maximum number of retries. As a result, failed scans stop retrying after the limit is reached and scanning capacity remains available for other images.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12792[*PROJQUAY-12792*]. Previously, orphaned multipart uploads were not cleaned up as part of blob cleanup work and could remain in object storage.
++
+With this release, orphaned multipart uploads are cleaned up during blob cleanup. As a result, incomplete uploads no longer accumulate unused storage.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12416[*PROJQUAY-12416*]. Previously, repository mirroring failed when the source and destination repositories were on the same registry, because skopeo credential helper entries for a single hostname could not supply the correct credentials for both repositories.
++
+With this release, same-registry mirroring uses credentials correctly for both the source and destination. As a result, you can mirror between repositories on the same {productname} registry.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12393[*PROJQUAY-12393*]. Previously, the new UI generated malformed API requests when an organization name contained the word `organization`, which caused unauthorized errors when opening teams.
++
+With this release, UI routing handles organization names that include `organization` correctly. As a result, team pages load without unauthorized errors for those organizations.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12373[*PROJQUAY-12373*]. Previously, you could not override the volume size or storage class for the managed Clair ephemeral volume at `/var/tmp`.
++
+With this release, the Operator supports `volumeSize` and `storageClassName` overrides for the Clair ephemeral volume. As a result, you can size and place Clair temporary storage to match cluster requirements.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12227[*PROJQUAY-12227*]. Previously, when a tag name matched the repository name, the new UI breadcrumb omitted the repository name and navigation could become incorrect.
++
+With this release, the breadcrumb always shows the repository name separately from the tag name. As a result, navigation remains accurate when tag and repository names match.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12200[*PROJQUAY-12200*]. Previously, the `build_start` notification event was configurable in the UI but was never triggered when a build entered the building phase.
++
+With this release, {productname} sends `build_start` notifications when a build starts. As a result, webhooks and other notification methods receive build-started events as expected.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12199[*PROJQUAY-12199*]. Previously, pulling an image that was already cached through the proxy cache still required the upstream registry to be reachable, which caused pull failures when the upstream was unavailable.
++
+With this release, cached images can be served from {productname} without contacting the upstream registry. As a result, proxy-cached pulls succeed even when the upstream registry is down.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11975[*PROJQUAY-11975*]. Previously, enabling `USERS_DEBUG=1` logged LDAP traces that included passwords in clear text.
++
+With this release, LDAP passwords are redacted from debug output when `USERS_DEBUG=1` is enabled. As a result, container logs no longer expose LDAP credentials.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11855[*PROJQUAY-11855*]. Previously, unnecessary permission checks on critical UI API paths could slow or block UI loading, especially on LDAP-backed deployments.
++
+With this release, UI loading paths avoid needless permission checks. As a result, the UI loads more reliably under LDAP load.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11692[*PROJQUAY-11692*]. Previously, the superuser Build Logs page returned HTTP 500 when fetching build information because of a logic error in `BuildTrigger.to_dict()`.
++
+With this release, build trigger serialization handles missing triggers correctly. As a result, superusers can retrieve build logs by UUID without a server error.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11689[*PROJQUAY-11689*]. Previously, lazy loading of OCI indexes failed when an index included Docker v2 schema 2 manifests, even though that combination is allowed by the OCI specification.
++
+With this release, OCI index loading accepts Docker v2 schema 2 child manifests. As a result, mixed OCI indexes load without manifest media type errors.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11688[*PROJQUAY-11688*]. Previously, garbage collection deleted orphaned labels one query at a time, which slowed cleanup for repositories with many images and labels.
++
+With this release, garbage collection processes label cleanup more efficiently. As a result, GC completes faster for large repositories.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11685[*PROJQUAY-11685*]. Previously, each LDAP operation opened a new TCP connection with full TLS and bind overhead, which increased LDAP server load under concurrent logins and permission checks.
++
+With this release, you can enable an optional LDAP admin connection pool to reuse connections across requests. As a result, LDAP-backed deployments can reduce connection overhead when pooling is turned on.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11682[*PROJQUAY-11682*]. Previously, the auto-pruner treated Cosign `.sig` tags the same as image tags, so signature tags counted toward prune limits and could be pruned independently of their images.
++
+With this release, auto-prune handling of Cosign signature tags is corrected. As a result, pruning policies no longer mismanage `.sig` tags relative to their associated images.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11580[*PROJQUAY-11580*]. Previously, the usage logs chart legend overlapped the chart area when many distinct log action types were present, which made both the legend and chart unreadable.
++
+With this release, the usage logs chart layout no longer overlaps the legend with the chart. As a result, usage log charts remain readable with large numbers of action types.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11557[*PROJQUAY-11557*]. Previously, after the config-tool migration, the Operator rejected a `configBundleSecret` that contained `PULL_METRICS_REDIS` when Redis was managed, even though that configuration was valid before.
++
+With this release, managed Redis deployments accept `PULL_METRICS_REDIS` in the config bundle. As a result, pull metrics Redis settings no longer conflict with managed Redis.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11441[*PROJQUAY-11441*]. Previously, selecting a permission in certain permission dropdowns in Firefox navigated to a temporary unavailability page.
++
+With this release, permission dropdown selection works correctly in Firefox. As a result, creating teams and robot accounts no longer fails when choosing permissions in Firefox.
