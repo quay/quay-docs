@@ -1,0 +1,35 @@
+:_mod-docs-content-type: CONCEPT
+[id="manual-readonly-mode-ocp_{context}"]
+= Manually enabling read-only mode for {productname-ocp}
+
+[role="_abstract"]
+For deployments that do not use the Operator-managed read-only lifecycle, you can enable read-only mode manually by setting `REGISTRY_STATE: readonly` in the configuration secret. The {productname} Operator detects this setting and defers upgrades automatically.
+
+[NOTE]
+====
+This method requires direct modification of secrets inside your {ocp} cluster and several manual steps. If you are running {productname} {producty} or later, the preferred method is the Operator-managed approach using `spec.readOnly`. The two methods are mutually exclusive: if `REGISTRY_STATE: readonly` is present in your configuration, setting `spec.readOnly: true` is rejected with an `OverrideConflict` condition.
+====
+
+[id="upgrade-deferral-behavior"]
+== Upgrade deferral behavior
+
+When the {productname} Operator detects `REGISTRY_STATE: readonly` set directly in the user-provided config Secret, the merged config bundle Secret, or a `QUAY_OVERRIDE_CONFIG` environment variable override, it performs the following actions:
+
+* Sets a `ReadOnly` status condition on the `QuayRegistry` resource with `reason: ManualReadOnlyDetected`.
+* Defers image version upgrades. The Operator freezes the current Quay image and does not roll out a new version.
+* Defers PostgreSQL and Clair PostgreSQL upgrade jobs and version migration triggers.
+* Continues reconciling all other components normally.
+
+The following condition is set on the `QuayRegistry` resource:
+
+[source,yaml]
+----
+- type: ReadOnly
+  status: "True"
+  reason: ManualReadOnlyDetected
+  message: "Registry is in read-only mode via user config (REGISTRY_STATE).
+            Operator upgrades are deferred. Consider using spec.readOnly
+            for full operator-managed lifecycle."
+----
+
+The condition is automatically cleared when `REGISTRY_STATE` is removed from all user-controlled configuration sources. After it is cleared, the Operator resumes normal upgrade and reconciliation behavior.
