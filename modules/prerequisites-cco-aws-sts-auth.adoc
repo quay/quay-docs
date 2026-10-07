@@ -1,0 +1,43 @@
+:_mod-docs-content-type: REFERENCE
+[id="prerequisites-cco-aws-sts-auth"]
+= Prerequisites for CCO-based AWS STS authentication
+
+[role="_abstract"]
+To configure CCO-based AWS STS authentication for {productname-ocp}, ensure that your cluster, AWS resources, and {productname} configuration meet the listed prerequisites. 
+
+* Your cluster runs {ocp} 4.14 or later on AWS.
+* CCO is installed and its `CloudCredential` resource is configured with `credentialsMode: Manual`.
+* The `CredentialsRequest` API is available on the cluster.
+* The cluster has a non-empty service account issuer, and a corresponding IAM OIDC provider exists in the AWS account.
+* The IAM OIDC provider includes `openshift` in its client ID list.
+* You have an existing Amazon S3 bucket for {productname} object storage.
+* You have an IAM role with a trust policy for the `<quay_registry_name>-quay-app` service account and a permission policy scoped to the S3 bucket.
+* The `objectstorage` component in the `QuayRegistry` CR is set to `managed: false`.
+* The config bundle contains a standard `S3Storage` configuration without `s3_access_key` or `s3_secret_key`.
+
+[IMPORTANT]
+====
+CCO `Manual` mode does not create the S3 bucket, IAM role, IAM permission policy, or AWS IAM OIDC provider. An AWS or cluster administrator must create these resources before enabling this feature.
+====
+
+One {productname} Operator installation uses one `ROLEARN` value. If the Operator manages multiple `QuayRegistry` resources, the role trust policy must allow every intended `<namespace>:<quay_registry_name>-quay-app` service account subject. Alternatively, use separately scoped Operator installations and roles.
+
+The Operator reports STS provisioning and configuration problems by setting the existing `RolloutBlocked` condition on the `QuayRegistry` CR. The following table lists the associated condition reasons:
+
+[cols="1,3",options="header"]
+|===
+|Condition reason |Description
+
+|`CredentialRequestPending`
+|CCO has not provisioned the current `CredentialsRequest` generation or created the requested profile Secret. This condition is normally transient during initial setup or after the role ARN changes.
+
+|`CredentialRequestNotProvisioned`
+|Provisioning exceeded five minutes, or the CCO-generated profile is missing or invalid. Verify the current request generation, output Secret, role ARN, token path, and CCO logs.
+
+|`ConflictingCredentials`
+|`ROLEARN` is set, but an applicable `S3Storage` entry contains `s3_access_key` or `s3_secret_key`. The Operator blocks rollout until the static keys are removed or `ROLEARN` is removed.
+
+|`ConfigInvalid`
+|An AWS platform, CCO `Manual` mode, service account issuer, `CredentialsRequest` API, role ARN, or S3 configuration prerequisite is invalid. Correct the error reported in the condition message.
+
+|===
