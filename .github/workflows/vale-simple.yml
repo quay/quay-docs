@@ -222,8 +222,10 @@ jobs:
             console.log(`Total issues found: ${allIssues.length}`);
             console.log(`Posted ${commentCount} comment(s) on the PR`);
             
-            // For fork PRs or if comments failed, use workflow annotations
-            if (isFork || (commentCount === 0 && allIssues.length > 0)) {
+            // For fork PRs or if comments failed, use workflow annotations.
+            // Only enter this block when there are actual issues, otherwise a
+            // clean fork PR would still be failed with "Vale found 0 issue(s)".
+            if (allIssues.length > 0 && (isFork || commentCount === 0)) {
               console.log(`Creating workflow annotations for ${allIssues.length} issue(s)...`);
               
               // Create an annotation for EACH issue individually
