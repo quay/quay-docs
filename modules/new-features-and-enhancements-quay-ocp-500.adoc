@@ -5,5 +5,12 @@
 [role="_abstract"]
 You can review new features and enhancements for {productname-ocp} in {producty}.
 
-[id="example_one"]
-== Example one
+[id="default-network-policy-support-500"]
+== Default NetworkPolicy support for Operator-managed components
+
+* link:https://issues.redhat.com/browse/PROJQUAY-11653[PROJQUAY-11653]. {productname} {producty} introduces automatic NetworkPolicy management for all Operator-managed components. The {productname} Operator now creates and reconciles NetworkPolicy objects for each component marked as `managed: true` in the `QuayRegistry` CR, providing network isolation without manual policy configuration. Unmanaged components receive no NetworkPolicy restrictions. Default policies are not user-configurable. Quay and Clair retain intentionally broad egress rules to support cloud storage access, registry proxying, and CVE database updates.
+
+[id="cco-sts-authentication-500"]
+== CCO-based AWS STS authentication for {productname-ocp}
+
+* link:https://issues.redhat.com/browse/PROJQUAY-5850[PROJQUAY-5850]. {productname} {producty} introduces support for the standardized AWS STS configuration flow using the OpenShift Cloud Credential Operator (CCO) and the `CredentialsRequest` API. On STS-enabled clusters running OCP 4.14 or later, administrators can set a `ROLEARN` environment variable in the Quay Operator Subscription instead of configuring static IAM user credentials. The Operator automatically creates a `CredentialsRequest`, CCO provisions a short-lived credentials Secret, and the Operator mounts it into `quay-app` and `quay-mirror` pods. If static AWS credentials are detected alongside `ROLEARN`, the Operator blocks rollout and reports a `ConflictingCredentials` status condition.
