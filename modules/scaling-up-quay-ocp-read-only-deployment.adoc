@@ -7,42 +7,25 @@ To exit read-only mode and restore normal operations in {productname}, you can r
 
 [NOTE]
 ====
-Depending on your needs, you might wait to scale up the {productname} deployment after backing up and restoring your registry.
+Depending on your needs, you might wait to scale up the {productname} deployment after backing up and restoring your regisry.
 ====
 
 .Procedure
 
-. Patch the {productname} registry to exit read-only mode when the backup is complete:
+. Edit the `config.yaml` file and remove the following information:
++
+[source,yaml]
+----
+# ...
+REGISTRY_STATE: readonly
+INSTANCE_SERVICE_KEY_KID_LOCATION: 'conf/stack/quay-readonly.kid'
+INSTANCE_SERVICE_KEY_LOCATION: 'conf/stack/quay-readonly.pem'
+# ...
+----
+
+. Scale the {productname} Operator back up by entering the following command:
 +
 [source,terminal]
 ----
-$ oc patch quayregistry <registry_name> -n <namespace> \
-  --type=merge \
-  -p '{"spec":{"readOnly":false}}'
-----
-
-. Monitor the status until the registry returns to normal operation:
-+
-[source,terminal]
-----
-$ oc get quayregistry <registry_name> -n <namespace> \
-  -o jsonpath='{.status.conditions[?(@.type=="Available")]}'
-----
-+
-The Operator transitions through the `ExitingReadOnly` phase, cleans up the service key Secret, and restores normal deployment behavior.
-
-.Verification
-
-* Confirm that the `ReadOnly` condition is no longer present on the `QuayRegistry` resource:
-+
-[source,terminal]
-----
-$ oc get quayregistry <registry_name> -n <namespace> -o yaml | grep -A5 "conditions:"
-----
-
-* Confirm that image pushes are accepted:
-+
-[source,terminal]
-----
-$ podman push <registry_route>/<namespace>/<repository>:<tag>
+$ oc scale --replicas=1 deployment quay-operator -n openshift-operators
 ----
