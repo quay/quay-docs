@@ -1,0 +1,124 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-quay-aws-sts-cco_{context}"]
+= Configuring {productname-ocp} to use CCO-based AWS STS authentication
+
+[role="_abstract"]
+To enable CCO-based AWS STS authentication for {productname-ocp}, you configure unmanaged S3 storage in the `configBundleSecret`, then set the `ROLEARN` environment variable in the Quay Operator Subscription. The Quay Operator detects the role ARN, creates a `CredentialsRequest`, and CCO provisions the credentials automatically.
+
+.Prerequisites
+
+* You have an IAM role ARN with a trust policy for your cluster's OIDC provider and a scoped S3 permission policy. For more information, see "Creating an IAM role for CCO-based AWS STS authentication".
+* Your `QuayRegistry` CR has `objectstorage: managed: false`.
+* You have an Amazon S3 bucket configured for {productname} object storage.
+* Your cluster runs OCP 4.14 or later with STS mode enabled.
+
+[IMPORTANT]
+====
+The `configBundleSecret` must not contain static AWS credentials (`s3AccessKey` or `s3SecretKey`) alongside the `ROLEARN` configuration. If both are present, the Operator blocks rollout with a `ConflictingCredentials` condition. Remove any static AWS credentials from your `configBundleSecret` before proceeding.
+====
+
+.Procedure
+
+. Update your `configBundleSecret` to configure S3 storage using `STSS3Storage` without static credentials. Edit the Secret through the {ocp} console or by using the CLI:
++
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+    - STSS3Storage
+    - sts_role_arn: <role_arn>
+      s3_bucket: <s3_bucket_name>
+      storage_path: /datastorage
+      s3_region: <aws_region>
+----
++
+where:
+
+`DISTRIBUTED_STORAGE_CONFIG.default.sts_role_arn`:: Specifies the IAM role ARN to assume for S3 access.
+`DISTRIBUTED_STORAGE_CONFIG.default.s3_bucket`:: Specifies the name of your S3 bucket.
+`DISTRIBUTED_STORAGE_CONFIG.default.storage_path`:: Specifies the storage path. Defaults to `/datastorage`.
+`DISTRIBUTED_STORAGE_CONFIG.default.s3_region`:: Specifies the AWS region of the S3 bucket, for example, `us-east-1`.
+
+. Set the `ROLEARN` environment variable in the Quay Operator Subscription to enable CCO credential provisioning. Edit the Subscription resource:
++
+[source,terminal]
+----
+$ oc edit subscription quay-operator -n <quay_operator_namespace>
+----
+
+. Add the `ROLEARN` entry under `spec.config.env`:
++
+[source,yaml]
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: quay-operator
+  namespace: <quay_operator_namespace>
+spec:
+  config:
+    env:
+    - name: ROLEARN
+      value: arn:aws:iam::<aws_account_id>:role/<role_name>
+----
++
+where:
+
+`spec.config.env.ROLEARN`:: Specifies the IAM role ARN that the Operator uses to create the `CredentialsRequest`. When set, the Operator delegates credential provisioning to CCO.
+
+. Save the Subscription. The Operator detects the `ROLEARN` value and creates a `CredentialsRequest` in the Quay Operator namespace.
+
+.Verification
+
+. Verify that the `CredentialsRequest` was created:
++
+[source,terminal]
+----
+$ oc get credentialsrequest -n <quay_operator_namespace>
+----
++
+.Example output
+[source,terminal]
+----
+NAME                          AGE
+quay-registry-<registry_name>-sts   2m
+----
+
+. Check that CCO has provisioned the credentials Secret:
++
+[source,terminal]
+----
+$ oc get credentialsrequest quay-registry-<registry_name>-sts \
+  -n <quay_operator_namespace> \
+  -o jsonpath='{.status.provisioned}'
+----
++
+The output should return `true`. If the `CredentialsRequest` is not provisioned within five minutes, check the `QuayRegistry` status for a `CredentialRequestNotProvisioned` condition.
+
+. Verify the `QuayRegistry` status conditions:
++
+[source,terminal]
+----
+$ oc get quayregistry <registry_name> \
+  -n <quay_namespace> \
+  -o jsonpath='{.status.conditions}' | jq .
+----
++
+A healthy deployment shows no `ConflictingCredentials` or `CredentialRequestNotProvisioned` conditions.
+
+. Confirm that the Quay pods are running and that the `AWS_SHARED_CREDENTIALS_FILE` environment variable is set:
++
+[source,terminal]
+----
+$ oc get pods -n <quay_namespace> -l quay-component=quay-app
+----
+
+. Push a test image to verify S3 connectivity:
++
+[source,terminal]
+----
+$ podman tag docker.io/library/busybox <quay_hostname>/<organization>/busybox:test
+$ podman push <quay_hostname>/<organization>/busybox:test
+----
+
+. Verify the push succeeded by navigating to your {productname} organization in the web console and checking the *Tags* page.
