@@ -17,7 +17,20 @@ The following configuration fields control rate limiting and performance-related
 
 **Default:** `quay`
 
+| **GUNICORN_REGISTRY_TIMEOUT** | Integer | The worker timeout, in seconds, for the `gunicorn-registry` process. Increase this value if workers are terminated during large image pushes or proxy cache blob downloads. The minimum accepted value is `30`. The maximum accepted value is `300`.
+
+**Default:** `300`
+
+| **GUNICORN_WEB_TIMEOUT** | Integer | The worker timeout, in seconds, for the `gunicorn-web` process. Increase this value if workers are terminated during long-running API operations, such as quota queries on large organizations. The minimum accepted value is `30`. The maximum accepted value is `300`.
+
+**Default:** `60`
+
 |===
+
+[IMPORTANT]
+====
+Increasing the gunicorn worker timeout allows requests to run longer before the worker is forcibly terminated. However, each in-flight request holds CPU and memory resources for the entire duration. Setting very high timeout values can exhaust worker pool resources under concurrent load, potentially degrading performance for all users. Use the minimum value necessary to accommodate your longest expected operations.
+====
 
 .Rate limiting and performance example YAML
 [source,yaml]
@@ -25,5 +38,7 @@ The following configuration fields control rate limiting and performance-related
 # ...
 FEATURE_RATE_LIMITS: false
 PROMETHEUS_NAMESPACE: quay
+GUNICORN_REGISTRY_TIMEOUT: 300
+GUNICORN_WEB_TIMEOUT: 60
 # ...
 ----
