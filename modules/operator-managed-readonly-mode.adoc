@@ -1,0 +1,56 @@
+:_mod-docs-content-type: PROCEDURE
+[id="operator-managed-readonly-mode_{context}"]
+= Enabling Operator-managed read-only mode for {productname-ocp}
+
+[role="_abstract"]
+Use the {productname} Operator to manage the full read-only lifecycle for application-consistent backups. 
+
+By setting `spec.readOnly: true` on the `QuayRegistry` custom resource, the Operator automatically handles service key creation, configuration rendering, deployment restarts, and HPA management without requiring any manual configuration changes.
+
+This procedure replaces the manual steps of creating service keys and editing the configuration secret that were required in earlier releases.
+
+[NOTE]
+====
+The Operator-managed method and manual method are mutually exclusive. If `REGISTRY_STATE: readonly` or any `INSTANCE_SERVICE_KEY_*` key is present in your config Secret or config bundle, the Operator sets a `ManualMigrationRequired` condition and does not enter the operator-managed read-only state machine. If the conflict is in a `QUAY_OVERRIDE_CONFIG` environment variable override, the condition reason is `OverrideConflict`. Remove any conflicting keys before setting `spec.readOnly: true`.
+====
+
+.Prerequisites
+
+* You have a `QuayRegistry` resource deployed and in a healthy state.
+* You have `cluster-admin` or equivalent permissions on the {ocp} cluster.
+* The `QuayRegistry` is running {productname} {producty} or later (this feature requires the matching Quay application image).
+* You do not have `REGISTRY_STATE` set as a manual override in your `QuayRegistry` configuration.
+
+.Procedure
+
+. Enter read-only mode by patching the `QuayRegistry` custom resource:
++
+[source,terminal]
+----
+$ oc patch quayregistry <registry_name> -n <namespace> \
+  --type=merge \
+  -p '{"spec":{"readOnly":true}}'
+----
+
+. Monitor the read-only lifecycle status until the phase reaches `ReadOnly`:
++
+[source,terminal]
+----
+$ oc get quayregistry <registry_name> -n <namespace> \
+  -o jsonpath='{.status.conditions[?(@.type=="ReadOnly")]}'
+----
++
+The Operator transitions through the following phases in order:
++
+* `PreparingKey`: During this phase, the Operator creates the service key Secret and waits for {productname} to import it.
+* `EnteringReadOnly`: During this phase, the Operator renders `REGISTRY_STATE: readonly` in the configuration and restarts the deployment.
+* `ReadOnly`: During this phase, the registry is fully in read-only mode. Writes are blocked.
++
+[NOTE]
+====
+If the `QuayRegistry` status shows a `ManualMigrationRequired` condition, `REGISTRY_STATE: readonly` or an `INSTANCE_SERVICE_KEY_*` key is present in your config Secret or config bundle. If the condition reason is `OverrideConflict`, the conflicting key is in a `QUAY_OVERRIDE_CONFIG` environment variable override. In either case, remove the conflicting key and re-apply the patch.
+====
+
+. Perform your backup operation while the registry is in read-only mode. For more information, see "Backing up and restoring {productname-ocp}".
+
+. When your backup is complete, disable read-only mode. For more information, see xref:disable-operator-managed-readonly-mode_{context}[Disabling Operator-managed read-only mode for {productname-ocp}].

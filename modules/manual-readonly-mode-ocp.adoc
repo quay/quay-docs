@@ -1,0 +1,54 @@
+:_mod-docs-content-type: CONCEPT
+[id="manual-readonly-mode-ocp_{context}"]
+= Manually enabling read-only mode for {productname-ocp}
+
+[role="_abstract"]
+For deployments that do not use the Operator-managed read-only lifecycle, you can enable read-only mode manually by setting `REGISTRY_STATE: readonly` in the configuration secret. The {productname} Operator detects this setting and defers upgrades automatically.
+
+[NOTE]
+====
+The manual method requires direct modification of secrets inside your {ocp} cluster and several manual steps. If you are running {productname} {producty} or later, the preferred method is the Operator-managed approach using the `spec.readOnly` parameter. 
+
+The Operator-managed method and manual method are mutually exclusive. If `REGISTRY_STATE: readonly` or any `INSTANCE_SERVICE_KEY_*` key is present in your config Secret, setting `spec.readOnly: true` is blocked with a `ManualMigrationRequired` condition. If the conflict is in a `QUAY_OVERRIDE_CONFIG` environment variable override, the condition reason is `OverrideConflict`. Remove the conflicting keys before using the Operator-managed method.
+====
+
+.Prerequisites
+
+* If you are using {rhel} 7.x:
+** You have enabled the Red Hat Software Collections List (RHSCL).
+** You have installed Python 3.6.
+** You have downloaded the `virtualenv` package.
+** You have installed the `git` CLI.
+
+* If you are using {rhel} 8:
+** You have installed Python 3 on your machine.
+** You have downloaded the `python3-virtualenv` package.
+** You have installed the `git` CLI.
+
+* You have cloned the quay/quay repository.
+* You have installed the `oc` CLI.
+* You have access to the cluster with `cluster-admin` privileges.
+
+[id="upgrade-deferral-behavior"]
+== Upgrade deferral behavior
+
+When the {productname} Operator detects `REGISTRY_STATE: readonly` set directly in the user-provided config Secret, the merged config bundle Secret, or a `QUAY_OVERRIDE_CONFIG` environment variable override, it performs the following actions:
+
+* Sets a `ReadOnly` status condition on the `QuayRegistry` resource with `reason: ManualReadOnlyDetected`.
+* Defers image version upgrades. The Operator freezes the current Quay image and does not roll out a new version.
+* Defers PostgreSQL and Clair PostgreSQL upgrade jobs and version migration triggers.
+* Continues reconciling all other components normally.
+
+The following condition is set on the `QuayRegistry` resource:
+
+[source,yaml]
+----
+- type: ReadOnly
+  status: "True"
+  reason: ManualReadOnlyDetected
+  message: "Registry is in read-only mode via user config (REGISTRY_STATE).
+            Operator upgrades are deferred. Consider using spec.readOnly
+            for full operator-managed lifecycle."
+----
+
+The condition is automatically cleared when `REGISTRY_STATE` is removed from all user-controlled configuration sources. After it is cleared, the Operator resumes normal upgrade and reconciliation behavior.
