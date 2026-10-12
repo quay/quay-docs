@@ -16,12 +16,7 @@ Clair's indexer service plays a crucial role in understanding the makeup of a co
 
 During indexing, a manifest that represents a container image is taken and broken down into its essential components. The indexer's job is to uncover the image's contained packages, its origin distribution, and the package repositories it relies on. This valuable information is then recorded and stored within Clair's database. The insights gathered during indexing serve as the basis for generating a comprehensive vulnerability report. This report can be seamlessly transferred to a matcher node for further analysis and action, helping users make informed decisions about their container images' security.
 
-ifeval::["{context}" == "quay-io"]
-The `IndexReport` is stored in Clair's database. In {quayio}, Clair automatically feeds the `IndexReport` to a `matcher` node to compute the vulnerability report after an image is pushed to a repository.
-endif::[]
-ifeval::["{context}" == "clair"]
-The `IndexReport` is stored in Clair's database. It can be fed to a `matcher` node to compute the vulnerability report.
-endif::[]
+In {quayio}, Clair automatically feeds the `IndexReport` to a `matcher` node to compute the vulnerability report after an image is pushed to a repository. On standalone {productname} deployments or when Quay is deployed on {ocp}, it can be fed to a `matcher` node to compute the vulnerability report.
 
 [id="clair-matching-concept"]
 == Matching
@@ -30,19 +25,10 @@ With Clair, a matcher node is responsible for matching vulnerabilities to a prov
 
 Matchers are responsible for keeping the database of vulnerabilities up to date. Matchers run a set of updaters, which periodically probe their data sources for new content. New vulnerabilities are stored in the database when they are discovered.
 
-The matcher API is designed to always provide the most recent vulnerability report when queried. The vulnerability report summarizes both a manifest's content and any vulnerabilities affecting the content.
-
-ifeval::["{context}" == "quay-io"]
-On {quayio}, this interval is set to 6 hours.
-endif::[]
-
-ifeval::["{context}" == "clair"]
-The matcher API is designed to be used often. The matcher API always provides the most recent `VulnerabilityReport` when queried. The `VulnerabilityReport` summarizes both a manifest's content and any vulnerabilities affecting the content.
-endif::[]
+The matcher API is designed to always provide the most recent vulnerability report when queried. The vulnerability report summarizes both a manifest's content and any vulnerabilities affecting the content. The matcher API is designed to be used often. The matcher API always provides the most recent `VulnerabilityReport` when queried. The `VulnerabilityReport` summarizes both a manifest's content and any vulnerabilities affecting the content. On {quayio}, this interval is set to 6 hours.
 
 [id="clair-notifications-concept"]
 == Notifier service
-
 
 Clair uses a notifier service that keeps track of new security database updates and informs users if new or removed vulnerabilities affect an indexed manifest.
 

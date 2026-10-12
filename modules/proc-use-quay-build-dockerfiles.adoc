@@ -5,61 +5,23 @@
 [role="_abstract"]
 The {productname} builds feature supports building Docker and Podman container images from Dockerfiles. You can create containerized applications by defining build contexts and using base images from public repositories.
 
-ifeval::["{context}" == "quay-io"]
 [NOTE]
 ====
 Because blueprints rely on images from other public repositories, they might be subject to rate limiting. Consequently, your build _could_ fail. 
 ====
-endif::[]
 
-ifeval::["{context}" == "quay-io"]
-{quayio}
-endif::[]
-ifeval::["{context}" == "use-quay"]
-{productname}
-endif::[]
-ifeval::["{context}" == "quay-builders-image-automation"]
-{productname}
-endif::[]
-supports the ability to build Docker and Podman container images. This functionality is valuable for developers and organizations who rely on container and container orchestration.
+Quay supports the ability to build Docker and Podman container images. This functionality is valuable for developers and organizations who rely on container and container orchestration.
 
-ifeval::["{context}" == "quay-io"]
-On {quayio}, this feature works the same across both free, and paid, tier plans.
-
-[NOTE]
-====
-{quayio} limits the number of simultaneous builds that a single user can submit at one time. 
-====
-endif::[]
+For Quay.io users, this feature works the same across both free, and paid, tier plans. However, Quay.io limits the number of simultaneous builds that a single user can submit at one time. 
 
 [id="build-contexts"]
 == Build contexts
 
-When building an image with Docker or Podman, a directory is specified to become the _build context_. This is true for both manual Builds and Build triggers, because the Build that is created by
-ifeval::["{context}" == "quay-io"]
-{quayio}
-endif::[]
-ifeval::["{context}" == "use-quay"]
-{productname}
-endif::[]
-is not different than running `docker build` or `podman build` on your local machine. 
+When building an image with Docker or Podman, a directory is specified to become the _build context_. This is true for both manual Builds and Build triggers, because the Build that is created by Quay is no different than running `docker build` or `podman build` on your local machine. 
 
-ifeval::["{context}" == "quay-io"]
-{quayio}
-endif::[]
-ifeval::["{context}" == "use-quay"]
-{productname}
-endif::[]
-Build contexts are always specified in the _subdirectory_ from the Build setup, and fallback to the root of the Build source if a directory is not specified.
+Quay Build contexts are always specified in the _subdirectory_ from the Build setup, and fallback to the root of the Build source if a directory is not specified.
 
-When a build is triggered, 
-ifeval::["{context}" == "quay-io"]
-{quayio}
-endif::[]
-ifeval::["{context}" == "use-quay"]
-{productname}
-endif::[]
-Build workers clone the Git repository to the worker machine, and then enter the Build context before conducting a Build. 
+When a build is triggered, Quay Build workers clone the Git repository to the worker machine, and then enter the Build context before conducting a Build. 
 
 For Builds based on `.tar` archives, Build workers extract the archive and enter the Build context. For example:
 
@@ -78,11 +40,4 @@ Imagine that the _Extracted Build archive_ is the directory structure got a Gith
 
 If a subdirectory is specified in the Build trigger setup, for example, `subdir`, only the Dockerfile within it is visible to the Build. This means that you cannot use the `ADD` command in the Dockerfile to add `file`, because it is outside of the Build context. 
 
-Unlike Docker Hub, the Dockerfile is part of the Build context on
-ifeval::["{context}" == "quay-io"]
-{quayio}.
-endif::[]
-ifeval::["{context}" == "use-quay"]
-{productname}.
-endif::[]
-As a result, it must not appear in the `.dockerignore` file.
+Unlike Docker Hub, the Dockerfile is part of the Build context on Quay. As a result, it must not appear in the `.dockerignore` file.
