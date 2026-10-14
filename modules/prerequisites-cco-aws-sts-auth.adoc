@@ -20,7 +20,7 @@ To configure CCO-based AWS STS authentication for {productname-ocp}, ensure that
 CCO `Manual` mode does not create the S3 bucket, IAM role, IAM permission policy, or AWS IAM OIDC provider. An AWS or cluster administrator must create these resources before enabling this feature.
 ====
 
-One {productname} Operator installation uses one `ROLEARN` value. If the Operator manages multiple `QuayRegistry` resources, the role trust policy must allow every intended `<namespace>:<quay_registry_name>-quay-app` service account subject. Alternatively, use separately scoped Operator installations and roles.
+One {productname} Operator installation uses one `ROLEARN` value. If the Operator manages multiple `QuayRegistry` resources, the role trust policy must allow every intended `<namespace>:<quay_registry_name>-quay-app` service account subject, and the role permission policy must allow the required actions on every configured S3 bucket. Alternatively, use separately scoped Operator installations and roles.
 
 The Operator reports STS provisioning and configuration problems by setting the existing `RolloutBlocked` condition on the `QuayRegistry` CR. The following table lists the associated condition reasons:
 
@@ -40,5 +40,3 @@ The Operator reports STS provisioning and configuration problems by setting the 
 |`ConfigInvalid`
 |An AWS platform, CCO `Manual` mode, service account issuer, `CredentialsRequest` API, role ARN, or S3 configuration prerequisite is invalid. Correct the error reported in the condition message.
 |===
-
-
