@@ -94,7 +94,8 @@ spec:
 +
 where:
 
-`spec.config.env.name`:: `ROLEARN` identifies the IAM role that the {productname} app and mirror workloads assume. The Operator uses this value when it creates the `CredentialsRequest`; the Operator does not assume the role.
+`spec.config.env.name`:: Must be set to `ROLEARN`, which identifies the IAM role that the {productname} app and mirror workloads assume.
+`spec.config.env.value`:: The Operator uses this value when it creates the `CredentialsRequest`; the Operator does not assume the role.
 
 . Save the Subscription. Operator Lifecycle Manager updates the Operator Deployment. During reconciliation, the Operator validates the AWS platform, CCO `Manual` mode, service account issuer, storage configuration, and `CredentialsRequest` API before creating the request.
 
@@ -114,7 +115,7 @@ $ oc get credentialsrequest <quay_registry_name>-aws-credentials \
 ----
 $ oc get credentialsrequest <quay_registry_name>-aws-credentials \
   -n <quay_namespace> \
-  -o jsonpath='{.status.provisioned}{"\t"}{.status.lastSyncGeneration}{"\n"}'
+  -o jsonpath='{.status.provisioned}{"\t"}{.metadata.generation}{"\t"}{.status.lastSyncGeneration}{"\n"}'
 ----
 +
 The `provisioned` value must be `true`. The `lastSyncGeneration` value must match the current `metadata.generation` value.
@@ -122,9 +123,9 @@ The `provisioned` value must be `true`. The `lastSyncGeneration` value must matc
 . Verify that CCO created the profile Secret by entering the following command:
 +
 [IMPORTANT]
-----
+====
 Do not print the Secret contents.
-----
+====
 +
 [source,terminal]
 ----
@@ -171,3 +172,5 @@ Repeat this command for the `<quay_registry_name>-quay-mirror` Deployment when r
 ====
 Do not print or copy the projected service account token into logs or support cases. The token is mounted separately at `/var/run/secrets/openshift/serviceaccount/token` and is rotated by {ocp}. The AWS SDK in {productname} obtains and refreshes the temporary AWS credentials.
 ====
+
+
