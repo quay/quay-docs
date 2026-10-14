@@ -5,6 +5,10 @@
 [role="_abstract"]
 You can configure AWS Security Token Service (STS) with {productname} to authenticate to Amazon S3 by using temporary credentials. STS is available for standalone deployments, {productname-ocp}, and {productname} on Red Hat OpenShift Service on AWS (ROSA).
 
-AWS STS provides temporary, limited-privilege credentials for AWS Identity and Access Management (IAM) users. When {productname} uses Amazon S3 as object storage, STS protocols can authenticate access so that sensitive data remains properly authenticated and authorized.
+AWS STS provides temporary, limited-privilege credentials for trusted identities that assume an AWS Identity and Access Management (IAM) role. When {productname} uses Amazon S3 as object storage, STS can provide temporary credentials for authorized S3 access.
 
-Configuring AWS STS for {ocp} or ROSA requires creating an AWS IAM user, creating an S3 role, and configuring your {productname} `config.yaml` file to include the proper resources.
+You can configure AWS STS by using one of the following approaches:
+
+Manual STS:: Create an AWS IAM user and S3 role, and configure your {productname} `config.yaml` file with the static IAM user credentials used to assume the role. This approach is supported for standalone, {productname-ocp}, and ROSA deployments.
+
+CCO-based STS ({ocp} 4.14 or later):: On an AWS cluster with CCO in `Manual` mode, use a projected {ocp} service account token and a CCO-generated AWS profile to assume an IAM role. The AWS SDK in {productname} obtains and refreshes temporary credentials from AWS STS. This approach eliminates static IAM user credentials from the config bundle.

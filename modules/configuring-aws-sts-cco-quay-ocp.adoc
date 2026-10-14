@@ -1,0 +1,49 @@
+:_mod-docs-content-type: CONCEPT
+[id="configuring-aws-sts-cco-quay-ocp"]
+= About CCO-based AWS STS authentication for {productname-ocp}
+
+[role="_abstract"]
+The standardized AWS Security Token Service (STS) configuration flow uses the {ocp} Cloud Credential Operator (CCO) and the `CredentialsRequest` API to allow {productname} workloads to authenticate to Amazon S3 without storing long-lived IAM access keys in the `configBundleSecret` resource.
+
+When you set the `ROLEARN` environment variable in the {productname} Operator Subscription, the Operator validates the cluster and storage configuration and creates a `CredentialsRequest` resource. CCO creates an AWS shared configuration profile that contains the role ARN and projected token-file path. The Operator validates and mounts this profile, together with a projected {ocp} service account token, into the `quay-app` and `quay-mirror` pods.
+
+The profile Secret does not contain an AWS access key, secret key, session token, or the projected service account token. The AWS SDK in {productname} reads the profile and projected token, calls AWS STS `AssumeRoleWithWebIdentity`, and receives temporary AWS credentials. The AWS SDK refreshes the temporary credentials before they expire. The {productname} Operator configures this identity flow but does not assume the IAM role or access S3.
+
+This approach differs from the existing manual STS configuration in the following ways:
+
+* You do not need to create a static IAM user or generate access keys.
+* The Operator manages the `CredentialsRequest` lifecycle and validates the CCO-generated profile.
+* {ocp} rotates the projected service account token, and the AWS SDK obtains and refreshes temporary AWS credentials.
+* The Operator reports credential provisioning and configuration errors through `QuayRegistry` status conditions.
+
+.Comparison of STS approaches
+
+[cols="1,1,1",options="header"]
+|===
+|Attribute |Manual STS |CCO-based STS
+
+|Identity source
+|Static IAM user access key and secret key
+|Projected {ocp} service account token
+
+|AWS credentials
+|The configured IAM user credentials are used to assume a role
+|AWS STS returns temporary role credentials to the AWS SDK in {productname}
+
+|Credential configuration
+|Stored in `configBundleSecret` as `sts_user_access_key` and `sts_user_secret_key`
+|CCO creates a profile Secret containing `role_arn` and `web_identity_token_file`; the token is projected separately
+
+|Operator involvement
+|Credentials are configured manually
+|The Operator creates and manages the `CredentialsRequest` and configures the `quay-app` and `quay-mirror` workloads
+
+|{ocp} version required
+|Any supported {ocp} version
+|{ocp} 4.14 or later on AWS, with CCO in `Manual` mode and a configured service account issuer
+
+|Supported deployments
+|Standalone, {productname-ocp}, and ROSA
+|AWS-based {productname-ocp} deployments that meet the CCO and OIDC prerequisites
+
+|===

@@ -1,0 +1,131 @@
+:_mod-docs-content-type: PROCEDURE
+[id="creating-iam-role-sts-cco_{context}"]
+= Creating an IAM role for CCO-based AWS STS authentication
+
+[role="_abstract"]
+To use CCO-based STS authentication with {productname-ocp}, create an AWS IAM role that trusts the {productname} application service account through the cluster's IAM OIDC provider and grants access to the required S3 bucket. The {productname} workloads assume this role. The {productname} Operator references the role ARN when it creates the `CredentialsRequest`, but does not assume the role or access S3.
+
+.Prerequisites
+
+* You have an existing S3 bucket for {productname} object storage.
+* You know the `QuayRegistry` name and namespace.
+* You know the AWS account ID and AWS partition for your deployment. The standard partition is `aws`; AWS GovCloud uses `aws-us-gov`.
+* Your cluster has a service account issuer, and the corresponding IAM OIDC provider exists in the AWS account with `openshift` in its client ID list.
+
+[IMPORTANT]
+====
+The permission statements in the `CredentialsRequest` describe the permissions required by the workload. In CCO `Manual` mode, CCO does not create or update the IAM policy. Ensure that the policy attached to the existing role contains the required bucket-scoped actions.
+====
+
+.Procedure
+
+. Retrieve the cluster's OIDC issuer URL:
++
+[source,terminal]
+----
+$ oc get authentication.config.openshift.io cluster \
+  -o jsonpath='{.spec.serviceAccountIssuer}{"\n"}'
+----
++
+.Example output
+[source,terminal]
+----
+https://oidc.op1.openshiftapps.com/1234567890abcdef
+----
+
+. Remove the `https://` prefix from the issuer URL to obtain the OIDC provider path used in the IAM provider ARN and trust-policy condition keys. For example:
++
+[source,text]
+----
+oidc.op1.openshiftapps.com/1234567890abcdef
+----
+
+. Log in to the AWS Identity and Access Management (IAM) console.
+
+. Create a customer managed permission policy for the S3 bucket. Replace `<aws_partition>` and `<s3_bucket_name>` in the following policy:
++
+[source,json]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:GetBucketLocation",
+                "s3:ListBucketMultipartUploads"
+            ],
+            "Resource": "arn:<aws_partition>:s3:::<s3_bucket_name>"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject",
+                "s3:ListMultipartUploadParts",
+                "s3:AbortMultipartUpload"
+            ],
+            "Resource": "arn:<aws_partition>:s3:::<s3_bucket_name>/*"
+        }
+    ]
+}
+----
+
+. In the IAM console navigation pane, click *Roles* -> *Create role*.
+
+. On the *Select trusted entity* page, select *Web identity*.
+
+. From the *Identity provider* list, select the IAM OIDC provider that corresponds to the cluster's service account issuer. If it is not available, configure the cluster's IAM OIDC provider before continuing.
+
+. From the *Audience* list, select `openshift`.
+
+. Attach the customer managed S3 permission policy that you created.
+
+. Enter a role name, for example, `quay-sts-cco-role`, and create the role.
+
+. Open the new role, click the *Trust relationships* tab, and click *Edit trust policy*.
+
+. Update the trust policy to restrict access to the {productname} application service account. Replace the placeholder values in the following example:
++
+[source,json]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:<aws_partition>:iam::<aws_account_id>:oidc-provider/<oidc_provider_path>"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "<oidc_provider_path>:aud": "openshift",
+                    "<oidc_provider_path>:sub": "system:serviceaccount:<quay_namespace>:<quay_registry_name>-quay-app"
+                }
+            }
+        }
+    ]
+}
+----
++
+where:
+
+`<aws_partition>`:: Specifies the AWS partition, for example, `aws` or `aws-us-gov`.
+`<aws_account_id>`:: Specifies your 12-digit AWS account ID.
+`<oidc_provider_path>`:: Specifies the cluster OIDC issuer without the `https://` prefix, for example, `oidc.op1.openshiftapps.com/1234567890abcdef`.
+`<quay_namespace>`:: Specifies the namespace of the `QuayRegistry` CR.
+`<quay_registry_name>`:: Specifies the name of the `QuayRegistry` CR. The Operator-created service account is `<quay_registry_name>-quay-app`.
+
+. Save the trust policy.
+
+. Copy the role ARN. For example:
++
+[source,text]
+----
+arn:aws:iam::123456789012:role/quay-sts-cco-role
+----
++
+You use this ARN as the `ROLEARN` value when configuring the {productname} Operator Subscription.

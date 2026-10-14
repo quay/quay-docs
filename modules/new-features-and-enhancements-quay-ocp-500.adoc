@@ -5,9 +5,12 @@
 [role="_abstract"]
 You can review new features and enhancements for {productname-ocp} in {producty}.
 
-[id="example_one"]
+[id="default-network-policy-support-500"]
 == Default NetworkPolicy support for Operator-managed components
 
-* {productname} {producty} introduces automatic `NetworkPolicy` management for all Operator-managed components. The {productname} Operator now creates and reconciles default `NetworkPolicy` objects for each managed component, including `Quay`, `Clair`, `PostgreSQL`, `Redis`, `mirror`, and `upgrade` jobs. Policies are applied only for components that are explicitly marked as managed in the `QuayRegistry` custom resource; components marked as unmanaged do not receive `NetworkPolicy` restrictions. 
-+
-The default policies are not user-configurable. Some components, such as the Quay application and Clair, intentionally use broad egress rules to accommodate external dependencies, including cloud-based object storage, proxied upstream registries, and Clair's CVE database updates.
+* {productname} {producty} introduces automatic NetworkPolicy management for all Operator-managed components. The {productname} Operator now creates and reconciles NetworkPolicy objects for each component marked as `managed: true` in the `QuayRegistry` CR, providing network isolation without manual policy configuration. Unmanaged components receive no NetworkPolicy restrictions. Default policies are not user-configurable. Quay and Clair retain intentionally broad egress rules to support cloud storage access, registry proxying, and CVE database updates.
+
+[id="cco-sts-authentication-500"]
+== Cloud Credential Operator-based AWS STS authentication for {productname-ocp}
+
+* {productname} {producty} introduces support for AWS STS authentication by using the {ocp} Cloud Credential Operator (CCO) and the `CredentialsRequest` API. On AWS clusters running {ocp} 4.14 or later with CCO in `Manual` mode, administrators can set `ROLEARN` in the {productname} Operator Subscription and configure unmanaged `S3Storage` without static access keys. The Operator creates a `CredentialsRequest`, validates the CCO-generated AWS profile, and mounts the profile and a projected service account token into the `quay-app` and `quay-mirror` pods. The AWS SDK in {productname} exchanges the projected token for temporary AWS credentials and refreshes them before expiration. If an applicable `S3Storage` entry contains static AWS credentials while `ROLEARN` is set, the Operator blocks rollout with the `ConflictingCredentials` reason.

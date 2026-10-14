@@ -1,0 +1,174 @@
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-quay-aws-sts-cco_{context}"]
+= Configuring {productname-ocp} to use CCO-based AWS STS authentication
+
+[role="_abstract"]
+To enable CCO-based AWS STS authentication, configure unmanaged standard `S3Storage` without static AWS keys and set the `ROLEARN` environment variable in the {productname} Operator Subscription.
+
+.Prerequisites
+
+* Your cluster and AWS resources meet the CCO-based AWS STS prerequisites.
+* You have an IAM role ARN with an OIDC trust policy for the `<quay_registry_name>-quay-app` service account and a permission policy scoped to the S3 bucket.
+* Your `QuayRegistry` CR has the `objectstorage` component set to `managed: false`.
+* You have an existing Amazon S3 bucket for {productname} object storage.
+
+[IMPORTANT]
+====
+The `S3Storage` configuration must not contain `s3_access_key` or `s3_secret_key` when `ROLEARN` is set. If an applicable `S3Storage` entry contains either value, the Operator blocks rollout with the `ConflictingCredentials` reason.
+====
+
+.Procedure
+
+. Update the `config.yaml` file in your `configBundleSecret` to use standard `S3Storage` without static credentials. For example:
++
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  default:
+    - S3Storage
+    - host: s3.amazonaws.com
+      port: 443
+      s3_bucket: <s3_bucket_name>
+      storage_path: /datastorage/registry
+      s3_region: <aws_region>
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+  - default
+DISTRIBUTED_STORAGE_PREFERENCE:
+  - default
+----
++
+where:
+
+`DISTRIBUTED_STORAGE_CONFIG.default.s3_bucket`:: Specifies the name of your S3 bucket.
+`DISTRIBUTED_STORAGE_CONFIG.default.storage_path`:: Specifies the storage path in the bucket.
+`DISTRIBUTED_STORAGE_CONFIG.default.s3_region`:: Specifies the AWS region of the S3 bucket, for example, `us-east-1`.
+
+. Update the config bundle Secret with the edited `config.yaml` file. For example:
++
+[source,terminal]
+----
+$ oc create secret generic <config_bundle_secret_name> \
+  --from-file=config.yaml \
+  --namespace <quay_namespace> \
+  --dry-run=client -o yaml | oc apply -f -
+----
+
+. Confirm that the `QuayRegistry` CR references the config bundle Secret and has unmanaged object storage:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: <quay_registry_name>
+  namespace: <quay_namespace>
+spec:
+  configBundleSecret: <config_bundle_secret_name>
+  components:
+    - kind: objectstorage
+      managed: false
+----
+
+. Edit the {productname} Operator Subscription:
++
+[source,terminal]
+----
+$ oc edit subscription quay-operator -n <quay_operator_namespace>
+----
+
+. Add the `ROLEARN` under `spec.config.env`:
++
+[source,yaml]
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: quay-operator
+  namespace: <quay_operator_namespace>
+spec:
+  config:
+    env:
+      - name: ROLEARN
+        value: arn:<aws_partition>:iam::<aws_account_id>:role/<role_name>
+----
++
+where:
+
+`spec.config.env.name`:: Must be set to `ROLEARN`, which identifies the IAM role that the {productname} app and mirror workloads assume.
+`spec.config.env.value`:: The Operator uses this value when it creates the `CredentialsRequest`; the Operator does not assume the role.
+
+. Save the Subscription. Operator Lifecycle Manager updates the Operator Deployment. During reconciliation, the Operator validates the AWS platform, CCO `Manual` mode, service account issuer, storage configuration, and `CredentialsRequest` API before creating the request.
+
+.Verification
+
+. Verify that the Operator created the `CredentialsRequest` in the `QuayRegistry` namespace:
++
+[source,terminal]
+----
+$ oc get credentialsrequest <quay_registry_name>-aws-credentials \
+  -n <quay_namespace>
+----
+
+. Verify that CCO provisioned the current request generation:
++
+[source,terminal]
+----
+$ oc get credentialsrequest <quay_registry_name>-aws-credentials \
+  -n <quay_namespace> \
+  -o jsonpath='{.status.provisioned}{"\t"}{.metadata.generation}{"\t"}{.status.lastSyncGeneration}{"\n"}'
+----
++
+The `provisioned` value must be `true`. The `lastSyncGeneration` value must match the current `metadata.generation` value.
+
+. Verify that CCO created the profile Secret by entering the following command:
++
+[IMPORTANT]
+====
+Do not print the Secret contents.
+====
++
+[source,terminal]
+----
+$ oc get secret <quay_registry_name>-aws-sts-credentials \
+  -n <quay_namespace>
+----
++
+The Secret contains an AWS shared profile with the role ARN and projected token-file path. It does not contain temporary AWS credentials or the projected service account token.
+
+. Check the `QuayRegistry` status conditions by entering the following command:
++
+[source,terminal]
+----
+$ oc get quayregistry <quay_registry_name> \
+  -n <quay_namespace> \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\t"}{.reason}{"\t"}{.message}{"\n"}{end}'
+----
++
+A healthy deployment does not report `RolloutBlocked=True` with a `CredentialRequestPending`, `CredentialRequestNotProvisioned`, `ConflictingCredentials`, or STS-related `ConfigInvalid` reason.
+
+. Verify the AWS SDK environment configuration on the app and mirror Deployments by entering the following command:
++
+[source,terminal]
+----
+$ oc get deployment <quay_registry_name>-quay-app \
+  -n <quay_namespace> \
+  -o jsonpath='{range .spec.template.spec.containers[0].env[*]}{.name}={.value}{"\n"}{end}' \
+  | grep '^AWS_'
+----
++
+The output includes:
++
+[source,text]
+----
+AWS_SHARED_CREDENTIALS_FILE=/aws-sts/credentials
+AWS_SDK_LOAD_CONFIG=true
+----
++
+Repeat this command for the `<quay_registry_name>-quay-mirror` Deployment when repository mirroring is enabled.
+
+. Log in to {productname}, push and pull a test image, and, if repository mirroring is enabled, run a mirror synchronization. Successful image operations confirm that the {productname} workloads can exchange the projected token for temporary AWS credentials and access the S3 bucket.
++
+[NOTE]
+====
+Do not print or copy the projected service account token into logs or support cases. The token is mounted separately at `/var/run/secrets/openshift/serviceaccount/token` and is rotated by {ocp}. The AWS SDK in {productname} obtains and refreshes the temporary AWS credentials.
+====
