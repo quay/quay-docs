@@ -4,3 +4,45 @@
 
 [role="_abstract"]
 You can review API enhancements in {productname} {producty}.
+
+[id="robot-api-token-endpoints-500"]
+== Robot API token endpoints
+
+The following endpoints manage the lifecycle of robot API tokens. They require the `FEATURE_ROBOT_API_TOKENS` configuration field. Equivalent endpoints exist under `/api/v1/user/robots/{robot_shortname}` for robot accounts that belong to a user.
+
+.Robot API token endpoints
+[cols="3a,2a",options="header"]
+|===
+|Endpoint |Description
+
+|`GET /api/v1/organization/{orgname}/robots/{robot_shortname}/mintable-scopes`
+|Lists the scopes that the calling user can grant to a token for this robot account.
+
+|`POST /api/v1/organization/{orgname}/robots/{robot_shortname}/tokens`
+|Creates a robot API token. The token value is returned only in this response.
+
+|`GET /api/v1/organization/{orgname}/robots/{robot_shortname}/tokens`
+|Lists the robot account's tokens without their values.
+
+|`DELETE /api/v1/organization/{orgname}/robots/{robot_shortname}/tokens/{token_uuid}`
+|Revokes a robot API token. Revocation takes effect immediately.
+|===
+
+[id="token-exchange-endpoint-500"]
+== Token exchange endpoint
+
+The following endpoint requires the `FEATURE_ROBOT_API_TOKEN_EXCHANGE` configuration field.
+
+.Token exchange endpoint
+[cols="3a,2a",options="header"]
+|===
+|Endpoint |Description
+
+|`POST /sts/token`
+|Exchanges an external OIDC token for a {productname} management API access token, according to the robot federation entry that matches the token's `iss` and `sub` claims. The issued token expires after one hour and cannot be renewed.
+|===
+
+[id="federation-endpoint-changes-500"]
+== Robot federation endpoint changes
+
+The `/api/v1/organization/{orgname}/robots/{robot_shortname}/federation` endpoints now accept an `api_scopes` field on each federation entry, which sets the management API scopes that a federated workload is allowed to request. The `audiences` array on each entry is now persisted and is validated against the `aud` claim of the presented token.

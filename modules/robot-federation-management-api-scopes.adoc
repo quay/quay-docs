@@ -1,0 +1,44 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+// * maps/jobs/eliminate-long-lived-robot-credentials-with-keyless-authentication.adoc
+
+:_mod-docs-content-type: CONCEPT
+[id="robot-federation-management-api-scopes"]
+= Robot federation for the management API
+
+[role="_abstract"]
+Robot federation lets a workload exchange a token from an external OIDC issuer for a short-lived {productname} token, with no stored credential. Federation entries can now also grant access to the {productname} management API.
+
+Earlier releases of {productname} used robot federation for registry access only. An exchanged token could push and pull images, but it could not call the management API. Each federation entry now accepts an `api_scopes` field that sets the management API scopes a workload is allowed to request. A workload exchanges its external token at the `POST /sts/token` endpoint and receives an access token carrying those scopes.
+
+This closes a gap for in-cluster automation. An operator, a Tekton pipeline, or a GitOps controller running on {ocp} already holds a Kubernetes service account token. That token is issued by the kubelet, bound to an audience, rotated before it expires, and tied to the lifetime of the pod. No person ever handles it. By binding the service account to a robot account, such a workload can call the {productname} management API without a `Secret` object that holds {productname} credentials.
+
+The pattern matches how workload identity works elsewhere in the cloud-native ecosystem, such as AWS IAM Roles for Service Accounts, GCP Workload Identity, and the {ocp} Cloud Credential Operator. In each case a service account token is exchanged for a provider credential rather than stored.
+
+A federation entry binds an external identity to one robot account. It has the following parts:
+
+`issuer`:: The `https://` URL of the OIDC issuer. This must equal the `iss` claim of the external token exactly.
+`subject`:: The identity within that issuer. For a Kubernetes service account, this is of the form `system:serviceaccount:<namespace>:<service_account_name>`.
+`audiences`:: The audience values that the external token can carry. The token's `aud` claim must include one of them.
+`api_scopes`:: The management API scopes that the workload is allowed to request. Leave this empty for registry-only federation.
+
+[IMPORTANT]
+====
+Matching on `issuer` and `subject` is exact string equality. Wildcard and glob patterns are not supported. A federation entry can grant management API scopes, including `org:admin`, so a pattern such as `system:serviceaccount:<namespace>:*` would let any service account in a namespace administer the organization. Bind each workload individually.
+====
+
+[IMPORTANT]
+====
+Robot federation for the management API is a Technology Preview feature in {productname} {producty}. Technology Preview features are not supported with Red Hat production service-level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using Technology Preview features in production environments. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+====
+
+The access that an exchanged token grants is the intersection of the requested scopes and the robot account's own permissions. Granting `api_scopes` on a federation entry does not give the robot account any permission that it does not already hold.
+
+Configuring this feature is a multi-step procedure. You enable the configuration fields, confirm that {productname} can reach your OIDC issuer, add a federation entry to a robot account, and then exchange the external token for an access token.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://access.redhat.com/support/offerings/techpreview/[Technology Preview Features Support Scope]

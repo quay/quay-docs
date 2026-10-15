@@ -1,0 +1,54 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * api/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="revoking-robot-api-token"]
+= Revoking a robot API token
+
+[role="_abstract"]
+To withdraw a robot account's access to the {productname} management API before its token expires, you can revoke the token. Revocation takes effect immediately.
+
+.Prerequisites
+
+* You have created a robot API token.
+
+.Procedure
+
+. To revoke a token by using the UI:
+
+.. On the v2 UI, click *Organizations* and then click the name of your organization.
+
+.. Click the *Robot accounts* tab, then click the name of your robot account.
+
+.. Click the *API Tokens* tab.
+
+.. Click *Revoke* beneath the token that you want to remove.
++
+[WARNING]
+====
+Revocation is immediate and is not confirmed. The token stops working and its entry is removed from the list.
+====
+
+. To revoke a token by using the API, enter the following command:
++
+[source,terminal]
+----
+$ curl -X DELETE "https://<quay-server.example.com>/api/v1/organization/<organization_name>/robots/<robot_shortname>/tokens/<token_uuid>" \
+  -H "Cookie: <session_cookie>" \
+  -H "X-CSRF-Token: <csrf_token>"
+----
+
+.Verification
+
+* Call the management API with the revoked token by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/user/" \
+  -H "Authorization: Bearer <qro_token>"
+----
++
+The request returns `401`.

@@ -1,0 +1,38 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: REFERENCE
+[id="sts-token-exchange-errors"]
+= Token exchange error codes
+
+[role="_abstract"]
+A failed request to the `POST /sts/token` endpoint returns a JSON body of the form `{"error": "<code>"}`. Use the following table to identify the cause.
+
+.Token exchange error codes
+[cols="2a,3a",options="header"]
+|===
+|Error code |Cause
+
+|`invalid_request`
+|The request is malformed or a required field is missing. An empty request body also returns this code.
+
+|`invalid_grant`
+|The external token was rejected. The `issuer` or `subject` is not bound to the robot account, the signature is not valid, the `aud` claim does not match an audience on the federation entry, the token has expired, or a requested scope is outside the entry's `api_scopes`.
+
+|`invalid_target`
+|The `resource` value does not name a robot account that exists.
+
+|`unsupported_grant_type`
+|The `grant_type` value is not `urn:ietf:params:oauth:grant-type:token-exchange`.
+|===
+
+An `invalid_grant` response covers several distinct causes and does not say which one applied. When you are diagnosing one, check the following in order:
+
+. The federation entry's `issuer` equals the token's `iss` claim exactly, including any trailing slash.
+. The federation entry's `subject` equals the token's `sub` claim exactly.
+. The token's `aud` claim includes one of the entry's `audiences` values.
+. The token has not expired.
+. The requested scopes are a subset of the entry's `api_scopes`.
+. The {productname} pods can reach the issuer's discovery endpoint.

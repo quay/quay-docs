@@ -1,0 +1,44 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * api/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="using-robot-api-token"]
+= Authenticating to the management API with a robot API token
+
+[role="_abstract"]
+To call the {productname} management API as a robot account, send the robot API token as a bearer token in the `Authorization` header.
+
+.Prerequisites
+
+* You have created a robot API token and recorded its value.
+
+.Procedure
+
+* Call the management API by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/user/" \
+  -H "Authorization: Bearer <qro_token>"
+----
++
+.Example output
+[source,json]
+----
+{
+  "username": "<organization_name>+<robot_shortname>",
+  "...": "..."
+}
+----
+
+.Verification
+
+* Confirm that the `username` field in the response is the full name of your robot account, in the form `<organization_name>+<robot_shortname>`.
+
+[NOTE]
+====
+A request fails with `403` when the token lacks the scope that the endpoint requires, or when the robot account lacks permission on the resource. Access is the intersection of the two. For example, a token with the `repo:read` scope lists only the repositories that the robot account has been granted access to.
+====
