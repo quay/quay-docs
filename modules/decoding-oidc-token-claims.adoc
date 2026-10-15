@@ -1,0 +1,51 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="decoding-oidc-token-claims"]
+= Reading the claims of an external OIDC token
+
+[role="_abstract"]
+A robot federation entry must match the `iss`, `sub`, and `aud` claims of the external token exactly. To read those claims before you create the entry, decode the token's payload.
+
+.Prerequisites
+
+* You have the `python3` CLI tool installed.
+* You have an external OIDC token exported as `EXTERNAL_TOKEN`.
+
+.Procedure
+
+. Define a helper that decodes the payload of a JSON Web Token by entering the following command:
++
+[source,terminal]
+----
+$ claims() { python3 -I -c 'import sys,json,base64;t=sys.stdin.read().strip().split(".")[1];print(json.dumps(json.loads(base64.urlsafe_b64decode(t+"="*(-len(t)%4)))))'; }
+----
+
+. Print the claims that the federation entry needs by entering the following command:
++
+[source,terminal]
+----
+$ echo "$EXTERNAL_TOKEN" | claims | jq '{iss, sub, aud}'
+----
++
+.Example output
+[source,json]
+----
+{
+  "iss": "https://kubernetes.default.svc",
+  "sub": "system:serviceaccount:<namespace>:<service_account_name>",
+  "aud": [
+    "<quay-server.example.com>"
+  ]
+}
+----
+
+. Record the values. When you create the federation entry, use `iss` as the *Issuer URL*, `sub` as the *Subject*, and one of the `aud` values as an audience.
++
+[IMPORTANT]
+====
+Copy the `iss` value exactly, including any trailing slash. {productname} matches the issuer by exact string equality.
+====

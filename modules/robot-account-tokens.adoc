@@ -16,3 +16,39 @@ Robot account tokens provide access without needing a user's personal credential
 Because robot account tokens are persistent and do not expire by default, they are ideal for automated workflows that require consistent access to {productname} without manual renewal. Despite this, you can regenerate robot account tokens by using the UI or by using the proper API endpoint from the CLI. To enhance the security of your {productname} deployment, administrators should regularly refresh robot account tokens. With the keyless authentication with robot accounts feature, you can exchange robot account tokens for external OIDC tokens so that they last only one hour, which enhances the security of your registry.
 
 When a namespace is deleted, or when the robot account itself is deleted, the tokens are garbage collected when the collector is scheduled to run.
+
+[id="robot-account-tokens-compared"]
+== Robot account tokens compared
+
+A robot account can hold two different kinds of credential. The following table summarizes the difference.
+
+.Robot account credential types
+[cols="1a,2a,2a",options="header"]
+|===
+| |Robot account token |Robot API token
+
+|Purpose
+|Registry access through the Docker v2 endpoints
+|{productname} management API
+
+|Expiry
+|Does not expire
+|7, 30, or 90 days
+
+|Scopes
+|None; access follows the robot account's repository permissions
+|One or more OAuth scopes, set when the token is created
+
+|Number per robot
+|One
+|Several, each revoked separately
+
+|Prefix
+|None
+|`qro_`
+|===
+
+[role="_additional-resources"]
+.Additional resources
+
+* xref:robot-api-tokens-overview[Robot API tokens]

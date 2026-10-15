@@ -29,21 +29,24 @@ Array of federation configuration entries for the robot.
 
 [IMPORTANT]
 ====
-In {productname} 3.18, create and update requests persist `issuer` and `subject` only. The optional `audiences` field is not stored from API requests, and the {productname} v2 UI federation modal does not provide an `audiences` field. When `audiences` is present in stored federation configuration, {productname} validates the token audience during federated robot token exchange. When it is absent, audience validation is skipped and {productname} logs a deprecation warning.
+A create or update request replaces the whole list of federation entries for the robot account. To keep an existing entry, send the entry back in the same request along with the `id` of the entry.
 ====
 
 [options="header", width=100%, cols=".^3a,.^9a,.^4a"]
 |===
 |Name|Description|Schema
 |*issuer*
- 
+
 _required_|Issuer URL of the external OIDC provider for this federation entry|string
 |*subject*
- 
+
 _required_|Subject (`sub` claim) of the external OIDC identity authorized for this robot|string
 |*audiences*
- 
-_optional_|List of acceptable token audience (`aud` claim) values for this federation entry. Reserved for future API support; not persisted by create or update requests in {productname} 3.18.|array of strings
+
+_optional_|List of acceptable token audience (`aud` claim) values for this federation entry. Defaults to `["quay"]` when omitted.|array of strings
+|*api_scopes*
+
+_optional_|Space-separated list of {productname} management API scopes that a federated workload is allowed to request. Omit for registry-only federation.|string
 |===
 
 .Example request body

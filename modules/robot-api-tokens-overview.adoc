@@ -1,0 +1,34 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * api/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: CONCEPT
+[id="robot-api-tokens-overview"]
+= Robot API tokens
+
+[role="_abstract"]
+Robot API tokens are expiring, scoped credentials that a robot account uses to call the {productname} management API. They are separate from the static push and pull token that every robot account holds.
+
+A robot account has one static token for registry access through the Docker v2 endpoints. That token does not expire. A robot API token is different in three ways:
+
+* It expires. You choose 7, 30, or 90 days when you create it.
+* It carries a set of OAuth scopes that limit which management API operations it can perform.
+* A robot can hold several of them at once, and you can revoke each one separately.
+
+Robot API tokens are prefixed with `qro_`. You send one as a bearer token on the management API, in the same way as an OAuth access token.
+
+The access that a robot API token grants is the intersection of the token's scopes and the robot account's own permissions. A token with the `repo:read` scope lists only the repositories that the robot account has been granted access to. Adding a scope to a token does not grant the robot any permission that it does not already hold.
+
+[IMPORTANT]
+====
+Robot API tokens are a Technology Preview feature in {productname} {producty}. Technology Preview features are not supported with Red Hat production service-level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using Technology Preview features in production environments. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+====
+
+Robot API tokens require the `FEATURE_ROBOT_API_TOKENS` configuration field. You can limit how many active tokens a robot account holds by using the `API_TOKEN_MAXIMUM_TOKEN_COUNT` configuration field.
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://access.redhat.com/support/offerings/techpreview/[Technology Preview Features Support Scope]

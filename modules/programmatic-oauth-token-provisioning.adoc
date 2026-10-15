@@ -11,8 +11,25 @@ When `FEATURE_PROGRAMMATIC_BOOTSTRAP` is enabled, {productname} also creates a h
 
 [IMPORTANT]
 ====
-Programmatic bootstrap token provisioning is a Tech Preview feature in {productname} {producty}. Tech Preview features are not supported with Red Hat production service-level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using Tech Preview features in production environments. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+Programmatic bootstrap token provisioning is a Technology Preview feature in {productname} {producty}. Technology Preview features are not supported with Red Hat production service-level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using Technology Preview features in production environments. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
 ====
+
+The bootstrap token is a shared, high-privilege credential. Every automation that uses it carries the same blast radius. For automation that runs inside a Kubernetes cluster, bind each workload's service account to a robot account instead, so that each workload authenticates with its own scoped identity and no credential is stored.
+
+.Choosing an automation credential
+[cols="2a,3a",options="header"]
+|===
+|Use |When
+
+|Bootstrap token
+|Automation runs outside Kubernetes, for example, Terraform or Ansible on a RHEL host.
+
+|Robot federation
+|Automation runs inside a Kubernetes cluster and already holds a service account token.
+
+|Robot API token
+|Automation needs a long-lived but expiring and scoped credential that is not tied to a cluster identity.
+|===
 
 [role="_additional-resources"]
 .Additional resources

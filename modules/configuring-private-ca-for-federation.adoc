@@ -1,0 +1,52 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="configuring-private-ca-for-federation"]
+= Trusting a private certificate authority for robot federation
+
+[role="_abstract"]
+When your OIDC issuer presents a certificate from a private certificate authority, add that authority to the {productname} config bundle so that {productname} trusts the issuer during federated token exchange.
+
+This is required when the issuer is internal to the cluster. For example, the {ocp} service account issuer presents a certificate signed by the cluster's own certificate authority.
+
+.Prerequisites
+
+* You have installed {productname} by using the {productname} Operator.
+* You have the certificate of the certificate authority in PEM format.
+* You have access to the cluster with the `cluster-admin` role.
+
+.Procedure
+
+. Add the certificate to the config bundle secret under a key named `extra_ca_cert_<name>`, for example, `extra_ca_cert_kube-root-ca.crt`:
++
+[source,terminal]
+----
+$ oc patch secret <config_bundle_secret> -n <namespace> \
+  --type=merge \
+  -p "{\"data\":{\"extra_ca_cert_kube-root-ca.crt\":\"$(base64 -w0 <ca_certificate_file>)\"}}"
+----
++
+[NOTE]
+====
+The key must begin with `extra_ca_cert_`. The {productname} Operator collects every key with that prefix into an `extra-ca-certs` secret and mounts it in the {productname} pods at `/conf/stack/extra_ca_certs/<name>`, where {productname} installs the certificate at startup.
+====
+
+. Wait for the {productname} pods to redeploy. Changing the config bundle rolls the pods in the same way as any other bundle change:
++
+[source,terminal]
+----
+$ oc rollout status deployment/<registry_name>-quay-app -n <namespace>
+----
+
+.Verification
+
+* Confirm that the certificate is mounted in the {productname} pods by entering the following command:
++
+[source,terminal]
+----
+$ oc exec -n <namespace> deployment/<registry_name>-quay-app -c quay-app -- \
+  ls /conf/stack/extra_ca_certs/
+----

@@ -1,0 +1,53 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * api/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: REFERENCE
+[id="robot-api-token-scopes"]
+= Robot API token scopes
+
+[role="_abstract"]
+Each robot API token carries one or more OAuth scopes that limit the management API operations it can perform. The {productname} v2 UI presents these scopes by title rather than by scope string.
+
+.Robot API token scopes
+[cols="2a,3a",options="header"]
+|===
+|Scope |Title in the UI
+
+|`org:admin`
+|Administer Organization
+
+|`repo:admin`
+|Administer Repositories
+
+|`repo:create`
+|Create Repositories
+
+|`repo:read`
+|View all visible repositories
+
+|`repo:write`
+|Read/Write to any accessible repositories
+
+|`super:user`
+|Super User Access
+
+|`user:admin`
+|Administer User
+
+|`user:read`
+|Read User Information
+|===
+
+When you create a token by using the API, pass these scopes as a space-separated string in the `scope` field, for example, `repo:read user:read`.
+
+The following restrictions apply:
+
+* You can grant only the scopes that you hold yourself. A superuser is offered all eight scopes; other users are offered fewer. To list the scopes that you can grant for a given robot account, use the `mintable-scopes` endpoint.
+* The `user:login` scope cannot be granted to a robot API token.
+* The `super:user` scope additionally requires the `FEATURE_SUPER_USERS` configuration field.
+* A token must carry at least one scope. In the UI, *Create* stays disabled until you select a name and at least one scope.
+
+A scope limits a token; it does not extend the robot account. The effective access of a token is the intersection of its scopes and the permissions that the robot account already holds.
