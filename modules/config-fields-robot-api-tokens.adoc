@@ -1,0 +1,57 @@
+// module included in the following assemblies:
+
+// * config_quay/master.adoc
+
+:_mod-docs-content-type: REFERENCE
+[id="config-fields-robot-api-tokens"]
+= Robot API token configuration fields
+
+[role="_abstract"]
+Review configuration fields that control robot API tokens and federated token exchange for the {productname} management API.
+
+[IMPORTANT]
+====
+Robot API tokens and federated token exchange for the management API are Technology Preview features in {productname} {producty}. Technology Preview features are not supported with Red Hat production service-level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using Technology Preview features in production environments. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+====
+
+.Robot API token configuration fields
+[cols="3a,1a,2a",options="header"]
+|===
+|Field | Type |Description
+
+|**FEATURE_ROBOT_API_TOKENS** |Boolean |When set to `True`, robot accounts can hold expiring, scoped `qro_` tokens for the management API, and the token lifecycle endpoints are available
+ +
+*Default*: `False`
+
+|**FEATURE_ROBOT_API_TOKEN_EXCHANGE** |Boolean |When set to `True`, the `POST /sts/token` endpoint is available, which exchanges an external OIDC token for a management API access token. Requires `FEATURE_ROBOT_API_TOKENS` to be set to `True`
+ +
+*Default*: `False`
+
+|**API_TOKEN_MAXIMUM_TOKEN_COUNT** |Integer |The maximum number of active robot API tokens that a single user or robot account can hold. A token is active when it has neither expired nor been revoked. Set to `null` to remove the limit. Creating a token beyond the token limit can result in a `400` error that states `Token limit reached`.
+ +
+*Default*: `20`
+|===
+
+.Robot API token example YAML
+[source,yaml]
+----
+# ...
+FEATURE_ROBOT_API_TOKENS: true
+FEATURE_ROBOT_API_TOKEN_EXCHANGE: true
+API_TOKEN_MAXIMUM_TOKEN_COUNT: 20
+# ...
+----
++
+[NOTE]
+====
+If a robot account is blocked by the `ROBOTS_DISALLOW` configuration field and is not explicitly permitted by `ROBOTS_WHITELIST`, the following actions occur:
+
+* The robot account cannot create or authenticate with `qro_ robot `API tokens and returns a `401 Unauthorized` error.
+* STS token exchanges targeting the robot account return an `invalid_grant` error.
+* Managing existing tokens for listing and revoking through authorized organization administrators remains functional.
+====
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://access.redhat.com/support/offerings/techpreview/[Technology Preview Features Support Scope]

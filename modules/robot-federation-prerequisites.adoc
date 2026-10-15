@@ -1,0 +1,46 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: REFERENCE
+[id="robot-federation-prerequisites"]
+= Requirements for robot federation
+
+[role="_abstract"]
+Before you configure a robot federation entry, confirm that your {productname} deployment can reach the OIDC issuer and that the external tokens meet the requirements for federated token exchange.
+
+== Issuer reachability
+
+To validate an external token, {productname} fetches `<issuer>/.well-known/openid-configuration` and then the `jwks_uri` named in that document. The {productname} pods therefore need network egress to the issuer. On a restricted cluster, allow this through your cluster proxy settings or your egress rules.
+
+[NOTE]
+====
+The default cluster issuer `https://kubernetes.default.svc` is reachable only from within the cluster. If {productname} runs outside the cluster hosting the workload, you must configure the federation entry with the cluster's external issuer URL (retrieve it using `oc get authentication cluster -o jsonpath='{.spec.serviceAccountIssuer}'`). The external token's `iss` claim must match this external issuer URL exactly.
+====
+
+The issuer must use `https://`, and its certificate must be one that {productname} trusts. To trust a certificate issued by a private certificate authority, add that authority to the config bundle.
+
+{productname} caches an issuer's discovery document for the lifetime of a worker process and caches its signing keys for one hour.
+
+== Token requirements
+
+An external token presented for exchange must meet the following requirements:
+
+* The token is signed with RS256 or RS384.
+* The token header carries a `kid` key identifier.
+* The token carries `iat` and `exp` claims.
+* The `aud` claim of the token includes one of the `audiences` values on the matching federation entry.
+
+[WARNING]
+====
+For legacy federation entries created prior to version {producty}, entries saved before audience persistence was introduced contain no explicit `audiences` array. {productname} continues to accept these legacy entries without performing an audience check, but emits a deprecation warning in the logs.
+
+If you edit and save a legacy entry—or re-submit it via the API—it will automatically adopt the default value of `["quay"]`, which also prefills in the UI. If your workload issues tokens with a different `aud` claim, token exchange requests will fail with an `invalid_grant` error until you update the entry with the expected audience value.
+====
+
+== Entry matching
+
+{productname} matches a presented token against federation entries by exact string equality on `issuer` and `subject`. The `issuer` on the entry must equal the token's `iss` claim exactly, including any trailing slash. A mismatched trailing slash is a common cause of an `invalid_grant` response.
+
+A single robot account cannot hold two federation entries with the same `issuer` and `subject`.
