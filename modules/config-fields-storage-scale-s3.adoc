@@ -1,0 +1,58 @@
+:_mod-docs-content-type: CONCEPT
+[id="config-fields-storage-scale-s3"]
+= IBM Storage Scale S3 object storage
+
+[role="_abstract"]
+You can configure IBM Storage Scale as the object storage backend for {productname}. IBM Storage Scale provides an S3-compatible service through Cluster Export Services (CES S3). {productname} stores container image layers as objects in a CES S3 bucket and connects to it with the `RadosGWStorage` driver.
+
+[IMPORTANT]
+====
+IBM Storage Scale S3 object storage is validated only for {productname} deployments on IBM Z and IBM LinuxONE (s390x).
+====
+
+[NOTE]
+====
+Before starting {productname}, ensure the following prerequisites are met:
+
+* CES S3, Cluster Export Services, is enabled on the Storage Scale cluster.
+* An S3 account and a bucket for {productname} exist, created with `mms3 account create` and `mms3 bucket create`.
+* The CES S3 endpoint is reachable from the {productname} pods.
+====
+
+.IBM Storage Scale S3 storage configuration example
+[source,yaml]
+----
+DISTRIBUTED_STORAGE_CONFIG:
+  scale_s3:
+  - RadosGWStorage
+  - access_key: <access_key>
+    bucket_name: <bucket_name>
+    hostname: <ces_s3_hostname>
+    is_secure: true
+    port: <ces_s3_https_port>
+    secret_key: <secret_key>
+    storage_path: /datastorage/registry
+DISTRIBUTED_STORAGE_DEFAULT_LOCATIONS:
+- scale_s3
+DISTRIBUTED_STORAGE_PREFERENCE:
+- scale_s3
+----
+
+where:
+
+`DISTRIBUTED_STORAGE_CONFIG.scale_s3.hostname`:: Specifies the DNS name of the CES S3 endpoint, for example a name that resolves to the CES IP addresses or to a load balancer in front of them.
+`DISTRIBUTED_STORAGE_CONFIG.scale_s3.port`:: Specifies the CES S3 HTTPS port. This corresponds to `ENDPOINT_SSL_PORT` in the Storage Scale S3 configuration.
+`DISTRIBUTED_STORAGE_CONFIG.scale_s3.is_secure`:: Specifies whether {productname} uses HTTPS to connect to the CES S3 endpoint. Set to `true`.
+
+[NOTE]
+====
+If the CES S3 certificate is signed by a private CA or is self-signed, add the CA certificate to the {productname} configuration bundle so that {productname} can verify the endpoint. For on-premises deployments, see _Adding additional Certificate Authorities for {productname}_ in Additional resources. For Operator-based deployments on {productname-ocp}, see _Adding additional Certificate Authorities to {productname-ocp}_ in Additional resources.
+====
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://www.ibm.com/docs/en/storage-scale[IBM Storage Scale documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#config-extra-ca-certs-quay[Adding additional Certificate Authorities for {productname}]
+* link:https://docs.redhat.com/en/documentation/red_hat_quay/3.18/html-single/securing_red_hat_quay/index#config-additional-cas-ocp[Adding additional Certificate Authorities to {productname-ocp}]
+* xref:config-fields-storage-rados[Ceph Object Gateway (RadosGW) storage example]
