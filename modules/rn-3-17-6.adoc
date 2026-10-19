@@ -1,0 +1,35 @@
+:_mod-docs-content-type: REFERENCE
+[id="rn-3-17-6"]
+= RHSA-2026:83822 - {productname} 3.17.6 release
+
+Issued 2026-10-16
+
+[role="_abstract"]
+{productname} release 3.17.6 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHSA-2026:83822[RHSA-2026:83822] advisory.
+
+[id="bug-fixes-317-6"]
+== {productname} 3.17.6 bug fixes
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13418[*PROJQUAY-13418*]. Previously, organization administrators could not update the quota limit for their own organization from the v2 UI, because the `changeOrganizationQuota` API returned an unauthorized error.
++
+With this release, organization administrators can update organization quota limits from the v2 UI and API. As a result, quota changes no longer fail with an unauthorized error for organization admins.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13510[*PROJQUAY-13510*]. Previously, fetching archived build logs from Google Cloud Storage could return HTTP 500 with a zlib "incorrect header check" error when GCS served an already-decoded object that {productname} still tried to decompress as gzip.
++
+With this release, archived build log readers accept both gzip-compressed and already-decoded archive content. As a result, archived build logs on GCS storage load successfully.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13512[*PROJQUAY-13512*]. Previously, OpenID Connect (OIDC) authentication in large environments could time out at the gunicorn, nginx, or load balancer layer when users had a very large number of group memberships.
++
+With this release, OIDC authentication handling is improved for users with large group memberships. As a result, login is less likely to fail with worker or upstream timeouts in those environments.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13516[*PROJQUAY-13516*]. Previously, `RadosGWStorage` did not correctly apply a configured `region_name` during startup validation and could use the default `us-east-1` region instead.
++
+With this release, `RadosGWStorage` validates and uses the configured `region_name` at startup. As a result, region-scoped S3-compatible backends receive the expected region in authorization requests.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13518[*PROJQUAY-13518*]. Previously, proxy cache pulls of large blobs could fail with HTTP 500 when asynchronous download left an orphaned database blob record without storage placement, which blocked later pulls of the same blob.
++
+With this release, proxy cache handling of large blob downloads no longer leaves orphaned blob records that permanently block pulls. As a result, large layers can be pulled through the proxy cache reliably.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13533[*PROJQUAY-13533*]. Previously, blob GET requests through the storage proxy (`FEATURE_PROXY_STORAGE`) were gzip-encoded by nginx, which removed `Content-Length` and could double-compress already gzip-compressed layers.
++
+With this release, storage proxy blob responses are not gzip-encoded by nginx. As a result, proxied blob GETs retain `Content-Length` and return the stored bytes without extra compression.
