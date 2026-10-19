@@ -28,14 +28,10 @@ To fully override or preserve TLS behavior, set both `SSL_PROTOCOLS` and `SSL_CI
 
 [IMPORTANT]
 ====
-If you use unmanaged TLS and require specific TLS settings that differ from the cluster default, set both `SSL_PROTOCOLS` and `SSL_CIPHERS` in your `configBundleSecret` resource before upgrading. Setting only one field disables cluster-profile inheritance for both fields. For more information, see xref:quay_jtbd-upgrade.adoc#preserving-tls-settings-operator-upgrade_upgrade_red_hat_quay_on_openshift_container_platform[Preserving TLS settings before upgrading {productname-ocp}].
+If you use unmanaged TLS and require specific TLS settings that differ from the cluster default, set both `SSL_PROTOCOLS` and `SSL_CIPHERS` in your `configBundleSecret` resource before upgrading. Setting only one field disables cluster-profile inheritance for both fields.
 ====
 
 On Kubernetes clusters without the `config.openshift.io` API, the Operator does not inject TLS settings and {productname} uses its built-in defaults.
-
-For more information about SSL/TLS configuration fields, see xref:quay_jtbd-configure.adoc#config-fields-ssl[SSL/TLS configuration fields].
-
-For information about custom certificates and the config bundle, see xref:quay_jtbd-secure.adoc#operator-custom-ssl-certs-config-bundle[Configuring custom SSL/TLS certificates for {productname-ocp}]. For information about TLS protocol and cipher inheritance, see xref:quay_jtbd-secure.adoc#operator-ocp-tls-security-profile[{ocp} cluster TLS security profile inheritance].
 
 For more information about NIST post-quantum cryptography standards, see link:https://csrc.nist.gov/projects/post-quantum-cryptography[Post-Quantum Cryptography]. 
 
@@ -67,7 +63,7 @@ For example, to tune Redis resources for a smaller cluster, add an entry like th
             memory: 400Mi
 ----
 
-For more information about configuring resource requests and limits, see xref:quay_jtbd-optimize.adoc#configuring-resources-managed-components[Configuring QuayRegistry CR resources].
+For more information about configuring resource requests and limits for managed components, configure CPU and memory overrides under `spec.components[].overrides.resources` in the `QuayRegistry` custom resource.
 
 [id="clair-ephemeral-storage-overrides-rn"]
 == Clair ephemeral storage overrides
@@ -89,8 +85,6 @@ For example:
 
 These overrides apply to Clair scratch storage only. They do not resize the managed Clair PostgreSQL database.
 
-For more information, see xref:quay_jtbd-install.adoc#clair-ephemeral-storage-overrides[Configuring ephemeral storage for managed Clair].
-
 [id="external-tls-secret-reference"]
 == External TLS Secret reference for the QuayRegistry CR
 
@@ -98,7 +92,6 @@ The {productname} Operator supports referencing an external `kubernetes.io/tls` 
 
 The `QuayRegistry` status includes a `ComponentTLSReady` condition that reports whether TLS from the external Secret is valid and applied.
 
-For configuration steps, see xref:quay_jtbd-secure.adoc#operator-external-tls-secret-reference[Referencing an external TLS Secret for {productname-ocp}]. For a cert-manager example, see xref:quay_jtbd-secure.adoc#example-certificate-manager[Example: Using cert-manager with an external TLS Secret].
 [id="operator-managed-postgres-tls-rn"]
 == TLS encryption for Operator-managed PostgreSQL
 
@@ -118,5 +111,3 @@ You can enable TLS independently for the `postgres` and `clairpostgres` componen
 ====
 This feature configures transport encryption for Operator-managed PostgreSQL. Transport encryption is distinct from the managed `tls` component, which handles {productname}'s external HTTPS endpoint.
 ====
-
-For configuration examples, certificate options, and verification steps, see xref:quay_jtbd-secure.adoc#operator-managed-postgres-tls[TLS encryption for Operator-managed PostgreSQL].
