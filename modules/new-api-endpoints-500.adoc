@@ -3,4 +3,19 @@
 = API endpoint enhancements
 
 [role="_abstract"]
-You can review API enhancements in {productname} {producty}.
+The following API endpoints were added in {productname} {producty}
+
+[id="service-key-status-endpoint-500"]
+== Service key status endpoint
+
+{productname} {producty} adds the following `keyserver` endpoint to support the Operator-managed read-only lifecycle:
+
+[cols="1a,3a,2a",options="header"]
+|===
+|Method |Endpoint |Description
+|`GET` |`/keys/services/<service>/keys/<kid>/status` |Returns key identity, operator-management state, and expiration metadata for a given service key.
+|===
+
+Unlike the existing `GET /keys/services/<service>/keys/<kid>` endpoint, this endpoint returns `200` for expired and unapproved keys, so the {productname} Operator can inspect key metadata regardless of key state. The `operator_managed` field is `true` when the key was created by the Operator. The `expiration_date` field is formatted as RFC 3339 UTC.
+
+This endpoint is used internally by the Operator during the `PreparingKey` and `ExitingReadOnly` lifecycle phases and is not intended for direct use by registry administrators.
