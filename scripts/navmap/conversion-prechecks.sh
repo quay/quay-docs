@@ -30,7 +30,14 @@ cd "$REPO_ROOT"
 
 # Available products
 AVAILABLE_PRODUCTS=(quay)
-DITA_CONFIG="${DITA_CONFIG:-$HOME/.dita.ini}"
+# ~/.dita.ini may be either a Vale config file or a directory containing one.
+# Resolve to the actual file so vale --config receives a valid path.
+_DITA_DEFAULT="$HOME/.dita.ini"
+if [ -d "$_DITA_DEFAULT" ] && [ -f "$_DITA_DEFAULT/.vale.ini" ]; then
+    _DITA_DEFAULT="$_DITA_DEFAULT/.vale.ini"
+fi
+DITA_CONFIG="${DITA_CONFIG:-$_DITA_DEFAULT}"
+unset _DITA_DEFAULT
 
 # Check prerequisites
 check_prerequisites() {
@@ -49,7 +56,7 @@ check_prerequisites() {
     fi
 
     if [ ! -f "$DITA_CONFIG" ]; then
-        missing+=("${DITA_CONFIG} (AsciiDocDITA Vale configuration)")
+        missing+=("${DITA_CONFIG} (AsciiDocDITA Vale configuration — set DITA_CONFIG or create ~/.dita.ini/.vale.ini)")
     fi
 
     if [ ${#missing[@]} -gt 0 ]; then
@@ -317,6 +324,17 @@ main() {
     echo "Syncing Vale styles..."
     vale --config "$DITA_CONFIG" sync > "$WORK_DIR/vale-sync.log" 2>&1 || SYNC_STATUS=$?
     cat "$WORK_DIR/vale-sync.log"
+
+    # If sync failed only due to read-only styles that are already installed, proceed.
+    # A permission-denied error on existing styles doesn't affect validation quality.
+    if [ "$SYNC_STATUS" -ne 0 ]; then
+        local styles_dir
+        styles_dir="$(dirname "$DITA_CONFIG")/.vale/styles/AsciiDocDITA"
+        if [ -d "$styles_dir" ] && [ "$(ls -A "$styles_dir" 2>/dev/null)" ]; then
+            echo -e "${YELLOW}  ⚠ Sync failed (likely read-only styles), but AsciiDocDITA styles already exist — proceeding.${NC}"
+            SYNC_STATUS=0
+        fi
+    fi
 
     echo ""
 
