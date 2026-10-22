@@ -1,0 +1,70 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="setting-robot-federation-api-scopes-ui"]
+= Granting management API scopes to a robot federation entry by using the UI
+
+[role="_abstract"]
+To let a federated workload call the {productname} management API, add a federation entry to a robot account and select the management API scopes that the workload is allowed to request.
+
+.Prerequisites
+
+* You have logged in as a user who can administer the organization.
+* You have enabled the `FEATURE_ROBOT_API_TOKENS` and `FEATURE_ROBOT_API_TOKEN_EXCHANGE` configuration fields.
+* You have created an organization and a robot account.
+* You have the `iss`, `sub`, and `aud` claim values of the external token.
+* You have assigned the robot account appropriate team or repository permissions. A robot API token inherits the permissions of the robot account. A token generated for a robot with no assigned roles has no functional access.
++
+[NOTE]
+====
+For CI/CD workloads, create a dedicated organization robot account with narrowly scoped permissions limited only to the required repositories and actions.
+====
+
+.Procedure
+
+. On the v2 UI, click *Organizations* and then click the name of your organization.
+
+. Click the *Robot accounts* tab.
+
+. Click the kebab menu at the end of the row of the robot account, and then click *Set robot federation*.
+
+. In the federation dialog, click the *+* symbol to add an entry. Add one entry for each workload.
+
+. Enter the following information in the entry field:
++
+* *Issuer URL*: The `iss` claim of the external token, for example, `\https://kubernetes.default.svc`.
+* *Subject*: The `sub` claim of the external token, for example, `system:serviceaccount:<namespace>:<service_account_name>`.
+* *OIDC audiences*: One of the `aud` values of the external token. To enter several audiences, separate them with commas.
+
+. Under *Management API and registry scopes*, select the most that this workload is allowed to request. For example, *View all visible repositories* and *Read User Information*.
++
+[NOTE]
+====
+Consider the following validation rules when selecting Management API and registry scopes:
+
+* Permission constraints: A federation entry can only carry API scopes that the user creating or updating the entry currently possesses.
+** UI behavior: The UI lists only the scopes held by your user account and disables the *Save* button if an entry contains a scope you do not hold.
+** API behavior: Submitting an entry with scopes exceeding your user account's permissions returns a `401 Unauthorized` response.
+* Restricted scopes: The `direct_user_login` scope cannot be assigned to federation entries under any circumstances and is automatically rejected.
+====
++
+[NOTE]
+====
+Leave every scope cleared for registry-only federation. A workload can request fewer scopes than you select here, but not more.
+====
+
+. Click *Save*. The message `Robot federation config saved` is displayed, and the entry collapses to a header line of the form `<issuer> : <subject>`.
++
+[NOTE]
+====
+A single *Save* commits every entry in the dialog. Saving does not check that the issuer is reachable; {productname} checks that when a token is exchanged.
+====
+
+. Optional: To edit an entry, click the chevron to its left, change the values, then click *Save* again.
+
+. Optional: To remove an entry, click the trash button to its right, then click *Save*. Removal is not confirmed, and it takes effect only when you click *Save*.
+
+. Click *Close*.

@@ -1,0 +1,72 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * api/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="listing-robot-api-tokens"]
+= Listing robot API tokens
+
+[role="_abstract"]
+To review which robot API tokens exist for a robot account, their scopes, and when they expire, you can use the v2 UI or the {productname} management API.
+
+.Prerequisites
+
+* You have enabled the `FEATURE_ROBOT_API_TOKENS` configuration field.
+* You have created at least one robot API token.
+
+.Procedure
+
+. On the v2 UI, click *Organizations* and then click the name of your organization.
+
+. Click the *Robot accounts* tab, then click the name of your robot account.
+
+. Select the *API Tokens* tab to view the list of tokens generated for the robot account. 
+
+. On the *API Tokens* page, you can review details for each token in the following table sections:
++
+.. *Token name*: The descriptive name assigned to the token.
+.. *Scopes*: The permissions and API scopes granted to the token.
+.. *Expires*: The expiration date or status of the token.
+.. *Last accessed*: The timestamp indicating when the individual token was last used.
+.. *Created by*: The user or account that generated the token.
+
+. To list tokens by using the API, enter the following command:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<organization_name>/robots/<robot_shortname>/tokens" \
+  -H "Cookie: <session_cookie>" \
+  -H "X-CSRF-Token: <csrf_token>"
+----
++
+.Example output
+[source,json]
+----
+{
+  "tokens": [
+    {
+      "uuid": "a1b2c3d4-0000-0000-0000-000000000000",
+      "name": "ci-pipeline",
+      "scope": "repo:read user:read",
+      "expires_at": "2026-01-14T12:00:00Z",
+      "created": "2025-12-15T12:00:00Z",
+      "created_by": "quayadmin",
+      "last_accessed": "2025-12-16T09:31:12Z"
+    }
+  ],
+  "next_page": "<cursor>"
+}
+----
++
+The endpoint returns results in pages of up to `50` tokens. When the `next_page` key is present in the response object, pass its value back as the `?next_page=` query parameter on subsequent requests to fetch the next page of tokens.
++
+[NOTE]
+====
+The list response never includes the token value. Record the value when you create the token.
+
+The `last_accessed` timestamp is updated at most once per minute and is controlled by `OAUTH_TOKEN_LAST_ACCESSED_UPDATE_THRESHOLD_S`, which defaults to `60` seconds. Rapid sequential API requests within this window do not continuously update the timestamp.
+
+Expired tokens remain visible in the API Tokens list until they are explicitly revoked or deleted.
+====

@@ -1,0 +1,82 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * api/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="creating-robot-api-token-api"]
+= Creating a robot API token by using the API
+
+[role="_abstract"]
+To create a robot API token without using the UI, you can use the `POST /api/v1/organization/{orgname}/robots/{robot_shortname}/tokens` endpoint. The token value is returned only in the response to this call.
+
+[IMPORTANT]
+====
+The robot API token lifecycle endpoints require an authenticated user session, not a bearer token. The session must be recent, as set by the `FRESH_LOGIN_TIMEOUT` configuration field, which defaults to 10 minutes. Log in through the UI, then take the `Cookie` and `X-CSRF-Token` header values from a browser request to an `/api/v1/` path.
+====
+
+.Prerequisites
+
+* You have enabled the `FEATURE_ROBOT_API_TOKENS` configuration field.
+* You have created an organization and a robot account.
+* You have a recent authenticated session for a user who can administer the robot account.
+
+.Procedure
+
+. Optional: List the scopes that you can grant for this robot account by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<organization_name>/robots/<robot_shortname>/mintable-scopes" \
+  -H "Cookie: <session_cookie>" \
+  -H "X-CSRF-Token: <csrf_token>"
+----
+
+. Create the token by entering the following command:
++
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/api/v1/organization/<organization_name>/robots/<robot_shortname>/tokens" \
+  -H "Cookie: <session_cookie>" \
+  -H "X-CSRF-Token: <csrf_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "ci-pipeline",
+    "scope": "repo:read user:read",
+    "expiration": 2592000
+  }'
+----
++
+where:
++
+`name`:: Required. A name for the token.
+`scope`:: Required. A space-separated list of scopes. The `direct_user_login` scope cannot be granted.
+`expiration`:: Optional. The lifetime of the token, in seconds. Defaults to 30 days. The maximum is 90 days; longer values are capped at 90 days.
++
+.Example output
+[source,json]
+----
+{
+  "uuid": "a1b2c3d4-0000-0000-0000-000000000000",
+  "name": "ci-pipeline",
+  "scope": "repo:read user:read",
+  "expires_at": "2026-01-14T12:00:00Z",
+  "created": "2025-12-15T12:00:00Z",
+  "created_by": "quayadmin",
+  "last_accessed": null,
+  "token": "qro_<token_value>"
+}
+----
++
+[IMPORTANT]
+====
+The `token` field is returned only when the token is created. Subsequent list requests return the same fields without it.
+====
+
+. Store the value of the `token` field.
++
+[NOTE]
+====
+For a robot account that belongs to a user rather than an organization, use `/api/v1/user/robots/<robot_shortname>/tokens`. The request and response have the same shape.
+====

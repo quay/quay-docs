@@ -11,3 +11,32 @@ You can review new features and enhancements in {productname} {producty}.
 * {productname} {producty} introduces configurable gunicorn worker timeout settings. Two new `config.yaml` parameters, `GUNICORN_REGISTRY_TIMEOUT` and `GUNICORN_WEB_TIMEOUT`, allow administrators to increase the gunicorn worker timeout beyond the previous hardcoded 30-second default. 
 +
 Increasing these values prevents worker termination during long-running operations, including large image pushes, proxy cache blob downloads, and API queries on large organizations with quota enabled. The default values are `300` seconds for the registry process and `60` seconds for the web process. The minimum accepted value for both parameters is `30` seconds and the maximum is `300` seconds.
+
+[id="robot-api-tokens-500"]
+== Robot API tokens (Technology Preview)
+
+* {productname} {producty} introduces robot API tokens, which are expiring, scoped credentials that a robot account uses on the management API. Unlike the robot account's static push and pull token, a robot API token expires after at most 90 days and carries a set of OAuth scopes that limit which management API operations it can perform. You can set the expiry to `7`, `30`, or `90` days on the console. A robot account can hold several tokens at once, and each one can be revoked separately.
++
+Create and revoke tokens on the *API Tokens* tab of a robot account in the v2 UI, or by using the `/api/v1/organization/{orgname}/robots/{robot_shortname}/tokens` endpoints. Enable the feature with the `FEATURE_ROBOT_API_TOKENS` configuration field, and cap the number of active tokens per robot with `API_TOKEN_MAXIMUM_TOKEN_COUNT`.
++
+[IMPORTANT]
+====
+Robot API tokens are a Technology Preview feature in {productname} {producty}. Technology Preview features are not supported with Red Hat production service-level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using Technology Preview features in production environments. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+====
+
+[id="robot-federation-management-api-500"]
+== Robot federation for the management API (Technology Preview)
+
+* In {productname} {producty}, robot federation entries can grant access to the management API as well as to the registry. Each entry accepts an `api_scopes` field that sets the scopes a federated workload is allowed to request, and a new `POST /sts/token` endpoint exchanges an external OIDC token for a {productname} access token carrying those scopes. The exchanged token expires after one hour and cannot be renewed.
++
+This lets in-cluster automation, such as an operator, a Tekton pipeline, or a GitOps controller, call the {productname} management API by using its Kubernetes service account token, without a `Secret` object that holds {productname} credentials. Matching on `issuer` and `subject` is exact string equality; wildcard patterns are not supported. Enable the feature with the `FEATURE_ROBOT_API_TOKEN_EXCHANGE` configuration field, which requires `FEATURE_ROBOT_API_TOKENS`.
++
+[IMPORTANT]
+====
+Robot federation for the management API is a Technology Preview feature in {productname} {producty}. Technology Preview features are not supported with Red Hat production service-level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using Technology Preview features in production environments. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+====
+
+[role="_additional-resources"]
+.Additional resources
+
+* link:https://access.redhat.com/support/offerings/techpreview/[Technology Preview Features Support Scope]
