@@ -34,6 +34,10 @@ You can configure {productname} to authenticate users through any OpenID Connect
 
 | **{nbsp}{nbsp}{nbsp}.PREFERRED_GROUP_CLAIM_NAME** | String | The key name within the OIDC token payload that holds information about the user's group memberships.
 
+| **{nbsp}{nbsp}{nbsp}.SUPERUSER_GROUP** | String | The unique identifier of the OIDC group whose members are granted superuser privileges at login. Users are dynamically added to or removed from the superuser role on each login based on their current group membership in the OIDC token. The identifier format depends on your OIDC provider; for example, Microsoft Entra ID uses a group object ID (UUID), while Keycloak uses a group name. Users listed in `SUPER_USERS` are never deregistered. This field is optional.
+
+| **{nbsp}{nbsp}{nbsp}.GLOBAL_READONLY_SUPERUSER_GROUP** | String | The unique identifier of the OIDC group whose members are granted global read-only superuser privileges at login. Members of this group can view all repositories regardless of visibility. The identifier format depends on your OIDC provider. This field is optional.
+
 | **{nbsp}{nbsp}{nbsp}.OIDC_DISABLE_USER_ENDPOINT** | Boolean | Whether to allow or disable the `/userinfo` endpoint. If using Azure Entra ID, this field must be set to `True` because Azure obtains the user's information from the token instead of calling the `/userinfo` endpoint. 
 
 **Default:** `False`
@@ -88,6 +92,8 @@ AUTHENTICATION_TYPE: OIDC
   SERVICE_NAME: <service_name>
   VERIFIED_EMAIL_CLAIM_NAME: <verified_email_claim>
   PREFERRED_GROUP_CLAIM_NAME: <preferred_group_claim>
+  SUPERUSER_GROUP: <oidc_superuser_group>
+  GLOBAL_READONLY_SUPERUSER_GROUP: <oidc_global_readonly_superuser_group>
   OIDC_DISABLE_USER_ENDPOINT: true
   USE_PKCE: True
   PKCE_METHOD: "S256"
