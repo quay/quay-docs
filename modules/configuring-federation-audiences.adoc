@@ -5,14 +5,18 @@
 [role="_abstract"]
 To manage robot federation entries in {productname}, you can use the robot federation API to set the issuer and subject that map an OIDC identity to a robot account.
 
-Each robot federation entry maps an external OIDC identity (`issuer` and `subject`) to a {productname} robot account. Starting in {productname} {producty}, robot federation supports an optional `audiences` array on each entry for token audience validation during federated robot token exchange (`GET /oauth2/federation/robot/token`).
+Each robot federation entry maps an external OIDC identity (`issuer` and `subject`) to a {productname} robot account. Each entry also carries an `audiences` array that {productname} validates during federated token exchange. The `aud` claim of the presented token must include one of the entry's audience values.
 
-[IMPORTANT]
+In {productname} {producty}, the `audiences` array is persisted from API requests, and the v2 UI federation modal provides an *OIDC audiences* field. When you omit `audiences` from an API request, the entry defaults to `["quay"]`.
+
+[WARNING]
 ====
-In {productname} 3.18, create and update requests persist `issuer` and `subject` only. The optional `audiences` field is not stored from API requests, and the {productname} v2 UI federation modal does not provide an `audiences` field. Until API support is available, federated robot token exchange skips audience validation and logs a deprecation warning when `audiences` is not stored for the matching federation entry. A later release requires `audiences` for federated robot authentication.
+For legacy federation entries created prior to version {producty}, entries saved before audience persistence was introduced contain no explicit `audiences` array. {productname} continues to accept these legacy entries without performing an audience check, but emits a deprecation warning in the logs.
+
+If you edit and save a legacy entry—or re-submit it via the API—it will automatically adopt the default value of `["quay"]`, which also prefills in the UI. If your workload issues tokens with a different `aud` claim, token exchange requests will fail with an `invalid_grant` error until you update the entry with the expected audience value.
 ====
 
-When `audiences` is present in stored federation configuration, configure it to match the `aud` claim values your OIDC provider issues—for example, a custom API audience such as `api://quay-api` for Microsoft Entra ID v2.0 tokens, or your OIDC client ID for standard flows. For Microsoft Entra ID v2.0, use an application-specific audience rather than the Microsoft Graph audience.
+Configure `audiences` to match the `aud` claim values that your OIDC provider issues. For example, use a custom API audience such as `api://quay-api` for Microsoft Entra ID v2.0 tokens, or your OIDC client ID for standard flows. For Microsoft Entra ID v2.0, use an application-specific audience rather than the Microsoft Graph audience. For a Kubernetes service account token, the audience is the value that was requested when the token was projected, which is often the hostname of your {productname} route.
 
 .Prerequisites
 
@@ -22,7 +26,7 @@ When `audiences` is present in stored federation configuration, configure it to 
 
 .Procedure
 
-. Create or update the robot federation configuration by using `POST /api/v1/organization/{orgname}/robots/{robot_shortname}/federation`. Include `issuer` and `subject` in each federation entry. For example:
+. Create or update the robot federation configuration by using `POST /api/v1/organization/{orgname}/robots/{robot_shortname}/federation`. Include `issuer`, `subject`, and `audiences` in each federation entry. For example:
 +
 [source,terminal]
 ----
@@ -32,9 +36,15 @@ $ curl -X POST "https://<quay-server.example.com>/api/v1/organization/fed_test/r
   -d '[
     {
       "issuer": "https://login.microsoftonline.com/<tenant-id>/v2.0",
-      "subject": "<user-object-id>"
+      "subject": "<user-object-id>",
+      "audiences": ["api://quay-api"]
     }
   ]'
 ----
++
+[IMPORTANT]
+====
+A `POST` request replaces the whole list of federation entries for the robot account. To keep an existing entry, send the entry back in the same request along with the `id` of the entry.
+====
 
 . After you configure federation, exchange an external OIDC access token for a {productname} robot token.

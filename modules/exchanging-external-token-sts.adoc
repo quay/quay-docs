@@ -1,0 +1,75 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="exchanging-external-token-sts"]
+= Exchanging an external token for a management API access token
+
+[role="_abstract"]
+After you have configured a robot federation entry with management API scopes, a workload can exchange its external OIDC token for a {productname} access token at the `POST /sts/token` endpoint.
+
+.Prerequisites
+
+* You have enabled the `FEATURE_ROBOT_API_TOKENS` and `FEATURE_ROBOT_API_TOKEN_EXCHANGE` configuration fields.
+* You have added a federation entry with `api_scopes` to your robot account.
+* The workload holds an external OIDC token exported as `EXTERNAL_TOKEN`.
+
+.Procedure
+
+. Exchange the external token by entering the following command:
++
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/sts/token" \
+  -d grant_type=urn:ietf:params:oauth:grant-type:token-exchange \
+  -d subject_token_type=urn:ietf:params:oauth:token-type:jwt \
+  --data-urlencode "resource=urn:quay:robot:<organization_name>+<robot_shortname>" \
+  --data-urlencode "subject_token=$EXTERNAL_TOKEN" \
+  --data-urlencode "scope=repo:read user:read"
+----
++
+where:
++
+`grant_type`:: Required. Must be `urn:ietf:params:oauth:grant-type:token-exchange`.
+`subject_token_type`:: Required. Must be `urn:ietf:params:oauth:token-type:jwt`.
+`resource`:: Required. The robot account to authenticate as, in the form `urn:quay:robot:<organization_name>+<robot_shortname>`.
+`subject_token`:: Required. The external OIDC token.
+`scope`:: Optional. A space-separated list of requested scopes. Defaults to the `api_scopes` of the matching federation entry. A requested scope must be within that set.
++
+.Example output
+[source,json]
+----
+{
+  "access_token": "<access_token>",
+  "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "repo:read user:read"
+}
+----
+
+. Export the access token by entering the following command:
++
+[source,terminal]
+----
+$ export QUAY_TOKEN=<access_token>
+----
++
+[IMPORTANT]
+====
+The access token expires after one hour and cannot be renewed. To obtain a new token, exchange the external token again. Changing or removing the federation entry invalidates the tokens that were issued from it. Re-saving an unchanged entry preserves its version and keeps existing tokens valid.
+====
+
+.Verification
+
+* Call the management API with the access token by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/user/" \
+  -H "Authorization: Bearer $QUAY_TOKEN"
+----
++
+The response returns `200`, and the `username` field is the full name of your robot account, in the form `<organization_name>+<robot_shortname>`.

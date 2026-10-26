@@ -1,0 +1,96 @@
+// module included in the following assemblies:
+
+// * use_quay/master.adoc
+// * maps/jobs/authenticate-automation-quay-management-api-without-stored-credentials.adoc
+
+:_mod-docs-content-type: PROCEDURE
+[id="setting-robot-federation-api-scopes-api"]
+= Granting management API scopes to a robot federation entry by using the API
+
+[role="_abstract"]
+To manage robot federation entries without using the UI, you can use the federation endpoints. Each entry maps an external OIDC identity to a robot account and sets the management API scopes that the workload is allowed to request.
+
+.Prerequisites
+
+* You have enabled the `FEATURE_ROBOT_API_TOKENS` and `FEATURE_ROBOT_API_TOKEN_EXCHANGE` configuration fields.
+* You have created an organization and a robot account.
+* You have the `iss`, `sub`, and `aud` claim values of the external token.
+
+.Procedure
+
+. List the current federation entries by entering the following command:
++
+[source,terminal]
+----
+$ curl -X GET "https://<quay-server.example.com>/api/v1/organization/<organization_name>/robots/<robot_shortname>/federation" \
+  -H "Authorization: Bearer <oauth_token>"
+----
+
+. Set the federation entries by entering the following command:
++
+[source,terminal]
+----
+$ curl -X POST "https://<quay-server.example.com>/api/v1/organization/<organization_name>/robots/<robot_shortname>/federation" \
+  -H "Authorization: Bearer <oauth_token>" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "issuer": "https://kubernetes.default.svc",
+      "subject": "system:serviceaccount:<namespace>:<service_account_name>",
+      "audiences": ["<quay-server.example.com>"],
+      "api_scopes": "repo:read user:read"
+    }
+  ]'
+----
++
+where:
++
+`issuer`:: Required. The `https://` URL of the OIDC issuer. Must equal the token's `iss` claim exactly.
+`subject`:: Required. The `sub` claim of the external token.
+`audiences`:: Optional. A list of accepted audience values. Defaults to `["quay"]` when omitted.
+`api_scopes`:: Optional. A space-separated list of management API scopes that the workload is allowed to request. Omit it for registry-only federation.
++
+[IMPORTANT]
+====
+A `POST` request replaces the whole list of federation entries for the robot account. To keep an existing entry, send it back in the same request along with its `id`. A `POST` request with an empty list clears every entry.
+====
++
+[NOTE]
+====
+Consider the following validation rules when selecting Management API and registry scopes:
+
+* Permission constraints: A federation entry can only carry API scopes that the user creating or updating the entry currently possesses.
+** UI behavior: The UI lists only the scopes held by your user account and disables the *Save* button if an entry contains a scope you do not hold.
+** API behavior: Submitting an entry with scopes exceeding your user account's permissions returns a `401 Unauthorized` response.
+* Restricted scopes: The `direct_user_login` scope cannot be assigned to federation entries under any circumstances and is automatically rejected.
+====
++
+.Example output
+[source,json]
+----
+[
+  {
+    "id": "0b7f4c5e-3a1d-4c8e-9b52-6f0d2a7e1c34",
+    "version": 1,
+    "issuer": "https://kubernetes.default.svc",
+    "subject": "system:serviceaccount:<namespace>:<service_account_name>",
+    "audiences": ["<quay-server.example.com>"],
+    "api_scopes": "repo:read user:read"
+  }
+]
+----
+
+. Optional: Clear every federation entry for the robot account by entering the following command:
++
+[source,terminal]
+----
+$ curl -X DELETE "https://<quay-server.example.com>/api/v1/organization/<organization_name>/robots/<robot_shortname>/federation" \
+  -H "Authorization: Bearer <oauth_token>"
+----
++
+The request returns `204`.
++
+[NOTE]
+====
+A single robot account cannot hold two entries with the same `issuer` and `subject`. Such a request is rejected.
+====
