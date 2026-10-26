@@ -1,0 +1,82 @@
+:_mod-docs-content-type: PROCEDURE
+[id="oidc-superuser-group-sync"]
+= Enabling OIDC superuser group synchronization
+
+[role="_abstract"]
+To grant selected OIDC group members superuser privileges in {productname}, you can configure `SUPERUSER_GROUP` and `GLOBAL_READONLY_SUPERUSER_GROUP` in your OIDC login service config block in your `config.yaml` file.
+
+[IMPORTANT]
+====
+OIDC-synced superuser privileges are held in process memory and are not persisted to the database. If {productname} pods restart (for example, due to a configuration change or upgrade), dynamically granted superuser privileges are lost until the affected users log out and log back in. Users who are statically listed in the `SUPER_USERS` or `GLOBAL_READONLY_SUPER_USERS` configuration fields are not affected.
+====
+
+Superuser status is synchronized at login time, providing parity with the `LDAP_SUPERUSER_FILTER` feature for OIDC-backed deployments.
+
+Unlike LDAP, which can query group membership on each request, OIDC group claims are only available in the token at login. As a result, superuser privileges are granted or revoked each time an affected user logs in.
+
+[NOTE]
+====
+OIDC superuser group synchronization operates independently of the `FEATURE_TEAM_SYNCING` configuration field and runs at login regardless of whether team syncing is enabled.
+====
+
+.Prerequisites
+
+* Your {productname} deployment uses OIDC as its authentication provider.
+* Your OIDC provider is configured to include group membership claims in the token.
+* The `PREFERRED_GROUP_CLAIM_NAME` field is set in your OIDC login service config block.
+
+.Procedure
+
+. In your deployment's `config.yaml` file, add `SUPERUSER_GROUP`, `GLOBAL_READONLY_SUPERUSER_GROUP`, or both to your OIDC login service config block. For example:
++
+[source,yaml]
+----
+AUTHENTICATION_TYPE: OIDC
+FEATURE_TEAM_SYNCING: false
+# ...
+<oidc_provider>_LOGIN_CONFIG:
+  CLIENT_ID: <client_id>
+  CLIENT_SECRET: <client_secret>
+  OIDC_SERVER: <oidc_server_url>
+  SERVICE_NAME: <service_name>
+  LOGIN_SCOPES:
+    - openid
+    - profile
+    - email
+  PREFERRED_USERNAME_CLAIM_NAME: preferred_username
+  VERIFIED_EMAIL_CLAIM_NAME: email
+  PREFERRED_GROUP_CLAIM_NAME: groups
+  SUPERUSER_GROUP: <oidc_superuser_group_id>
+  GLOBAL_READONLY_SUPERUSER_GROUP: <oidc_global_readonly_superuser_group_id>
+# ...
+----
++
+where:
+
+`SUPERUSER_GROUP`:: Specifies the unique identifier of the OIDC group whose members are granted superuser privileges at login. Users are dynamically added to or removed from the superuser role on each login based on their current group membership in the OIDC token. The identifier format depends on your OIDC provider; for example, Microsoft Entra ID uses a group object ID (UUID), while Keycloak uses a group name. This field is optional.
+
+`GLOBAL_READONLY_SUPERUSER_GROUP`:: Specifies the unique identifier of the OIDC group whose members are granted global read-only superuser privileges at login. Members of this group can view all repositories regardless of visibility. The identifier format depends on your OIDC provider. This field is optional.
+
+. Start, or restart, your {productname} deployment so that the configuration changes take effect.
+
+.Verification
+
+After enabling OIDC superuser group synchronization, members of the configured OIDC group receive superuser privileges upon their next login. The following options are available to superusers:
+
+* Manage users
+* Manage organizations
+* Manage service keys
+* View the change log
+* Query the usage logs
+* Create globally visible user messages
+
+[NOTE]
+====
+Users listed in the `SUPER_USERS` configuration field are never removed from the superuser role, even if they are not members of the configured OIDC group at login. This ensures that statically configured superusers remain protected.
+====
+
+[role="_additional-resources"]
+.Additional resources
+
+* xref:ldap-super-users-enabling[Enabling the LDAP_SUPERUSER_FILTER configuration field]
+* xref:oidc-config-fields[OIDC configuration fields]
