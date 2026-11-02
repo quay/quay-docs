@@ -5,5 +5,18 @@
 [role="_abstract"]
 You can review notable technical changes in {productname} {producty}.
 
-[id="example"]
-== Example
+[id="cache-component-upgrade-requirement-500"]
+== Cache component and customized data model cache configuration
+
+{productname} {producty} introduces a `cache` component on the `QuayRegistry` custom resource. The Operator uses this component to configure Redis-backed data model caching for Quay pods.
+
+On upgrade, if the `cache` component is omitted from the `QuayRegistry` resource, the Operator defaults its management state from the Redis component. When Redis is managed, `cache` is implicitly set to `managed: true`.
+
+If your config bundle contains a customized `DATA_MODEL_CACHE_CONFIG` field and Redis is managed, the upgrade is blocked with a `ConfigInvalid` condition unless you take one of the following actions before upgrading:
+
+* Explicitly set the `cache` component to `managed: false` while retaining `redis.managed: true`, or
+* Remove the customized `DATA_MODEL_CACHE_CONFIG` from the config bundle and allow the Operator to apply managed cache defaults.
+
+Making Redis unmanaged is not required.
+
+For the complete procedure, see link:https://docs.redhat.com/en/documentation/red_hat_quay/5/html-single/upgrade_red_hat_quay/index#upgrading-cache-component-custom-config[Preparing a custom data model cache configuration before upgrading to {productname} {producty}].

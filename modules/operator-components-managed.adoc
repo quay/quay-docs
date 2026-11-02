@@ -14,6 +14,7 @@ Managed components are {productname} registry components that the Operator autom
 |`postgres` |Boolean | Used for storing registry metadata. Currently, PostgreSQL version 13 is used.
 |`clair` |Boolean | Provides image vulnerability scanning. You can override ephemeral scratch storage for image layer extraction by using `overrides.volumeSize` and `overrides.storageClassName`.
 |`redis` |Boolean | Stores live builder logs and the locking mechanism that is required for garbage collection. You can override CPU and memory resources for this component when it is managed.
+|`cache` |Boolean | Configures {productname} to use Redis as a shared data model cache. When `managed: true`, the Operator configures Redis-backed caching for Quay pods. When `managed: false`, {productname} falls back to the internal Memcached instance unless you provide a customized `DATA_MODEL_CACHE_CONFIG` in the config bundle. On upgrade, if this component is omitted, the Operator defaults `cache` from the Redis management state.
 |`horizontalpodautoscaler` |Boolean | Adjusts the number of `quay` pods depending on your memory and CPU consumption.
 |`objectstorage` |Boolean | Stores image layer blobs. When set to `managed: true`, utilizes the `ObjectBucketClaim` Kubernetes API which is provided by NooBaa or {odf}. Setting this field to `managed: false` requires you to provide your own object storage.
 |`route` |Boolean | Provides an external entrypoint to the {productname} registry from outside of {ocp}.
@@ -43,6 +44,8 @@ metadata:
     - kind: clair
       managed: true
     - kind: redis
+      managed: true
+    - kind: cache
       managed: true
     - kind: horizontalpodautoscaler
       managed: true
