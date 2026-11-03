@@ -1,0 +1,41 @@
+:_mod-docs-content-type: PROCEDURE
+[id="keep-customized-cache-configuration-after-50-crd"]
+= Keeping your customized cache configuration after the {producty} CRD is installed
+
+[role="_abstract"]
+To retain a customized `DATA_MODEL_CACHE_CONFIG` during a {productname} {producty} upgrade with managed Redis, you can set the `cache` component to unmanaged after the {producty} Operator and CRD are installed. The 3.18 CRD rejects `kind: cache`.
+
+.Prerequisites
+
+* You are upgrading a {productname} Operator deployment to {producty}.
+* Your `QuayRegistry` has the `redis` component set to `managed: true`.
+* Your config bundle contains a customized `DATA_MODEL_CACHE_CONFIG` field.
+* You have reviewed xref:upgrading-cache-component-custom-config[Preparing a custom data model cache configuration before upgrading to {productname} {producty}].
+
+.Procedure
+
+. Upgrade the {productname} Operator to {producty}. If your subscription uses automatic approval, the Operator installs immediately. If it uses manual approval, approve the InstallPlan when you are ready.
+. After the {producty} Operator and CRD are installed, inspect the `QuayRegistry` status. The registry might temporarily remain at the previous version with `RolloutBlocked=True` and reason `ConfigInvalid` while `cache` is implicitly managed.
+. Edit the existing `QuayRegistry` custom resource. Preserve all other component entries and overrides, retain `redis.managed: true`, leave the custom config bundle unchanged, and set only the `cache` component to unmanaged:
++
+[source,yaml]
+----
+apiVersion: quay.redhat.com/v1
+kind: QuayRegistry
+metadata:
+  name: <example_registry>
+  namespace: <namespace>
+spec:
+  components:
+  - kind: redis
+    managed: true
+  - kind: cache
+    managed: false
+  # Preserve all other existing component entries and overrides
+----
+
+. Apply the updated `QuayRegistry` resource. The Operator resumes normal reconciliation automatically. Another Operator upgrade is not required.
+
+.Next steps
+
+* xref:verify-cache-component-upgrade[Verifying that the registry upgrade completed]

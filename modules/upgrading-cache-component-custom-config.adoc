@@ -1,70 +1,40 @@
-:_mod-docs-content-type: PROCEDURE
+:_mod-docs-content-type: CONCEPT
 [id="upgrading-cache-component-custom-config"]
 = Preparing a custom data model cache configuration before upgrading to {productname} {producty}
 
 [role="_abstract"]
-{productname} 5.0 introduces a `cache` component on the `QuayRegistry` custom resource. Before you upgrade, review whether your deployment uses a customized `DATA_MODEL_CACHE_CONFIG` with managed Redis, and take the required action so the upgrade is not blocked.
+{productname} {producty} adds a `cache` component to the `QuayRegistry` custom resource for Operator-managed Redis data model caching. If you use a customized `DATA_MODEL_CACHE_CONFIG` with managed Redis, you must prepare that configuration so the Operator upgrade is not blocked.
 
-In previous releases, each {productname} pod used an internal Memcached instance for data model caching, and cached data was not shared between pods. Starting in {productname} {producty}, the Operator can configure {productname} to use Redis as the shared cache store. Redis-backed caching reduces database pressure and helps prevent stale cache scenarios across pods.
+By default, previous releases used a per-pod Memcached instance for data model caching. Customers could already configure a shared Redis or Redis Cluster backend through `DATA_MODEL_CACHE_CONFIG`. Starting in {productname} {producty}, the Operator can manage Redis-backed data model caching through the new `cache` component. Operator-managed Redis caching reduces database pressure and helps prevent stale cache scenarios across pods.
 
 On upgrade, the Operator defaults the new `cache` component based on the Redis management state:
 
 * If `redis` is `managed: true`, the Operator implicitly sets `cache` to `managed: true`.
-* If `redis` is `managed: false`, the Operator sets `cache` to `managed: false`, and {productname} falls back to the internal Memcached instance unless you provide caching configuration through the config bundle.
+* If `redis` is `managed: false`, the Operator sets `cache` to `managed: false`, and {productname} falls back to the default Memcached instance unless you provide caching configuration through the config bundle.
 
-If your config bundle already contains a customized `DATA_MODEL_CACHE_CONFIG` and Redis is managed by the Operator, the upgrade is blocked with a `ConfigInvalid` condition unless you complete one of the following actions before or during the upgrade.
+If your config bundle already contains a customized `DATA_MODEL_CACHE_CONFIG` and Redis is managed by the Operator, the upgrade is blocked with `RolloutBlocked=True`, reason `ConfigInvalid`, unless you complete one of the preparation or recovery procedures. The 3.18 `QuayRegistry` CRD does not include the `cache` component, so you cannot set `cache.managed: false` until the {producty} Operator and CRD are installed.
 
-.Prerequisites
-
-* You are upgrading a {productname} Operator deployment to {producty}.
-* Your `QuayRegistry` has the `redis` component set to `managed: true`.
-* Your config bundle contains a customized `DATA_MODEL_CACHE_CONFIG` field.
-
-.Procedure
-
-. *Option 1*: Keep your customized cache configuration
-
-.. Edit your `QuayRegistry` custom resource and explicitly set the `cache` component to unmanaged while leaving Redis managed:
-+
-[source,yaml]
-----
-apiVersion: quay.redhat.com/v1
-kind: QuayRegistry
-metadata:
-  name: <example_registry>
-  namespace: <namespace>
-spec:
-  components:
-  - kind: redis
-    managed: true
-  - kind: cache
-    managed: false
-----
-
-. Apply the updated `QuayRegistry` resource, then proceed with the Operator upgrade.
-
-.. *Option 2*: Use Operator-managed cache defaults
-
-.. Remove the customized `DATA_MODEL_CACHE_CONFIG` field from the `config.yaml` file in your `configBundleSecret`.
-.. Update the `configBundleSecret` with the modified `config.yaml` file.
-.. Proceed with the Operator upgrade. The Operator sets `cache` to `managed: true` and applies safe default caching configuration for the managed Redis instance.
-+
 [IMPORTANT]
 ====
-Making Redis unmanaged is not required. To retain a customized `DATA_MODEL_CACHE_CONFIG` with managed Redis, set only `cache` to `managed: false`.
+Making Redis unmanaged is not required. To retain a customized `DATA_MODEL_CACHE_CONFIG` with managed Redis, set only `cache` to `managed: false` after the {producty} Operator and CRD are available.
 ====
 
-.Verification
+Choose one of the following procedures based on your goal and upgrade state:
 
-. After the upgrade completes, confirm that the registry advanced to the Operator version and that the rollout is not blocked:
-+
-[source,terminal]
-----
-$ oc get quayregistry <example_registry> -n <namespace> -o jsonpath='{.status.currentVersion}{"\n"}{.status.conditions[?(@.type=="RolloutBlocked")]}{"\n"}'
-----
+* Retain your customized cache configuration after the {producty} CRD is installed
+* Remove the custom configuration and use Operator-managed defaults before upgrading
+* Recover a registry that is already blocked after the Operator upgrade
+* Confirm that the registry advanced successfully
+
+Optional: Set your Operator subscription to `approvalStrategy: Manual` so that you can prepare the registry before approving the {producty} InstallPlan.
 
 [role="_additional-resources"]
 .Additional resources
 
+* xref:keep-customized-cache-configuration-after-50-crd.adoc[Keeping your customized cache configuration after the {producty} CRD is installed]
+* xref:use-operator-managed-cache-defaults-before-upgrade.adoc[Using Operator-managed cache defaults before upgrading]
+* xref:recover-blocked-registry-after-50-upgrade.adoc[Recovering a registry that is already blocked after the {producty} Operator upgrade]
+* xref:verify-cache-component-upgrade.adoc[Verifying that the registry upgrade completed]
+* xref:manually-approving-pending-operator-upgrade.adoc[Manually approving a pending Operator upgrade]
 * link:https://docs.redhat.com/en/documentation/red_hat_quay/5/html-single/deploying_the_red_hat_quay_operator_on_openshift_container_platform/index#operator-components-managed[Managed components]
 * link:https://docs.redhat.com/en/documentation/red_hat_quay/5/html-single/configure_red_hat_quay/index#config-fields-modelcache[ModelCache configuration fields]
