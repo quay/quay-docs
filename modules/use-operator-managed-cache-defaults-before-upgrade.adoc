@@ -1,0 +1,23 @@
+:_mod-docs-content-type: PROCEDURE
+[id="use-operator-managed-cache-defaults-before-upgrade"]
+= Using Operator-managed cache defaults before upgrading
+
+[role="_abstract"]
+To use Operator-managed cache defaults during a {productname} {producty} upgrade, you can remove the customized `DATA_MODEL_CACHE_CONFIG` from your config bundle before you upgrade. You can complete these steps on the 3.18 CRD.
+
+.Prerequisites
+
+* You are upgrading a {productname} Operator deployment to {producty}.
+* Your `QuayRegistry` has the `redis` component set to `managed: true`.
+* Your config bundle contains a customized `DATA_MODEL_CACHE_CONFIG` field.
+* You have reviewed xref:upgrading-cache-component-custom-config[Preparing a custom data model cache configuration before upgrading to {productname} {producty}].
+
+.Procedure
+
+. Remove the customized `DATA_MODEL_CACHE_CONFIG` field from the `config.yaml` file in your `configBundleSecret`.
+. Update the `configBundleSecret` with the modified `config.yaml` file.
+. Proceed with the Operator upgrade. The Operator sets `cache` to `managed: true` and applies safe default caching configuration for the managed Redis instance.
+
+.Next steps
+
+* xref:verify-cache-component-upgrade[Verifying that the registry upgrade completed]
