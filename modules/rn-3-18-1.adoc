@@ -1,0 +1,127 @@
+:_mod-docs-content-type: REFERENCE
+[id="rn-3-18-1"]
+= RHSA-2026:81110 - {productname} 3.18.1 release
+
+Issued 2026-10-12
+
+[role="_abstract"]
+{productname} release 3.18.1 is now available with Clair {clairproductminv}. The bug fixes that are included in the update are listed in the link:https://access.redhat.com/errata/RHSA-2026:81110[RHSA-2026:81110] advisory.
+
+[id="bug-fixes-318-1"]
+== {productname} 3.18.1 bug fixes
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13511[*PROJQUAY-13511*]. Previously, OpenID Connect (OIDC) authentication in large environments could time out at the gunicorn, nginx, or load balancer layer when users had a very large number of group memberships.
++
+With this release, OIDC authentication handling is improved for users with large group memberships. As a result, login is less likely to fail with worker or upstream timeouts in those environments.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13509[*PROJQUAY-13509*]. Previously, fetching archived build logs from Google Cloud Storage could return HTTP 500 with a zlib "incorrect header check" error when GCS served an already-decoded object that {productname} still tried to decompress as gzip.
++
+With this release, archived build log readers accept both gzip-compressed and already-decoded archive content. As a result, archived build logs on GCS storage load successfully.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13417[*PROJQUAY-13417*]. Previously, organization administrators could not update the quota limit for their own organization from the v2 UI, because the `changeOrganizationQuota` API returned an unauthorized error.
++
+With this release, organization administrators can update organization quota limits from the v2 UI and API. As a result, quota changes no longer fail with an unauthorized error for organization admins.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13385[*PROJQUAY-13385*]. Previously, registry blob commit requests could block for tens of seconds on `BLOB_DELETE` GlobalLock contention when lock acquisition failed and then retried the same lock.
++
+With this release, blob commit locking no longer double-blocks on the same deletion lock. As a result, blob finalize operations complete without long lock waits under contention.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13375[*PROJQUAY-13375*]. Previously, the new UI did not show an error when a robot account description exceeded the maximum length, and the create flow could continue without creating the account.
++
+With this release, the new UI validates robot account description length and surfaces an error. As a result, invalid descriptions are rejected before submit.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13374[*PROJQUAY-13374*]. Previously, the new UI did not validate tag name length before sending create-tag requests, so overly long names failed only after a backend error with a generic message.
++
+With this release, the new UI validates tag names against length and format rules before submit. As a result, users see a clear validation error instead of a generic create failure.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13373[*PROJQUAY-13373*]. Previously, creating a repository email notification for the first time with a new address showed an unexpected "Unable to verify email" danger alert in the new UI, even when the authorization email flow was correct.
++
+With this release, the first-time email notification authorization flow no longer shows that incorrect danger alert. As a result, users see the expected authorization prompt without a false verification error.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13367[*PROJQUAY-13367*]. Previously, repository list API paths loaded quota data by default even when the UI only needed repository names for permission setup, which slowed operations on namespaces with many repositories.
++
+With this release, expensive quota lookups are skipped when they are not required. As a result, permission and repository list flows are faster for large namespaces.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13365[*PROJQUAY-13365*]. Previously, blob and temporary tag expiry of one hour could be too short for large multi-architecture image uploads, so commits could fail before indexes and manifest lists finished.
++
+With this release, blob and temporary tag expiry is increased. As a result, large multi-architecture image pushes are more likely to complete successfully.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13342[*PROJQUAY-13342*]. Previously, repository mirroring always required pod-local DNS resolution for upstream hosts, which broke disconnected installs that rely on `HTTPS_PROXY` to reach public registries.
++
+With this release, mirroring can work with proxy-based resolution instead of requiring pod-local DNS for every upstream host. As a result, disconnected deployments that use an HTTPS proxy can mirror without hostAliases workarounds for public registries.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13341[*PROJQUAY-13341*]. Previously, pushing nested OCI indexes (an index that refers to another index) could fail with HTTP 500.
++
+With this release, nested indexes are handled correctly. As a result, you can push and store indexes that reference other indexes.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13339[*PROJQUAY-13339*]. Previously, proxying an image index that listed the same child manifest more than once failed with a unique constraint violation when inserting manifest child rows.
++
+With this release, duplicate child entries in an index are handled during proxy cache. As a result, indexes with repeated child digests can be pulled through the proxy.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13333[*PROJQUAY-13333*]. Previously, when quota enforcement rejected a blob upload, the `BlobUpload` row was left behind and inflated later in-flight size calculations, so subsequent pushes could be permanently rejected.
++
+With this release, rejected uploads no longer leave orphaned `BlobUpload` rows that block later pushes. As a result, namespaces recover correctly after a quota reject.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13331[*PROJQUAY-13331*]. Previously, pushing a manifest with a subject field did not invalidate the referrers cache, so the referrers API could return a stale empty or incomplete list for up to the cache TTL.
++
+With this release, the referrers cache is invalidated when a referrer manifest is pushed. As a result, newly attached referrers appear promptly in referrers API responses.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13200[*PROJQUAY-13200*]. Previously, enabling `USERS_DEBUG=1` logged LDAP traces that included passwords in clear text.
++
+With this release, LDAP passwords are redacted from debug output when `USERS_DEBUG=1` is enabled. As a result, container logs no longer expose LDAP credentials.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13194[*PROJQUAY-13194*]. Previously, the UI did not show the shield icon next to images signed with Cosign.
++
+With this release, Cosign-signed images display the shield icon in the UI. As a result, signed images are visually identifiable as expected.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-13133[*PROJQUAY-13133*]. Previously, {productname} could issue unthrottled bursts of DNS lookups that saturated local resolvers.
++
+With this release, DNS lookup behavior is improved to reduce query bursts. As a result, deployments are less likely to overwhelm local DNS infrastructure during routine operations.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12814[*PROJQUAY-12814*]. Previously, Clair could retry vulnerability scanning of the same image without a defined upper limit, which could delay scanning work for other images.
++
+With this release, Clair scanning attempts for an image are limited to a maximum number of retries. As a result, failed scans stop retrying after the limit is reached and scanning capacity remains available for other images.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12791[*PROJQUAY-12791*]. Previously, orphaned multipart uploads were not cleaned up as part of blob cleanup work and could remain in object storage.
++
+With this release, orphaned multipart uploads are cleaned up during blob cleanup. As a result, incomplete uploads no longer accumulate unused storage.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12639[*PROJQUAY-12639*]. Previously, the new UI did not expose nightly or build version details in a masthead help menu.
++
+With this release, the new UI help dropdown shows documentation links and the build version string. As a result, you can identify the running build version from the UI.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12551[*PROJQUAY-12551*]. Previously, the auto-pruner treated Cosign `.sig` tags the same as image tags, so signature tags counted toward prune limits and could be pruned independently of their images.
++
+With this release, auto-prune handling of Cosign signature tags is corrected. As a result, pruning policies no longer mismanage `.sig` tags relative to their associated images.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12411[*PROJQUAY-12411*]. Previously, repository mirroring failed when the source and destination repositories were on the same registry, because skopeo credential helper entries for a single hostname could not supply the correct credentials for both repositories.
++
+With this release, same-registry mirroring uses credentials correctly for both the source and destination. As a result, you can mirror between repositories on the same {productname} registry.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12386[*PROJQUAY-12386*]. Previously, the new UI generated malformed API requests when an organization name contained the word `organization`, which caused unauthorized errors when opening teams.
++
+With this release, UI routing handles organization names that include `organization` correctly. As a result, team pages load without unauthorized errors for those organizations.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12375[*PROJQUAY-12375*]. Previously, Slack quota threshold notifications used broken bold formatting and test notifications omitted usage data.
++
+With this release, Slack quota notification formatting and sample usage fields are corrected. As a result, Slack quota messages render correctly and test notifications include usage values.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12366[*PROJQUAY-12366*]. Previously, the audit log UI showed "No description available" for create, delete, and reset namespace notification actions.
++
+With this release, the UI provides descriptions for those namespace notification log actions. As a result, organization logs show meaningful text for notification changes.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12361[*PROJQUAY-12361*]. Previously, when the OpenShift cluster TLS security profile was set to Modern (TLS 1.3 only), the Quay nginx configuration still included TLS 1.2 ciphers and did not apply TLS 1.3 cipher suites.
++
+With this release, nginx TLS cipher configuration follows the Modern profile correctly. As a result, TLS 1.3-only clusters no longer advertise leftover TLS 1.2 ciphers in Quay nginx.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12351[*PROJQUAY-12351*]. Previously, global readonly superusers were blocked from GET endpoints for organization namespace notifications, even though write operations correctly remained restricted.
++
+With this release, global readonly superusers can read namespace notifications. As a result, GET notification APIs align with other readonly superuser read paths.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12236[*PROJQUAY-12236*]. Previously, the Organization Settings Notifications table truncated the Title and Status column headers.
++
+With this release, those column headers display in full. As a result, the notifications table remains readable.
+
+* link:https://issues.redhat.com/browse/PROJQUAY-12226[*PROJQUAY-12226*]. Previously, when a tag name matched the repository name, the new UI breadcrumb omitted the repository name and navigation could become incorrect.
++
+With this release, the breadcrumb always shows the repository name separately from the tag name. As a result, navigation remains accurate when tag and repository names match.
