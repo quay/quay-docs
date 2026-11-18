@@ -31,12 +31,27 @@ Use these fields for Redis coordination, executor backends such as Kubernetes or
 |*CONTAINER_RUNTIME* |Object | Specifies whether the Builder should run `docker` or `podman`.  Customers using Red Hat's `quay-builder` image should set this to `podman`.
 |*SERVICE_ACCOUNT_NAME/SERVICE_ACCOUNT_TOKEN* |Object | Defines the Service Account name or token that will be used by `build` pods.
 |*QUAY_USERNAME/QUAY_PASSWORD* |Object | Defines the registry credentials needed to pull the {productname} build worker image that is specified in the `WORKER_IMAGE` field.
+ifdef::upstream[]
+This is useful if pulling a non-public quay-builder image from quay.io.
+endif::upstream[]
+ifdef::downstream[]
 Customers should provide a Red Hat Service Account credential as defined in the section "Creating Registry Service Accounts" against registry.redhat.io in the article at https://access.redhat.com/RegistryAuthentication.
+endif::downstream[]
 |*WORKER_IMAGE* |Object |Image reference for the {productname} Builder image.
+ifdef::upstream[]
+quay.io/quay/quay-builder
+endif::upstream[]
+ifdef::downstream[]
 registry.redhat.io/quay/quay-builder
+endif::downstream[]
 |*WORKER_TAG* |Object |Tag for the Builder image desired. The latest version is {producty}. 
 |*BUILDER_VM_CONTAINER_IMAGE* |Object | The full reference to the container image holding the internal VM needed to run each {productname} Build.
+ifdef::upstream[]
+(`quay.io/quay/quay-builder-qemu-fedoracoreos:latest`).
+endif::upstream[]
+ifdef::downstream[]
 (`registry.redhat.io/quay/quay-builder-qemu-rhcos:{producty}`).
+endif::downstream[]
 |*SETUP_TIME* |String | Specifies the number of seconds at which a Build times out if it has not yet registered itself with the Build Manager. Defaults at `500` seconds. Builds that time out are attempted to be restarted three times. If the Build does not register itself after three attempts it is considered failed.
 
 |*MINIMUM_RETRY_THRESHOLD* |String | This setting is used with multiple Executors. It indicates how many retries are attempted to start a Build before a different Executor is chosen. Setting to `0` means there are no restrictions on how many tries the build job needs to have. This value should be kept intentionally small (three or less) to ensure failovers happen quickly during infrastructure failures. You must specify a value for this setting. For example, `Kubernetes` is set as the first executor and `EC2` as the second executor. If you want the last attempt to run a job to always be executed on EC2 and not Kubernetes, you can set the Kubernetes executor's `MINIMUM_RETRY_THRESHOLD` to `1` and EC2's `MINIMUM_RETRY_THRESHOLD` to `0` (defaults to `0` if not set). In this case, the Kubernetes' `MINIMUM_RETRY_THRESHOLD` *retries_remaining(1)* would evaluate to `False`, therefore falling back to the second executor configured.
