@@ -8,21 +8,21 @@ You can review new features and enhancements in {productname} {producty}.
 [id="oidc-superuser-group-sync-500"]
 == OIDC superuser group synchronization
 
-* {productname} {producty} introduces superuser group synchronization for OIDC-backed deployments, providing feature parity with `LDAP_SUPERUSER_FILTER`. Two new optional fields, `SUPERUSER_GROUP` and `GLOBAL_READONLY_SUPERUSER_GROUP`, are now supported inside any OIDC login service config block. Users in the configured OIDC groups are automatically granted or revoked superuser or global read-only superuser privileges at each login, based on their current OIDC group membership. This feature operates independently of `FEATURE_TEAM_SYNCING` and does not affect users who are statically listed in the `SUPER_USERS` configuration field.
+* {productname} {producty} introduces superuser group synchronization for OIDC-backed deployments, providing feature parity with `LDAP_SUPERUSER_FILTER`. Two new optional fields, `SUPERUSER_GROUP` and `GLOBAL_READONLY_SUPERUSER_GROUP`, are now supported inside any OIDC login service config block. Users in the configured OIDC groups are automatically granted or revoked superuser or global read-only superuser privileges at each login, based on their current OIDC group membership. This feature operates independently of `FEATURE_TEAM_SYNCING` and does not affect users who are statically listed in the `SUPER_USERS` configuration field. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/5/html-single/manage_red_hat_quay/index#oidc-superuser-group-sync[Enable OIDC superuser group synchronization].
 
 [id="configurable-gunicorn-worker-timeout"]
 == Configurable gunicorn worker timeout
 
 * {productname} {producty} introduces configurable gunicorn worker timeout settings. Two new `config.yaml` parameters, `GUNICORN_REGISTRY_TIMEOUT` and `GUNICORN_WEB_TIMEOUT`, allow administrators to increase the gunicorn worker timeout beyond the previous hardcoded 30-second default. 
 +
-Increasing these values prevents worker termination during long-running operations, including large image pushes, proxy cache blob downloads, and API queries on large organizations with quota enabled. The default values are `300` seconds for the registry process and `60` seconds for the web process. The minimum accepted value for both parameters is `30` seconds and the maximum is `300` seconds.
+Increasing these values prevents worker termination during long-running operations, including large image pushes, proxy cache blob downloads, and API queries on large organizations with quota enabled. The default values are `300` seconds for the registry process and `60` seconds for the web process. The minimum accepted value for both parameters is `30` seconds and the maximum is `300` seconds. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/5/html-single/configure_red_hat_quay/index#config-fields-rate-limit-performance[Rate limiting and performance configuration fields].
 
 [id="robot-api-tokens-500"]
 == Robot API tokens (Technology Preview)
 
 * {productname} {producty} introduces robot API tokens, which are expiring, scoped credentials that a robot account uses on the management API. Unlike the robot account's static push and pull token, a robot API token expires after at most 90 days and carries a set of OAuth scopes that limit which management API operations it can perform. You can set the expiry to `7`, `30`, or `90` days on the console. A robot account can hold several tokens at once, and each one can be revoked separately.
 +
-Create and revoke tokens on the *API Tokens* tab of a robot account in the v2 UI, or by using the `/api/v1/organization/{orgname}/robots/{robot_shortname}/tokens` endpoints. Enable the feature with the `FEATURE_ROBOT_API_TOKENS` configuration field, and cap the number of active tokens per robot with `API_TOKEN_MAXIMUM_TOKEN_COUNT`.
+Create and revoke tokens on the *API Tokens* tab of a robot account in the v2 UI, or by using the `/api/v1/organization/{orgname}/robots/{robot_shortname}/tokens` endpoints. Enable the feature with the `FEATURE_ROBOT_API_TOKENS` configuration field, and cap the number of active tokens per robot with `API_TOKEN_MAXIMUM_TOKEN_COUNT`. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/5/html-single/use_red_hat_quay/index#robot-api-tokens-overview[Robot API tokens].
 +
 [IMPORTANT]
 ====
@@ -34,7 +34,7 @@ Robot API tokens are a Technology Preview feature in {productname} {producty}. T
 
 * In {productname} {producty}, robot federation entries can grant access to the management API as well as to the registry. Each entry accepts an `api_scopes` field that sets the scopes a federated workload is allowed to request, and a new `POST /sts/token` endpoint exchanges an external OIDC token for a {productname} access token carrying those scopes. The exchanged token expires after one hour and cannot be renewed.
 +
-This lets in-cluster automation, such as an operator, a Tekton pipeline, or a GitOps controller, call the {productname} management API by using its Kubernetes service account token, without a `Secret` object that holds {productname} credentials. Matching on `issuer` and `subject` is exact string equality; wildcard patterns are not supported. Enable the feature with the `FEATURE_ROBOT_API_TOKEN_EXCHANGE` configuration field, which requires `FEATURE_ROBOT_API_TOKENS`.
+This lets in-cluster automation, such as an operator, a Tekton pipeline, or a GitOps controller, call the {productname} management API by using its Kubernetes service account token, without a `Secret` object that holds {productname} credentials. Matching on `issuer` and `subject` is exact string equality; wildcard patterns are not supported. Enable the feature with the `FEATURE_ROBOT_API_TOKEN_EXCHANGE` configuration field, which requires `FEATURE_ROBOT_API_TOKENS`. For more information, see link:https://docs.redhat.com/en/documentation/red_hat_quay/5/html-single/use_red_hat_quay/index#robot-federation-management-api-scopes[Robot federation for the management API].
 +
 [IMPORTANT]
 ====
