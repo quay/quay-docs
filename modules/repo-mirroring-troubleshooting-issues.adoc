@@ -1,12 +1,46 @@
 :_mod-docs-content-type: CONCEPT
 [id="repo-mirroring-troubleshooting-issues"]
-= Verifying authentication and permissions 
+= Troubleshooting repository mirroring
 
 [role="_abstract"]
-To verify authentication and permissions for {productname} repository mirroring and resolve mirroring issues, you can ensure credentials have the necessary access on source and destination instances.
+To resolve {productname} repository mirroring failures, verify authentication and permissions, and check for network devices that interrupt the TLS handshake to the source registry.
 
-On the {productname} UI, check the following settings: 
+[id="repo-mirroring-verify-authentication-permissions"]
+== Verifying authentication and permissions
 
-* The access control settings. Ensure that the user or service account performing the mirroring operation has the required privileges.
+To verify authentication and permissions for {productname} repository mirroring, ensure that credentials have the necessary access on the source and destination registries.
 
-* The permissions of your robot account on the {productname} registry. 
+On the {productname} UI, check the following settings:
+
+* The access control settings. Ensure that the user or service account that performs the mirroring operation has the required privileges.
+
+* The permissions of your robot account on the {productname} registry.
+
+[id="repo-mirroring-connection-reset-tls-handshake"]
+== Troubleshooting connection reset during the TLS handshake
+
+Repository mirroring can fail with a `connection reset by peer` error when the mirroring worker contacts the source registry, for example during `GET https://<source-registry>/v2/`. This symptom can look like a {productname} defect. A firewall or TLS inspection device between registries can reset the TCP connection during the TLS Client Hello handshake so that the mirror job never completes.
+
+This issue is different from certificate trust failures such as `x509: certificate signed by unknown authority`, which indicate missing or untrusted CA certificates rather than a mid-handshake reset.
+
+.Procedure
+
+. Review the repository mirroring worker logs for `connection reset by peer`, or an equivalent errno such as `104`, on requests to the source registry `/v2/` endpoint.
+
+. From the host or pod where the mirroring worker runs, test connectivity to the source registry:
+
++
+[source,terminal]
+----
+$ curl -vk https://<source-registry>/v2/
+----
+
++
+[source,terminal]
+----
+$ openssl s_client -connect <source-registry>:443 -servername <source-registry>
+----
+
+. If the handshake resets, allow HTTPS traffic on port `443` between the registries. Disable or exempt TLS or SSL inspection for the registry path when a security device terminates or resets the Client Hello.
+
+. Re-test with the same `curl` and `openssl` commands, then run the repository mirror job again.
